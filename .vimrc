@@ -26,7 +26,7 @@ nnoremap b <C-Left>
 inoremap b <C-Left>
 
 " hjkl faster navigation 
-nnoremap ^[[A {
+nnoremap ^[[A { *** THIS IS ALL WRONG MUST USE PROPER MACHINE TO SET THE CHARACTERS *** 
 nnoremap ^[[B }
 inoremap ^[[A <ESC>{i
 inoremap ^[[B <ESC>}i
