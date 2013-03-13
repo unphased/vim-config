@@ -1,9 +1,15 @@
 "set t_Co=256
 set term=xterm-256color
 syntax on
+set ts=4
+set number
 
 set ignorecase
 set smartcase
+
+colorscheme TMEighties
+set t_ut=
+set mouse=a
 
 " for hopping words
 nnoremap [C <C-Right>
@@ -19,7 +25,9 @@ inoremap f <C-Right>
 nnoremap b <C-Left>
 inoremap b <C-Left>
 
-colorscheme TMEighties
-set t_ut=
-set mouse=a
+" hjkl faster navigation 
+nnoremap ^[[A {
+nnoremap ^[[B }
+inoremap ^[[A <ESC>{i
+inoremap ^[[B <ESC>}i
 
