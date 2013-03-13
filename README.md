@@ -7,5 +7,6 @@ Note that in favor of not having my personal folder be itself a git repository (
 
 1) `cd ~/.vim`  
 2) `git clone git@github.com:unphased/vim-config`  
-3) `ln -s ../.vimrc .vimrc`
+3) delete ~/.vimrc if it exists, back it up
+4) `cd ~ && ln -s .vim/.vimrc .vimrc`
 
