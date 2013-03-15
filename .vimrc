@@ -3,6 +3,7 @@ set term=xterm-256color
 syntax on
 set ts=4
 set number
+set laststatus=2
 
 set ignorecase
 set smartcase
@@ -18,19 +19,29 @@ colorscheme TMEighties
 
 set mouse=a
 
-" for hopping words
+" for hopping words (from default shitty putty) 
 nnoremap [C <C-Right>
 inoremap [C <C-Right>
 nnoremap [D <C-Left>
 inoremap [D <C-Left>
 
-" default Terminal.app opt+left
+" default Terminal.app alt+left
 nnoremap f <C-Right>
 inoremap f <C-Right>
 
-" default Terminal.app opt+right
+" default Terminal.app alt+right
 nnoremap b <C-Left>
 inoremap b <C-Left>
+
+" proper terminal (iterm and modded putty and xterm) alt+arrows
+nnoremap [1;3A {
+nnoremap [1;3B }
+nnoremap [1;3C <C-Right>
+nnoremap [1;3D <C-Left>
+inoremap [1;3A <ESC>{i
+inoremap [1;3B <ESC>}i
+inoremap [1;3C <C-Right>
+inoremap [1;3D <C-Left>
 
 " hjkl faster navigation 
 nnoremap <C-j> }
