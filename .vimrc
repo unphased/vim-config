@@ -54,3 +54,6 @@ nnoremap <C-l> w
 nnoremap p p`]
 
 set autoindent
+
+" Prevent middle click paste (horrific with touchpad on mac)
+noremap <MiddleMouse> <LeftMouse>
