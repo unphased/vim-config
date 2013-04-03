@@ -25,11 +25,11 @@ inoremap [C <C-Right>
 nnoremap [D <C-Left>
 inoremap [D <C-Left>
 
-" default Terminal.app alt+left
+" default Terminal alt+left
 nnoremap f <C-Right>
 inoremap f <C-Right>
 
-" default Terminal.app alt+right
+" default Terminal alt+right
 nnoremap b <C-Left>
 inoremap b <C-Left>
 
