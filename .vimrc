@@ -33,15 +33,34 @@ inoremap f <C-Right>
 nnoremap b <C-Left>
 inoremap b <C-Left>
 
-" proper terminal (iterm and modded putty and xterm) alt+arrows
-nnoremap [1;3A {
-nnoremap [1;3B }
-nnoremap [1;3C <C-Right>
-nnoremap [1;3D <C-Left>
-inoremap [1;3A <ESC>{i
-inoremap [1;3B <ESC>}i
-inoremap [1;3C <C-Right>
-inoremap [1;3D <C-Left>
+" No longer using alt+arrows to do anything
+" nnoremap [1;3A {
+" nnoremap [1;3B }
+" nnoremap [1;3C <C-Right>
+" nnoremap [1;3D <C-Left>
+" inoremap [1;3A <ESC>{i
+" inoremap [1;3B <ESC>}i
+" inoremap [1;3C <C-Right>
+" inoremap [1;3D <C-Left>
+
+
+" note THESE NEXT FEW LINES ARE NOT PROPER ESC CHARACTERS (and are here for refernece only)
+" these ones are ... you know what just ignore all of this
+" nnoremap ^[[A {
+" nnoremap ^[[1;5A {
+" nnoremap ^[[B }
+" nnoremap ^[[1;5B }
+" inoremap ^[[A <ESC>{i
+" inoremap ^[[1;5A <ESC>{i
+" inoremap ^[[B <ESC>}i
+" inoremap ^[[1;5B <ESC>}i
+
+// With a proper terminal (proper ctrl key reporting can be done with putty and iterm2 so no crazy escapes are needed)
+inoremap <C-Up> <C-O>{
+inoremap <C-Down> <C-O>}
+nnoremap <C-Up> {
+nnoremap <C-Down> }
+
 
 " hjkl faster navigation 
 nnoremap <C-j> }
