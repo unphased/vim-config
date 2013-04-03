@@ -55,7 +55,7 @@ inoremap b <C-Left>
 " inoremap ^[[B <ESC>}i
 " inoremap ^[[1;5B <ESC>}i
 
-// With a proper terminal (proper ctrl key reporting can be done with putty and iterm2 so no crazy escapes are needed)
+" With a proper terminal (proper ctrl key reporting can be done with putty and iterm2 so no crazy escapes are needed)
 inoremap <C-Up> <C-O>{
 inoremap <C-Down> <C-O>}
 nnoremap <C-Up> {
