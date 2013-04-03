@@ -51,7 +51,7 @@ nnoremap <C-l> w
 
 " This puts the cursor at the end of what is pasted so it can be chained
 " and it also just makes sense
-nnoremap p p`]
+nnoremap p P`[j
 
 set autoindent
 
