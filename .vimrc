@@ -72,6 +72,8 @@ nnoremap <C-l> w
 " and it also just makes sense
 nnoremap p P`[j
 
+nnoremap ; :
+
 set autoindent
 
 " Prevent middle click paste (horrific with touchpad on mac)
