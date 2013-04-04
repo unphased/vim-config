@@ -1,4 +1,4 @@
-"set t_Co=256
+set t_Co=256
 set term=xterm-256color
 syntax on
 set ts=4
@@ -16,6 +16,11 @@ if &term =~ '256color'
 endif
 
 colorscheme TMEighties
+
+highlight DiffAdd term=reverse ctermbg=green ctermfg=black
+highlight DiffChange term=reverse ctermbg=blue ctermfg=black
+highlight DiffText term=reverse ctermbg=cyan ctermfg=black
+highlight DiffDelete term=reverse ctermbg=red ctermfg=black
 
 set mouse=a
 
