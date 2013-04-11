@@ -75,7 +75,8 @@ nnoremap <C-l> w
 
 " This puts the cursor at the end of what is pasted so it can be chained
 " and it also just makes sense
-nnoremap p P`[j
+nnoremap P p
+nnoremap p P`[
 
 nnoremap ; :
 
@@ -83,3 +84,21 @@ set autoindent
 
 " Prevent middle click paste (horrific with touchpad on mac)
 noremap <MiddleMouse> <LeftMouse>
+
+" vim-window management keys
+noremap <C-H> <C-W>h
+noremap <C-J> <C-W>j
+noremap <C-K> <C-W>k
+noremap <C-L> <C-W>l
+
+nnoremap + <C-W>3+
+nnoremap = <C-W>=
+nnoremap - <C-W>>
+
+noremap <F12> <Help>
+nnoremap <F1> :tabnew<CR>
+inoremap <F1> <C-O>:tabnew<CR><ESC>
+nnoremap <F2> :tabprev<CR>
+inoremap <F2> <C-O>:tabprev<CR><ESC>
+nnoremap <F3> :tabnext<CR>
+inoremap <F3> <C-O>:tabnext<CR><ESC>
