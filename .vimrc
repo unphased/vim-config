@@ -38,6 +38,10 @@ inoremap f <C-Right>
 nnoremap b <C-Left>
 inoremap b <C-Left>
 
+" consistency with pagers in normal mode
+nnoremap <Space> <C-D>
+nnoremap b <C-U>
+
 " No longer using alt+arrows to do anything
 " nnoremap [1;3A {
 " nnoremap [1;3B }
@@ -66,6 +70,7 @@ inoremap <C-Down> <C-O>}
 nnoremap <C-Up> {
 nnoremap <C-Down> }
 
+set wrap
 
 " hjkl faster navigation 
 nnoremap <C-j> }
