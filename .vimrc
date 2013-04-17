@@ -2,6 +2,7 @@ set t_Co=256
 set term=xterm-256color
 syntax on
 set ts=4
+set shiftwidth=4
 set number
 set laststatus=2
 
