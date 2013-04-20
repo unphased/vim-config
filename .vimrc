@@ -5,6 +5,7 @@ set ts=4
 set shiftwidth=4
 set number
 set laststatus=2
+set paste
 
 set ignorecase
 set smartcase
@@ -22,6 +23,41 @@ highlight DiffAdd term=reverse ctermbg=green ctermfg=black
 highlight DiffChange term=reverse ctermbg=blue ctermfg=black
 highlight DiffText term=reverse ctermbg=cyan ctermfg=black
 highlight DiffDelete term=reverse ctermbg=red ctermfg=black
+
+" start pulled from SO: http://stackoverflow.com/a/9121083/340947 
+
+function! InsertStatuslineColor(mode)
+  if a:mode == 'i'
+    hi statusline guibg=Cyan ctermfg=6 guifg=Black ctermbg=0
+  elseif a:mode == 'r'
+    hi statusline guibg=Purple ctermfg=5 guifg=Black ctermbg=0
+  else
+    hi statusline guibg=DarkRed ctermfg=1 guifg=Black ctermbg=0
+  endif
+endfunction
+
+au InsertEnter * call InsertStatuslineColor(v:insertmode)
+au InsertLeave * hi statusline ctermfg=237 ctermbg=250
+
+" default the statusline to green when entering Vim
+hi statusline guibg=DarkGrey ctermfg=237 guifg=Green ctermbg=250
+
+" Formats the statusline
+set statusline=%f                           " file name
+set statusline+=[%{strlen(&fenc)?&fenc:'none'}, "file encoding
+set statusline+=%{&ff}] "file format
+set statusline+=%y      "filetype
+set statusline+=%h      "help file flag
+set statusline+=%m      "modified flag
+set statusline+=%r      "read only flag
+
+set statusline+=\ %=                        " align left
+set statusline+=Line:%l/%L[%p%%]            " line X of Y [percent of file]
+set statusline+=\ Col:%c                    " current column
+set statusline+=\ Buf:%n                    " Buffer number
+set statusline+=\ [%b][0x%B]\               " ASCII and byte code under cursor
+
+" end pulled from SO
 
 set mouse=a
 
