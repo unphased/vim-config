@@ -5,7 +5,6 @@ set ts=4
 set shiftwidth=4
 set number
 set laststatus=2
-set paste
 
 set ignorecase
 set smartcase
