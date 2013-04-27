@@ -5,7 +5,6 @@ set ts=4
 set shiftwidth=4
 set number
 set laststatus=2
-set paste
 
 set ignorecase
 set smartcase
@@ -144,3 +143,8 @@ nnoremap <F2> :tabprev<CR>
 inoremap <F2> <C-O>:tabprev<CR><ESC>
 nnoremap <F3> :tabnext<CR>
 inoremap <F3> <C-O>:tabnext<CR><ESC>
+
+" Use CTRL-S for saving, also in Insert mode
+noremap <C-S> :update<CR>
+vnoremap <C-S> <C-C>:update<CR>
+inoremap <C-S> <C-O>:update<CR>
