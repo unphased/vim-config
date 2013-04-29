@@ -134,7 +134,7 @@ noremap <C-L> <C-W>l
 
 nnoremap + <C-W>3+
 nnoremap = <C-W>=
-nnoremap - <C-W>>
+nnoremap - <C-W>5>
 
 noremap <F12> <Help>
 nnoremap <F1> :tabnew<CR>
