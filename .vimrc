@@ -134,7 +134,7 @@ noremap <C-L> <C-W>l
 
 nnoremap + <C-W>3+
 nnoremap = <C-W>=
-nnoremap - <C-W>>
+nnoremap - <C-W>5>
 
 noremap <F12> <Help>
 nnoremap <F1> :tabnew<CR>
@@ -143,3 +143,8 @@ nnoremap <F2> :tabprev<CR>
 inoremap <F2> <C-O>:tabprev<CR><ESC>
 nnoremap <F3> :tabnext<CR>
 inoremap <F3> <C-O>:tabnext<CR><ESC>
+
+" Use CTRL-S for saving, also in Insert mode
+noremap <C-S> :update<CR>
+vnoremap <C-S> <C-C>:update<CR>
+inoremap <C-S> <C-O>:update<CR>
