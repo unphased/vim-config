@@ -148,3 +148,8 @@ inoremap <F3> <C-O>:tabnext<CR><ESC>
 noremap <C-S> :update<CR>
 vnoremap <C-S> <C-C>:update<CR>
 inoremap <C-S> <C-O>:update<CR>
+
+" Use CTRL-Q for hard-quitting 
+noremap <C-Q> :qa!<CR>
+vnoremap <C-Q> <C-C>:qa!<CR>
+inoremap <C-S> <C-O>:qa!<CR>
