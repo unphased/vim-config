@@ -1,5 +1,5 @@
 set t_Co=256
-" set term=xterm-256color
+set term=xterm-256color
 syntax on
 set ts=4
 set shiftwidth=4
@@ -152,4 +152,4 @@ inoremap <C-S> <C-O>:update<CR>
 " Use CTRL-Q for hard-quitting 
 noremap <C-Q> :qa!<CR>
 vnoremap <C-Q> <C-C>:qa!<CR>
-inoremap <C-S> <C-O>:qa!<CR>
+inoremap <C-Q> <C-O>:qa!<CR>
