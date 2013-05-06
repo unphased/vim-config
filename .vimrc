@@ -24,6 +24,7 @@ au BufRead,BufNewFile *.esp setfiletype perl
 nnoremap <F4> :GundoToggle<CR>
 inoremap <F4> <ESC>:GundoToggle<CR>
 
+set hlsearch
 set backspace=2
 
 set t_Co=256
