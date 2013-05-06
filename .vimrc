@@ -197,3 +197,15 @@ inoremap <C-S> <C-O>:update<CR>
 noremap <C-Q> :qa!<CR>
 vnoremap <C-Q> <C-C>:qa!<CR>
 inoremap <C-Q> <C-O>:qa!<CR>
+
+let g:highlighting = 0
+function! Highlighting()
+  if g:highlighting == 1 && @/ =~ '^\\<'.expand('<cword>').'\\>$'
+    let g:highlighting = 0
+    return ":silent nohlsearch\<CR>"
+  endif
+  let @/ = '\<'.expand('<cword>').'\>'
+  let g:highlighting = 1
+  return ":silent set hlsearch\<CR>"
+endfunction
+nnoremap <silent> <expr> <CR> Highlighting()
