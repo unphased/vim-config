@@ -1,3 +1,31 @@
+set nocompatible
+filetype off " Vundle needs this
+
+set rtp+=~/.vim/bundle/vundle/
+call vundle#rc()
+
+Bundle 'gmarik/vundle'
+Bundle 'Valloric/YouCompleteMe'
+Bundle 'sjl/gundo.vim'
+
+filetype plugin indent on "more Vundle
+
+ "
+ " Brief help
+ " :BundleList          - list configured bundles
+ " :BundleInstall(!)    - install(update) bundles
+ " :BundleSearch(!) foo - search(or refresh cache first) for foo
+ " :BundleClean(!)      - confirm(or auto-approve) removal of unused bundles
+ "
+ " see :h vundle for more details or wiki for FAQ
+
+au BufRead,BufNewFile *.esp setfiletype perl
+
+nnoremap <F4> :GundoToggle<CR>
+inoremap <F4> <ESC>:GundoToggle<CR>
+
+set backspace=2
+
 set t_Co=256
 set term=xterm-256color
 
@@ -61,6 +89,17 @@ set statusline+=\ Buf:%n                    " Buffer number
 set statusline+=\ [%b][0x%B]\               " ASCII and byte code under cursor
 
 " end pulled from SO
+
+
+" omnifunc, pulled from http://amix.dk/blog/post/19021
+
+autocmd FileType python set omnifunc=pythoncomplete#Complete
+autocmd FileType javascript set omnifunc=javascriptcomplete#CompleteJS
+autocmd FileType html set omnifunc=htmlcomplete#CompleteTags
+autocmd FileType css set omnifunc=csscomplete#CompleteCSS
+autocmd FileType xml set omnifunc=xmlcomplete#CompleteTags
+autocmd FileType php set omnifunc=phpcomplete#CompletePHP
+autocmd FileType c set omnifunc=ccomplete#Complete
 
 set mouse=a
 
