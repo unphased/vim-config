@@ -7,6 +7,8 @@ call vundle#rc()
 Bundle 'gmarik/vundle'
 Bundle 'Valloric/YouCompleteMe'
 Bundle 'sjl/gundo.vim'
+Bundle 'jeffkreeftmeijer/vim-numbertoggle'
+Bundle 'sjl/vitality.vim'
 
 filetype plugin indent on "more Vundle
 
