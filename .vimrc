@@ -87,13 +87,12 @@ set statusline+=%m      "modified flag
 set statusline+=%r      "read only flag
 
 set statusline+=\ %=                        " align left
-set statusline+=Line:%l/%L[%p%%]            " line X of Y [percent of file]
-set statusline+=\ Col:%c                    " current column
+set statusline+=Line:\ %l/%L[%2p%%]            " line X of Y [percent of file]
+set statusline+=\ Col:%-2c                    " current column
 set statusline+=\ Buf:%n                    " Buffer number
-set statusline+=\ [%b][0x%B]\               " ASCII and byte code under cursor
+set statusline+=\ %-3b%%%-2B\               " ASCII and byte code under cursor
 
 " end pulled from SO
-
 
 " omnifunc, pulled from http://amix.dk/blog/post/19021
 
