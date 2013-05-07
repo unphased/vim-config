@@ -41,6 +41,7 @@ set ts=4
 set shiftwidth=4
 set number
 set laststatus=2
+set undofile
 
 set ignorecase
 set smartcase
