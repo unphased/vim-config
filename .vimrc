@@ -9,6 +9,7 @@ Bundle 'Valloric/YouCompleteMe'
 Bundle 'sjl/gundo.vim'
 Bundle 'jeffkreeftmeijer/vim-numbertoggle'
 Bundle 'sjl/vitality.vim'
+Bundle 'atsepkov/vim-fakeclip'
 
 filetype plugin indent on "more Vundle
 
