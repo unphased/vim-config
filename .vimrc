@@ -148,10 +148,15 @@ nnoremap b <C-U>
 " inoremap ^[[1;5B <ESC>}i
 
 " With a proper terminal (proper ctrl key reporting can be done with putty and iterm2 so no crazy escapes are needed)
-inoremap <C-Up> <C-O>{
-inoremap <C-Down> <C-O>}
-nnoremap <C-Up> {
-nnoremap <C-Down> }
+inoremap <S-Up> <C-O>{
+inoremap <S-Down> <C-O>}
+nnoremap <S-Up> {
+nnoremap <S-Down> }
+
+inoremap <C-Up> <C-O><C-Y>
+nnoremap <C-Up> <C-Y>
+inoremap <C-Down> <C-O><C-E>
+nnoremap <C-Down> <C-E>
 
 set wrap
 
