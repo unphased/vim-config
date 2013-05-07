@@ -29,6 +29,10 @@ au BufRead,BufNewFile *.esp setfiletype perl
 nnoremap <F4> :GundoToggle<CR>
 inoremap <F4> <ESC>:GundoToggle<CR>
 
+nmap <C-V> "*p
+
+vmap <C-C> "*y
+
 set hlsearch
 set backspace=2
 
