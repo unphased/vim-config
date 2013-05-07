@@ -1,4 +1,6 @@
 set nocompatible
+set showcmd
+
 filetype off " Vundle needs this
 
 set rtp+=~/.vim/bundle/vundle/
