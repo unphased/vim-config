@@ -12,6 +12,7 @@ Bundle 'sjl/gundo.vim'
 Bundle 'jeffkreeftmeijer/vim-numbertoggle'
 Bundle 'sjl/vitality.vim'
 Bundle 'atsepkov/vim-fakeclip'
+Bundle 'taglist.vim'
 
 filetype plugin indent on "more Vundle
 
@@ -176,15 +177,21 @@ set wrap
 
 " hjkl faster navigation 
 nnoremap <C-j> }
+inoremap <C-j> <C-O>}
 nnoremap <C-k> {
+inoremap <C-k> <C-o>{
 nnoremap <C-h> b
+inoremap <C-h> <C-o>b
 nnoremap <C-l> w
+inoremap <C-l> <C-o>w
 
 " This puts the cursor at the end of what is pasted so it can be chained
 " and it also just makes sense
 nnoremap P p
 nnoremap p P`[
 
+" I'm not sure what the semicolon is bound to but it
+" will never be as useful as this binding
 nnoremap ; :
 
 set autoindent
@@ -220,6 +227,7 @@ noremap <C-Q> :qa!<CR>
 vnoremap <C-Q> <C-C>:qa!<CR>
 inoremap <C-Q> <C-O>:qa!<CR>
 
+" this bit controls search and highlighting by using the Enter key in normal mode
 let g:highlighting = 0
 function! Highlighting()
   if g:highlighting == 1 && @/ =~ '^\\<'.expand('<cword>').'\\>$'
@@ -231,3 +239,6 @@ function! Highlighting()
   return ":silent set hlsearch\<CR>"
 endfunction
 nnoremap <silent> <expr> <CR> Highlighting()
+
+nnoremap <F5> :TlistToggle<CR>
+inoremap <F5> <C-O>:TlistToggle<CR>
