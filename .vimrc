@@ -51,6 +51,7 @@ set undofile
 
 set ignorecase
 set smartcase
+set cursorline
 
 if &term =~ '256color'
     " Disable Background Color Erase (BCE) so that color schemes
@@ -70,16 +71,23 @@ highlight DiffDelete term=reverse ctermbg=red ctermfg=black
 
 function! InsertStatuslineColor(mode)
   if a:mode == 'i'
-    hi statusline guibg=Cyan ctermfg=6 guifg=Black ctermbg=0
+    hi StatusLine guibg=Cyan ctermfg=6 guifg=Black ctermbg=0
+	set cursorcolumn
   elseif a:mode == 'r'
-    hi statusline guibg=Purple ctermfg=5 guifg=Black ctermbg=0
+    hi StatusLine ctermfg=5 guifg=Black ctermbg=3
   else
-    hi statusline guibg=DarkRed ctermfg=1 guifg=Black ctermbg=0
+    hi StatusLine guibg=DarkRed ctermfg=1 guifg=Black ctermbg=0
   endif
 endfunction
 
+function! InsertLeaveActions()
+	hi statusline ctermfg=237 ctermbg=250
+	set nocursorcolumn
+endfunction
+
 au InsertEnter * call InsertStatuslineColor(v:insertmode)
-au InsertLeave * hi statusline ctermfg=237 ctermbg=250
+au InsertChange * call InsertStatuslineColor(v:insertmode)
+au InsertLeave * call InsertLeaveActions()
 
 " default the statusline to green when entering Vim
 hi statusline guibg=DarkGrey ctermfg=237 guifg=Green ctermbg=250
@@ -97,7 +105,7 @@ set statusline+=\ %=                        " align left
 set statusline+=Line:\ %l/%L[%2p%%]            " line X of Y [percent of file]
 set statusline+=\ Col:%-2c                    " current column
 set statusline+=\ Buf:%n                    " Buffer number
-set statusline+=\ %-3b%%%-2B\               " ASCII and byte code under cursor
+set statusline+=\ %-3b%%%-02B\               " ASCII and byte code under cursor
 
 " end pulled from SO
 
@@ -159,10 +167,10 @@ inoremap <S-Down> <C-O>}
 nnoremap <S-Up> {
 nnoremap <S-Down> }
 
-inoremap <C-Up> <C-O><C-Y>
-nnoremap <C-Up> <C-Y>
-inoremap <C-Down> <C-O><C-E>
-nnoremap <C-Down> <C-E>
+inoremap <C-Up> <C-O>3<C-Y>
+nnoremap <C-Up> 3<C-Y>
+inoremap <C-Down> <C-O>3<C-E>
+nnoremap <C-Down> 3<C-E>
 
 set wrap
 
