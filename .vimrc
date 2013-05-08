@@ -173,6 +173,10 @@ nnoremap <C-Up> 3<C-Y>
 inoremap <C-Down> <C-O>3<C-E>
 nnoremap <C-Down> 3<C-E>
 
+" accelerated j/k navigation
+nnoremap <S-J> 7j
+nnoremap <S-K> 7k
+
 set wrap
 
 " hjkl faster navigation 
