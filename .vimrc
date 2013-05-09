@@ -9,10 +9,13 @@ call vundle#rc()
 Bundle 'gmarik/vundle'
 Bundle 'Valloric/YouCompleteMe'
 Bundle 'sjl/gundo.vim'
-Bundle 'jeffkreeftmeijer/vim-numbertoggle'
+"Bundle 'jeffkreeftmeijer/vim-numbertoggle'
 Bundle 'sjl/vitality.vim'
 Bundle 'atsepkov/vim-fakeclip'
 Bundle 'taglist.vim'
+Bundle 'mru.vim'
+Bundle 'scrooloose/nerdtree'
+Bundle 'kien/ctrlp.vim'
 
 filetype plugin indent on "more Vundle
 
@@ -209,9 +212,10 @@ noremap <C-J> <C-W>j
 noremap <C-K> <C-W>k
 noremap <C-L> <C-W>l
 
-nnoremap + <C-W>3+
-nnoremap = <C-W>=
+nnoremap + <C-W>3-
+nnoremap = <C-W>3+
 nnoremap - <C-W>5>
+nnoremap _ <C-W>5<
 
 noremap <F12> <Help>
 nnoremap <F1> :tabnew<CR>
@@ -246,3 +250,21 @@ nnoremap <silent> <expr> <CR> Highlighting()
 
 nnoremap <F5> :TlistToggle<CR>
 inoremap <F5> <C-O>:TlistToggle<CR>
+
+nnoremap <F6> :CtrlPMRUFiles<CR>
+inoremap <F6> <ESC>:CtrlPMRUFiles<CR>
+
+nnoremap <F7> :NERDTreeToggle<CR>
+
+let g:ctrlp_max_files = 200000
+
+
+noremap k gk
+noremap j gj
+noremap <ESC>[1~ g^
+inoremap <ESC>[1~ <C-o>g^
+noremap <ESC>[4~ g$
+inoremap <ESC>[4~ <C-o>g$
+
+inoremap <C-H> <BS>
+
