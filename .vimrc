@@ -110,7 +110,7 @@ set statusline+=\ %=                        " align left
 set statusline+=Line:\ %l/%L[%2p%%]            " line X of Y [percent of file]
 set statusline+=\ Col:%-2c                    " current column
 set statusline+=\ Buf:%n                    " Buffer number
-set statusline+=\ %-3b%%%-02B\               " ASCII and byte code under cursor
+set statusline+=\ %-3bx%02B\                 " ASCII and byte code under cursor
 
 " end pulled from SO
 
