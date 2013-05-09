@@ -38,6 +38,7 @@ nmap <C-V> "*p
 vmap <C-C> "*y
 
 set hlsearch
+set incsearch
 set backspace=2
 
 set t_Co=256
