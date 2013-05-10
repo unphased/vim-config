@@ -260,12 +260,40 @@ nnoremap <F7> :NERDTreeToggle<CR>
 let g:ctrlp_max_files = 200000
 
 
-noremap k gk
-noremap j gj
-noremap <ESC>[1~ g^
+nnoremap k gk
+nnoremap j gj
+nnoremap <ESC>[1~ g^
 inoremap <ESC>[1~ <C-o>g^
-noremap <ESC>[4~ g$
+nnoremap <ESC>[4~ g$
 inoremap <ESC>[4~ <C-o>g$
 
+" for not strange behavior on different kind of backspace (shift backspace on
+" putty) when in insert mode (i have lazy pinky)
 inoremap <C-H> <BS>
+
+" Move current tab into the specified direction.
+"
+" @param direction -1 for left, 1 for right.
+function! TabMove(direction)
+    " get number of tab pages.
+    let ntp=tabpagenr("$")
+    " move tab, if necessary.
+    if ntp > 1
+        " get number of current tab page.
+        let ctpn=tabpagenr()
+        " move left.
+        if a:direction < 0
+            let index=((ctpn-1+ntp-1)%ntp)
+        else
+            let index=(ctpn%ntp)
+        endif
+
+        " move tab page.
+        execute "tabmove ".index
+    endif
+endfunction
+
+" chain m + F2/F3 to move them rather than navigate through them
+nnoremap m<F3> :call TabMove(1)<CR>
+nnoremap m<F2> :call TabMove(-1)<CR>
 
