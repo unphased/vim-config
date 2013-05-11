@@ -15,6 +15,7 @@ Bundle 'atsepkov/vim-fakeclip'
 Bundle 'taglist.vim'
 Bundle 'mru.vim'
 Bundle 'scrooloose/nerdtree'
+Bundle 'scrooloose/syntastic'
 Bundle 'kien/ctrlp.vim'
 
 filetype plugin indent on "more Vundle
@@ -297,3 +298,5 @@ endfunction
 nnoremap m<F3> :call TabMove(1)<CR>
 nnoremap m<F2> :call TabMove(-1)<CR>
 
+" this one's for configuring YCM. 
+let g:ycm_autoclose_preview_window_after_insertion = 1
