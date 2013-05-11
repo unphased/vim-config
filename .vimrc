@@ -298,5 +298,9 @@ endfunction
 nnoremap m<F3> :call TabMove(1)<CR>
 nnoremap m<F2> :call TabMove(-1)<CR>
 
-" this one's for configuring YCM. 
+" configuring YCM. 
 let g:ycm_autoclose_preview_window_after_insertion = 1
+
+" configuring CtrlP 
+let g:ctrlp_clear_cache_on_exit = 0
+
