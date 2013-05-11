@@ -57,7 +57,6 @@ set undofile
 
 set ignorecase
 set smartcase
-set cursorline
 
 if &term =~ '256color'
     " Disable Background Color Erase (BCE) so that color schemes
@@ -78,7 +77,7 @@ highlight DiffDelete term=reverse ctermbg=red ctermfg=black
 function! InsertStatuslineColor(mode)
   if a:mode == 'i'
     hi StatusLine guibg=Cyan ctermfg=6 guifg=Black ctermbg=0
-	set cursorcolumn
+	set cursorline
   elseif a:mode == 'r'
     hi StatusLine ctermfg=5 guifg=Black ctermbg=3
   else
@@ -88,7 +87,7 @@ endfunction
 
 function! InsertLeaveActions()
 	hi statusline ctermfg=237 ctermbg=250
-	set nocursorcolumn
+	set nocursorline
 endfunction
 
 au InsertEnter * call InsertStatuslineColor(v:insertmode)
