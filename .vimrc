@@ -13,10 +13,11 @@ Bundle 'sjl/gundo.vim'
 Bundle 'sjl/vitality.vim'
 Bundle 'atsepkov/vim-fakeclip'
 Bundle 'taglist.vim'
-Bundle 'mru.vim'
+"Bundle 'mru.vim'
 Bundle 'scrooloose/nerdtree'
 Bundle 'scrooloose/syntastic'
 Bundle 'kien/ctrlp.vim'
+Bundle 'Lokaltog/vim-easymotion'
 
 filetype plugin indent on "more Vundle
 
@@ -49,14 +50,17 @@ set ttyfast
 set ttymouse=xterm2
 
 syntax on
-set ts=4
-set shiftwidth=4
 set number
 set laststatus=2
 set undofile
 
 set ignorecase
 set smartcase
+
+set smartindent
+set shiftwidth=4
+set tabstop=4
+set expandtab
 
 if &term =~ '256color'
     " Disable Background Color Erase (BCE) so that color schemes
