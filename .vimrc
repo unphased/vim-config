@@ -44,7 +44,7 @@ set incsearch
 set backspace=2
 
 set t_Co=256
-set term=xterm-256color
+set term=rxvt-unicode-256color
 
 set ttyfast
 set ttymouse=xterm2
@@ -102,11 +102,13 @@ au InsertLeave * call InsertLeaveActions()
 hi statusline guibg=DarkGrey ctermfg=237 guifg=Green ctermbg=250
 
 " Formats the statusline
-set statusline=%f                           " file name
-set statusline+=[%{strlen(&fenc)?&fenc:'none'}, "file encoding
+set statusline=[%{strlen(&fenc)?&fenc:'none'}, "file encoding
 set statusline+=%{&ff}] "file format
 set statusline+=%y      "filetype
+set statusline+=%f                           " file name
 set statusline+=%h      "help file flag
+set statusline+=%m      "modified flag
+set statusline+=%m      "modified flag
 set statusline+=%m      "modified flag
 set statusline+=%r      "read only flag
 
@@ -235,7 +237,7 @@ noremap <C-S> :update<CR>
 vnoremap <C-S> <C-C>:update<CR>
 inoremap <C-S> <C-O>:update<CR>
 
-" Use CTRL-Q for hard-quitting 
+" Use CTRL-Q for abort-quitting (no save)
 noremap <C-Q> :qa!<CR>
 vnoremap <C-Q> <C-C>:qa!<CR>
 inoremap <C-Q> <C-O>:qa!<CR>
@@ -273,7 +275,7 @@ inoremap <ESC>[4~ <C-o>g$
 
 " for not strange behavior on different kind of backspace (shift backspace on
 " putty) when in insert mode (i have lazy pinky)
-inoremap <C-H> <BS>
+inoremap <C-H> <C-W>
 
 " Move current tab into the specified direction.
 "
@@ -307,3 +309,6 @@ let g:ycm_autoclose_preview_window_after_insertion = 1
 " configuring CtrlP 
 let g:ctrlp_clear_cache_on_exit = 0
 
+" set highlight for search to be less blinding
+hi Search ctermbg=236 ctermfg=NONE cterm=underline
+hi Comment cterm=italic 
