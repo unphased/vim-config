@@ -311,4 +311,10 @@ let g:ctrlp_clear_cache_on_exit = 0
 
 " set highlight for search to be less blinding
 hi Search ctermbg=236 ctermfg=NONE cterm=underline
+
+" requires rxvt setting
 hi Comment cterm=italic 
+
+" bind ctrl W to always work on windows from insert mode (needs careful use as
+" we're in insert mode) 
+imap <C-W> <C-O><C-W>
