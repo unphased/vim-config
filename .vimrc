@@ -18,6 +18,7 @@ Bundle 'scrooloose/nerdtree'
 Bundle 'scrooloose/syntastic'
 Bundle 'kien/ctrlp.vim'
 Bundle 'Lokaltog/vim-easymotion'
+Bundle 'diffchanges.vim'
 
 filetype plugin indent on "more Vundle
 
@@ -60,7 +61,8 @@ set smartcase
 set smartindent
 set shiftwidth=4
 set tabstop=4
-set expandtab
+" set expandtab
+set smarttab
 
 if &term =~ '256color'
     " Disable Background Color Erase (BCE) so that color schemes
@@ -317,4 +319,18 @@ hi Comment cterm=italic
 
 " bind ctrl W to always work on windows from insert mode (needs careful use as
 " we're in insert mode) 
-imap <C-W> <C-O><C-W>
+inoremap <C-W> <C-O><C-W>
+
+" Convenient command to see the difference between the current buffer and the
+" file it was loaded from, thus the changes you made.
+" Only define it when not defined already.
+" if !exists(":DiffOrig")
+  " command DiffOrig vert new | set bt=nofile | r ++edit # | 0d_ | diffthis
+		  " \ | wincmd p | diffthis
+" endif
+
+" set ^Z in insert mode to run undo (overloading insert mode for
+" functionality that is generally useful)
+inoremap <C-Z> <C-O>u
+
+nnoremap <F8> :DiffChangesPatchToggle<CR>
