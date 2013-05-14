@@ -135,18 +135,18 @@ autocmd FileType c set omnifunc=ccomplete#Complete
 set mouse=a
 
 " for hopping words (from default shitty putty) 
-nnoremap [C <C-Right>
-inoremap [C <C-Right>
-nnoremap [D <C-Left>
-inoremap [D <C-Left>
+" nnoremap [C <C-Right>
+" inoremap [C <C-Right>
+" nnoremap [D <C-Left>
+" inoremap [D <C-Left>
 
 " default Terminal alt+left
-nnoremap f <C-Right>
-inoremap f <C-Right>
+" nnoremap f <C-Right>
+" inoremap f <C-Right>
 
 " default Terminal alt+right
-nnoremap b <C-Left>
-inoremap b <C-Left>
+" nnoremap b <C-Left>
+" inoremap b <C-Left>
 
 " consistency with pagers in normal mode
 nnoremap <Space> <C-D>
@@ -333,4 +333,4 @@ inoremap <C-W> <C-O><C-W>
 " functionality that is generally useful)
 inoremap <C-Z> <C-O>u
 
-nnoremap <F8> :DiffChangesPatchToggle<CR>
+nnoremap <F8> :DiffChangesDiffToggle<CR>
