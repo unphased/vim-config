@@ -44,7 +44,7 @@ set hlsearch
 set incsearch
 set backspace=2
 
-set t_Co=256
+" set t_Co=256
 " set term=xterm-256color-italic
 
 set ttyfast
