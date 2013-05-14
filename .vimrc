@@ -44,7 +44,7 @@ set incsearch
 set backspace=2
 
 set t_Co=256
-set term=xterm-256color-italic
+" set term=xterm-256color-italic
 
 set ttyfast
 set ttymouse=xterm2
