@@ -195,7 +195,7 @@ nnoremap <S-K> 7k
 nnoremap <S-H> 20h
 nnoremap <S-L> 20l
 
-set nowrap
+set wrap
 
 " hjkl faster navigation 
 nnoremap <C-j> }
