@@ -293,7 +293,9 @@ inoremap <F6> <ESC>:CtrlPMRUFiles<CR>
 
 nnoremap <F7> :NERDTreeToggle<CR>
 
+" ctrl-p settings for large file tree
 let g:ctrlp_max_files = 200000
+let g:ctrlp_clear_cache_on_exit = 0
 
 nnoremap k gk
 nnoremap j gj
