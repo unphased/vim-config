@@ -17,8 +17,9 @@ Bundle 'taglist.vim'
 Bundle 'scrooloose/nerdtree'
 Bundle 'scrooloose/syntastic'
 Bundle 'kien/ctrlp.vim'
-Bundle 'Lokaltog/vim-easymotion'
+"Bundle 'Lokaltog/vim-easymotion'
 Bundle 'diffchanges.vim'
+Bundle 'terryma/vim-multiple-cursors'
 
 filetype plugin indent on "more Vundle
 
@@ -209,10 +210,9 @@ nnoremap p P`[
 " I'm not sure what the semicolon is bound to but it
 " will never be as useful as this binding
 map ; :
-" get original ; back by hitting ;;. : still does what it always did
-noremap ;; :
-
-
+" get original ; back by hitting ;;. : still does what it always did (disabled
+" because I dont like the pause)
+" noremap ;; :
 
 set autoindent
 
