@@ -246,7 +246,7 @@ inoremap <F3> <C-O>:tabnext<CR><ESC>
 " Use CTRL-S for saving, also in Insert mode
 noremap <C-S> :update<CR>
 vnoremap <C-S> <C-C>:update<CR>
-inoremap <C-S> <C-O>:update<CR>
+inoremap <C-S> <ESC>:update<CR>
 
 " Use CTRL-Q for abort-quitting (no save)
 noremap <C-Q> :qa!<CR>
