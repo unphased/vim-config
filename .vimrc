@@ -296,6 +296,7 @@ nnoremap <F7> :NERDTreeToggle<CR>
 " configuring CtrlP 
 let g:ctrlp_max_files = 200000
 let g:ctrlp_clear_cache_on_exit = 0
+let g:ctrlp_root_markers = ['.ctrlp_root'] " insert this sentinel file anywhere that you'd like ctrlp to index from
 
 nnoremap k gk
 nnoremap j gj
@@ -343,9 +344,8 @@ hi Search ctermbg=236 ctermfg=NONE cterm=underline
 " requires an italic term obviously
 hi Comment cterm=italic 
 
-" bind ctrl W to always work on windows from insert mode (needs careful use as
-" we're in insert mode) 
-inoremap <C-W> <C-O><C-W>
+" bind ctrl W to always work on windows from insert mode
+inoremap <C-W> <ESC><C-W>
 
 " Convenient command to see the difference between the current buffer and the
 " file it was loaded from, thus the changes you made.
