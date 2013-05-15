@@ -261,6 +261,25 @@ function! Highlighting()
 endfunction
 nnoremap <silent> <expr> <CR> Highlighting()
 
+" Search for selected text, forwards or backwards.
+vnoremap <silent> * :<C-U>
+  \let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
+  \gvy/<C-R><C-R>=substitute(
+  \escape(@", '/\.*$^~['), '\_s\+', '\\_s\\+', 'g')<CR><CR>
+  \gV:call setreg('"', old_reg, old_regtype)<CR>
+vnoremap <silent> # :<C-U>
+  \let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
+  \gvy?<C-R><C-R>=substitute(
+  \escape(@", '?\.*$^~['), '\_s\+', '\\_s\\+', 'g')<CR><CR>
+  \gV:call setreg('"', old_reg, old_regtype)<CR>
+
+" mapping Enter to also perform a search from visual mode (search what is
+" selected)
+vmap <silent> <CR> *
+
+" map Q to :q (I find Ex mode useless)
+nnoremap Q :q<CR>
+
 nnoremap <F5> :TlistToggle<CR>
 inoremap <F5> <C-O>:TlistToggle<CR>
 
@@ -270,7 +289,6 @@ inoremap <F6> <ESC>:CtrlPMRUFiles<CR>
 nnoremap <F7> :NERDTreeToggle<CR>
 
 let g:ctrlp_max_files = 200000
-
 
 nnoremap k gk
 nnoremap j gj
@@ -318,7 +336,7 @@ let g:ctrlp_clear_cache_on_exit = 0
 " set highlight for search to be less blinding
 hi Search ctermbg=236 ctermfg=NONE cterm=underline
 
-" requires rxvt setting
+" requires an italic term obviously
 hi Comment cterm=italic 
 
 " bind ctrl W to always work on windows from insert mode (needs careful use as
