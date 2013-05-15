@@ -208,7 +208,11 @@ nnoremap p P`[
 
 " I'm not sure what the semicolon is bound to but it
 " will never be as useful as this binding
-nnoremap ; :
+map ; :
+" get original ; back by hitting ;;. : still does what it always did
+noremap ;; :
+
+
 
 set autoindent
 
