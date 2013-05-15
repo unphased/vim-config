@@ -293,7 +293,7 @@ inoremap <F6> <ESC>:CtrlPMRUFiles<CR>
 
 nnoremap <F7> :NERDTreeToggle<CR>
 
-" ctrl-p settings for large file tree
+" configuring CtrlP 
 let g:ctrlp_max_files = 200000
 let g:ctrlp_clear_cache_on_exit = 0
 
@@ -336,9 +336,6 @@ nnoremap m<F2> :call TabMove(-1)<CR>
 
 " configuring YCM. 
 let g:ycm_autoclose_preview_window_after_insertion = 1
-
-" configuring CtrlP 
-let g:ctrlp_clear_cache_on_exit = 0
 
 " set highlight for search to be less blinding
 hi Search ctermbg=236 ctermfg=NONE cterm=underline
