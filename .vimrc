@@ -44,6 +44,9 @@ vmap <C-C> "*y
 set hlsearch
 set incsearch
 set backspace=2
+set sidescroll=3
+set lcs=eol:$,extends:>,precedes:<
+set sidescrolloff=25
 
 " set t_Co=256
 " set term=xterm-256color-italic
@@ -189,8 +192,10 @@ nnoremap <C-Down> 3<C-E>
 " accelerated j/k navigation
 nnoremap <S-J> 7j
 nnoremap <S-K> 7k
+nnoremap <S-H> 20h
+nnoremap <S-L> 20l
 
-set wrap
+set nowrap
 
 " hjkl faster navigation 
 nnoremap <C-j> }
