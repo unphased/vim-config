@@ -362,3 +362,8 @@ inoremap <C-Z> <C-O>u
 
 nnoremap <F8> :DiffChangesDiffToggle<CR>
 nnoremap <F9> :DiffChangesPatchToggle<CR>
+
+" this is a ctrl + backslash binding to vsplit
+nmap <C-\> :vsplit<CR>
+" this is a ctrl + hyphen binding to hsplit
+nmap <C-_> :split<CR>
