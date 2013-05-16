@@ -9,11 +9,12 @@ call vundle#rc()
 Bundle 'gmarik/vundle'
 Bundle 'Valloric/YouCompleteMe'
 Bundle 'sjl/gundo.vim'
-"Bundle 'jeffkreeftmeijer/vim-numbertoggle'
+
+" iTerm2 support for focusing
 Bundle 'sjl/vitality.vim'
-Bundle 'atsepkov/vim-fakeclip'
+
+Bundle 'atsepkov/vim-fakeclip' 
 Bundle 'taglist.vim'
-"Bundle 'mru.vim'
 Bundle 'scrooloose/nerdtree'
 Bundle 'scrooloose/syntastic'
 Bundle 'kien/ctrlp.vim'
@@ -168,7 +169,7 @@ nnoremap b <C-U>
 
 
 " note THESE NEXT FEW LINES ARE NOT PROPER ESC CHARACTERS (and are here for refernece only)
-" these ones are ... you know what just ignore all of this
+" these ones are ... you know what, just ignore all of this
 " nnoremap ^[[A {
 " nnoremap ^[[1;5A {
 " nnoremap ^[[B }
@@ -360,3 +361,4 @@ inoremap <C-W> <ESC><C-W>
 inoremap <C-Z> <C-O>u
 
 nnoremap <F8> :DiffChangesDiffToggle<CR>
+nnoremap <F9> :DiffChangesPatchToggle<CR>
