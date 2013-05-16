@@ -367,3 +367,11 @@ nnoremap <F9> :DiffChangesPatchToggle<CR>
 nmap <C-\> :vsplit<CR>
 " this is a ctrl + hyphen binding to hsplit
 nmap <C-_> :split<CR>
+
+" these make the behavior more like tmux by opening to the right and below
+" (why on earth not by default???)
+set splitbelow
+set splitright
+
+" this makes gundo close the panel upon choosing a history location to warp to
+let g:gundo_close_on_revert = 1
