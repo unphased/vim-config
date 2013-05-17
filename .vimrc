@@ -375,3 +375,5 @@ set splitright
 
 " this makes gundo close the panel upon choosing a history location to warp to
 let g:gundo_close_on_revert = 1
+
+set iskeyword=@,$,48-57,_,-,192-255
