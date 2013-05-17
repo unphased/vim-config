@@ -267,6 +267,7 @@ function! Highlighting()
 endfunction
 nnoremap <silent> <expr> <CR> Highlighting()
 
+" This came out of http://vim.wikia.com/wiki/Search_for_visually_selected_text
 " Search for selected text, forwards or backwards.
 vnoremap <silent> * :<C-U>
   \let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
@@ -281,7 +282,7 @@ vnoremap <silent> # :<C-U>
 
 " mapping Enter to also perform a search from visual mode (search what is
 " selected)
-vmap <silent> <CR> *
+vmap <silent> <CR> *N
 
 " map Q to :q (I find Ex mode useless)
 nnoremap Q :q<CR>
