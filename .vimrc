@@ -23,7 +23,7 @@ Bundle 'diffchanges.vim'
 Bundle 'terryma/vim-multiple-cursors'
 Bundle 'tpope/vim-repeat'
 Bundle 'tpope/vim-surround'
-Bundle 'Lokaltog/vim-powerline'
+Bundle 'unphased/vim-powerline'
 
 filetype plugin indent on "more Vundle
 
@@ -381,3 +381,8 @@ set splitright
 let g:gundo_close_on_revert = 1
 
 set iskeyword=@,$,48-57,_,-,192-255
+
+" Powerline config 
+let g:Powerline_colorscheme='solarized256'
+let g:Powerline_theme='default'
+let g:Powerline_symbols='compatible'
