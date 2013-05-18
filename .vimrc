@@ -13,7 +13,7 @@ Bundle 'sjl/gundo.vim'
 " iTerm2 support for focusing
 Bundle 'sjl/vitality.vim'
 
-Bundle 'atsepkov/vim-fakeclip' 
+Bundle 'unphased/vim-fakeclip' 
 Bundle 'taglist.vim'
 Bundle 'scrooloose/nerdtree'
 Bundle 'scrooloose/syntastic'
@@ -21,6 +21,8 @@ Bundle 'kien/ctrlp.vim'
 "Bundle 'Lokaltog/vim-easymotion'
 Bundle 'diffchanges.vim'
 Bundle 'terryma/vim-multiple-cursors'
+Bundle 'tpope/vim-repeat'
+Bundle 'tpope/vim-surround'
 
 filetype plugin indent on "more Vundle
 
@@ -358,7 +360,7 @@ inoremap <C-W> <ESC><C-W>
 " endif
 
 " set ^Z in insert mode to run undo (overloading insert mode for
-" functionality that is generally useful)
+" functionality that is already ingrained)
 inoremap <C-Z> <C-O>u
 
 nnoremap <F8> :DiffChangesDiffToggle<CR>
