@@ -23,6 +23,7 @@ Bundle 'diffchanges.vim'
 Bundle 'terryma/vim-multiple-cursors'
 Bundle 'tpope/vim-repeat'
 Bundle 'tpope/vim-surround'
+Bundle 'Lokaltog/vim-powerline'
 
 filetype plugin indent on "more Vundle
 
