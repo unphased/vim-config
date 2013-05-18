@@ -21,6 +21,7 @@ Bundle 'kien/ctrlp.vim'
 "Bundle 'Lokaltog/vim-easymotion'
 Bundle 'diffchanges.vim'
 Bundle 'terryma/vim-multiple-cursors'
+Bundle 'Lokaltog/vim-powerline'
 
 filetype plugin indent on "more Vundle
 
