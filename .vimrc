@@ -386,3 +386,6 @@ set iskeyword=@,$,48-57,_,-,192-255
 let g:Powerline_colorscheme='solarized256'
 let g:Powerline_theme='default'
 let g:Powerline_symbols='compatible'
+
+" keybinding for toggling word-wrap 
+nnoremap <S-W> :set wrap!<CR>
