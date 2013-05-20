@@ -62,6 +62,10 @@ set sidescroll=3
 set lcs=eol:$,extends:>,precedes:<
 set sidescrolloff=25
 
+" fast terminal (this is for escape code wait time for escape code based keys)
+set ttimeout
+set ttimeoutlen=10
+
 " set t_Co=256
 " set term=xterm-256color-italic
 
@@ -315,17 +319,29 @@ let g:ctrlp_root_markers = ['.ctrlp_root'] " insert this sentinel file anywhere 
 
 nnoremap k gk
 nnoremap j gj
-nnoremap <ESC>[1~ g^
-inoremap <ESC>[1~ <C-o>g^
-nnoremap <ESC>[4~ g$
-inoremap <ESC>[4~ <C-o>g$
+
+" These are old mappings for line based home/end, I needed to change these to
+" prevent vim from hanging on escape 
+" nnoremap <ESC>[1~ g^
+" inoremap <ESC>[1~ <C-o>g^
+" nnoremap <ESC>[4~ g$
+" inoremap <ESC>[4~ <C-o>g$
+
+" Remapping home and end because Vim gets these wrong (w.r.t. the terms I
+" use and tmux doesn't translate them either) 
+" set t_kh=[1~
+" set t_@7=[4~
+" nnoremap <Home> :echo('pressed Home')<CR>
+" inoremap <Home> <C-O>g^
+" nnoremap <End> :echo('pressed End')<CR>
+" g<End>
+" inoremap <End> <C-O>g<End>
 
 " for not strange behavior on different kind of backspace (shift backspace on
 " putty) when in insert mode (i have lazy pinky)
 inoremap <C-H> <C-W>
 
 " Move current tab into the specified direction.
-"
 " @param direction -1 for left, 1 for right.
 function! TabMove(direction)
     " get number of tab pages.
