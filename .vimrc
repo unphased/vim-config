@@ -18,12 +18,22 @@ Bundle 'taglist.vim'
 Bundle 'scrooloose/nerdtree'
 Bundle 'scrooloose/syntastic'
 Bundle 'kien/ctrlp.vim'
-"Bundle 'Lokaltog/vim-easymotion'
 Bundle 'diffchanges.vim'
 Bundle 'terryma/vim-multiple-cursors'
 Bundle 'tpope/vim-repeat'
 Bundle 'tpope/vim-surround'
 Bundle 'unphased/vim-powerline'
+
+" conditionally include the perforce bundle on machines that match this
+if match($HOSTNAME,'athenahealth')
+	" echo 'enabling perforce'
+	Bundle 'perforce.vim'
+	" Note that this plugin does not work out of the box on Linux, but it can
+	" be modified quickly to do so by fixing the if-block containing "p4.exe"
+	" and also potentially requiring fixing of line-endings. All that could 
+	" potentially be automated by this here vimrc but I don't care enough for
+	" that because perforce is not a tool i use outside of work. 
+endif
 
 filetype plugin indent on "more Vundle
 
@@ -389,3 +399,7 @@ let g:Powerline_symbols='compatible'
 
 " keybinding for toggling word-wrap 
 nnoremap <S-W> :set wrap!<CR>
+
+" Configure multiple cursors plugin
+hi multiple_cursors_cursor term=reverse ctermbg=3 ctermfg=0
+hi multiple_cursors_visual term=reverse ctermbg=6 ctermfg=0
