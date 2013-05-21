@@ -25,7 +25,7 @@ Bundle 'tpope/vim-surround'
 Bundle 'unphased/vim-powerline'
 
 " conditionally include the perforce bundle on machines that match this
-if match($HOSTNAME,'athenahealth')
+if match($HOSTNAME,'athenahealth') != -1
 	" echo 'enabling perforce'
 	Bundle 'perforce.vim'
 	" Note that this plugin does not work out of the box on Linux, but it can
