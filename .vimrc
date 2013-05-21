@@ -423,3 +423,6 @@ hi multiple_cursors_visual term=reverse ctermbg=6 ctermfg=0
 " Ctrl+F for find
 nnoremap <C-F> /
 inoremap <C-F> <ESC>/
+
+" mapping normal mode Tab to swap to next window
+nnoremap <Tab> :wincmd w<CR>
