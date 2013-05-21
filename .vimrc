@@ -419,3 +419,7 @@ nnoremap <S-W> :set wrap!<CR>
 " Configure multiple cursors plugin
 hi multiple_cursors_cursor term=reverse ctermbg=3 ctermfg=0
 hi multiple_cursors_visual term=reverse ctermbg=6 ctermfg=0
+
+" Ctrl+F for find
+nnoremap <C-F> /
+inoremap <C-F> <ESC>/
