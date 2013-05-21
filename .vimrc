@@ -409,7 +409,7 @@ let g:gundo_close_on_revert = 1
 set iskeyword=@,$,48-57,_,-,192-255
 
 " Powerline config 
-let g:Powerline_colorscheme='solarized256'
+let g:Powerline_colorscheme='default'
 let g:Powerline_theme='default'
 let g:Powerline_symbols='compatible'
 
