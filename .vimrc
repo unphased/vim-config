@@ -23,6 +23,7 @@ Bundle 'terryma/vim-multiple-cursors'
 Bundle 'tpope/vim-repeat'
 Bundle 'tpope/vim-surround'
 Bundle 'unphased/vim-powerline'
+Bundle 'vim-perl/vim-perl'
 
 " conditionally include the perforce bundle on machines that match this
 if match($HOSTNAME,'athenahealth') != -1
@@ -309,7 +310,7 @@ vnoremap <silent> # :<C-U>
   \gV:call setreg('"', old_reg, old_regtype)<CR>
 
 " mapping Enter to also perform a search from visual mode (search what is
-" selected)
+" selected) (and staying in the same spot by searching backward once)
 vmap <silent> <CR> *N
 
 " map Q to :q (I find Ex mode useless)
@@ -438,3 +439,10 @@ inoremap <C-F> <ESC>/
 " mapping normal mode Tab to swap to next window
 nnoremap <Tab> :wincmd w<CR>
 nnoremap <S-Tab> :wincmd W<CR>
+
+" Uncomment the following to have Vim jump to the last position when                                                       
+" reopening a file
+if has("autocmd")
+  au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")
+    \| exe "normal! g'\"" | endif
+endif
