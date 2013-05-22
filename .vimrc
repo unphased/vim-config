@@ -446,3 +446,7 @@ if has("autocmd")
   au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")
     \| exe "normal! g'\"" | endif
 endif
+
+" Make alt+BS do the same as in bash/zsh (I am doing experimental override of xF keys)
+set <xF1>=
+inoremap <xF1> <C-W>
