@@ -204,14 +204,25 @@ nnoremap <S-Down> }
 
 inoremap <C-Up> <C-O>3<C-Y>
 nnoremap <C-Up> 3<C-Y>
+vnoremap <C-Up> 3<C-Y>
 inoremap <C-Down> <C-O>3<C-E>
+vnoremap <C-Down> 3<C-E>
 nnoremap <C-Down> 3<C-E>
 
+" more visual mode adjustment
+vnoremap <C-L> <C-Right>
+vnoremap <C-H> <C-Left>
+
 " accelerated j/k navigation
-nnoremap <S-J> 7j
-nnoremap <S-K> 7k
-nnoremap <S-H> 20h
-nnoremap <S-L> 20l
+nnoremap <S-J> 5j
+nnoremap <S-K> 5k
+nnoremap <S-H> 10h
+nnoremap <S-L> 10l
+" visual mode equivalents 
+vnoremap <S-J> 5j
+vnoremap <S-K> 5k
+vnoremap <S-H> 10h
+vnoremap <S-L> 10l
 
 set wrap
 
