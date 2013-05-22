@@ -215,13 +215,13 @@ vnoremap <C-L> <C-Right>
 vnoremap <C-H> <C-Left>
 
 " accelerated j/k navigation
-nnoremap <S-J> 5j
-nnoremap <S-K> 5k
+nnoremap <S-J> 7j
+nnoremap <S-K> 7k
 nnoremap <S-H> 10h
 nnoremap <S-L> 10l
 " visual mode equivalents 
-vnoremap <S-J> 5j
-vnoremap <S-K> 5k
+vnoremap <S-J> 7j
+vnoremap <S-K> 7k
 vnoremap <S-H> 10h
 vnoremap <S-L> 10l
 
