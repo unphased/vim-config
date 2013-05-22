@@ -426,3 +426,4 @@ inoremap <C-F> <ESC>/
 
 " mapping normal mode Tab to swap to next window
 nnoremap <Tab> :wincmd w<CR>
+nnoremap <S-Tab> :wincmd W<CR>
