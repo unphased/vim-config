@@ -258,6 +258,7 @@ noremap <MiddleMouse> <LeftMouse>
 noremap <C-H> <C-W>h
 noremap <C-J> <C-W>j
 noremap <C-K> <C-W>k
+" <C-L> is refresh screen, use :refresh if needed. 
 noremap <C-L> <C-W>l
 
 nnoremap + <C-W>3-
@@ -437,6 +438,7 @@ nnoremap <C-F> /
 inoremap <C-F> <ESC>/
 
 " mapping normal mode Tab to swap to next window
+nnoremap <C-Y> <Tab>
 nnoremap <Tab> :wincmd w<CR>
 nnoremap <S-Tab> :wincmd W<CR>
 
@@ -468,3 +470,6 @@ vnoremap <A-S-z> <ESC><C-R>
 " nnoremap <A-Tab> :tabnext<CR>
 " vnoremap <A-Tab> <ESC>:tabnext<CR>
 
+" make recordings easier to fire off, binding comma to @q (use qq to record
+" what you wanna repeat) 
+nnoremap , @q
