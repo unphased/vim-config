@@ -267,11 +267,11 @@ nnoremap _ <C-W>5<
 
 noremap <F12> <Help>
 nnoremap <F1> :tabnew<CR>
-inoremap <F1> <C-O>:tabnew<CR><ESC>
+inoremap <F1> <ESC>:tabnew<CR>
 nnoremap <F2> :tabprev<CR>
-inoremap <F2> <C-O>:tabprev<CR><ESC>
+inoremap <F2> <ESC>:tabprev<CR>
 nnoremap <F3> :tabnext<CR>
-inoremap <F3> <C-O>:tabnext<CR><ESC>
+inoremap <F3> <ESC>:tabnext<CR>
 
 " Use CTRL-S for saving, also in Insert mode
 noremap <C-S> :update<CR>
@@ -448,17 +448,23 @@ if has("autocmd")
 endif
 
 " Make alt+BS do the same as in bash/zsh (I am doing experimental override of xF keys)
-set <xF1>=
-inoremap <xF1> <C-W>
+set <F37>=
+inoremap <F37> <C-W>
 
 " Make alt+z perform the undo function (mapping ctrl z to alt z may need to be
 " done at shell level, but this helps on OSX at least)
-set <xF2>=z
-inoremap <xF2> <C-O>u
-nnoremap <xF2> u
-vnoremap <xF2> <ESC>u " todo: figure out how to make this save and restore the selection area 
+inoremap <A-z> <C-O>u
+nnoremap <A-z> u
+vnoremap <A-z> <ESC>u " todo: figure out how to make this save and restore the selection area 
 " note that pressing u in visual mode lowercases the selection 
-set <xF3>=Z
-inoremap <xF3> <C-O><C-R>
-nnoremap <xF3> <C-R>
-vnoremap <xF3> <ESC><C-R>
+set <A-S-z>=Z
+inoremap <A-S-z> <C-O><C-R>
+nnoremap <A-S-z> <C-R>
+vnoremap <A-S-z> <ESC><C-R>
+
+" Make Alt+Tab switch vim windows (time to get creative for Windows....) 
+" set <A-Tab>=	
+" inoremap <A-Tab> <C-O>:tabnext<CR>
+" nnoremap <A-Tab> :tabnext<CR>
+" vnoremap <A-Tab> <ESC>:tabnext<CR>
+
