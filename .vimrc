@@ -450,3 +450,15 @@ endif
 " Make alt+BS do the same as in bash/zsh (I am doing experimental override of xF keys)
 set <xF1>=
 inoremap <xF1> <C-W>
+
+" Make alt+z perform the undo function (mapping ctrl z to alt z may need to be
+" done at shell level, but this helps on OSX at least)
+set <xF2>=z
+inoremap <xF2> <C-O>u
+nnoremap <xF2> u
+vnoremap <xF2> <ESC>u " todo: figure out how to make this save and restore the selection area 
+" note that pressing u in visual mode lowercases the selection 
+set <xF3>=Z
+inoremap <xF3> <C-O><C-R>
+nnoremap <xF3> <C-R>
+vnoremap <xF3> <ESC><C-R>
