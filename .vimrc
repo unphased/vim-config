@@ -228,14 +228,14 @@ vnoremap <S-L> 10l
 set wrap
 
 " hjkl faster navigation 
-nnoremap <C-j> }
-inoremap <C-j> <C-O>}
-nnoremap <C-k> {
-inoremap <C-k> <C-o>{
-nnoremap <C-h> b
-inoremap <C-h> <C-o>b
-nnoremap <C-l> w
-inoremap <C-l> <C-o>w
+" nnoremap <C-j> }
+" inoremap <C-j> <C-O>}
+" nnoremap <C-k> {
+" inoremap <C-k> <C-o>{
+" nnoremap <C-h> b
+" inoremap <C-h> <C-o>b
+" nnoremap <C-l> w
+" inoremap <C-l> <C-o>w
 
 " This puts the cursor at the end of what is pasted so it can be chained
 " and it also just makes sense
@@ -350,8 +350,7 @@ nnoremap j gj
 " g<End>
 " inoremap <End> <C-O>g<End>
 
-" for not strange behavior on different kind of backspace (shift backspace on
-" putty) when in insert mode (i have lazy pinky)
+" This is for making the alternate backspace delete an entire word. 
 inoremap <C-H> <C-W>
 
 " Move current tab into the specified direction.
