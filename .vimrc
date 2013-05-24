@@ -455,14 +455,15 @@ inoremap <F37> <C-W>
 
 " Make alt+z perform the undo function (mapping ctrl z to alt z may need to be
 " done at shell level, but this helps on OSX at least)
-inoremap <A-z> <C-O>u
-nnoremap <A-z> u
-vnoremap <A-z> <ESC>u " todo: figure out how to make this save and restore the selection area 
+set <F36>=z
+inoremap <F36> <C-O>u
+nnoremap <F36> u
+vnoremap <F36> <ESC>u " todo: figure out how to make this save and restore the selection area 
 " note that pressing u in visual mode lowercases the selection 
-set <A-S-z>=Z
-inoremap <A-S-z> <C-O><C-R>
-nnoremap <A-S-z> <C-R>
-vnoremap <A-S-z> <ESC><C-R>
+set <F35>=Z
+inoremap <F35> <C-O><C-R>
+nnoremap <F35> <C-R>
+vnoremap <F35> <ESC><C-R>
 
 " Make Alt+Tab switch vim windows (time to get creative for Windows....) 
 " set <A-Tab>=	
