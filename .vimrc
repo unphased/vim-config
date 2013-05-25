@@ -444,6 +444,11 @@ nnoremap <S-Tab> :wincmd W<CR>
 
 " Uncomment the following to have Vim jump to the last position when                                                       
 " reopening a file
+" Put into e.g.
+" ~/.vim/after/ftplugin/gitcommit.vim
+" this: 
+" :autocmd BufWinEnter <buffer> normal! gg0
+" to get this not to affect whatever filetypes 
 if has("autocmd")
   au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")
     \| exe "normal! g'\"" | endif
@@ -465,11 +470,11 @@ inoremap <F35> <C-O><C-R>
 nnoremap <F35> <C-R>
 vnoremap <F35> <ESC><C-R>
 
-" Make Alt+Tab switch vim windows (time to get creative for Windows....) 
-" set <A-Tab>=	
-" inoremap <A-Tab> <C-O>:tabnext<CR>
-" nnoremap <A-Tab> :tabnext<CR>
-" vnoremap <A-Tab> <ESC>:tabnext<CR>
+" Make Alt+Tab switch vim tabs (time to get creative for Windows....) 
+" set <F34>=<C-I>
+" inoremap <F34> <C-O>:tabnext<CR>
+" nnoremap <F34> :tabnext<CR>
+" vnoremap <F34> <ESC>:tabnext<CR>
 
 " make recordings easier to fire off, binding comma to @q (use qq to record
 " what you wanna repeat) 
