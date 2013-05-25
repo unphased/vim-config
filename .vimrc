@@ -113,10 +113,11 @@ function! InsertEnterActions(mode)
 endfunction
 
 function! InsertLeaveActions()
-	hi CursorLine ctermbg=235 cterm=NONE
+	hi CursorLine ctermbg=16 cterm=NONE
 	hi CursorLineNr cterm=NONE ctermfg=11
 endfunction
 
+hi CursorLine ctermbg=16
 set cursorline
 
 au InsertEnter * call InsertEnterActions(v:insertmode)
@@ -449,10 +450,10 @@ nnoremap <S-Tab> :wincmd W<CR>
 " this: 
 " :autocmd BufWinEnter <buffer> normal! gg0
 " to get this not to affect whatever filetypes 
-if has("autocmd")
+" if has("autocmd")
   au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")
     \| exe "normal! g'\"" | endif
-endif
+" endif
 
 " Make alt+BS do the same as in bash/zsh (I am doing experimental override of xF keys)
 set <F37>=
