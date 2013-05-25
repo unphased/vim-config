@@ -96,64 +96,65 @@ endif
 
 colorscheme TMEighties
 
-highlight DiffAdd term=reverse ctermbg=green ctermfg=black
+highlight DiffAdd term=reverse ctermbg=156 ctermfg=black
 highlight DiffChange term=reverse ctermbg=blue ctermfg=black
-highlight DiffText term=reverse ctermbg=cyan ctermfg=black
+highlight DiffText term=reverse ctermbg=171 ctermfg=black
 highlight DiffDelete term=reverse ctermbg=red ctermfg=black
 
-" start pulled from SO: http://stackoverflow.com/a/9121083/340947 
-
-function! InsertStatuslineColor(mode)
+function! InsertEnterActions(mode)
+	echo 'islc'
   if a:mode == 'i'
-    hi StatusLine guibg=Cyan ctermfg=6 guifg=Black ctermbg=0
-	set cursorline
+	hi CursorLine ctermbg=237
+	hi CursorLineNr cterm=bold ctermfg=255
   elseif a:mode == 'r'
-    hi StatusLine ctermfg=5 guifg=Black ctermbg=3
+	hi CursorLine cterm=reverse
   else
-    hi StatusLine guibg=DarkRed ctermfg=1 guifg=Black ctermbg=0
   endif
 endfunction
 
 function! InsertLeaveActions()
-	hi statusline ctermfg=237 ctermbg=250
-	set nocursorline
+	hi CursorLine ctermbg=235 cterm=NONE
+	hi CursorLineNr cterm=NONE ctermfg=11
 endfunction
 
-au InsertEnter * call InsertStatuslineColor(v:insertmode)
-au InsertChange * call InsertStatuslineColor(v:insertmode)
+set cursorline
+
+au InsertEnter * call InsertEnterActions(v:insertmode)
+" au InsertChange * call InsertStatuslineColor(v:insertmode)
 au InsertLeave * call InsertLeaveActions()
 
 " default the statusline to green when entering Vim
-hi statusline guibg=DarkGrey ctermfg=237 guifg=Green ctermbg=250
+" hi statusline guibg=DarkGrey ctermfg=237 guifg=Green ctermbg=250
 
 " Formats the statusline
-set statusline=[%{strlen(&fenc)?&fenc:'none'}, "file encoding
-set statusline+=%{&ff}] "file format
-set statusline+=%y      "filetype
-set statusline+=%f                           " file name
-set statusline+=%h      "help file flag
-set statusline+=%m      "modified flag
-set statusline+=%m      "modified flag
-set statusline+=%m      "modified flag
-set statusline+=%r      "read only flag
-
-set statusline+=\ %=                        " align left
-set statusline+=Line:\ %l/%L[%2p%%]            " line X of Y [percent of file]
-set statusline+=\ Col:%-2c                    " current column
-set statusline+=\ Buf:%n                    " Buffer number
-set statusline+=\ %-3bx%02B\                 " ASCII and byte code under cursor
-
+" set statusline=[%{strlen(&fenc)?&fenc:'none'}, "file encoding
+" set statusline+=%{&ff}] "file format
+" set statusline+=%y      "filetype
+" set statusline+=%f                           " file name
+" set statusline+=%h      "help file flag
+" set statusline+=%m      "modified flag
+" set statusline+=%m      "modified flag
+" set statusline+=%m      "modified flag
+" set statusline+=%r      "read only flag
+" 
+" set statusline+=\ %=                        " align left
+" set statusline+=Line:\ %l/%L[%2p%%]            " line X of Y [percent of file]
+" set statusline+=\ Col:%-2c                    " current column
+" set statusline+=\ Buf:%n                    " Buffer number
+" set statusline+=\ %-3bx%02B\                 " ASCII and byte code under cursor
+" 
 " end pulled from SO
 
 " omnifunc, pulled from http://amix.dk/blog/post/19021
-
-autocmd FileType python set omnifunc=pythoncomplete#Complete
-autocmd FileType javascript set omnifunc=javascriptcomplete#CompleteJS
-autocmd FileType html set omnifunc=htmlcomplete#CompleteTags
-autocmd FileType css set omnifunc=csscomplete#CompleteCSS
-autocmd FileType xml set omnifunc=xmlcomplete#CompleteTags
-autocmd FileType php set omnifunc=phpcomplete#CompletePHP
-autocmd FileType c set omnifunc=ccomplete#Complete
+"
+" Do I need these omnifuncs? 
+" autocmd FileType python set omnifunc=pythoncomplete#Complete
+" autocmd FileType javascript set omnifunc=javascriptcomplete#CompleteJS
+" autocmd FileType html set omnifunc=htmlcomplete#CompleteTags
+" autocmd FileType css set omnifunc=csscomplete#CompleteCSS
+" autocmd FileType xml set omnifunc=xmlcomplete#CompleteTags
+" autocmd FileType php set omnifunc=phpcomplete#CompletePHP
+" autocmd FileType c set omnifunc=ccomplete#Complete
 
 set mouse=a
 
