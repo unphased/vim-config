@@ -480,3 +480,10 @@ vnoremap <F35> <ESC><C-R>
 " make recordings easier to fire off, binding comma to @q (use qq to record
 " what you wanna repeat) 
 nnoremap , @q
+
+" more ctrlp settings stolen from github/jeffjewiss
+let g:ctrlp_jump_to_buffer = 'Et' " Jump to tab AND buffer if already open
+let g:ctrlp_split_window = 1 " <CR> = New Tab
+let g:ctrlp_open_new_file = 't' " Open newly created files in a new tab
+let g:ctrlp_open_multiple_files = 't' " Open multiple files in new tabs
+let g:ctrlp_show_hidden = 1 " Index hidden files
