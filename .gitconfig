@@ -1,0 +1,36 @@
+[user]
+	name = Steven Lu
+	email = stevenlu443@gmail.com
+[core]
+	editor = /usr/local/bin/vim
+	whitespace = cr-at-eol
+	excludesfile = /Users/lust/.gitignore
+[color]
+	ui = true
+[alias]
+	lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+
+[diff]
+	tool = opendiff
+[pager]
+	log = diff-highlight | less
+	show = diff-highlight | less
+	diff = diff-highlight | less
+[color]
+	branch = auto
+	diff = always
+	status = always
+[color "branch"]
+	current = yellow reverse
+	local = yellow
+	remote = green
+[color "diff"]
+	meta = blue
+	frag = magenta
+	old = red
+	new = green
+	whitespace = blue reverse
+[color "status"]
+	added = yellow
+	changed = green
+	untracked = cyan
