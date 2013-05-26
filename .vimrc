@@ -11,10 +11,10 @@ Bundle 'Valloric/YouCompleteMe'
 Bundle 'sjl/gundo.vim'
 
 " iTerm2 support for focusing
-Bundle 'sjl/vitality.vim'
+" Bundle 'sjl/vitality.vim'
 
 " Fakeclip doesn't seem to work well on OSX
-Bundle 'unphased/vim-fakeclip' 
+" Bundle 'unphased/vim-fakeclip' 
 
 Bundle 'taglist.vim'
 Bundle 'scrooloose/nerdtree'
