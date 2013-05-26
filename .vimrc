@@ -13,7 +13,9 @@ Bundle 'sjl/gundo.vim'
 " iTerm2 support for focusing
 Bundle 'sjl/vitality.vim'
 
+" Fakeclip doesn't seem to work well on OSX
 Bundle 'unphased/vim-fakeclip' 
+
 Bundle 'taglist.vim'
 Bundle 'scrooloose/nerdtree'
 Bundle 'scrooloose/syntastic'
@@ -26,17 +28,18 @@ Bundle 'unphased/vim-powerline'
 Bundle 'vim-perl/vim-perl'
 
 " conditionally include the perforce bundle on machines that match this
-if match($HOSTNAME,'athenahealth') != -1
+" if match($HOSTNAME,'athenahealth') != -1
 	" echo 'enabling perforce'
-	Bundle 'perforce.vim'
+	" Bundle 'perforce.vim'
 	" Note that this plugin does not work out of the box on Linux, but it can
 	" be modified quickly to do so by fixing the if-block containing "p4.exe"
 	" and also potentially requiring fixing of line-endings. All that could 
 	" potentially be automated by this here vimrc but I don't care enough for
 	" that because perforce is not a tool i use outside of work. 
-endif
+" endif
+" You know, that p4 plugin really doesn't work 
 
-filetype plugin indent on "more Vundle
+filetype plugin indent on "more Vundle setup
 
  "
  " Brief help
@@ -47,14 +50,16 @@ filetype plugin indent on "more Vundle
  "
  " see :h vundle for more details or wiki for FAQ
 
+" This is athena-specific
 au BufRead,BufNewFile *.esp setfiletype perl
 
 nnoremap <F4> :GundoToggle<CR>
 inoremap <F4> <ESC>:GundoToggle<CR>
 
-nmap <C-V> "*p
-
-vmap <C-C> "*y
+" These C-V and C-C mappings are for fakeclip, but fakeclip doesn't work on
+" OSX and I never really seem to do much copying and pasting
+" nmap <C-V> "*p
+" vmap <C-C> "*y
 
 set hlsearch
 set incsearch
