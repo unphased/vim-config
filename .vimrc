@@ -357,28 +357,29 @@ inoremap <C-H> <C-W>
 
 " Move current tab into the specified direction.
 " @param direction -1 for left, 1 for right.
-function! TabMove(direction)
-    " get number of tab pages.
-    let ntp=tabpagenr("$")
-    " move tab, if necessary.
-    if ntp > 1
-        " get number of current tab page.
-        let ctpn=tabpagenr()
-        " move left.
-        if a:direction < 0
-            let index=((ctpn-1+ntp-1)%ntp)
-        else
-            let index=(ctpn%ntp)
-        endif
-
-        " move tab page.
-        execute "tabmove ".index
-    endif
-endfunction
+" Only necessary if you want "wrapping" functionality
+"function! TabMove(direction)
+"    " get number of tab pages.
+"    let ntp=tabpagenr("$")
+"    " move tab, if necessary.
+"    if ntp > 1
+"        " get number of current tab page.
+"        let ctpn=tabpagenr()
+"        " move left.
+"        if a:direction < 0
+"            let index=((ctpn-1+ntp-1)%ntp)
+"        else
+"            let index=(ctpn%ntp)
+"        endif
+"
+"        " move tab page.
+"        execute "tabmove ".index
+"    endif
+"endfunction
 
 " chain m + F2/F3 to move them rather than navigate through them
-nnoremap m<F3> :call TabMove(1)<CR>
-nnoremap m<F2> :call TabMove(-1)<CR>
+nnoremap m<F3> :tabmove +1<CR>
+nnoremap m<F2> :tabmove -1<CR>
 
 " configuring YCM. 
 let g:ycm_autoclose_preview_window_after_insertion = 1
@@ -487,3 +488,51 @@ let g:ctrlp_split_window = 1 " <CR> = New Tab
 let g:ctrlp_open_new_file = 't' " Open newly created files in a new tab
 let g:ctrlp_open_multiple_files = 't' " Open multiple files in new tabs
 let g:ctrlp_show_hidden = 1 " Index hidden files
+
+" pulled from http://vim.wikia.com/wiki/Move_current_window_between_tabs
+function MoveToPrevTab()
+  "there is only one window
+  if tabpagenr('$') == 1 && winnr('$') == 1
+    return
+  endif
+  "preparing new window
+  let l:tab_nr = tabpagenr('$')
+  let l:cur_buf = bufnr('%')
+  if tabpagenr() != 1
+    close!
+    if l:tab_nr == tabpagenr('$')
+      tabprev
+    endif
+    sp
+  else
+    close!
+    exe "0tabnew"
+  endif
+  "opening current buffer in new window
+  exe "b".l:cur_buf
+endfunc
+
+function MoveToNextTab()
+  "there is only one window
+  if tabpagenr('$') == 1 && winnr('$') == 1
+    return
+  endif
+  "preparing new window
+  let l:tab_nr = tabpagenr('$')
+  let l:cur_buf = bufnr('%')
+  if tabpagenr() < tab_nr
+    close!
+    if l:tab_nr == tabpagenr('$')
+      tabnext
+    endif
+    sp
+  else
+    close!
+    tabnew
+  endif
+  "opening current buffer in new window
+  exe "b".l:cur_buf
+endfunc
+
+nnoremap w<F2> :call MoveToPrevTab()<CR>
+nnoremap w<F3> :call MoveToNextTab()<CR>
