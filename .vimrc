@@ -477,11 +477,12 @@ inoremap <F35> <C-O><C-R>
 nnoremap <F35> <C-R>
 vnoremap <F35> <ESC><C-R>
 
-" Make Alt+Tab switch vim tabs (time to get creative for Windows....) 
-" set <F34>=<C-I>
-" inoremap <F34> <C-O>:tabnext<CR>
-" nnoremap <F34> :tabnext<CR>
-" vnoremap <F34> <ESC>:tabnext<CR>
+" Make Alt+Tab switch vim tabs  (todo: figure out a less wrong escape code to
+" use)
+set <F34>=[99Z
+inoremap <F34> <C-O>:tabnext<CR>
+nnoremap <F34> :tabnext<CR>
+vnoremap <F34> <ESC>:tabnext<CR>
 
 " make recordings easier to fire off, binding comma to @q (use qq to record
 " what you wanna repeat) 
