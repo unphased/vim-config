@@ -541,3 +541,5 @@ endfunc
 
 nnoremap w<F2> :call MoveToPrevTab()<CR>
 nnoremap w<F3> :call MoveToNextTab()<CR>
+
+set scrolloff=2
