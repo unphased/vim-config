@@ -65,7 +65,7 @@ set hlsearch
 set incsearch
 set backspace=2
 set sidescroll=3
-set lcs=tab:\|-,extends:>,precedes:<
+set lcs=tab:\|-,extends:>,precedes:<,trail:%,nbsp:#
 set sidescrolloff=25
 
 " fast terminal (this is for escape code wait time for escape code based keys)
@@ -545,3 +545,7 @@ nnoremap w<F3> :call MoveToNextTab()<CR>
 
 set scrolloff=2
 runtime macros/matchit.vim
+
+" bind the ctrl arrow left and right in insert mode to WORD hop also 
+inoremap <C-Left> <ESC>Bi
+inoremap <C-Right> <ESC>Wi
