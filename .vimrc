@@ -104,7 +104,7 @@ colorscheme TMEighties
 set listchars=tab:╶─,extends:>,precedes:<,trail:-,nbsp:#
 set list
 
-hi NonText ctermbg=238 ctermfg=254
+hi NonText ctermbg=234 ctermfg=254
 hi SpecialKey ctermfg=236
 
 highlight DiffAdd term=reverse ctermbg=156 ctermfg=black
