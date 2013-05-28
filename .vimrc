@@ -65,7 +65,7 @@ set hlsearch
 set incsearch
 set backspace=2
 set sidescroll=3
-set lcs=tab:\|-,extends:>,precedes:<,trail:%,nbsp:#
+
 set sidescrolloff=25
 
 " fast terminal (this is for escape code wait time for escape code based keys)
@@ -100,6 +100,12 @@ if &term =~ '256color'
 endif
 
 colorscheme TMEighties
+
+set listchars=tab:╶─,extends:>,precedes:<,trail:-,nbsp:#
+set list
+
+hi NonText ctermbg=238 ctermfg=254
+hi SpecialKey ctermfg=236
 
 highlight DiffAdd term=reverse ctermbg=156 ctermfg=black
 highlight DiffChange term=reverse ctermbg=blue ctermfg=black
@@ -142,13 +148,13 @@ au InsertLeave * call InsertLeaveActions()
 " set statusline+=%m      "modified flag
 " set statusline+=%m      "modified flag
 " set statusline+=%r      "read only flag
-" 
+"
 " set statusline+=\ %=                        " align left
 " set statusline+=Line:\ %l/%L[%2p%%]            " line X of Y [percent of file]
 " set statusline+=\ Col:%-2c                    " current column
 " set statusline+=\ Buf:%n                    " Buffer number
 " set statusline+=\ %-3bx%02B\                 " ASCII and byte code under cursor
-" 
+"
 " end pulled from SO
 
 " omnifunc, pulled from http://amix.dk/blog/post/19021
@@ -226,7 +232,7 @@ nnoremap <S-J> 7j
 nnoremap <S-K> 7k
 nnoremap <S-H> 10h
 nnoremap <S-L> 10l
-" visual mode equivalents 
+" visual mode equivalents
 vnoremap <S-J> 7j
 vnoremap <S-K> 7k
 vnoremap <S-H> 10h
@@ -234,7 +240,7 @@ vnoremap <S-L> 10l
 
 set wrap
 
-" hjkl faster navigation 
+" hjkl faster navigation
 " nnoremap <C-j> }
 " inoremap <C-j> <C-O>}
 " nnoremap <C-k> {
@@ -265,7 +271,7 @@ noremap <MiddleMouse> <LeftMouse>
 noremap <C-H> <C-W>h
 noremap <C-J> <C-W>j
 noremap <C-K> <C-W>k
-" <C-L> is refresh screen, use :refresh if needed. 
+" <C-L> is refresh screen, use :refresh if needed.
 noremap <C-L> <C-W>l
 
 nnoremap + <C-W>3-
@@ -357,7 +363,7 @@ nnoremap j gj
 " g<End>
 " inoremap <End> <C-O>g<End>
 
-" This is for making the alternate backspace delete an entire word. 
+" This is for making the alternate backspace delete an entire word.
 inoremap <C-H> <C-W>
 
 " Move current tab into the specified direction.
@@ -393,7 +399,7 @@ let g:ycm_autoclose_preview_window_after_insertion = 1
 hi Search ctermbg=236 ctermfg=NONE cterm=underline
 
 " requires an italic term obviously
-hi Comment cterm=italic 
+hi Comment cterm=italic
 
 " bind ctrl W to always work on windows from insert mode
 inoremap <C-W> <ESC><C-W>
@@ -428,7 +434,7 @@ let g:gundo_close_on_revert = 1
 
 set iskeyword=@,$,48-57,_,-,192-255
 
-" Powerline config 
+" Powerline config
 let g:Powerline_colorscheme='default'
 let g:Powerline_theme='default'
 let g:Powerline_symbols='compatible'
@@ -449,7 +455,7 @@ nnoremap <C-Y> <Tab>
 nnoremap <Tab> :wincmd w<CR>
 nnoremap <S-Tab> :wincmd W<CR>
 
-" Uncomment the following to have Vim jump to the last position when                                                       
+" Uncomment the following to have Vim jump to the last position when
 " reopening a file
 " Put into e.g.
 " ~/.vim/after/ftplugin/gitcommit.vim
@@ -485,7 +491,7 @@ nnoremap <F34> :tabnext<CR>
 vnoremap <F34> <ESC>:tabnext<CR>
 
 " make recordings easier to fire off, binding comma to @q (use qq to record
-" what you wanna repeat) 
+" what you wanna repeat)
 nnoremap , @q
 
 " more ctrlp settings stolen from github/jeffjewiss
