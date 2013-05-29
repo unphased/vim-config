@@ -264,12 +264,14 @@ set autoindent
 noremap <MiddleMouse> <LeftMouse>
 
 " vim-window management keys
-noremap <C-H> <C-W>h
-noremap <C-J> <C-W>j
-noremap <C-K> <C-W>k
 " <C-L> is refresh screen, use :refresh if needed. (and since I am abolishing
 " it in the shell use the clear builtin on there also)
-noremap <C-L> <C-W>l
+
+" If cannot move in a direction, attempt to forward the directive to tmux
+function s:TmuxWindow(dir)
+	let nr=winnr()
+
+endfunction
 
 nnoremap + <C-W>3-
 nnoremap = <C-W>3+
@@ -465,6 +467,8 @@ nnoremap <S-Tab> :wincmd W<CR>
     \| exe "normal! g'\"" | endif
 " endif
 
+
+"THIS SECTION CONTAINS THE FAST KEY BINDINGS
 " Make alt+BS do the same as in bash/zsh (I am doing experimental override of xF keys)
 set <F37>=
 inoremap <F37> <C-W>
@@ -487,6 +491,11 @@ set <F34>=[99Z
 inoremap <F34> <C-O>:tabnext<CR>
 nnoremap <F34> :tabnext<CR>
 vnoremap <F34> <ESC>:tabnext<CR>
+
+set <F33>=p
+nnoremap <F33> :set invpaste paste?<CR>
+set pastetoggle=<F33>
+set showmode
 
 " make recordings easier to fire off, binding comma to @q (use qq to record
 " what you wanna repeat)
