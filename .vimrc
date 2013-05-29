@@ -223,10 +223,6 @@ inoremap <C-Down> <C-O>3<C-E>
 vnoremap <C-Down> 3<C-E>
 nnoremap <C-Down> 3<C-E>
 
-" more visual mode adjustment
-vnoremap <C-L> <C-Right>
-vnoremap <C-H> <C-Left>
-
 " accelerated j/k navigation
 nnoremap <S-J> 7j
 nnoremap <S-K> 7k
@@ -271,7 +267,8 @@ noremap <MiddleMouse> <LeftMouse>
 noremap <C-H> <C-W>h
 noremap <C-J> <C-W>j
 noremap <C-K> <C-W>k
-" <C-L> is refresh screen, use :refresh if needed.
+" <C-L> is refresh screen, use :refresh if needed. (and since I am abolishing
+" it in the shell use the clear builtin on there also)
 noremap <C-L> <C-W>l
 
 nnoremap + <C-W>3-
@@ -364,6 +361,7 @@ nnoremap j gj
 " inoremap <End> <C-O>g<End>
 
 " This is for making the alternate backspace delete an entire word.
+" Attempting to focus window to the left in insert mode just wont work, this should be fine.
 inoremap <C-H> <C-W>
 
 " Move current tab into the specified direction.
@@ -555,3 +553,12 @@ runtime macros/matchit.vim
 " bind the ctrl arrow left and right in insert mode to WORD hop also 
 inoremap <C-Left> <ESC>Bi
 inoremap <C-Right> <ESC>Wi
+
+" bind the F10 switcher key to also exit insert mode if sent to Vim, this
+" should help its behavior become consistent outside of tmux as it won't then
+" be doing any filtering on F10 (which should cycle panes)
+"
+" I actually think this binding is beautiful because it happens to be
+" generally a good idea to exit insert mode anyway once switching away from
+" Vim.
+inoremap <F10> <ESC>
