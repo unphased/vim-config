@@ -26,7 +26,8 @@ Bundle 'tpope/vim-repeat'
 Bundle 'tpope/vim-surround'
 Bundle 'unphased/vim-powerline'
 Bundle 'vim-perl/vim-perl'
-Bundle 'AutoClose'
+Bundle 'jiangmiao/auto-pairs'
+"Bundle 'AutoClose'
 
 " conditionally include the perforce bundle on machines that match this
 " if match($HOSTNAME,'athenahealth') != -1
@@ -471,16 +472,36 @@ hi multiple_cursors_visual term=reverse ctermbg=6 ctermfg=0
 nnoremap <C-F> /
 inoremap <C-F> <ESC>/
 
-" mapping normal mode Tab to swap to next window
+" mapping normal mode Tab to swap to next window: Ctrl-Y has already been
+" mapped out above, so we can safely overload it to fire whatevers bound on Ctrl-I
 nnoremap <C-Y> <Tab>
-nnoremap <Tab> :wincmd w<CR>
-nnoremap <S-Tab> :wincmd W<CR>
+" context-sensitively overload Tab to switch either tabs or windows that are in current tab
+function NextWindowOrTab()
+	if (winnr() == winnr('$'))
+		tabnext
+		1wincmd w
+	else
+		wincmd w
+	endif
+endfunc
+
+function PrevWindowOrTab()
+	if (winnr() == 1)
+		tabprev
+		let winnr = winnr('$')
+		exec winnr . 'wincmd w'
+	else
+		wincmd W
+	endif
+endfunc
+nnoremap <Tab> :call NextWindowOrTab()<CR>
+nnoremap <S-Tab> :call PrevWindowOrTab()<CR>
 
 " Uncomment the following to have Vim jump to the last position when
 " reopening a file
 " Put into e.g.
 " ~/.vim/after/ftplugin/gitcommit.vim
-" this: 
+" this:
 " :autocmd BufWinEnter <buffer> normal! gg0
 " to get this not to affect whatever filetypes 
 " if has("autocmd")
@@ -521,6 +542,11 @@ set showmode
 set <F32>=w
 " keybinding for toggling word-wrap 
 nnoremap <F32> :set wrap!<CR>
+inoremap <F32> :set wrap!<CR>
+
+set <F31>=s
+" just a convenience thing for being lazy
+inoremap <F31> <C-S>
 
 " make recordings easier to fire off, binding comma to @q (use qq to record
 " what you wanna repeat)
