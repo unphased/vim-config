@@ -26,6 +26,7 @@ Bundle 'tpope/vim-repeat'
 Bundle 'tpope/vim-surround'
 Bundle 'unphased/vim-powerline'
 Bundle 'vim-perl/vim-perl'
+Bundle 'AutoClose'
 
 " conditionally include the perforce bundle on machines that match this
 " if match($HOSTNAME,'athenahealth') != -1
@@ -268,10 +269,32 @@ noremap <MiddleMouse> <LeftMouse>
 " it in the shell use the clear builtin on there also)
 
 " If cannot move in a direction, attempt to forward the directive to tmux
-function s:TmuxWindow(dir)
+function TmuxWindow(dir)
 	let nr=winnr()
+	silent! exe 'wincmd ' . a:dir
+	let newnr=winnr()
+	if newnr == nr
+		let cmd = 'tmux select-pane -' . tr(a:dir, 'hjkl', 'LDUR')
+		call system(cmd)
+		echo 'Executed ' . cmd
+	endif
+endfun
 
-endfunction
+nnoremap <C-H> :call TmuxWindow('h')<CR>
+nnoremap <C-J> :call TmuxWindow('j')<CR>
+nnoremap <C-K> :call TmuxWindow('k')<CR>
+nnoremap <C-L> :call TmuxWindow('l')<CR>
+
+" bind the F10 switcher key to also exit insert mode if sent to Vim, this
+" should help its behavior become consistent outside of tmux as it won't then
+" be doing any filtering on F10 (which should cycle panes)
+"
+" I actually think this binding is beautiful because it happens to be
+" generally a good idea to exit insert mode anyway once switching away from
+" Vim.
+noremap! <F10> <ESC>
+noremap <F10> :call system('tmux select-pane -t :.+')<CR>
+vnoremap <F10> <ESC>
 
 nnoremap + <C-W>3-
 nnoremap = <C-W>3+
@@ -286,7 +309,8 @@ inoremap <F2> <ESC>:tabprev<CR>
 nnoremap <F3> :tabnext<CR>
 inoremap <F3> <ESC>:tabnext<CR>
 
-" Use CTRL-S for saving, also in Insert mode
+" Use CTRL-S for saving, also in Insert mode TODO: Make this more robust
+" mode-wise
 noremap <C-S> :update<CR>
 vnoremap <C-S> <C-C>:update<CR>
 inoremap <C-S> <ESC>:update<CR>
@@ -563,11 +587,3 @@ runtime macros/matchit.vim
 inoremap <C-Left> <ESC>Bi
 inoremap <C-Right> <ESC>Wi
 
-" bind the F10 switcher key to also exit insert mode if sent to Vim, this
-" should help its behavior become consistent outside of tmux as it won't then
-" be doing any filtering on F10 (which should cycle panes)
-"
-" I actually think this binding is beautiful because it happens to be
-" generally a good idea to exit insert mode anyway once switching away from
-" Vim.
-inoremap <F10> <ESC>
