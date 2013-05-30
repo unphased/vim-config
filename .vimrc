@@ -294,7 +294,14 @@ nnoremap <C-L> :call TmuxWindow('l')<CR>
 " Vim.
 map <F10> <ESC>
 map! <F10> <ESC>
-nnoremap <F10> :call system('tmux select-pane -t :.+')<CR>
+function F10OverloadedFunctionalityCheckTmux()
+	if system('tmux display -p "#{window_panes}"') == 1
+		call NextWindowOrTab()
+	else
+		call system('tmux select-pane -t :.+')
+	endif
+endfunc
+nnoremap <F10> :call F10OverloadedFunctionalityCheckTmux()<CR>
 
 nnoremap + <C-W>3-
 nnoremap = <C-W>3+
