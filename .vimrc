@@ -102,7 +102,7 @@ endif
 
 colorscheme TMEighties
 
-set listchars=tab:╶─,extends:>,precedes:<,trail:-,nbsp:#
+set listchars=tab:╶─,extends:>,precedes:<,trail:◼,nbsp:⬧
 set list
 
 hi NonText ctermbg=234 ctermfg=254
