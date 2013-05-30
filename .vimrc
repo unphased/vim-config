@@ -294,7 +294,17 @@ nnoremap <C-L> :call TmuxWindow('l')<CR>
 " Vim.
 map <F10> <ESC>
 map! <F10> <ESC>
-nnoremap <F10> :call system('tmux select-pane -t :.+')<CR>
+
+" this checks tmux to figure out if it should swap panes or trigger Tab
+" instead
+function F10IntelligentNavigator()
+	if system('tmux display -p "#{window_panes}"') == 1
+		call NextWindowOrTab()
+	else
+		call system('tmux select-pane -t :.+')
+	endif
+endfunc
+nnoremap <F10> :call F10IntelligentNavigator()<CR>
 
 nnoremap + <C-W>3-
 nnoremap = <C-W>3+
@@ -545,8 +555,10 @@ nnoremap <F32> :set wrap!<CR>
 inoremap <F32> :set wrap!<CR>
 
 set <F31>=s
-" just a convenience thing for being lazy
-inoremap <F31> <C-S>
+" just a convenience thing for being lazy what with switching OS's and this
+" being a rather important bind
+inoremap <F31> <ESC>:update<CR>
+noremap <F31> :update<CR>
 
 " make recordings easier to fire off, binding comma to @q (use qq to record
 " what you wanna repeat)
