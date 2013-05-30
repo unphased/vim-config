@@ -291,9 +291,9 @@ nnoremap <C-L> :call TmuxWindow('l')<CR>
 " I actually think this binding is beautiful because it happens to be
 " generally a good idea to exit insert mode anyway once switching away from
 " Vim.
-vnoremap <F10> <ESC>
-noremap! <F10> <ESC>
-noremap <F10> :call system('tmux select-pane -t :.+')<CR>
+map <F10> <ESC>
+map! <F10> <ESC>
+nnoremap <F10> :call system('tmux select-pane -t :.+')<CR>
 
 nnoremap + <C-W>3-
 nnoremap = <C-W>3+
