@@ -76,7 +76,6 @@ set ttimeoutlen=10
 " set t_Co=256
 " set term=xterm-256color-italic
 
-set ttyfast
 set ttymouse=xterm2
 
 syntax on
@@ -463,8 +462,6 @@ let g:Powerline_colorscheme='default'
 let g:Powerline_theme='default'
 let g:Powerline_symbols='compatible'
 
-" keybinding for toggling word-wrap 
-nnoremap <S-W> :set wrap!<CR>
 
 " Configure multiple cursors plugin
 hi multiple_cursors_cursor term=reverse ctermbg=3 ctermfg=0
@@ -521,6 +518,10 @@ nnoremap <F33> :set invpaste paste?<CR>
 set pastetoggle=<F33>
 set showmode
 
+set <F32>=w
+" keybinding for toggling word-wrap 
+nnoremap <F32> :set wrap!<CR>
+
 " make recordings easier to fire off, binding comma to @q (use qq to record
 " what you wanna repeat)
 nnoremap , @q
@@ -528,7 +529,7 @@ nnoremap , @q
 " more ctrlp settings stolen from github/jeffjewiss
 let g:ctrlp_jump_to_buffer = 'Et' " Jump to tab AND buffer if already open
 let g:ctrlp_split_window = 1 " <CR> = New Tab
-let g:ctrlp_open_new_file = 'v' " Open newly files in a new tab
+let g:ctrlp_open_new_file = 'r' " Open new files in a new tab
 let g:ctrlp_open_multiple_files = '3h' " Open multiple files (up to 3) in horizontal split 
 let g:ctrlp_show_hidden = 1 " Index hidden files
 
@@ -583,7 +584,7 @@ nnoremap w<F3> :call MoveToNextTab()<CR>
 set scrolloff=2
 runtime macros/matchit.vim
 
-" bind the ctrl arrow left and right in insert mode to WORD hop also 
+" bind the ctrl arrow left and right in insert mode to WORD hop also
 inoremap <C-Left> <ESC>Bi
-inoremap <C-Right> <ESC>Wi
+inoremap <C-Right> <ESC>Wa
 
