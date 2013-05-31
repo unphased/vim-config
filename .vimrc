@@ -292,8 +292,8 @@ nnoremap <C-L> :call TmuxWindow('l')<CR>
 " I actually think this binding is beautiful because it happens to be
 " generally a good idea to exit insert mode anyway once switching away from
 " Vim.
-map <F10> <ESC>
-map! <F10> <ESC>
+noremap <F10> <ESC>
+noremap! <F10> <ESC>
 
 " this checks tmux to figure out if it should swap panes or trigger Tab
 " instead
