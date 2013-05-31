@@ -459,7 +459,6 @@ nmap <C-\> :vsplit<CR>
 nmap <C-_> :split<CR>
 
 " these make the behavior more like tmux by opening to the right and below
-" (why on earth not by default???)
 set splitbelow
 set splitright
 
