@@ -26,8 +26,7 @@ Bundle 'tpope/vim-repeat'
 Bundle 'tpope/vim-surround'
 Bundle 'unphased/vim-powerline'
 Bundle 'vim-perl/vim-perl'
-Bundle 'jiangmiao/auto-pairs'
-"Bundle 'AutoClose'
+Bundle 'Raimondi/delimitMate'
 
 " conditionally include the perforce bundle on machines that match this
 " if match($HOSTNAME,'athenahealth') != -1
