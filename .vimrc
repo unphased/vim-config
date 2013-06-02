@@ -27,6 +27,7 @@ Bundle 'tpope/vim-surround'
 Bundle 'unphased/vim-powerline'
 Bundle 'vim-perl/vim-perl'
 Bundle 'Raimondi/delimitMate'
+Bundle 'rstacruz/sparkup'
 
 " conditionally include the perforce bundle on machines that match this
 " if match($HOSTNAME,'athenahealth') != -1
@@ -563,7 +564,7 @@ noremap <F31> :update<CR>
 nnoremap , @q
 
 " more ctrlp settings stolen from github/jeffjewiss
-let g:ctrlp_jump_to_buffer = 'Et' " Jump to tab AND buffer if already open
+let g:ctrlp_switch_buffer = 'Et' " Jump to tab AND buffer if already open
 let g:ctrlp_open_new_file = 'r' " Open new files in a new tab
 let g:ctrlp_open_multiple_files = '3h' " Open multiple files (up to 3) in horizontal split 
 let g:ctrlp_show_hidden = 1 " Index hidden files
