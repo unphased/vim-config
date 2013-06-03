@@ -27,7 +27,7 @@ Bundle 'tpope/vim-surround'
 Bundle 'unphased/vim-powerline'
 Bundle 'vim-perl/vim-perl'
 Bundle 'Raimondi/delimitMate'
-Bundle 'rstacruz/sparkup'
+Bundle 'mattn/zencoding-vim'
 
 " conditionally include the perforce bundle on machines that match this
 " if match($HOSTNAME,'athenahealth') != -1
@@ -106,7 +106,7 @@ set listchars=tab:╶─,extends:>,precedes:<,trail:◼,nbsp:⬧
 set list
 
 hi NonText ctermbg=234 ctermfg=254
-hi SpecialKey ctermfg=236
+hi SpecialKey ctermfg=239
 
 highlight DiffAdd term=reverse ctermbg=156 ctermfg=black
 highlight DiffChange term=reverse ctermbg=blue ctermfg=black
@@ -236,6 +236,9 @@ vnoremap <S-H> 10h
 vnoremap <S-L> 10l
 
 set wrap
+
+" Helpful warning message
+au FileChangedShell * echo "Warning: File changed on disk!!"
 
 " hjkl faster navigation
 " nnoremap <C-j> }
