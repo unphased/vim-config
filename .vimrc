@@ -309,11 +309,6 @@ function F10OverloadedFunctionalityCheckTmux()
 endfunc
 nnoremap <F10> :call F10OverloadedFunctionalityCheckTmux()<CR>
 
-nnoremap + <C-W>3-
-nnoremap = <C-W>3+
-nnoremap - <C-W>5>
-nnoremap _ <C-W>5<
-
 noremap <F12> <Help>
 nnoremap <F1> :tabnew<CR>
 inoremap <F1> <ESC>:tabnew<CR>
@@ -336,28 +331,28 @@ inoremap <C-Q> <C-O>:qa!<CR>
 " this bit controls search and highlighting by using the Enter key in normal mode
 let g:highlighting = 0
 function! Highlighting()
-  if g:highlighting == 1 && @/ =~ '^\\<'.expand('<cword>').'\\>$'
-    let g:highlighting = 0
-    return ":silent nohlsearch\<CR>"
-  endif
-  let @/ = '\<'.expand('<cword>').'\>'
-  let g:highlighting = 1
-  return ":silent set hlsearch\<CR>"
+if g:highlighting == 1 && @/ =~ '^\\<'.expand('<cword>').'\\>$'
+let g:highlighting = 0
+return ":silent nohlsearch\<CR>"
+endif
+let @/ = '\<'.expand('<cword>').'\>'
+let g:highlighting = 1
+return ":silent set hlsearch\<CR>"
 endfunction
 nnoremap <silent> <expr> <CR> Highlighting()
 
 " This came out of http://vim.wikia.com/wiki/Search_for_visually_selected_text
 " Search for selected text, forwards or backwards.
 vnoremap <silent> * :<C-U>
-  \let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
-  \gvy/<C-R><C-R>=substitute(
-  \escape(@", '/\.*$^~['), '\_s\+', '\\_s\\+', 'g')<CR><CR>
-  \gV:call setreg('"', old_reg, old_regtype)<CR>
+\let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
+\gvy/<C-R><C-R>=substitute(
+\escape(@", '/\.*$^~['), '\_s\+', '\\_s\\+', 'g')<CR><CR>
+\gV:call setreg('"', old_reg, old_regtype)<CR>
 vnoremap <silent> # :<C-U>
-  \let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
-  \gvy?<C-R><C-R>=substitute(
-  \escape(@", '?\.*$^~['), '\_s\+', '\\_s\\+', 'g')<CR><CR>
-  \gV:call setreg('"', old_reg, old_regtype)<CR>
+\let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
+\gvy?<C-R><C-R>=substitute(
+\escape(@", '?\.*$^~['), '\_s\+', '\\_s\\+', 'g')<CR><CR>
+\gV:call setreg('"', old_reg, old_regtype)<CR>
 
 " mapping Enter to also perform a search from visual mode (search what is
 " selected) (and staying in the same spot by searching backward once)
@@ -445,8 +440,8 @@ inoremap <C-W> <ESC><C-W>
 " file it was loaded from, thus the changes you made.
 " Only define it when not defined already.
 " if !exists(":DiffOrig")
-  " command DiffOrig vert new | set bt=nofile | r ++edit # | 0d_ | diffthis
-		  " \ | wincmd p | diffthis
+" command DiffOrig vert new | set bt=nofile | r ++edit # | 0d_ | diffthis
+	  " \ | wincmd p | diffthis
 " endif
 
 " set ^Z in insert mode to run undo (overloading insert mode for
@@ -489,22 +484,22 @@ inoremap <C-F> <ESC>/
 nnoremap <C-Y> <Tab>
 " context-sensitively overload Tab to switch either tabs or windows that are in current tab
 function NextWindowOrTab()
-	if (winnr() == winnr('$'))
-		tabnext
-		1wincmd w
-	else
-		wincmd w
-	endif
+if (winnr() == winnr('$'))
+	tabnext
+	1wincmd w
+else
+	wincmd w
+endif
 endfunc
 
 function PrevWindowOrTab()
-	if (winnr() == 1)
-		tabprev
-		let winnr = winnr('$')
-		exec winnr . 'wincmd w'
-	else
-		wincmd W
-	endif
+if (winnr() == 1)
+	tabprev
+	let winnr = winnr('$')
+	exec winnr . 'wincmd w'
+else
+	wincmd W
+endif
 endfunc
 nnoremap <Tab> :call NextWindowOrTab()<CR>
 nnoremap <S-Tab> :call PrevWindowOrTab()<CR>
@@ -517,8 +512,8 @@ nnoremap <S-Tab> :call PrevWindowOrTab()<CR>
 " :autocmd BufWinEnter <buffer> normal! gg0
 " to get this not to affect whatever filetypes 
 " if has("autocmd")
-  au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")
-    \| exe "normal! g'\"" | endif
+au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")
+\| exe "normal! g'\"" | endif
 " endif
 
 
@@ -574,47 +569,47 @@ let g:ctrlp_show_hidden = 1 " Index hidden files
 
 " pulled from http://vim.wikia.com/wiki/Move_current_window_between_tabs
 function MoveToPrevTab()
-  "there is only one window
-  if tabpagenr('$') == 1 && winnr('$') == 1
-    return
-  endif
-  "preparing new window
-  let l:tab_nr = tabpagenr('$')
-  let l:cur_buf = bufnr('%')
-  if tabpagenr() != 1
-    close!
-    if l:tab_nr == tabpagenr('$')
-      tabprev
-    endif
-    sp
-  else
-    close!
-    exe "0tabnew"
-  endif
-  "opening current buffer in new window
-  exe "b".l:cur_buf
+"there is only one window
+if tabpagenr('$') == 1 && winnr('$') == 1
+return
+endif
+"preparing new window
+let l:tab_nr = tabpagenr('$')
+let l:cur_buf = bufnr('%')
+if tabpagenr() != 1
+close!
+if l:tab_nr == tabpagenr('$')
+  tabprev
+endif
+sp
+else
+close!
+exe "0tabnew"
+endif
+"opening current buffer in new window
+exe "b".l:cur_buf
 endfunc
 
 function MoveToNextTab()
-  "there is only one window
-  if tabpagenr('$') == 1 && winnr('$') == 1
-    return
-  endif
-  "preparing new window
-  let l:tab_nr = tabpagenr('$')
-  let l:cur_buf = bufnr('%')
-  if tabpagenr() < tab_nr
-    close!
-    if l:tab_nr == tabpagenr('$')
-      tabnext
-    endif
-    sp
-  else
-    close!
-    tabnew
-  endif
-  "opening current buffer in new window
-  exe "b".l:cur_buf
+"there is only one window
+if tabpagenr('$') == 1 && winnr('$') == 1
+return
+endif
+"preparing new window
+let l:tab_nr = tabpagenr('$')
+let l:cur_buf = bufnr('%')
+if tabpagenr() < tab_nr
+close!
+if l:tab_nr == tabpagenr('$')
+  tabnext
+endif
+sp
+else
+close!
+tabnew
+endif
+"opening current buffer in new window
+exe "b".l:cur_buf
 endfunc
 
 nnoremap w<F2> :call MoveToPrevTab()<CR>
@@ -626,4 +621,58 @@ runtime macros/matchit.vim
 " bind the ctrl arrow left and right in insert mode to WORD hop also
 inoremap <C-Left> <ESC>Bi
 inoremap <C-Right> <ESC>Wa
+
+func! MyResizeDown()
+	let curwindow = winnr()
+	wincmd j
+	if winnr() == curwindow
+		wincmd k
+	else
+		wincmd p
+	endif
+	3wincmd +
+	exec curwindow.'wincmd w'
+endfunc
+
+func! MyResizeUp()
+	let curwindow = winnr()
+	wincmd j
+	if winnr() == curwindow
+		wincmd k
+	else
+		wincmd p
+	endif
+	3wincmd -
+	exec curwindow.'wincmd w'
+endfunc
+
+func! MyResizeRight()
+	let curwindow = winnr()
+	wincmd l
+	if winnr() == curwindow
+		wincmd h
+	else
+		wincmd p
+	endif
+	5wincmd >
+	exec curwindow.'wincmd w'
+endfunc
+
+func! MyResizeLeft()
+	let curwindow = winnr()
+	wincmd l
+	if winnr() == curwindow
+		wincmd h
+	else
+		wincmd p
+	endif
+	5wincmd <
+	exec curwindow.'wincmd w'
+endfunc
+
+nnoremap - :call MyResizeUp()<CR>
+nnoremap = :call MyResizeDown()<CR>
+nnoremap _ :call MyResizeLeft()<CR>
+nnoremap + :call MyResizeRight()<CR>
+
 
