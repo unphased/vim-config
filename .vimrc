@@ -627,3 +627,57 @@ runtime macros/matchit.vim
 inoremap <C-Left> <ESC>Bi
 inoremap <C-Right> <ESC>Wa
 
+func! MyResizeDown()
+	let curwindow = winnr()
+	wincmd j
+	if winnr() == curwindow
+		wincmd k
+	else
+		wincmd p
+	endif
+	3wincmd +
+	exec curwindow.'wincmd w'
+endfunc
+
+func! MyResizeUp()
+	let curwindow = winnr()
+	wincmd j
+	if winnr() == curwindow
+		wincmd k
+	else
+		wincmd p
+	endif
+	3wincmd -
+	exec curwindow.'wincmd w'
+endfunc
+
+func! MyResizeRight()
+	let curwindow = winnr()
+	wincmd l
+	if winnr() == curwindow
+		wincmd h
+	else
+		wincmd p
+	endif
+	5wincmd >
+	exec curwindow.'wincmd w'
+endfunc
+
+func! MyResizeLeft()
+	let curwindow = winnr()
+	wincmd l
+	if winnr() == curwindow
+		wincmd h
+	else
+		wincmd p
+	endif
+	5wincmd <
+	exec curwindow.'wincmd w'
+endfunc
+
+nnoremap - :call MyResizeUp()<CR>
+nnoremap = :call MyResizeDown()<CR>
+nnoremap _ :call MyResizeLeft()<CR>
+nnoremap + :call MyResizeRight()<CR>
+
+
