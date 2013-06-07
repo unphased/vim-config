@@ -547,7 +547,7 @@ nnoremap <F34> :tabnext<CR>
 vnoremap <F34> <ESC>:tabnext<CR>
 
 set <F33>=p
-nnoremap <F33> :set invpaste paste?<CR>
+nnoremap <F33> :set invpaste paste?<CR>:set number!<CR>
 set pastetoggle=<F33>
 set showmode
 
