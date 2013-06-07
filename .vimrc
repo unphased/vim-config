@@ -28,6 +28,7 @@ Bundle 'unphased/vim-powerline'
 Bundle 'vim-perl/vim-perl'
 Bundle 'Raimondi/delimitMate'
 Bundle 'mattn/zencoding-vim'
+Bundle 'unphased/git-time-lapse'
 
 " conditionally include the perforce bundle on machines that match this
 " if match($HOSTNAME,'athenahealth') != -1
@@ -316,11 +317,16 @@ nnoremap _ <C-W>5<
 
 noremap <F12> <Help>
 nnoremap <F1> :tabnew<CR>
-inoremap <F1> <ESC>:tabnew<CR>
+" inoremap <F1> <ESC>:tabnew<CR>
 nnoremap <F2> :tabprev<CR>
-inoremap <F2> <ESC>:tabprev<CR>
+" inoremap <F2> <ESC>:tabprev<CR>
 nnoremap <F3> :tabnext<CR>
-inoremap <F3> <ESC>:tabnext<CR>
+" inoremap <F3> <ESC>:tabnext<CR>
+" I am hoping to come up with mappings for the F-keys in insert mode that
+" can serve productive purposes.
+
+" This is for accomodating PuTTY's behavior of turning shift+F1 into F11
+nnoremap <F11> :tabclose<CR>
 
 " Use CTRL-S for saving, also in Insert mode TODO: Make this more robust
 " mode-wise
