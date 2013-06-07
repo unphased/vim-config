@@ -55,5 +55,6 @@ source $ZSH/plugins/history-substring-search/history-substring-search.plugin.zsh
 
 alias l="ls -la"
 alias gs="git s" # short status 
+alias glp="git log -p"
 
 echo "Finished loading my .zshrc"
