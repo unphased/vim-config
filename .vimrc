@@ -310,11 +310,6 @@ function F10OverloadedFunctionalityCheckTmux()
 endfunc
 nnoremap <F10> :call F10OverloadedFunctionalityCheckTmux()<CR>
 
-nnoremap + <C-W>3-
-nnoremap = <C-W>3+
-nnoremap - <C-W>5>
-nnoremap _ <C-W>5<
-
 noremap <F12> <Help>
 nnoremap <F1> :tabnew<CR>
 " inoremap <F1> <ESC>:tabnew<CR>
@@ -546,7 +541,7 @@ nnoremap <F35> <C-R>
 vnoremap <F35> <ESC><C-R>
 
 " Make Alt+Tab switch vim tabs  (todo: figure out a less wrong escape code to
-" use)
+" use) -- this one is clearly only possible on a Mac
 set <F34>=[99Z
 inoremap <F34> <C-O>:tabnext<CR>
 nnoremap <F34> :tabnext<CR>
@@ -681,9 +676,11 @@ func! MyResizeLeft()
 	exec curwindow.'wincmd w'
 endfunc
 
-nnoremap - :call MyResizeUp()<CR>
-nnoremap = :call MyResizeDown()<CR>
-nnoremap _ :call MyResizeLeft()<CR>
-nnoremap + :call MyResizeRight()<CR>
+nnoremap - :call MyResizeLeft()<CR>
+nnoremap = :call MyResizeRight()<CR>
+nnoremap _ :call MyResizeDown()<CR>
+nnoremap + :call MyResizeUp()<CR>
 
-
+" delimitMate configuration
+let delimitmate_expand_space = 1
+let delimitMate_expand_cr = 1
