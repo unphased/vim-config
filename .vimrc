@@ -682,5 +682,5 @@ nnoremap _ :call MyResizeDown()<CR>
 nnoremap + :call MyResizeUp()<CR>
 
 " delimitMate configuration
-let delimitmate_expand_space = 1
+let delimitMate_expand_space = 1
 let delimitMate_expand_cr = 1
