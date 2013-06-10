@@ -557,8 +557,6 @@ nnoremap <F34> :tabnext<CR>
 vnoremap <F34> <ESC>:tabnext<CR>
 
 set <F33>=p
-map! <F33> <M-p>
-map <F33> <M-p>
 
 set <F32>=w
 " keybinding for toggling word-wrap 
@@ -571,9 +569,12 @@ set <F31>=s
 inoremap <F31> <ESC>:update<CR>
 noremap <F31> :update<CR>
 
-nnoremap <silent> <C-d> :set invpaste paste?<CR>:set number!<CR>
-set pastetoggle=<C-d>
+nnoremap <silent> <F33> :set invpaste paste?<CR>:set number!<CR>
+set pastetoggle=<F33>
 set showmode
+
+map! <C-d> <M-p>
+map <C-d> <M-p>
 
 " make recordings easier to fire off, binding comma to @q (use qq to record
 " what you wanna repeat)
