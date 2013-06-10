@@ -253,16 +253,22 @@ au FileChangedShell * echo "Warning: File changed on disk!!"
 " nnoremap <C-l> w
 " inoremap <C-l> <C-o>w
 
+" This is for yankstack
+" have it not bind anything
+let g:yankstack_map_keys = 0
+
 " the yankstack plugin requires loading prior to my binds (wonder what other
 " plugins have this sort of behavior)
 call yankstack#setup()
 " This puts the cursor at the end of what is pasted so it can be chained
 " and it also just makes sense
+nmap <C-d> <Plug>yankstack_substitute_older_paste
+nmap <C-S-d> <Plug>yankstack_substitute_newer_paste
 nnoremap P p
 nnoremap p P`[
 
 " this just makes sense
-map Y y$
+nmap Y y$
 
 " I'm not sure what the semicolon is bound to but it
 " will never be as useful as this binding
@@ -572,9 +578,6 @@ noremap <F31> :update<CR>
 nnoremap <silent> <F33> :set invpaste paste?<CR>:set number!<CR>
 set pastetoggle=<F33>
 set showmode
-
-map! <C-d> <M-p>
-map <C-d> <M-p>
 
 " make recordings easier to fire off, binding comma to @q (use qq to record
 " what you wanna repeat)
