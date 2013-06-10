@@ -432,6 +432,7 @@ nnoremap m<F2> :tabmove -1<CR>
 
 " configuring YCM. 
 let g:ycm_autoclose_preview_window_after_insertion = 1
+let g:ycm_add_preview_to_completeopt = 1
 
 " set highlight for search to be less blinding
 hi Search ctermbg=236 ctermfg=NONE cterm=underline
@@ -570,7 +571,7 @@ nnoremap , @q
 " more ctrlp settings stolen from github/jeffjewiss
 let g:ctrlp_switch_buffer = 'Et' " Jump to tab AND buffer if already open
 let g:ctrlp_open_new_file = 'r' " Open new files in a new tab
-let g:ctrlp_open_multiple_files = '3h' " Open multiple files (up to 3) in horizontal split 
+let g:ctrlp_open_multiple_files = 'vj' " Open multiple files (up to 3) in horizontal split 
 let g:ctrlp_show_hidden = 1 " Index hidden files
 
 " pulled from http://vim.wikia.com/wiki/Move_current_window_between_tabs
