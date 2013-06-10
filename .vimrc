@@ -14,6 +14,7 @@ Bundle 'sjl/gundo.vim'
 " Bundle 'sjl/vitality.vim'
 
 " Fakeclip doesn't seem to work well on OSX
+" Tmux resize-window zoom has obsoleted this
 " Bundle 'unphased/vim-fakeclip' 
 
 Bundle 'taglist.vim'
@@ -29,6 +30,7 @@ Bundle 'vim-perl/vim-perl'
 Bundle 'Raimondi/delimitMate'
 Bundle 'mattn/zencoding-vim'
 Bundle 'unphased/git-time-lapse'
+Bundle 'maxbrunsfeld/vim-yankstack'
 
 " conditionally include the perforce bundle on machines that match this
 " if match($HOSTNAME,'athenahealth') != -1
@@ -38,9 +40,9 @@ Bundle 'unphased/git-time-lapse'
 	" be modified quickly to do so by fixing the if-block containing "p4.exe"
 	" and also potentially requiring fixing of line-endings. All that could 
 	" potentially be automated by this here vimrc but I don't care enough for
-	" that because perforce is not a tool i use outside of work. 
+	" that because perforce is not a tool i use outside of work.
 " endif
-" You know, that p4 plugin really doesn't work 
+" turns out that p4 plugin really doesn't work. at all.
 
 filetype plugin indent on "more Vundle setup
 
@@ -251,10 +253,16 @@ au FileChangedShell * echo "Warning: File changed on disk!!"
 " nnoremap <C-l> w
 " inoremap <C-l> <C-o>w
 
+" the yankstack plugin requires loading prior to my binds (wonder what other
+" plugins have this sort of behavior)
+call yankstack#setup()
 " This puts the cursor at the end of what is pasted so it can be chained
 " and it also just makes sense
 nnoremap P p
 nnoremap p P`[
+
+" this just makes sense
+map Y y$
 
 " I'm not sure what the semicolon is bound to but it
 " will never be as useful as this binding
@@ -549,9 +557,8 @@ nnoremap <F34> :tabnext<CR>
 vnoremap <F34> <ESC>:tabnext<CR>
 
 set <F33>=p
-nnoremap <F33> :set invpaste paste?<CR>:set number!<CR>
-set pastetoggle=<F33>
-set showmode
+map! <F33> <M-p>
+map <F33> <M-p>
 
 set <F32>=w
 " keybinding for toggling word-wrap 
@@ -563,6 +570,10 @@ set <F31>=s
 " being a rather important bind
 inoremap <F31> <ESC>:update<CR>
 noremap <F31> :update<CR>
+
+nnoremap <silent> <C-d> :set invpaste paste?<CR>:set number!<CR>
+set pastetoggle=<C-d>
+set showmode
 
 " make recordings easier to fire off, binding comma to @q (use qq to record
 " what you wanna repeat)
