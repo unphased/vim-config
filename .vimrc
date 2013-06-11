@@ -266,7 +266,7 @@ call yankstack#setup()
 " This puts the cursor at the end of what is pasted so it can be chained
 " and it also just makes sense
 nmap <C-d> <Plug>yankstack_substitute_older_paste
-nmap <C-S-d> <Plug>yankstack_substitute_newer_paste
+nmap <C-e> <Plug>yankstack_substitute_newer_paste
 nnoremap P p
 nnoremap p P`[
 
