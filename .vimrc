@@ -133,6 +133,7 @@ endfunction
 function! InsertLeaveActions()
 	hi CursorLine ctermbg=16
 	hi CursorLineNr ctermfg=11
+	call cursor([getpos('.')[1], getpos('.')[2]+1]) " move cursor forward
 endfunction
 
 hi CursorLine ctermbg=16
