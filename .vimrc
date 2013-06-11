@@ -116,6 +116,9 @@ highlight DiffChange term=reverse ctermbg=blue ctermfg=black
 highlight DiffText term=reverse ctermbg=171 ctermfg=black
 highlight DiffDelete term=reverse ctermbg=red ctermfg=black
 
+" mostly for syntastic
+highlight SpellCap ctermfg=16
+
 function! InsertEnterActions(mode)
 	echo 'islc'
   if a:mode == 'i'
@@ -128,8 +131,8 @@ function! InsertEnterActions(mode)
 endfunction
 
 function! InsertLeaveActions()
-	hi CursorLine ctermbg=16 cterm=NONE
-	hi CursorLineNr cterm=NONE ctermfg=11
+	hi CursorLine ctermbg=16
+	hi CursorLineNr ctermfg=11
 endfunction
 
 hi CursorLine ctermbg=16
