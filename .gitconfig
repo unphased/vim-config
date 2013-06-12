@@ -13,6 +13,7 @@
 	unadd = reset HEAD
 [diff]
 	tool = opendiff
+	external = pydifflib
 [pager]
 	log = diff-highlight | less
 	show = diff-highlight | less

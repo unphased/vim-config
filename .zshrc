@@ -40,7 +40,7 @@ source $ZSH/oh-my-zsh.sh
 # Thankfully the path that is already present is the one that the system has set according to
 # normal practices. This inserts a few more things that I use from the shell.
 export PATH=~/bin:~/util:$PATH:/usr/local/share/npm/bin
-export PAGER=vimpager
+# export PAGER=vimpager
 
 # zmodload zsh/complist
 # bindkey -M menuselect ' ' accept-and-infer-next-history
@@ -55,6 +55,6 @@ source $ZSH/plugins/history-substring-search/history-substring-search.plugin.zsh
 
 alias l="ls -la"
 alias gs="git s" # short status 
-alias glp="git log -p"
+alias glp="git log -p --ext-diff"
 
 echo "Finished loading my .zshrc"
