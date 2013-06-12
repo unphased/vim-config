@@ -31,6 +31,7 @@ Bundle 'Raimondi/delimitMate'
 Bundle 'mattn/zencoding-vim'
 Bundle 'unphased/git-time-lapse'
 Bundle 'maxbrunsfeld/vim-yankstack'
+Bundle 'DetectIndent'
 
 " conditionally include the perforce bundle on machines that match this
 " if match($HOSTNAME,'athenahealth') != -1
@@ -57,6 +58,9 @@ filetype plugin indent on "more Vundle setup
 
 " This is athena-specific
 au BufRead,BufNewFile *.esp setfiletype perl
+
+" this is for auto running DetectIndent
+au BufReadPost * :DetectIndent
 
 nnoremap <F4> :GundoToggle<CR>
 inoremap <F4> <ESC>:GundoToggle<CR>
