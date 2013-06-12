@@ -2,9 +2,9 @@
 	name = Steven Lu
 	email = stevenlu443@gmail.com
 [core]
-	editor = /usr/local/bin/vim
+	editor = vim
 	whitespace = cr-at-eol
-	excludesfile = /Users/lust/.gitignore
+	excludesfile = ~/.gitignore
 [color]
 	ui = true
 [alias]
