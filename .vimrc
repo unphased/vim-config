@@ -61,6 +61,7 @@ au BufRead,BufNewFile *.esp setfiletype perl
 
 " this is for auto running DetectIndent
 au BufReadPost * :DetectIndent
+let g:detectindent_preferred_indent = 4
 
 nnoremap <F4> :GundoToggle<CR>
 inoremap <F4> <ESC>:GundoToggle<CR>
@@ -135,7 +136,7 @@ function! InsertEnterActions(mode)
 endfunction
 
 function! InsertLeaveActions()
-	hi CursorLine ctermbg=16
+	hi CursorLine ctermbg=16 cterm=NONE
 	hi CursorLineNr ctermfg=11
 	call cursor([getpos('.')[1], getpos('.')[2]+1]) " move cursor forward
 endfunction
