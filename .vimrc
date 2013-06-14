@@ -60,8 +60,15 @@ filetype plugin indent on "more Vundle setup
 au BufRead,BufNewFile *.esp setfiletype perl
 
 " this is for auto running DetectIndent
-au BufReadPost * :DetectIndent
-let g:detectindent_preferred_indent = 4
+function! DetectIndent()
+	DetectIndent "only really using this for determining expandtab...
+	set tabstop=4
+	set shiftwidth=4
+endfunc
+au BufReadPost * call DetectIndent()
+
+" this thing doesnt appear to work...
+let g:detectindent_preferred_indent=4
 
 nnoremap <F4> :GundoToggle<CR>
 inoremap <F4> <ESC>:GundoToggle<CR>
