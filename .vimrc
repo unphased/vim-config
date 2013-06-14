@@ -27,7 +27,7 @@ Bundle 'tpope/vim-repeat'
 Bundle 'tpope/vim-surround'
 Bundle 'unphased/vim-powerline'
 Bundle 'vim-perl/vim-perl'
-Bundle 'Raimondi/delimitMate'
+"Bundle 'Raimondi/delimitMate'
 Bundle 'mattn/zencoding-vim'
 Bundle 'unphased/git-time-lapse'
 Bundle 'maxbrunsfeld/vim-yankstack'
@@ -206,6 +206,7 @@ set mouse=a
 
 " consistency with pagers in normal mode
 nnoremap <Space> <C-D>
+vnoremap <Space> <C-D>
 nnoremap b <C-U>
 
 " No longer using alt+arrows to do anything
@@ -714,5 +715,23 @@ nnoremap _ :call MyResizeDown()<CR>
 nnoremap + :call MyResizeUp()<CR>
 
 " delimitMate configuration
-let delimitMate_expand_space = 1
+" let delimitMate_expand_space = 1
 let delimitMate_expand_cr = 1
+
+" This is for replicating what ST does when typing a delimiter character
+" when something is selected, to wrap selection with it: to undo just use
+" surround.vim e.g. ds'
+vmap ' S'
+vmap " S"
+vmap { S{
+vmap } S}
+vmap ( S(
+vmap ) S)
+vmap [ S[
+vmap ] S]
+" This is way too cool (auto lets you enter tags)
+vmap < S<
+vmap > S>
+" restore the functions for shifting selections
+vnoremap << <
+vnoremap >> >
