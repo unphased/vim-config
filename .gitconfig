@@ -14,7 +14,12 @@
 	d = difftool
 [difftool "pydifflib"]
 	cmd = pydifflib $LOCAL $REMOTE
+[difftool "dmp"]
+	cmd = dmp_diff $LOCAL $REMOTE
+[difftool]
+	prompt = false
 [diff]
+	# external = pydifflib
 	tool = pydifflib
 [pager]
 	log = diff-highlight | less
