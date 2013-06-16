@@ -33,6 +33,8 @@ Bundle 'unphased/git-time-lapse'
 Bundle 'maxbrunsfeld/vim-yankstack'
 Bundle 'DetectIndent'
 
+" Bundle 'Decho'
+
 " conditionally include the perforce bundle on machines that match this
 " if match($HOSTNAME,'athenahealth') != -1
 	" echo 'enabling perforce'

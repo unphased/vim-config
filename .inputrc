@@ -1,0 +1,50 @@
+# No idea what this is for actually
+#set meta-flag on
+
+
+# these 3 are already set by /etc/inputrc
+set input-meta on
+set convert-meta off
+set output-meta on
+
+#These next ones were made using PuTTY and may not work always
+"[1~": beginning-of-line
+"[4~": end-of-line
+"[5~": history-search-backward
+"[6~": history-search-forward
+"[3~": delete-char
+"[2~": quoted-insert
+"[1;5C": forward-word
+"[1;5D": backward-word
+
+# I had these in here but it looks like Ubuntu (11.10) 
+# is starting to handle arrows, home, end, ctrl+arrows, well. Even in vim.
+
+#"\e[1~": beginning-of-line
+#"\e[4~": end-of-line
+
+# history search with pgup/pgdn remains very very very handy however.
+# Theres an entry in default inputrc but it's commented. 
+"\e[5~": history-search-backward
+"\e[6~": history-search-forward
+
+#"\e[3~": delete-char
+#"\e[2~": quoted-insert
+#"\e[5C": forward-word
+#"\e[5D": backward-word
+#"\e\e[C": forward-word
+#"\e\e[D": backward-word
+# I now have no idea what these two are for.
+#"OC": forward-word
+#"OD": backward-word
+
+# A beautiful new addition, Ctrl+Del to killword
+# ^[ is equivalent to \e, but somehow the "^[[3;5~" version 
+# doesn't seem to work for me. 
+"\e[3;5~": kill-word
+
+# Very sad to say that Ctrl+Backspace is a special case and can't be done 
+# with inputrc alone :(
+
+set completion-ignore-case on
+#tab completion ignore case
