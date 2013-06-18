@@ -595,7 +595,7 @@ set <F31>=s
 inoremap <F31> <ESC>:update<CR>
 noremap <F31> :update<CR>
 
-nnoremap <silent> <F33> :set invpaste paste?<CR>:set number!<CR>
+nnoremap <silent> <F33> :set invpaste paste?<CR>:set number!<CR>:set list!<CR>
 set pastetoggle=<F33>
 set showmode
 
