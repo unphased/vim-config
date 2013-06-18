@@ -65,7 +65,7 @@ au BufRead,BufNewFile *.esp setfiletype perl
 function! DetectIndent()
 	DetectIndent "only really using this for determining expandtab...
 	set tabstop=4
-	" set shiftwidth=4
+	set shiftwidth=4
 endfunc
 au BufReadPost * call DetectIndent()
 
