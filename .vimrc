@@ -738,3 +738,14 @@ vmap > S>
 " restore the functions for shifting selections
 vnoremap << <
 vnoremap >> >
+
+" if ;w<CR> is typed in insert mode, exit insert mode and run a prompt asking
+" if you really want to save the file (rather than inserting ;w<CR> into file
+function! MyConfirmSave()
+	if confirm('Save file? (you are getting lazy...)', "OK\nNo") == 1
+		w
+		redraw
+	endif
+endfunc
+inoremap ;w<CR> <ESC>:call MyConfirmSave()<CR>
+
