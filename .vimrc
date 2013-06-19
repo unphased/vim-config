@@ -520,9 +520,9 @@ hi multiple_cursors_visual term=reverse ctermbg=6 ctermfg=0
 nnoremap <C-F> /
 inoremap <C-F> <ESC>/
 
-" mapping normal mode Tab to swap to next window: Ctrl-Y has already been
-" mapped out above, so we can safely overload it to fire whatevers bound on Ctrl-I
-nnoremap <C-Y> <Tab>
+" mapping normal mode Tab to swap to next window; saving the functionality of
+" tab (next jumplist position) to C-B (since PgUp serves that function well)
+nnoremap <C-B> <Tab>
 " context-sensitively overload Tab to switch either tabs or windows that are in current tab
 function NextWindowOrTab()
 	if (winnr() == winnr('$'))
