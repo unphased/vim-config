@@ -749,3 +749,19 @@ function! MyConfirmSave()
 endfunc
 inoremap ;w<CR> <ESC>:call MyConfirmSave()<CR>
 
+function! MyConfirmSaveQuit()
+	if confirm('Save file and then quit? (you are getting lazy...)', "OK\nNo") == 1
+		wq
+		redraw
+	endif
+endfunc
+inoremap ;wq<CR> <ESC>:call MyConfirmSaveQuit()<CR>
+
+function! MyConfirmSaveQuitAll()
+	if confirm('Save file and then quit all? (you are getting lazy...)', "OK\nNo") == 1
+		wqa
+		redraw
+	endif
+endfunc
+inoremap ;wqa<CR> <ESC>:call MyConfirmSaveQuitAll()<CR>
+
