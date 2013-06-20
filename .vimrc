@@ -771,4 +771,23 @@ cmap w1 w!
 cmap q1 q!
 cmap qa1 qa!
 cmap e1 e!
-
+" and more combinatorially exploding goodness for dealing with flubbing the
+" enter key
+cmap wq\ wq
+cmap wq1\ wq!
+cmap wq!\ wq!
+cmap w\ w
+cmap w1\ w!
+cmap w!\ w!
+cmap q\ q
+cmap q1\ q!
+cmap q!\ q!
+cmap qa\ qa
+cmap qa1\ qa!
+cmap qa!\ qa!
+cmap e\ e
+cmap e1\ e!
+cmap e!\ e!
+" I am tempted to do more cases to address overzealous shift key, but screw it
+" because I will not have a hard time becoming more lazy with the shift key
+" which is what the above bindings allow for.
