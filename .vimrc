@@ -765,3 +765,10 @@ function! MyConfirmSaveQuitAll()
 endfunc
 inoremap ;wqa<CR> <ESC>:call MyConfirmSaveQuitAll()<CR>
 
+" prevent common typos from actually writing files to disk
+cmap wq1 wq!
+cmap w1 w!
+cmap q1 q!
+cmap qa1 qa!
+cmap e1 e!
+
