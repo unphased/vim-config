@@ -39,7 +39,7 @@ set output-meta on
 #"OC": forward-word
 #"OD": backward-word
 
-# A beautiful new addition, Ctrl+Del to killword
+# Ctrl+Del to killword
 # ^[ is equivalent to \e, but somehow the "^[[3;5~" version 
 # doesn't seem to work for me. 
 "\e[3;5~": kill-word
