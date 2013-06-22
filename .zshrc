@@ -49,6 +49,12 @@ export PATH=~/bin:~/util:$PATH:/usr/local/share/npm/bin
 bindkey '^[[A' up-line-or-search
 bindkey '^[[B' down-line-or-search
 
+# vim mode. I'm ready for it.
+bindkey -v
+bindkey "^H" backward-kill-word
+bindkey "^?" backward-delete-char
+bindkey "^U" backward-kill-line
+
 stty -ixon
 stty -ixoff
 source $ZSH/plugins/history-substring-search/history-substring-search.plugin.zsh

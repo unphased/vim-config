@@ -1,6 +1,7 @@
 # No idea what this is for actually
 #set meta-flag on
 
+set editing-mode vi
 
 # these 3 are already set by /etc/inputrc
 set input-meta on
