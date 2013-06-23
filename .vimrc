@@ -250,6 +250,7 @@ vnoremap <Up> <C-Y>g<Up>
 vnoremap <Down> <C-E>g<Down>
 nnoremap <Up> <C-Y>g<Up>
 nnoremap <Down> <C-E>g<Down>
+" Not sure why but I couldn't i(nore)map Up and Down
 
 " accelerated j/k navigation
 nnoremap <S-J> 7j
