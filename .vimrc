@@ -777,6 +777,9 @@ cmap w1 w!
 cmap q1 q!
 cmap qa1 qa!
 cmap e1 e!
+
+cmap w; w
+
 " and more combinatorially exploding goodness for dealing with flubbing the
 " enter key
 cmap wq\ wq
