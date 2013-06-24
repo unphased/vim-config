@@ -209,7 +209,7 @@ set mouse=a
 " consistency with pagers in normal mode
 nnoremap <Space> <C-D>
 vnoremap <Space> <C-D>
-nnoremap b <C-U>
+nnoremap <BS> <C-U>
 
 " No longer using alt+arrows to do anything
 " nnoremap [1;3A {
@@ -239,12 +239,18 @@ inoremap <S-Down> <C-O>}
 nnoremap <S-Up> {
 nnoremap <S-Down> }
 
-inoremap <C-Up> <C-O>3<C-Y>
-nnoremap <C-Up> 3<C-Y>
-vnoremap <C-Up> 3<C-Y>
-inoremap <C-Down> <C-O>3<C-E>
-vnoremap <C-Down> 3<C-E>
-nnoremap <C-Down> 3<C-E>
+inoremap <C-Up> <C-O>5<C-Y>
+nnoremap <C-Up> 5<C-Y>
+vnoremap <C-Up> 5<C-Y>
+inoremap <C-Down> <C-O>5<C-E>
+vnoremap <C-Down> 5<C-E>
+nnoremap <C-Down> 5<C-E>
+
+vnoremap <Up> <C-Y>g<Up>
+vnoremap <Down> <C-E>g<Down>
+nnoremap <Up> <C-Y>g<Up>
+nnoremap <Down> <C-E>g<Down>
+" Not sure why but I couldn't i(nore)map Up and Down
 
 " accelerated j/k navigation
 nnoremap <S-J> 7j
@@ -662,7 +668,7 @@ runtime macros/matchit.vim
 
 " bind the ctrl arrow left and right in insert mode to WORD hop also
 inoremap <C-Left> <ESC>Bi
-inoremap <C-Right> <ESC>Wa
+inoremap <C-Right> <ESC>Wi
 
 func! MyResizeDown()
 	let curwindow = winnr()
@@ -791,3 +797,6 @@ cmap e!\ e!
 " I am tempted to do more cases to address overzealous shift key, but screw it
 " because I will not have a hard time becoming more lazy with the shift key
 " which is what the above bindings allow for.
+
+" This is for less frustration in vblock mode
+set ve=block

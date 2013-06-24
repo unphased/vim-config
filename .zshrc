@@ -46,8 +46,26 @@ export PATH=~/bin:~/util:$PATH:/usr/local/share/npm/bin
 # bindkey -M menuselect ' ' accept-and-infer-next-history
 # bindkey -M menuselect '^?' undo
 
-bindkey '^[[A' up-line-or-search
-bindkey '^[[B' down-line-or-search
+# vim mode. I'm ready for it.
+bindkey -v
+bindkey "^H" backward-kill-word
+bindkey "^?" backward-delete-char
+bindkey "^U" backward-kill-line
+# must bind all kind of shit for gettind the damn control keys right now...
+bindkey "^[[1;5D" backward-word
+bindkey "^[[1;5C" forward-word
+bindkey "^[[1;3D" vi-backward-word # alt
+bindkey "^[[1;3C" vi-forward-word-end # alt
+bindkey "^[[1~" beginning-of-line
+bindkey "^[[4~" end-of-line
+# bindkey "^[[2~" Thsi should run tmux ctrl a ] to paste copy buffer
+bindkey "^[[3~" delete-char
+bindkey "^[[5~" up-line-or-search
+bindkey "^[[6~" down-line-or-search
+bindkey -M vicmd "F10" vi-cmd-mode
+# bindkey -m vicmd "F10"  this should run a widget that runs tmux to switch pane (Note the semantics are reversed; by default the shell should be in insert mode)
+bindkey -M viins '^r' history-incremental-search-backward
+bindkey -M vicmd '^r' history-incremental-search-backward
 
 stty -ixon
 stty -ixoff
