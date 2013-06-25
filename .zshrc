@@ -78,4 +78,6 @@ alias gdt="git difftool"
 alias gd="git diff --no-ext-diff"
 alias gg="git lg"
 
+alias d="gd"
+
 echo "Finished loading my .zshrc"
