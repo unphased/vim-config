@@ -71,14 +71,17 @@ stty -ixon
 stty -ixoff
 source $ZSH/plugins/history-substring-search/history-substring-search.plugin.zsh
 
-alias l="ls -la"
+alias l="ls"
 alias gs="git s" # short status 
 alias glp="git log -p --ext-diff"
 alias gdt="git difftool"
 alias gd="git diff --no-ext-diff"
 alias gg="git lg"
 
+<<<<<<< HEAD
 alias ds="dirs -v | head -10"
+=======
+>>>>>>> 24ada656e5be488315b86466c2d5a3b9b2a67335
 alias d="gd"
 
 echo "Finished loading my .zshrc"

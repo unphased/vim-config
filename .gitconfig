@@ -19,8 +19,9 @@
 [difftool]
 	prompt = false
 [diff]
-	# external = pydifflib
-	tool = pydifflib
+	external = dmp_diff
+	# tool = pydifflib
+	tool = opendiff
 [pager]
 	log = diff-highlight | less
 	show = diff-highlight | less
