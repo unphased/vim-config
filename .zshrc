@@ -73,7 +73,7 @@ source $ZSH/plugins/history-substring-search/history-substring-search.plugin.zsh
 
 alias l="ls"
 alias gs="git s" # short status 
-alias glp="git log -p --ext-diff"
+alias glp="git log -p --no-ext-diff"
 alias gdt="git difftool"
 alias gd="git diff --no-ext-diff"
 alias gg="git lg"
