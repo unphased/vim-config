@@ -59,7 +59,7 @@ filetype plugin indent on "more Vundle setup
  " see :h vundle for more details or wiki for FAQ
 
 " This is athena-specific
-au BufRead,BufNewFile *.esp setfiletype perl
+au! BufRead,BufNewFile *.esp setfiletype perl
 
 " this is for auto running DetectIndent
 function! DetectIndent()
@@ -67,7 +67,7 @@ function! DetectIndent()
 	set tabstop=4
 	set shiftwidth=4
 endfunc
-au BufReadPost * call DetectIndent()
+au! BufReadPost * call DetectIndent()
 
 " this thing doesnt appear to work...
 let g:detectindent_preferred_indent=4
@@ -105,6 +105,8 @@ set ignorecase
 set smartcase
 
 set smartindent
+au! FileType python setl nosmartindent
+
 set shiftwidth=4
 set tabstop=4
 " set expandtab
@@ -153,9 +155,9 @@ endfunction
 hi CursorLine ctermbg=16
 set cursorline
 
-au InsertEnter * call InsertEnterActions(v:insertmode)
+au! InsertEnter * call InsertEnterActions(v:insertmode)
 " au InsertChange * call InsertStatuslineColor(v:insertmode)
-au InsertLeave * call InsertLeaveActions()
+au! InsertLeave * call InsertLeaveActions()
 
 " default the statusline to green when entering Vim
 " hi statusline guibg=DarkGrey ctermfg=237 guifg=Green ctermbg=250
@@ -559,7 +561,7 @@ nnoremap <S-Tab> :call PrevWindowOrTab()<CR>
 " :autocmd BufWinEnter <buffer> normal! gg0
 " to get this not to affect whatever filetypes 
 " if has("autocmd")
-  au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")
+  au! BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")
     \| exe "normal! g'\"" | endif
 " endif
 
