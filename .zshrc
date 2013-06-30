@@ -78,6 +78,8 @@ alias gdt="git difftool"
 alias gd="git diff --no-ext-diff"
 alias gdc="gd --cached"
 alias gg="git lg"
+alias gcm="git commit -am"
+alias mk="make"
 
 alias ds="dirs -v | head -10"
 alias d="gd"
