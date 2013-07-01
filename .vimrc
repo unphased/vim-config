@@ -342,14 +342,18 @@ noremap! <F10> <ESC>
 
 " this checks tmux to figure out if it should swap panes or trigger Tab
 " instead
-function F10OverloadedFunctionalityCheckTmux()
+function F10OverloadedFunctionalityCheckTmux(direction)
 	if system('tmux display -p "#{window_panes}"') == 1
 		call NextWindowOrTab()
 	else
-		call system('tmux select-pane -t :.+')
+		call system('tmux select-pane -t :.'.a:direction)
 	endif
 endfunc
-nnoremap <F10> :call F10OverloadedFunctionalityCheckTmux()<CR>
+nnoremap <F10> :call F10OverloadedFunctionalityCheckTmux('+')<CR>
+set <S-F10>=[34~
+noremap <S-F10> <ESC>
+noremap! <S-F10> <ESC>
+nnoremap <S-F10> :call F10OverloadedFunctionalityCheckTmux('-')<CR>
 
 noremap <F12> <Help>
 nnoremap <F1> :tabnew<CR>
