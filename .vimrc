@@ -314,7 +314,7 @@ noremap <MiddleMouse> <LeftMouse>
 " it in the shell use the clear builtin on there also)
 
 " If cannot move in a direction, attempt to forward the directive to tmux
-function TmuxWindow(dir)
+function! TmuxWindow(dir)
 	let nr=winnr()
 	silent! exe 'wincmd ' . a:dir
 	let newnr=winnr()
@@ -342,7 +342,7 @@ noremap! <F10> <ESC>
 
 " this checks tmux to figure out if it should swap panes or trigger Tab
 " instead
-function F10OverloadedFunctionalityCheckTmux(direction)
+function! F10OverloadedFunctionalityCheckTmux(direction)
 	if system('tmux display -p "#{window_panes}"') == 1
 		call NextWindowOrTab()
 	else
@@ -356,6 +356,20 @@ noremap! <S-F10> <ESC>
 nnoremap <S-F10> :call F10OverloadedFunctionalityCheckTmux('-')<CR>
 
 noremap <F12> <Help>
+function! SwitchTabNext()
+	if tabpagenr('$') == 1
+		tabnext
+	else
+		system('tmux next-window')
+	endif
+endfunc
+function! SwitchTabPrev()
+	if tabpagenr('$') == 1
+		tabprev
+	else
+		system('tmux previous-window')
+	endif
+endfunc
 nnoremap <F1> :tabnew<CR>
 " inoremap <F1> <ESC>:tabnew<CR>
 nnoremap <F2> :tabprev<CR>
@@ -367,6 +381,78 @@ nnoremap <F3> :tabnext<CR>
 
 " This is for accomodating PuTTY's behavior of turning shift+F1 into F11
 nnoremap <F11> :tabclose<CR>
+
+set showtabline=1  " 0, 1 or 2; when to use a tab pages line
+set tabline=%!MyTabLine()  " custom tab pages line
+function! MyTabLine()
+	let s = '' " complete tabline goes here
+	" loop through each tab page
+	for t in range(tabpagenr('$'))
+		" set highlight
+		if t + 1 == tabpagenr()
+			let s .= '%#TabLineSel#'
+		else
+			let s .= '%#TabLine#'
+		endif
+		" set the tab page number (for mouse clicks)
+		let s .= '%' . (t + 1) . 'T'
+		let s .= ' '
+		" set page number string
+		let s .= t + 1 . ' '
+		" get buffer names and statuses
+		let n = ''	"temp string for buffer names while we loop and check buftype
+		let m = 0	" &modified counter
+		let bc = len(tabpagebuflist(t + 1))	"counter to avoid last ' '
+		" loop through each buffer in a tab
+		for b in tabpagebuflist(t + 1)
+			" buffer types: quickfix gets a [Q], help gets [H]{base fname}
+			" others get 1dir/2dir/3dir/fname shortened to 1/2/3/fname
+			if getbufvar( b, "&buftype" ) == 'help'
+				let n .= '[H]' . fnamemodify( bufname(b), ':t:s/.txt$//' )
+			elseif getbufvar( b, "&buftype" ) == 'quickfix'
+				let n .= '[Q]'
+			else
+				let n .= pathshorten(bufname(b))
+			endif
+			" check and ++ tab's &modified count
+			if getbufvar( b, "&modified" )
+				let m += 1
+			endif
+			" no final ' ' added...formatting looks better done later
+			if bc > 1
+				let n .= ' '
+			endif
+			let bc -= 1
+		endfor
+		" add modified label [n+] where n pages in tab are modified
+		if m > 0
+			let s .= '[' . m . '+]'
+		endif
+		" select the highlighting for the buffer names
+		" my default highlighting only underlines the active tab
+		" buffer names.
+		if t + 1 == tabpagenr()
+			let s .= '%#TabLineSel#'
+		else
+			let s .= '%#TabLine#'
+		endif
+		" add buffer names
+		if n == ''
+			let s.= '[New]'
+		else
+			let s .= n
+		endif
+		" switch to no underlining and add final space to buffer list
+		let s .= ' '
+	endfor
+	" after the last tab fill with TabLineFill and reset tab page nr
+	let s .= '%#TabLineFill#%T'
+	" right-align the label to close the current tab page
+	if tabpagenr('$') > 1
+		let s .= '%=%#TabLineFill#%999Xclose'
+	endif
+	return s
+endfunction
 
 " Use CTRL-S for saving, also in Insert mode TODO: Make this more robust
 " mode-wise
@@ -536,7 +622,7 @@ inoremap <C-F> <ESC>/
 " tab (next jumplist position) to C-B (since PgUp serves that function well)
 nnoremap <C-B> <Tab>
 " context-sensitively overload Tab to switch either tabs or windows that are in current tab
-function NextWindowOrTab()
+function! NextWindowOrTab()
 	if (winnr() == winnr('$'))
 		tabnext
 		1wincmd w
@@ -545,7 +631,7 @@ function NextWindowOrTab()
 	endif
 endfunc
 
-function PrevWindowOrTab()
+function! PrevWindowOrTab()
 	if (winnr() == 1)
 		tabprev
 		let winnr = winnr('$')
@@ -623,7 +709,7 @@ let g:ctrlp_show_hidden = 1 " Index hidden files
 let g:ctrlp_follow_symlinks = 1
 
 " pulled from http://vim.wikia.com/wiki/Move_current_window_between_tabs
-function MoveToPrevTab()
+function! MoveToPrevTab()
   "there is only one window
   if tabpagenr('$') == 1 && winnr('$') == 1
     return
@@ -645,7 +731,7 @@ function MoveToPrevTab()
   exe "b".l:cur_buf
 endfunc
 
-function MoveToNextTab()
+function! MoveToNextTab()
   "there is only one window
   if tabpagenr('$') == 1 && winnr('$') == 1
     return
