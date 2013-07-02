@@ -561,9 +561,10 @@ inoremap <C-H> <C-W>
 nnoremap m<F3> :tabmove +1<CR>
 nnoremap m<F2> :tabmove -1<CR>
 
-" configuring YCM. 
+" configuring YCM.
 let g:ycm_autoclose_preview_window_after_insertion = 1
 let g:ycm_add_preview_to_completeopt = 1
+let g:ycm_confirm_extra_conf = 0
 
 " set highlight for search to be less blinding
 hi Search ctermbg=236 ctermfg=NONE cterm=underline
