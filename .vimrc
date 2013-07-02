@@ -358,23 +358,23 @@ nnoremap <S-F10> :call F10OverloadedFunctionalityCheckTmux('-')<CR>
 noremap <F12> <Help>
 function! SwitchTabNext()
 	if tabpagenr('$') == 1
-		tabnext
+		call system('tmux next-window')
 	else
-		system('tmux next-window')
+		tabnext
 	endif
 endfunc
 function! SwitchTabPrev()
 	if tabpagenr('$') == 1
-		tabprev
+		call system('tmux previous-window')
 	else
-		system('tmux previous-window')
+		tabprev
 	endif
 endfunc
 nnoremap <F1> :tabnew<CR>
 " inoremap <F1> <ESC>:tabnew<CR>
-nnoremap <F2> :tabprev<CR>
+nnoremap <F2> :call SwitchTabPrev()<CR>
 " inoremap <F2> <ESC>:tabprev<CR>
-nnoremap <F3> :tabnext<CR>
+nnoremap <F3> :call SwitchTabNext()<CR>
 " inoremap <F3> <ESC>:tabnext<CR>
 " I am hoping to come up with mappings for the F-keys in insert mode that
 " can serve productive purposes.
