@@ -62,6 +62,7 @@ filetype plugin indent on "more Vundle setup
 au! BufRead,BufNewFile *.esp setfiletype perl
 
 " this is for auto running DetectIndent
+set expandtab
 function! DetectIndent()
 	DetectIndent "only really using this for determining expandtab...
 	set tabstop=4
@@ -134,6 +135,10 @@ highlight DiffDelete term=reverse ctermbg=red ctermfg=black
 
 " mostly for syntastic
 highlight SpellCap ctermfg=16
+highlight Error ctermfg=7
+highlight SpellBad ctermfg=7 ctermbg=196
+
+set updatetime=500
 
 function! InsertEnterActions(mode)
 	echo 'islc'
