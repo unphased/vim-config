@@ -31,7 +31,7 @@ Bundle 'vim-perl/vim-perl'
 Bundle 'mattn/zencoding-vim'
 Bundle 'unphased/git-time-lapse'
 Bundle 'maxbrunsfeld/vim-yankstack'
-Bundle 'DetectIndent'
+Bundle 'unphased/Vim-IndentFinder'
 
 " Bundle 'Decho'
 
@@ -61,17 +61,6 @@ filetype plugin indent on "more Vundle setup
 " This is athena-specific
 au! BufRead,BufNewFile *.esp setfiletype perl
 
-" this is for auto running DetectIndent
-set expandtab
-function! DetectIndent()
-	DetectIndent "only really using this for determining expandtab...
-	set tabstop=4
-	set shiftwidth=4
-endfunc
-au! BufReadPost * call DetectIndent()
-
-" this thing doesnt appear to work...
-let g:detectindent_preferred_indent=4
 
 nnoremap <F4> :GundoToggle<CR>
 inoremap <F4> <ESC>:GundoToggle<CR>
