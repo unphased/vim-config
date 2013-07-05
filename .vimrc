@@ -32,7 +32,7 @@ Bundle 'mattn/zencoding-vim'
 Bundle 'unphased/git-time-lapse'
 Bundle 'maxbrunsfeld/vim-yankstack'
 Bundle 'unphased/Vim-IndentFinder'
-Bundle 'Yggdroot/indentLine'
+Bundle 'nathanaelkane/vim-indent-guides'
 
 " Bundle 'Decho'
 
@@ -51,9 +51,10 @@ filetype plugin indent on "more Vundle setup
 au! BufRead,BufNewFile *.esp setfiletype perl
 
 
-" Switch on indentLine
+" indent guides plugin
 let g:indent_guides_enable_on_vim_startup = 1
-
+let g:indent_guides_auto_colors = 0
+au! VimEnter,Colorscheme * :hi IndentGuidesOdd ctermbg=234 ctermfg=233 | hi IndentGuidesEven ctermbg=235 ctermfg=233
 
 nnoremap <F4> :GundoToggle<CR>
 inoremap <F4> <ESC>:GundoToggle<CR>
@@ -104,7 +105,7 @@ endif
 
 colorscheme TMEighties
 
-set listchars=tab:╶─,extends:>,precedes:<,trail:◼,nbsp:⬧
+set listchars=tab:__,extends:>,precedes:<,trail:◼,nbsp:◆
 set list
 
 hi NonText ctermbg=234 ctermfg=254
