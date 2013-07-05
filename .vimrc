@@ -32,20 +32,9 @@ Bundle 'mattn/zencoding-vim'
 Bundle 'unphased/git-time-lapse'
 Bundle 'maxbrunsfeld/vim-yankstack'
 Bundle 'unphased/Vim-IndentFinder'
+Bundle 'Yggdroot/indentLine'
 
 " Bundle 'Decho'
-
-" conditionally include the perforce bundle on machines that match this
-" if match($HOSTNAME,'athenahealth') != -1
-	" echo 'enabling perforce'
-	" Bundle 'perforce.vim'
-	" Note that this plugin does not work out of the box on Linux, but it can
-	" be modified quickly to do so by fixing the if-block containing "p4.exe"
-	" and also potentially requiring fixing of line-endings. All that could 
-	" potentially be automated by this here vimrc but I don't care enough for
-	" that because perforce is not a tool i use outside of work.
-" endif
-" turns out that p4 plugin really doesn't work. at all.
 
 filetype plugin indent on "more Vundle setup
 
@@ -60,6 +49,10 @@ filetype plugin indent on "more Vundle setup
 
 " This is athena-specific
 au! BufRead,BufNewFile *.esp setfiletype perl
+
+
+" Switch on indentLine
+let g:indent_guides_enable_on_vim_startup = 1
 
 
 nnoremap <F4> :GundoToggle<CR>
