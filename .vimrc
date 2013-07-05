@@ -117,6 +117,10 @@ set list
 hi NonText ctermbg=234 ctermfg=254
 hi SpecialKey ctermfg=239
 
+" Enhancements to regular old syntax highlighting
+hi Statement cterm=bold
+hi Exception ctermfg=211
+
 highlight DiffAdd term=reverse ctermbg=156 ctermfg=black
 highlight DiffChange term=reverse ctermbg=blue ctermfg=black
 highlight DiffText term=reverse ctermbg=171 ctermfg=black
@@ -126,6 +130,10 @@ highlight DiffDelete term=reverse ctermbg=red ctermfg=black
 highlight SpellCap ctermfg=16
 highlight Error ctermfg=7
 highlight SpellBad ctermfg=7 ctermbg=196
+
+" for debugging syntax
+" (http://vim.wikia.com/wiki/Identify_the_syntax_highlighting_group_used_at_the_cursor)
+command SyntaxDetect :echo "hi<" . synIDattr(synID(line("."),col("."),1),"name") . '> trans<' . synIDattr(synID(line("."),col("."),0),"name") . "> lo<" . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"
 
 set updatetime=500
 
@@ -420,7 +428,10 @@ function! MyTabLine()
 		endfor
 		" add modified label [n+] where n pages in tab are modified
 		if m > 0
-			let s .= '[' . m . '+]'
+			if m == 1
+				let m = ''
+			endif
+			let s .= '[' . m . '+] '
 		endif
 		" select the highlighting for the buffer names
 		" my default highlighting only underlines the active tab
