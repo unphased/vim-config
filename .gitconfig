@@ -19,7 +19,7 @@
 [difftool]
 	prompt = false
 [diff]
-	external = dmp_diff
+	external = sift
 	# tool = pydifflib
 	tool = opendiff
 [pager]

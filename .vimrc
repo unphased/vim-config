@@ -103,7 +103,7 @@ if &term =~ '256color'
     set t_ut=
 endif
 
-colorscheme TMEighties
+colorscheme Tomorrow-Night-Eighties
 
 set listchars=tab:╶─,extends:>,precedes:<,trail:◼,nbsp:◆
 set list
@@ -127,7 +127,7 @@ highlight SpellBad ctermfg=7 ctermbg=196
 
 " for debugging syntax
 " (http://vim.wikia.com/wiki/Identify_the_syntax_highlighting_group_used_at_the_cursor)
-command SyntaxDetect :echo "hi<" . synIDattr(synID(line("."),col("."),1),"name") . '> trans<' . synIDattr(synID(line("."),col("."),0),"name") . "> lo<" . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"
+command! SyntaxDetect :echom "hi<" . synIDattr(synID(line("."),col("."),1),"name") . '> trans<' . synIDattr(synID(line("."),col("."),0),"name") . "> lo<" . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"
 
 set updatetime=500
 
