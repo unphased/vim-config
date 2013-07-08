@@ -73,6 +73,11 @@ source $ZSH/plugins/history-substring-search/history-substring-search.plugin.zsh
 
 export HISTSIZE=200000
 
+function zshaddhistory() {
+    print -sr "${1%%$'\n'} ### ${PWD}"
+    fc -p
+}
+
 alias l="ls"
 alias gs="git s" # short status 
 alias glp="git log -p --no-ext-diff"
