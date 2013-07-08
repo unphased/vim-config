@@ -54,7 +54,9 @@ au! BufRead,BufNewFile *.esp setfiletype perl
 " indent guides plugin
 let g:indent_guides_enable_on_vim_startup = 1
 let g:indent_guides_auto_colors = 0
-au! VimEnter,Colorscheme * :hi IndentGuidesOdd ctermbg=234 ctermfg=233 | hi IndentGuidesEven ctermbg=235 ctermfg=233
+let g:indent_guides_start_level = 2
+let g:indent_guides_guide_size = 1
+au! VimEnter,Colorscheme * :hi IndentGuidesOdd ctermbg=235 ctermfg=233 | hi IndentGuidesEven ctermbg=237 ctermfg=233
 
 nnoremap <F4> :GundoToggle<CR>
 inoremap <F4> <ESC>:GundoToggle<CR>
