@@ -132,6 +132,8 @@ highlight SpellBad ctermfg=7 ctermbg=196
 command! SyntaxDetect :echom "hi<" . synIDattr(synID(line("."),col("."),1),"name") . '> trans<' . synIDattr(synID(line("."),col("."),0),"name") . "> lo<" . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"
 
 set updatetime=500
+noremap! <F5> <C-O>:YcmForceCompileAndDiagnostics<CR>
+noremap <F5> :YcmForceCompileAndDiagnostics<CR>
 
 function! InsertEnterActions(mode)
 	echo 'islc'
@@ -499,8 +501,8 @@ vmap <silent> <CR> *N
 " map Q to :q (I find Ex mode useless)
 nnoremap Q :q<CR>
 
-nnoremap <F5> :TlistToggle<CR>
-inoremap <F5> <C-O>:TlistToggle<CR>
+" nnoremap <F5> :TlistToggle<CR>
+" inoremap <F5> <C-O>:TlistToggle<CR>
 
 nnoremap <F6> :CtrlPMRUFiles<CR>
 inoremap <F6> <ESC>:CtrlPMRUFiles<CR>
