@@ -71,7 +71,8 @@ stty -ixon
 stty -ixoff
 source $ZSH/plugins/history-substring-search/history-substring-search.plugin.zsh
 
-export HISTSIZE=200000
+export HISTSIZE=20000
+export SAVEHIST=200000
 
 function zshaddhistory() {
     COMMAND_STR=${1%%$'\n'}
