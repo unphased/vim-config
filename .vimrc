@@ -129,6 +129,10 @@ highlight SpellCap ctermfg=16
 highlight Error ctermfg=7
 highlight SpellBad ctermfg=7 ctermbg=196
 
+" map to move locationlist (syntastic errors)
+noremap ]l :lnext<CR>
+noremap [l :lprev<CR>
+
 " for debugging syntax
 " (http://vim.wikia.com/wiki/Identify_the_syntax_highlighting_group_used_at_the_cursor)
 command! SyntaxDetect :echom "hi<" . synIDattr(synID(line("."),col("."),1),"name") . '> trans<' . synIDattr(synID(line("."),col("."),0),"name") . "> lo<" . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"
@@ -327,10 +331,15 @@ function! TmuxWindow(dir)
 	endif
 endfun
 
-nnoremap <C-H> :call TmuxWindow('h')<CR>
-nnoremap <C-J> :call TmuxWindow('j')<CR>
-nnoremap <C-K> :call TmuxWindow('k')<CR>
-nnoremap <C-L> :call TmuxWindow('l')<CR>
+noremap <C-H> :call TmuxWindow('h')<CR>
+noremap <C-J> :call TmuxWindow('j')<CR>
+noremap <C-K> :call TmuxWindow('k')<CR>
+noremap <C-L> :call TmuxWindow('l')<CR>
+
+noremap! <C-H> <ESC>:call TmuxWindow('h')<CR>
+noremap! <C-J> <ESC>:call TmuxWindow('j')<CR>
+noremap! <C-K> <ESC>:call TmuxWindow('k')<CR>
+noremap! <C-L> <ESC>:call TmuxWindow('l')<CR>
 
 " bind the F10 switcher key to also exit insert mode if sent to Vim, this
 " should help its behavior become consistent outside of tmux as it won't then
