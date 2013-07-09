@@ -76,7 +76,7 @@ export SAVEHIST=200000
 
 function zshaddhistory() {
     COMMAND_STR=${1%%$'\n'}
-    [[ ( -z $COMMAND_STR ) || ( $COMMAND_STR == ^history$ ) || ( $COMMAND_STR =~ ^l(s\|l\|a)$ ) || ( $COMMAND_STR =~ ^d\|gd\|git\ diff$ ) ]] && return 1
+    [[ ( -z $COMMAND_STR ) || ( $COMMAND_STR == history ) || ( $COMMAND_STR =~ ^l(s\|l\|a)$ ) || ( $COMMAND_STR =~ ^(d\|gd\|git\ diff)$ ) ]] && return 1
     print -sr "${PWD}///; ${COMMAND_STR}"
     fc -p
 }
