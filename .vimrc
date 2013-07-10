@@ -17,7 +17,6 @@ Bundle 'sjl/gundo.vim'
 " Tmux resize-window zoom has obsoleted this
 " Bundle 'unphased/vim-fakeclip' 
 
-Bundle 'taglist.vim'
 Bundle 'scrooloose/nerdtree'
 Bundle 'scrooloose/syntastic'
 Bundle 'kien/ctrlp.vim'
