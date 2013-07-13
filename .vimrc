@@ -217,7 +217,7 @@ set mouse=a
 " consistency with pagers in normal mode
 nnoremap <Space> <C-D>
 vnoremap <Space> <C-D>
-nnoremap <BS> <C-U>
+nnoremap b <C-U>
 
 " No longer using alt+arrows to do anything
 " nnoremap [1;3A {
