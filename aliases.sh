@@ -8,5 +8,9 @@ alias gg="git lg"
 alias gcm="git commit -am"
 alias mk="make"
 
+#Dupes of useful ones from omz
+alias gl="git pull"
+alias gp="git push"
+
 alias ds="dirs -v | head -10"
 alias d="gd"
