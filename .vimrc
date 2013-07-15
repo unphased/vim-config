@@ -50,11 +50,12 @@ filetype plugin indent on "more Vundle setup
 " This is athena-specific
 au! BufRead,BufNewFile *.esp setfiletype perl
 
+nnoremap <Leader>g :call TimeLapse()<CR>
 
 " indent guides plugin
 let g:indent_guides_enable_on_vim_startup = 1
 let g:indent_guides_auto_colors = 0
-let g:indent_guides_start_level = 2
+let g:indent_guides_start_level = 1
 let g:indent_guides_guide_size = 1
 au! VimEnter,Colorscheme * :hi IndentGuidesOdd ctermbg=235 ctermfg=233 | hi IndentGuidesEven ctermbg=236 ctermfg=233
 
@@ -381,11 +382,14 @@ function! SwitchTabPrev()
 		tabprev
 	endif
 endfunc
-nnoremap <F1> :tabnew<CR>
+noremap! <F1> <ESC>:tabnew<CR>
+noremap <F1> :tabnew<CR>
 " inoremap <F1> <ESC>:tabnew<CR>
-nnoremap <F2> :call SwitchTabPrev()<CR>
+noremap! <F2> <ESC>:call SwitchTabPrev()<CR>
+noremap <F2> :call SwitchTabPrev()<CR>
 " inoremap <F2> <ESC>:tabprev<CR>
-nnoremap <F3> :call SwitchTabNext()<CR>
+noremap! <F3> <ESC>:call SwitchTabNext()<CR>
+noremap <F3> :call SwitchTabNext()<CR>
 " inoremap <F3> <ESC>:tabnext<CR>
 " I am hoping to come up with mappings for the F-keys in insert mode that
 " can serve productive purposes.
