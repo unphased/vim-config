@@ -9,7 +9,7 @@ call vundle#rc()
 
 Bundle 'gmarik/vundle'
 Bundle 'Valloric/YouCompleteMe'
-Bundle 'sjl/gundo.vim'
+Bundle 'unphased/gundo.vim'
 
 " iTerm2 support for focusing
 " Bundle 'sjl/vitality.vim'
@@ -25,6 +25,7 @@ Bundle 'diffchanges.vim'
 Bundle 'terryma/vim-multiple-cursors'
 Bundle 'tpope/vim-repeat'
 Bundle 'tpope/vim-surround'
+Bundle 'tpope/vim-speeddating'
 Bundle 'unphased/vim-powerline'
 Bundle 'vim-perl/vim-perl'
 "Bundle 'Raimondi/delimitMate'
@@ -471,7 +472,8 @@ endfunction
 " Use CTRL-S for saving, also in Insert mode TODO: Make this more robust
 " mode-wise
 noremap <C-S> :update<CR>
-vnoremap <C-S> <C-C>:update<CR>
+vnoremap <C-S> <ESC>:update<CR>
+cnoremap <C-S> <C-C>:update<CR>
 inoremap <C-S> <ESC>:update<CR>
 
 " Use CTRL-Q for abort-quitting (no save)
@@ -705,13 +707,32 @@ inoremap <F32> :set wrap!<CR>
 
 set <F31>=s
 " just a convenience thing for being lazy what with switching OS's and this
-" being a rather important bind
-inoremap <F31> <ESC>:update<CR>
+" being a rather common key sequence and macs...
 noremap <F31> :update<CR>
+vnoremap <F31> <ESC>:update<CR>
+cnoremap <F31> <C-C>:update<CR>
+inoremap <F31> <ESC>:update<CR>
 
 nnoremap <silent> <F33> :set invpaste paste?<CR>:set number!<CR>:set list!<CR>
 set pastetoggle=<F33>
 set showmode
+
+" A slightly perilous set of binds:
+" the terminal in this case sends an escape, followed by a Ctrl char,
+" the latter of which may be intercepted by tmux and passed through
+" a shell script! (tmux is smart, though, and does the term timeout on
+" the escape, it will be letting it pass through)
+set <F30>=h
+set <F29>=j
+set <F28>=k
+set <F27>=l
+
+" These binds are for quick rearrangement of windows, very awesome function
+" that sadly I'll need to do hacking to get the same on tmux
+nnoremap <F30> :wincmd H<CR>
+nnoremap <F29> :wincmd J<CR>
+nnoremap <F28> :wincmd K<CR>
+nnoremap <F27> :wincmd L<CR>
 
 " make recordings easier to fire off, binding comma to @q (use qq to record
 " what you wanna repeat)
