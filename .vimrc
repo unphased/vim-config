@@ -122,6 +122,11 @@ hi SpecialKey ctermfg=239
 hi Statement cterm=bold
 hi Exception ctermfg=211
 
+" For hicursorwords
+highlight clear WordUnderTheCursor
+highlight WordUnderTheCursor cterm=bold ctermfg=254 ctermbg=160
+highlight Underlined cterm=bold ctermbg=160
+
 highlight DiffAdd term=reverse ctermbg=156 ctermfg=black
 highlight DiffChange term=reverse ctermbg=blue ctermfg=black
 highlight DiffText term=reverse ctermbg=171 ctermfg=black
