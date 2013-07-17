@@ -591,7 +591,7 @@ let g:ycm_add_preview_to_completeopt = 1
 let g:ycm_confirm_extra_conf = 0
 
 " set highlight for search to be less blinding
-hi Search ctermbg=236 ctermfg=NONE cterm=underline
+hi Search ctermbg=25 ctermfg=NONE
 
 " requires an italic term obviously
 hi Comment cterm=italic

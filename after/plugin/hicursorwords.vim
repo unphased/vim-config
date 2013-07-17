@@ -1,2 +1,2 @@
 hi clear WordUnderTheCursor
-hi WordUnderTheCursor cterm=bold
+hi WordUnderTheCursor cterm=underline
