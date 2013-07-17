@@ -132,6 +132,9 @@ highlight SpellCap ctermfg=16
 highlight Error ctermfg=7
 highlight SpellBad ctermfg=7 ctermbg=196
 
+" HiCursorWords
+let g:HiCursorWords_delay = 15
+
 " map to move locationlist (syntastic errors)
 noremap ]l :lnext<CR>
 noremap [l :lprev<CR>
