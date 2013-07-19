@@ -35,6 +35,7 @@ Bundle 'maxbrunsfeld/vim-yankstack'
 Bundle 'unphased/Vim-IndentFinder'
 Bundle 'nathanaelkane/vim-indent-guides'
 Bundle 'OrelSokolov/HiCursorWords'
+Bundle 'unphased/vim-mark'
 
 " Bundle 'Decho'
 
