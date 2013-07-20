@@ -104,6 +104,36 @@ set tabstop=4
 " set expandtab
 set smarttab
 
+" This was just pulled from the help because it seems so awesome
+augroup gzip
+     autocmd!
+     autocmd BufReadPre,FileReadPre	*.gz set bin
+     autocmd BufReadPost,FileReadPost	*.gz '[,']!gunzip
+     autocmd BufReadPost,FileReadPost	*.gz set nobin
+     autocmd BufReadPost,FileReadPost	*.gz execute ":doautocmd BufReadPost " . expand("%:r")
+     autocmd BufWritePost,FileWritePost	*.gz !mv <afile> <afile>:r
+     autocmd BufWritePost,FileWritePost	*.gz !gzip <afile>:r
+     autocmd FileAppendPre		*.gz !gunzip <afile>
+     autocmd FileAppendPre		*.gz !mv <afile>:r <afile>
+     autocmd FileAppendPost		*.gz !mv <afile> <afile>:r
+     autocmd FileAppendPost		*.gz !gzip <afile>:r
+augroup END
+
+set autoread
+augroup checktime
+    au!
+    if !has("gui_running")
+        "silent! necessary otherwise throws errors when using command
+        "line window.
+        autocmd BufEnter        * checktime
+        autocmd CursorHold      * checktime
+        autocmd CursorHoldI     * checktime
+        "these two _may_ slow things down. Remove if they do.
+        "autocmd CursorMoved     * silent! checktime
+        "autocmd CursorMovedI    * silent! checktime
+    endif
+augroup END
+
 if &term =~ '256color'
     " Disable Background Color Erase (BCE) so that color schemes
     " work properly when Vim is used inside tmux and GNU screen.
