@@ -35,6 +35,7 @@ Bundle 'unphased/Vim-IndentFinder'
 Bundle 'nathanaelkane/vim-indent-guides'
 Bundle 'OrelSokolov/HiCursorWords'
 Bundle 'unphased/vim-mark'
+Bundle 'kien/rainbow_parentheses.vim'
 
 " Bundle 'Decho'
 
@@ -145,7 +146,7 @@ endif
 
 colorscheme Tomorrow-Night-Eighties
 
-set listchars=tab:▸\ ,extends:>,precedes:<,trail:◼,nbsp:◆
+set listchars=tab:╶─,extends:>,precedes:<,trail:◼,nbsp:◆
 set list
 
 hi NonText ctermbg=234 ctermfg=254
