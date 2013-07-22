@@ -74,6 +74,7 @@ nnoremap <Leader>L :so $MYVIMRC<CR>
 
 set hlsearch
 set incsearch
+set showmatch " May be overly conspicuous and unnecessary
 set backspace=2
 set sidescroll=3
 
@@ -95,6 +96,8 @@ set undofile
 
 set ignorecase
 set smartcase
+
+set gdefault " Reverses meaning of /g in regex
 
 set smartindent
 au! FileType python setl nosmartindent
@@ -675,9 +678,21 @@ let g:Powerline_symbols='compatible'
 hi multiple_cursors_cursor term=reverse ctermbg=3 ctermfg=0
 hi multiple_cursors_visual term=reverse ctermbg=6 ctermfg=0
 
-" Ctrl+F for find
-nnoremap <C-F> /
-inoremap <C-F> <ESC>/
+" Ctrl+F for find -- tip on \v from
+" http://stevelosh.com/blog/2010/09/coming-home-to-vim/
+" May take some getting used to, but is generally saving on use of backslashes
+nnoremap <C-F> /\v
+inoremap <C-F> <ESC>/\v
+vnoremap <C-F> /\v
+nnoremap / /\v
+vnoremap / /\v
+
+" Finding % to be highly powerful so I map to high traffic area single key
+" This mostly alleviates the want for matching highlights for surrounding
+" stuff because moving back and forth between the endpoints can be quite
+" helpful anyway.
+nnoremap ` %
+vnoremap ` %
 
 " mapping normal mode Tab to swap to next window; saving the functionality of
 " tab (next jumplist position) to C-B (since PgUp serves that function well)
