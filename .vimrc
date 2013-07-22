@@ -22,7 +22,6 @@ Bundle 'scrooloose/nerdtree'
 Bundle 'scrooloose/syntastic'
 Bundle 'kien/ctrlp.vim'
 Bundle 'diffchanges.vim'
-Bundle 'terryma/vim-multiple-cursors'
 Bundle 'tpope/vim-repeat'
 Bundle 'tpope/vim-surround'
 Bundle 'tpope/vim-speeddating'
@@ -146,7 +145,7 @@ endif
 
 colorscheme Tomorrow-Night-Eighties
 
-set listchars=tab:╶─,extends:>,precedes:<,trail:◼,nbsp:◆
+set listchars=tab:▸\ ,extends:>,precedes:<,trail:◼,nbsp:◆
 set list
 
 hi NonText ctermbg=234 ctermfg=254
@@ -300,6 +299,10 @@ nnoremap <Up> <C-Y>g<Up>
 nnoremap <Down> <C-E>g<Down>
 " Not sure why but I couldn't i(nore)map Up and Down
 
+" I like joining lines (I do this operation with the delete key a lot -- that
+" key is a reach) -- this map is used because it is *close* to J
+nnoremap <C-N> J
+
 " accelerated j/k navigation
 nnoremap <S-J> 7j
 nnoremap <S-K> 7k
@@ -312,6 +315,8 @@ vnoremap <S-H> 10h
 vnoremap <S-L> 10l
 
 set wrap
+set textwidth=79
+set formatoptions=cqr1nj
 
 " Helpful warning message
 au FileChangedShell * echo "Warning: File changed on disk!!"
@@ -695,6 +700,8 @@ vnoremap / /\v
 " overloads %, so we try not to mess that up.
 nmap ` %
 vmap ` %
+
+
 
 " mapping normal mode Tab to swap to next window; saving the functionality of
 " tab (next jumplist position) to C-B (since PgUp serves that function well)
