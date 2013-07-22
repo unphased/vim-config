@@ -691,8 +691,10 @@ vnoremap / /\v
 " This mostly alleviates the want for matching highlights for surrounding
 " stuff because moving back and forth between the endpoints can be quite
 " helpful anyway.
-nnoremap ` %
-vnoremap ` %
+" These maps are non-recursive to accomodate the fact that matchit.vim
+" overloads %, so we try not to mess that up.
+nmap ` %
+vmap ` %
 
 " mapping normal mode Tab to swap to next window; saving the functionality of
 " tab (next jumplist position) to C-B (since PgUp serves that function well)
