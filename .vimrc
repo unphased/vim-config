@@ -36,6 +36,7 @@ Bundle 'nathanaelkane/vim-indent-guides'
 Bundle 'OrelSokolov/HiCursorWords'
 Bundle 'unphased/vim-mark'
 Bundle 'kien/rainbow_parentheses.vim'
+Bundle 'airblade/vim-gitgutter'
 
 " Bundle 'Decho'
 
@@ -165,6 +166,8 @@ highlight DiffDelete term=reverse ctermbg=red ctermfg=black
 highlight SpellCap ctermfg=16
 highlight Error ctermfg=7
 highlight SpellBad ctermfg=7 ctermbg=196
+
+hi clear SignColumn
 
 " HiCursorWords
 let g:HiCursorWords_delay = 15
