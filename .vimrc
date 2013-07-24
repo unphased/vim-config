@@ -292,12 +292,12 @@ inoremap <S-Down> <C-O>}
 nnoremap <S-Up> {
 nnoremap <S-Down> }
 
-inoremap <C-Up> <C-O>5<C-Y>
-nnoremap <C-Up> 5<C-Y>
-vnoremap <C-Up> 5<C-Y>
-inoremap <C-Down> <C-O>5<C-E>
-vnoremap <C-Down> 5<C-E>
-nnoremap <C-Down> 5<C-E>
+inoremap <C-Up> <C-O>4<C-Y>
+nnoremap <C-Up> 4<C-Y>
+vnoremap <C-Up> 4<C-Y>
+inoremap <C-Down> <C-O>4<C-E>
+vnoremap <C-Down> 4<C-E>
+nnoremap <C-Down> 4<C-E>
 
 vnoremap <Up> <C-Y>g<Up>
 vnoremap <Down> <C-E>g<Down>
@@ -682,7 +682,7 @@ set splitright
 let g:gundo_close_on_revert = 1
 let g:gundo_preview_bottom = 1
 
-set iskeyword=@,$,48-57,_,-,192-255
+set iskeyword=@,$,48-57,_,192-255
 
 " Powerline config
 let g:Powerline_colorscheme='default'
