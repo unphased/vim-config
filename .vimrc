@@ -158,8 +158,8 @@ hi Statement cterm=bold
 hi Exception ctermfg=211
 
 highlight DiffAdd term=reverse ctermbg=156 ctermfg=black
-highlight DiffChange term=reverse ctermbg=blue ctermfg=black
-highlight DiffText term=reverse ctermbg=171 ctermfg=black
+highlight DiffChange term=reverse ctermfg=245 ctermbg=NONE
+highlight DiffText term=reverse ctermbg=blue ctermfg=16
 highlight DiffDelete term=reverse ctermbg=red ctermfg=black
 
 " mostly for syntastic
