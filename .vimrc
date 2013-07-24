@@ -178,6 +178,8 @@ noremap [l :lprev<CR>
 command! SyntaxDetect :echom "hi<" . synIDattr(synID(line("."),col("."),1),"name") . '> trans<' . synIDattr(synID(line("."),col("."),0),"name") . "> lo<" . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"
 
 set updatetime=500
+" Unsure if updatetime gets overwritten by plugins. There are many plugins
+" I use which mess with updatetime (hicursorwords being one of them)
 noremap! <F5> <C-O>:YcmForceCompileAndDiagnostics<CR>
 noremap <F5> :YcmForceCompileAndDiagnostics<CR>
 
@@ -634,6 +636,11 @@ nnoremap m<F2> :tabmove -1<CR>
 let g:ycm_autoclose_preview_window_after_insertion = 1
 let g:ycm_add_preview_to_completeopt = 1
 let g:ycm_confirm_extra_conf = 0
+
+" This insert mapping is for pasting; it appears that YCM only takes over the
+" <C-P> when it has the complete box open (this may be a Vim
+" limitation/builtin)
+inoremap <C-P> <C-O>p<CR>
 
 " set highlight for search to be less blinding
 hi Search ctermbg=25 ctermfg=NONE
