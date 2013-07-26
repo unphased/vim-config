@@ -264,6 +264,9 @@ nnoremap <Space> <C-D>
 vnoremap <Space> <C-D>
 nnoremap b <C-U>
 
+" Do something more useful than what the h key already does with normal mode backspace
+nnoremap <BS> b
+
 " No longer using alt+arrows to do anything
 " nnoremap [1;3A {
 " nnoremap [1;3B }
@@ -601,7 +604,7 @@ noremap j gj
 " inoremap <End> <C-O>g<End>
 
 " This is for making the alternate backspace delete an entire word.
-" Attempting to focus window to the left in insert mode just wont work, this should be fine.
+" Attempting to focus window to the left in insert mode just wont work.
 inoremap <C-H> <C-W>
 
 " Move current tab into the specified direction.
