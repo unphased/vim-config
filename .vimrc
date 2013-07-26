@@ -643,8 +643,10 @@ inoremap <C-P> <C-O>p<CR>
 " set highlight for search to be less blinding
 hi Search ctermbg=25 ctermfg=NONE
 
-" requires an italic term obviously
-hi Comment cterm=italic
+" only on an italic term do we set comment to use italic cterm highlight
+if &term == 'xterm-256color-italic'
+	hi Comment cterm=italic
+endif
 
 " bind ctrl W to always work on windows from insert mode
 inoremap <C-W> <ESC><C-W>
