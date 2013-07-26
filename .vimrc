@@ -869,8 +869,8 @@ function! MoveToNextTab()
   exe "b".l:cur_buf
 endfunc
 
-nnoremap w<F2> :call MoveToPrevTab()<CR>
-nnoremap w<F3> :call MoveToNextTab()<CR>
+nnoremap y<F2> :call MoveToPrevTab()<CR>
+nnoremap y<F3> :call MoveToNextTab()<CR>
 
 set scrolloff=2
 runtime macros/matchit.vim
