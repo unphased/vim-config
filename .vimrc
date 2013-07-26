@@ -310,15 +310,10 @@ nnoremap <Down> <C-E>g<Down>
 nnoremap <C-N> J
 
 " accelerated j/k navigation
-nnoremap <S-J> 7j
-nnoremap <S-K> 7k
-nnoremap <S-H> 10h
-nnoremap <S-L> 10l
-" visual mode equivalents
-vnoremap <S-J> 7j
-vnoremap <S-K> 7k
-vnoremap <S-H> 10h
-vnoremap <S-L> 10l
+noremap <S-J> 7gj
+noremap <S-K> 7gk
+noremap <S-H> 10h
+noremap <S-L> 10l
 
 set wrap
 set textwidth=79
@@ -585,8 +580,8 @@ let g:ctrlp_max_files = 200000
 let g:ctrlp_clear_cache_on_exit = 0
 let g:ctrlp_root_markers = ['.ctrlp_root'] " insert this sentinel file anywhere that you'd like ctrlp to index from
 
-nnoremap k gk
-nnoremap j gj
+noremap k gk
+noremap j gj
 
 " These are old mappings for line based home/end, I needed to change these to
 " prevent vim from hanging on escape 
