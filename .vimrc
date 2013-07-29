@@ -346,8 +346,7 @@ call yankstack#setup()
 " and it also just makes sense
 nmap <C-d> <Plug>yankstack_substitute_older_paste
 nmap <C-e> <Plug>yankstack_substitute_newer_paste
-nnoremap P p
-nnoremap p P`[
+nnoremap P P`[
 
 " this just makes sense
 nmap Y y$
