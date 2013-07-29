@@ -402,7 +402,8 @@ noremap! <F10> <ESC>
 " this checks tmux to figure out if it should swap panes or trigger Tab
 " instead
 function! F10OverloadedFunctionalityCheckTmux(direction)
-	if system('tmux display -p "#{window_panes}"') == 1
+	let tmux_panes_count = system('tmux display -p "#{window_panes}"')
+	if tmux_panes_count == 1 || tmux_panes_count == "failed to connect to server\n"
 		call NextWindowOrTab()
 	else
 		call system('tmux select-pane -t :.'.a:direction)
