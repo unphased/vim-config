@@ -37,7 +37,7 @@ Bundle 'OrelSokolov/HiCursorWords'
 Bundle 'unphased/vim-mark'
 Bundle 'kien/rainbow_parentheses.vim'
 Bundle 'airblade/vim-gitgutter'
-Bundle 'lukaszb/vim-web-indent'
+Bundle 'pangloss/vim-javascript'
 
 " Bundle 'Decho'
 
