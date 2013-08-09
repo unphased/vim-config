@@ -38,6 +38,7 @@ Bundle 'unphased/vim-mark'
 Bundle 'kien/rainbow_parentheses.vim'
 Bundle 'airblade/vim-gitgutter'
 Bundle 'pangloss/vim-javascript'
+Bundle 'kana/vim-smartinput'
 
 " Bundle 'Decho'
 
