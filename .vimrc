@@ -350,6 +350,9 @@ call yankstack#setup()
 set <F26>=d
 set <A-S-D>=D
 nmap <F26> <Plug>yankstack_substitute_older_paste
+nmap <C-D> <Plug>yankstack_substitute_older_paste
+" Keep the old bind I had because it is often convenient to type, the real
+" shame is that there is no way to pass in Ctrl+Shift+letter.
 nmap <A-S-D> <Plug>yankstack_substitute_newer_paste
 nnoremap P P`[
 
