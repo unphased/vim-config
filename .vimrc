@@ -347,10 +347,10 @@ let g:yankstack_map_keys = 0
 " the yankstack plugin requires loading prior to my binds (wonder what other
 " plugins have this sort of behavior)
 call yankstack#setup()
-" This puts the cursor at the end of what is pasted so it can be chained
-" and it also just makes sense
-nmap <C-d> <Plug>yankstack_substitute_older_paste
-nmap <C-e> <Plug>yankstack_substitute_newer_paste
+set <F26>=d
+set <A-S-D>=D
+nmap <F26> <Plug>yankstack_substitute_older_paste
+nmap <A-S-D> <Plug>yankstack_substitute_newer_paste
 nnoremap P P`[
 
 " this just makes sense
