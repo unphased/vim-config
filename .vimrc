@@ -38,7 +38,7 @@ Bundle 'unphased/vim-mark'
 Bundle 'kien/rainbow_parentheses.vim'
 Bundle 'airblade/vim-gitgutter'
 Bundle 'pangloss/vim-javascript'
-Bundle 'kana/vim-smartinput'
+"Bundle 'kana/vim-smartinput'
 
 " Bundle 'Decho'
 
@@ -1018,5 +1018,9 @@ cmap e!\ e!
 " because I will not have a hard time becoming more lazy with the shift key
 " which is what the above bindings allow for.
 
-" This is for less frustration in vblock mode
+" This is for less frustration in vblock mode (virtual-edit)
 set ve=block
+
+" something somebody cameup with in response to my SO topic
+onoremap <silent> X :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr2char(getchar())<CR>
+vnoremap <silent> X :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr2char(getchar())<CR>
