@@ -4,4 +4,5 @@
 " making the searches fail to match on those very calls since they become
 " huge words)
 set iskeyword-=:
+set iskeyword-=$
 
