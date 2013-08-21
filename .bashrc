@@ -8,4 +8,5 @@ export HISTCONTROL=ignoredups
 # append history entries.. 
 shopt -s histappend
 
-. aliases.sh
+source aliases.sh
+
