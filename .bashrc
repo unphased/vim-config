@@ -9,4 +9,4 @@ export HISTCONTROL=ignoredups
 shopt -s histappend
 
 source aliases.sh
-
+# Remember to link this to ~/.profile if it doesn't exist. (more robust than .bashrc)
