@@ -7,8 +7,13 @@ alias gdc="gd --cached"
 alias gg="git lg"
 alias gcm="git commit -am"
 unalias gcp # I rarely cherry pick
+
 # I often want to commit and push in one step
-gcp() { [ -n "$2" ] && echo "args" && return; git commit -am $1 && git push }
+gcp() {
+    [ -n "$2" ] && echo "args" && return
+    gcm "$*" && gp
+}
+
 alias mk="make"
 
 #Dupes of useful ones from omz
@@ -18,3 +23,4 @@ alias gst="git status"
 
 alias ds="dirs -v | head -10"
 alias d="gd"
+
