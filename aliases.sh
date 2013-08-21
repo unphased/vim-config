@@ -1,10 +1,13 @@
 alias l="ls"
+alias ll="l -l"
+alias la="ll -a"
 alias gs="git s" # short status 
 alias glp="git log -p --no-ext-diff"
 alias gdt="git difftool"
 alias gd="git diff --no-ext-diff"
 alias gdc="gd --cached"
 alias gg="git lg"
+alias gca="git commit -av"
 alias gcm="git commit -am"
 unalias gcp # I rarely cherry pick
 
