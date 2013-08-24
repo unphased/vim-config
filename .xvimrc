@@ -1,2 +1,7 @@
 imap <F10> <Esc>
+nmap <C-n> J
 nmap ; :
+nmap <S-H> 10h
+nmap <S-J> 7j
+nmap <S-K> 7k
+nmap <S-L> 10l
