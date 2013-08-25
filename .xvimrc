@@ -1,4 +1,4 @@
-imap <F10> <Esc>
+imap <Esc> <Esc>l
 nmap <C-n> J
 nmap ; :
 nmap <S-H> 10h
