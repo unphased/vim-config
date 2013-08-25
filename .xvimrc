@@ -5,3 +5,10 @@ nmap <S-H> 10h
 nmap <S-J> 7j
 nmap <S-K> 7k
 nmap <S-L> 10l
+vmap <S-H> 10h
+vmap <S-J> 7j
+vmap <S-K> 7k
+vmap <S-L> 10l
+
+nmap <CR> viw:<BS><BS><BS><BS><BS>xccmd findSelectedTextInWorkspace<CR>
+vmap <CR> :<BS><BS><BS><BS><BS>xccmd findSelectedTextInWorkspace<CR>
