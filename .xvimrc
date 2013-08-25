@@ -12,3 +12,7 @@ vmap <S-L> 10l
 
 nmap <CR> viw:<BS><BS><BS><BS><BS>xccmd findSelectedTextInWorkspace<CR>
 vmap <CR> :<BS><BS><BS><BS><BS>xccmd findSelectedTextInWorkspace<CR>
+
+nmap <BS> b
+nmap b <C-u>
+nmap <Space> <C-d>
