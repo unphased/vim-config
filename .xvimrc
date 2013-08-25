@@ -16,3 +16,4 @@ vmap <CR> :<BS><BS><BS><BS><BS>xccmd findSelectedTextInWorkspace<CR>
 nmap <BS> b
 nmap b <C-u>
 nmap <Space> <C-d>
+imap ;w<CR> <Esc>:w<CR>
