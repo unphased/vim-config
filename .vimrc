@@ -645,6 +645,7 @@ nnoremap m<F2> :tabmove -1<CR>
 let g:ycm_autoclose_preview_window_after_insertion = 1
 let g:ycm_add_preview_to_completeopt = 1
 let g:ycm_confirm_extra_conf = 0
+let g:ycm_complete_in_comments = 1
 
 " This insert mapping is for pasting; it appears that YCM only takes over the
 " <C-P> when it has the complete box open (this may be a Vim
