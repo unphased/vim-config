@@ -679,9 +679,11 @@ nnoremap <F8> :DiffChangesDiffToggle<CR>
 nnoremap <F9> :DiffChangesPatchToggle<CR>
 
 " this is a ctrl + backslash binding to vsplit
-nmap <C-\> :vsplit<CR>
+nnoremap <C-\> :vsplit<CR>
+vnoremap <C-\> <Esc>:vsplit<CR>
 " this is a ctrl + hyphen binding to hsplit
-nmap <C-_> :split<CR>
+nnoremap <C-_> :split<CR>
+vnoremap <C-_> <Esc>:split<CR>
 
 " these make the behavior more like tmux by opening to the right and below
 set splitbelow
