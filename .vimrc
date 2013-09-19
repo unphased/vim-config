@@ -38,6 +38,7 @@ Bundle 'unphased/vim-mark'
 Bundle 'kien/rainbow_parentheses.vim'
 Bundle 'airblade/vim-gitgutter'
 Bundle 'pangloss/vim-javascript'
+Bundle 'beyondmarc/glsl.vim'
 "Bundle 'kana/vim-smartinput'
 
 " Bundle 'Decho'
@@ -58,6 +59,8 @@ au! BufRead,BufNewFile *.esp setfiletype perl
 
 " This is CSS Rework format
 au! BufRead,BufNewFile *.cssr setfiletype css
+
+autocmd BufNewFile,BufRead *.vsh,*.fsh,*.vp,*.fp,*.gp,*.vs,*.fs,*.gs,*.tcs,*.tes,*.cs,*.vert,*.frag,*.geom,*.tess,*.shd,*.gls,*.glsl set ft=glsl440
 
 nnoremap <Leader>g :call TimeLapse()<CR>
 

@@ -1,4 +1,3 @@
-imap <Esc> <Esc>l
 nmap <C-n> J
 nmap ; :
 nmap <S-H> 10h
