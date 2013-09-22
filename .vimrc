@@ -36,7 +36,7 @@ Bundle 'nathanaelkane/vim-indent-guides'
 Bundle 'OrelSokolov/HiCursorWords'
 Bundle 'unphased/vim-mark'
 Bundle 'kien/rainbow_parentheses.vim'
-Bundle 'airblade/vim-gitgutter'
+"Bundle 'airblade/vim-gitgutter'
 Bundle 'pangloss/vim-javascript'
 "Bundle 'kana/vim-smartinput'
 
@@ -55,9 +55,6 @@ filetype plugin indent on "more Vundle setup
 
 " This is athena-specific
 au! BufRead,BufNewFile *.esp setfiletype perl
-
-" This is CSS Rework format
-au! BufRead,BufNewFile *.cssr setfiletype css
 
 nnoremap <Leader>g :call TimeLapse()<CR>
 
