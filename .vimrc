@@ -691,6 +691,8 @@ set splitright
 let g:gundo_close_on_revert = 1
 let g:gundo_preview_bottom = 1
 
+set undolevels=10000
+
 set iskeyword=@,$,48-57,_,192-255
 
 " Powerline config
