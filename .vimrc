@@ -56,9 +56,6 @@ filetype plugin indent on "more Vundle setup
 " This is athena-specific
 au! BufRead,BufNewFile *.esp setfiletype perl
 
-" This is CSS Rework format
-au! BufRead,BufNewFile *.cssr setfiletype css
-
 nnoremap <Leader>g :call TimeLapse()<CR>
 
 " indent guides plugin
