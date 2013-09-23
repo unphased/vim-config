@@ -36,7 +36,7 @@ Bundle 'nathanaelkane/vim-indent-guides'
 Bundle 'OrelSokolov/HiCursorWords'
 Bundle 'unphased/vim-mark'
 Bundle 'kien/rainbow_parentheses.vim'
-Bundle 'airblade/vim-gitgutter'
+"Bundle 'airblade/vim-gitgutter'
 Bundle 'pangloss/vim-javascript'
 "Bundle 'kana/vim-smartinput'
 
@@ -206,7 +206,9 @@ endfunction
 function! InsertLeaveActions()
 	hi CursorLine ctermbg=16 cterm=NONE
 	hi CursorLineNr ctermfg=11
-	call cursor([getpos('.')[1], getpos('.')[2]+1]) " move cursor forward
+	" This next line is actually really cool, but I am taking it out for
+	" consistency with other editors whose vim-modes do not allow me to do this
+	" call cursor([getpos('.')[1], getpos('.')[2]+1]) " move cursor forward
 endfunction
 
 hi CursorLine ctermbg=16
@@ -702,11 +704,6 @@ set iskeyword=@,$,48-57,_,192-255
 let g:Powerline_colorscheme='default'
 let g:Powerline_theme='default'
 let g:Powerline_symbols='compatible'
-
-
-" Configure multiple cursors plugin
-hi multiple_cursors_cursor term=reverse ctermbg=3 ctermfg=0
-hi multiple_cursors_visual term=reverse ctermbg=6 ctermfg=0
 
 " Ctrl+F for find -- tip on \v from
 " http://stevelosh.com/blog/2010/09/coming-home-to-vim/
