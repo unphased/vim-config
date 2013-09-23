@@ -37,6 +37,7 @@ Bundle 'OrelSokolov/HiCursorWords'
 Bundle 'unphased/vim-mark'
 Bundle 'kien/rainbow_parentheses.vim'
 "Bundle 'airblade/vim-gitgutter'
+Bundle 'akiomik/git-gutter-vim'
 Bundle 'pangloss/vim-javascript'
 "Bundle 'kana/vim-smartinput'
 
