@@ -28,7 +28,7 @@
 	# diff = less
 [color]
 	branch = auto
-	diff = always
+	#diff = always
 	status = always
 [color "branch"]
 	current = yellow reverse
