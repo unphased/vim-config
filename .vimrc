@@ -67,6 +67,10 @@ let g:indent_guides_start_level = 1
 let g:indent_guides_guide_size = 1
 au! VimEnter,Colorscheme * :hi IndentGuidesOdd ctermbg=235 ctermfg=233 | hi IndentGuidesEven ctermbg=236 ctermfg=233
 
+" signify
+let g:signify_sign_overwrite = 0
+let g:signify_update_on_focusgained = 1
+
 nnoremap <F4> :GundoToggle<CR>
 inoremap <F4> <ESC>:GundoToggle<CR>
 
@@ -163,7 +167,7 @@ hi Statement cterm=bold
 hi Exception ctermfg=211
 
 highlight DiffAdd term=reverse ctermbg=156 ctermfg=black
-highlight DiffChange term=reverse ctermfg=245 ctermbg=NONE
+highlight DiffChange term=reverse ctermbg=33
 highlight DiffText term=reverse ctermbg=blue ctermfg=16
 highlight DiffDelete term=reverse ctermbg=red ctermfg=black
 
