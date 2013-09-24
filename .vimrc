@@ -85,9 +85,9 @@ set hlsearch
 set incsearch
 set showmatch " May be overly conspicuous and unnecessary
 set backspace=2
-set sidescroll=3
+set sidescroll=2
 
-set sidescrolloff=25
+set sidescrolloff=3
 
 " fast terminal (this is for escape code wait time for escape code based keys)
 set ttimeout
@@ -948,7 +948,7 @@ nnoremap + :call MyResizeUp()<CR>
 
 " delimitMate configuration
 " let delimitMate_expand_space = 1
-let delimitMate_expand_cr = 1
+" let delimitMate_expand_cr = 1
 
 " This is for replicating what ST does when typing a delimiter character
 " when something is selected, to wrap selection with it: to undo just use
