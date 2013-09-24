@@ -167,9 +167,9 @@ hi Statement cterm=bold
 hi Exception ctermfg=211
 
 highlight DiffAdd term=reverse ctermbg=156 ctermfg=black
-highlight DiffChange term=reverse ctermbg=33
+highlight DiffChange term=reverse ctermbg=33 ctermfg=black
 highlight DiffText term=reverse ctermbg=blue ctermfg=16
-highlight DiffDelete term=reverse ctermbg=red ctermfg=black
+highlight DiffDelete term=reverse ctermbg=red ctermfg=white
 
 " mostly for syntastic
 highlight SpellCap ctermfg=16
