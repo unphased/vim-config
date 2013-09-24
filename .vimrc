@@ -70,6 +70,10 @@ let g:indent_guides_start_level = 1
 let g:indent_guides_guide_size = 1
 au! VimEnter,Colorscheme * :hi IndentGuidesOdd ctermbg=235 ctermfg=233 | hi IndentGuidesEven ctermbg=236 ctermfg=233
 
+" signify
+let g:signify_sign_overwrite = 0
+let g:signify_update_on_focusgained = 1
+
 nnoremap <F4> :GundoToggle<CR>
 inoremap <F4> <ESC>:GundoToggle<CR>
 
@@ -84,9 +88,9 @@ set hlsearch
 set incsearch
 set showmatch " May be overly conspicuous and unnecessary
 set backspace=2
-set sidescroll=3
+set sidescroll=2
 
-set sidescrolloff=25
+set sidescrolloff=3
 
 " fast terminal (this is for escape code wait time for escape code based keys)
 set ttimeout
@@ -166,9 +170,9 @@ hi Statement cterm=bold
 hi Exception ctermfg=211
 
 highlight DiffAdd term=reverse ctermbg=156 ctermfg=black
-highlight DiffChange term=reverse ctermfg=245 ctermbg=NONE
+highlight DiffChange term=reverse ctermbg=33 ctermfg=black
 highlight DiffText term=reverse ctermbg=blue ctermfg=16
-highlight DiffDelete term=reverse ctermbg=red ctermfg=black
+highlight DiffDelete term=reverse ctermbg=red ctermfg=white
 
 " mostly for syntastic
 highlight SpellCap ctermfg=16
@@ -947,7 +951,7 @@ nnoremap + :call MyResizeUp()<CR>
 
 " delimitMate configuration
 " let delimitMate_expand_space = 1
-let delimitMate_expand_cr = 1
+" let delimitMate_expand_cr = 1
 
 " This is for replicating what ST does when typing a delimiter character
 " when something is selected, to wrap selection with it: to undo just use
