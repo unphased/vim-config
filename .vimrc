@@ -331,7 +331,7 @@ noremap <S-L> 10l
 
 set wrap
 set textwidth=79
-set formatoptions=cqr1nj
+set formatoptions=caqr1nj
 
 " Helpful warning message
 au FileChangedShell * echo "Warning: File changed on disk!!"
@@ -750,8 +750,13 @@ function! PrevWindowOrTab()
 		wincmd W
 	endif
 endfunc
-nnoremap <Tab> :call NextWindowOrTab()<CR>
-nnoremap <S-Tab> :call PrevWindowOrTab()<CR>
+" nnoremap <Tab> :call NextWindowOrTab()<CR>
+" nnoremap <S-Tab> :call PrevWindowOrTab()<CR>
+
+" I actually like the mash tab to cycle windows behavior so let's keep it simple
+nnoremap <Tab> :wincmd w<CR>
+nnoremap <S-Tab> :wincmd W<CR>
+
 
 " Uncomment the following to have Vim jump to the last position when
 " reopening a file
