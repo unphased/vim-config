@@ -1,5 +1,4 @@
-imap <Esc> <Esc>l
-nmap <C-n> J
+nnoremap <C-N> J
 nmap ; :
 nmap <S-H> 10h
 nmap <S-J> 7j

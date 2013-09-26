@@ -40,6 +40,7 @@ Bundle 'kien/rainbow_parentheses.vim'
 "Bundle 'akiomik/git-gutter-vim'
 Bundle 'mhinz/vim-signify'
 Bundle 'pangloss/vim-javascript'
+Bundle 'beyondmarc/glsl.vim'
 "Bundle 'kana/vim-smartinput'
 
 " Bundle 'Decho'
@@ -57,6 +58,8 @@ filetype plugin indent on "more Vundle setup
 
 " This is athena-specific
 au! BufRead,BufNewFile *.esp setfiletype perl
+
+autocmd BufNewFile,BufRead *.vsh,*.fsh,*.vp,*.fp,*.gp,*.vs,*.fs,*.gs,*.tcs,*.tes,*.cs,*.vert,*.frag,*.geom,*.tess,*.shd,*.gls,*.glsl set ft=glsl440
 
 nnoremap <Leader>g :call TimeLapse()<CR>
 
