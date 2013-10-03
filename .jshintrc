@@ -1,0 +1,15 @@
+{
+	"browser": true,
+	"trailing": true,
+	"sub": true,
+	"strict": false,
+	"newcap": true,
+	"nonew": true,
+	"undef": true,
+	"devel": true,
+	"jquery": true,
+	"node": true,
+	"lastsemic": true,
+	"funcscope": true,
+	"maxlen": 120
+}
