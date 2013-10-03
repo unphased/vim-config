@@ -63,6 +63,8 @@ autocmd BufNewFile,BufRead *.vsh,*.fsh,*.vp,*.fp,*.gp,*.vs,*.fs,*.gs,*.tcs,*.tes
 
 nnoremap <Leader>g :call TimeLapse()<CR>
 
+nnoremap <Leader>e :!p4 edit %:p<CR>
+
 " indent guides plugin
 let g:indent_guides_enable_on_vim_startup = 1
 let g:indent_guides_auto_colors = 0
@@ -334,7 +336,7 @@ noremap <S-L> 10l
 
 set wrap
 set textwidth=79
-set formatoptions=caqr1nj
+set formatoptions=caq1nj
 
 " Helpful warning message
 au FileChangedShell * echo "Warning: File changed on disk!!"
