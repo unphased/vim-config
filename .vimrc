@@ -63,7 +63,7 @@ autocmd BufNewFile,BufRead *.vsh,*.fsh,*.vp,*.fp,*.gp,*.vs,*.fs,*.gs,*.tcs,*.tes
 
 nnoremap <Leader>g :call TimeLapse()<CR>
 
-nnoremap <Leader>e :!p4 edit %:p<CR>
+nnoremap <Leader>e :silent !p4 edit %:p<CR>
 
 " indent guides plugin
 let g:indent_guides_enable_on_vim_startup = 1
