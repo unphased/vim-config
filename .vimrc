@@ -63,7 +63,7 @@ autocmd BufNewFile,BufRead *.vsh,*.fsh,*.vp,*.fp,*.gp,*.vs,*.fs,*.gs,*.tcs,*.tes
 
 nnoremap <Leader>g :call TimeLapse()<CR>
 
-nnoremap <Leader>e :!p4 edit %:p<CR>
+nnoremap <Leader>e :silent !p4 edit %:p<CR>:redraw!<CR>
 
 " indent guides plugin
 let g:indent_guides_enable_on_vim_startup = 1
@@ -283,6 +283,7 @@ nnoremap b <C-U>
 
 " Do something more useful than what the h key already does with normal mode backspace
 nnoremap <BS> b
+vnoremap <BS> b
 
 " No longer using alt+arrows to do anything
 " nnoremap [1;3A {
