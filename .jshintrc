@@ -3,7 +3,6 @@
 	"trailing": true,
 	"sub": true,
 	"strict": false,
-	"newcap": true,
 	"nonew": true,
 	"undef": true,
 	"devel": true,

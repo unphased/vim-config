@@ -64,6 +64,7 @@ autocmd BufNewFile,BufRead *.vsh,*.fsh,*.vp,*.fp,*.gp,*.vs,*.fs,*.gs,*.tcs,*.tes
 nnoremap <Leader>g :call TimeLapse()<CR>
 
 nnoremap <Leader>e :silent !p4 edit %:p<CR>:redraw!<CR>
+nnoremap <Leader>R :silent redraw!<CR>
 
 " indent guides plugin
 let g:indent_guides_enable_on_vim_startup = 1
@@ -984,7 +985,7 @@ vnoremap >> >
 function! MyConfirmSave()
 	if confirm('Save file? (you are getting lazy...)', "OK\nNo") == 1
 		w
-		redraw
+		redraw!
 	endif
 endfunc
 inoremap ;w<CR> <ESC>:call MyConfirmSave()<CR>
@@ -992,7 +993,7 @@ inoremap ;w<CR> <ESC>:call MyConfirmSave()<CR>
 function! MyConfirmSaveQuit()
 	if confirm('Save file and then quit? (you are getting lazy...)', "OK\nNo") == 1
 		wq
-		redraw
+		redraw!
 	endif
 endfunc
 inoremap ;wq<CR> <ESC>:call MyConfirmSaveQuit()<CR>
@@ -1000,7 +1001,7 @@ inoremap ;wq<CR> <ESC>:call MyConfirmSaveQuit()<CR>
 function! MyConfirmSaveQuitAll()
 	if confirm('Save file and then quit all? (you are getting lazy...)', "OK\nNo") == 1
 		wqa
-		redraw
+		redraw!
 	endif
 endfunc
 inoremap ;wqa<CR> <ESC>:call MyConfirmSaveQuitAll()<CR>
