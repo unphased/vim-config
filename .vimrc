@@ -370,6 +370,9 @@ nmap <C-D> <Plug>yankstack_substitute_older_paste
 nmap <A-S-D> <Plug>yankstack_substitute_newer_paste
 nnoremap P P`[
 
+" Snippets
+nnoremap <Leader>dump ause DumperHarness;<CR>DumperHarness::Examine(, 'green');<ESC>7h
+
 " this just makes sense
 nmap Y y$
 
@@ -986,7 +989,7 @@ vnoremap >> >
 function! MyConfirmSave()
 	if confirm('Save file? (you are getting lazy...)', "OK\nNo") == 1
 		w
-		redraw!
+		silent redraw!
 	endif
 endfunc
 inoremap ;w<CR> <ESC>:call MyConfirmSave()<CR>
@@ -994,7 +997,7 @@ inoremap ;w<CR> <ESC>:call MyConfirmSave()<CR>
 function! MyConfirmSaveQuit()
 	if confirm('Save file and then quit? (you are getting lazy...)', "OK\nNo") == 1
 		wq
-		redraw!
+		silent redraw!
 	endif
 endfunc
 inoremap ;wq<CR> <ESC>:call MyConfirmSaveQuit()<CR>
@@ -1002,7 +1005,7 @@ inoremap ;wq<CR> <ESC>:call MyConfirmSaveQuit()<CR>
 function! MyConfirmSaveQuitAll()
 	if confirm('Save file and then quit all? (you are getting lazy...)', "OK\nNo") == 1
 		wqa
-		redraw!
+		silent redraw!
 	endif
 endfunc
 inoremap ;wqa<CR> <ESC>:call MyConfirmSaveQuitAll()<CR>

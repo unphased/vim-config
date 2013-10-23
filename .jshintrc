@@ -10,5 +10,6 @@
 	"node": true,
 	"lastsemic": true,
 	"funcscope": true,
-	"maxlen": 120
+	"maxlen": 120,
+	"es3": true
 }
