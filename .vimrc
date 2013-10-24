@@ -339,7 +339,7 @@ noremap <S-L> 10l
 
 set wrap
 set textwidth=79
-set formatoptions=caq1nj
+set formatoptions=caq1njw
 
 " Helpful warning message
 au FileChangedShell * echo "Warning: File changed on disk!!"
