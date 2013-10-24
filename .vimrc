@@ -61,6 +61,10 @@ au! BufRead,BufNewFile *.esp setfiletype perl
 
 autocmd BufNewFile,BufRead *.vsh,*.fsh,*.vp,*.fp,*.gp,*.vs,*.fs,*.gs,*.tcs,*.tes,*.cs,*.vert,*.frag,*.geom,*.tess,*.shd,*.gls,*.glsl set ft=glsl440
 
+" Friendly for editing temp files (the case that prompted this was 
+" submit_files.pl
+autocmd BufNew,BufRead /tmp/* setlocal formatoptions=tcq
+
 nnoremap <Leader>g :call TimeLapse()<CR>
 
 nnoremap <Leader>e :silent !p4 edit %:p<CR>:redraw!<CR>
