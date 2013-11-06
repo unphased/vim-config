@@ -336,10 +336,10 @@ nnoremap <Down> <C-E>g<Down>
 nnoremap <C-N> J
 
 " accelerated j/k navigation
-noremap <S-J> 7gj
-noremap <S-K> 7gk
-noremap <S-H> 10h
-noremap <S-L> 10l
+noremap <S-J> 5gj
+noremap <S-K> 5gk
+noremap <S-H> 7h
+noremap <S-L> 7l
 
 set wrap
 set textwidth=79
