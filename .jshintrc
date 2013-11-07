@@ -12,5 +12,6 @@
 	"funcscope": true,
 	"maxlen": 120,
 	"es3": true,
-	"indent": 1 /* for jshint error col */
+	"indent": 4,
+	"maxerr": 1000
 }
