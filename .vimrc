@@ -912,8 +912,8 @@ set scrolloff=2
 runtime macros/matchit.vim
 
 " bind the ctrl arrow left and right in insert mode to WORD hop also
-inoremap <C-Left> <ESC>Bi
-inoremap <C-Right> <ESC>Wi
+inoremap <C-Left> <ESC>bi
+inoremap <C-Right> <ESC>lwi
 
 func! MyResizeDown()
 	let curwindow = winnr()
