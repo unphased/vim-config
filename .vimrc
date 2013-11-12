@@ -89,7 +89,7 @@ inoremap <F4> <ESC>:GundoToggle<CR>
 " nmap <C-V> "*p
 " vmap <C-C> "*y
 
-nnoremap <Leader>L :so $MYVIMRC<CR>:so ~/.vim/after/plugin/hicursorwords.vim<CR>:so ~/.vim/after/plugin/signify.vim<CR>
+nnoremap <Leader>L :so $MYVIMRC<CR>:runtime! after/plugin/*.vim<CR>
 
 set hlsearch
 set incsearch
