@@ -1046,6 +1046,20 @@ cmap e!\ e!
 " because I will not have a hard time becoming more lazy with the shift key
 " which is what the above bindings allow for.
 
+" This actually happens a lot and makes scary errors and opens some shit.
+cmap lw w
+cmap lwq wq
+cmap lw! w!
+cmap lw1 w!
+cmap lwq! wq!
+cmap lwq1 wq!
+cmap le e
+cmap le! e!
+cmap le1 e!
+cmap lq q
+cmap lq! q!
+cmap lq1 q!
+
 " This is for less frustration in vblock mode (virtual-edit)
 set ve=block
 
