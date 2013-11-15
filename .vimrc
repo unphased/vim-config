@@ -1025,6 +1025,10 @@ cmap e1 e!
 
 cmap w; w
 
+cmap qw wq
+cmap qw! wq!
+cmap qw1 wq!
+
 " and more combinatorially exploding goodness for dealing with flubbing the
 " enter key
 cmap wq\ wq
