@@ -1057,7 +1057,6 @@ cmap lw! w!
 cmap lw1 w!
 cmap lwq! wq!
 cmap lwq1 wq!
-cmap le e
 cmap le! e!
 cmap le1 e!
 cmap lq q
