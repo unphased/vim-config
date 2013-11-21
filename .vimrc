@@ -1063,6 +1063,9 @@ cmap lq q
 cmap lq! q!
 cmap lq1 q!
 
+" This is for not putting two spaces after a period when Vim formats things
+set nojoinspaces
+
 " This is for less frustration in vblock mode (virtual-edit)
 set ve=block
 
