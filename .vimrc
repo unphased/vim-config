@@ -767,13 +767,14 @@ function! PrevWindowOrTab()
 		wincmd W
 	endif
 endfunc
-" nnoremap <Tab> :call NextWindowOrTab()<CR>
-" nnoremap <S-Tab> :call PrevWindowOrTab()<CR>
 
 " I actually like the mash tab to cycle windows behavior so let's keep it simple
-nnoremap <Tab> :wincmd w<CR>
-nnoremap <S-Tab> :wincmd W<CR>
+"nnoremap <Tab> :wincmd w<CR>
+"nnoremap <S-Tab> :wincmd W<CR>
 
+" Nevermind, I actually really need this on a small screen...
+nnoremap <Tab> :call NextWindowOrTab()<CR>
+nnoremap <S-Tab> :call PrevWindowOrTab()<CR>
 
 " Uncomment the following to have Vim jump to the last position when
 " reopening a file
