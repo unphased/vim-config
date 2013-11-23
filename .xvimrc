@@ -1,13 +1,13 @@
 nnoremap <C-N> J
 nmap ; :
-nmap <S-H> 10h
-nmap <S-J> 7j
-nmap <S-K> 7k
-nmap <S-L> 10l
-vmap <S-H> 10h
-vmap <S-J> 7j
-vmap <S-K> 7k
-vmap <S-L> 10l
+nmap <S-H> 7h
+nmap <S-J> 5j
+nmap <S-K> 5k
+nmap <S-L> 7l
+vmap <S-H> 7h
+vmap <S-J> 5j
+vmap <S-K> 5k
+vmap <S-L> 7l
 
 nmap <CR> viw:<BS><BS><BS><BS><BS>xccmd findSelectedTextInWorkspace<CR>
 vmap <CR> :<BS><BS><BS><BS><BS>xccmd findSelectedTextInWorkspace<CR>
