@@ -434,9 +434,9 @@ function! F10OverloadedFunctionalityCheckTmux(direction)
 	let tmux_panes_count = system('tmux display -p "#{window_panes}"')
 	if tmux_panes_count == 1 || tmux_panes_count == "failed to connect to server\n"
 		if (a:direction == '+')
-			call NextWindowOrTab()
+			wincmd w "next window
 		else
-			call PrevWindowOrTab()
+			wincmd W "prev window
 		endif
 	else
 		call system('tmux select-pane -t :.'.a:direction)
@@ -756,9 +756,9 @@ nnoremap <C-B> <Tab>
 function! NextWindowOrTab()
 	if (winnr() == winnr('$'))
 		tabnext
-		1wincmd w
+		1wincmd w "first window
 	else
-		wincmd w
+		wincmd w "next window
 	endif
 endfunc
 
