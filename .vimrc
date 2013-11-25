@@ -203,8 +203,8 @@ set updatetime=500
 " Unsure if updatetime gets overwritten by plugins. There are many plugins
 " I use which mess with updatetime (hicursorwords being one of them)
 
-"noremap! <F5> <C-O>:YcmForceCompileAndDiagnostics<CR> 
-"noremap <F5> :YcmForceCompileAndDiagnostics<CR>
+noremap! <F5> <C-O>:YcmForceCompileAndDiagnostics<CR> 
+noremap <F5> :YcmForceCompileAndDiagnostics<CR>
 
 function! InsertEnterActions(mode)
 	echo 'islc'
