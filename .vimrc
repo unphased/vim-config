@@ -433,7 +433,11 @@ noremap! <F10> <ESC>
 function! F10OverloadedFunctionalityCheckTmux(direction)
 	let tmux_panes_count = system('tmux display -p "#{window_panes}"')
 	if tmux_panes_count == 1 || tmux_panes_count == "failed to connect to server\n"
-		call NextWindowOrTab()
+		if (a:direction == '+')
+			call NextWindowOrTab()
+		else
+			call PrevWindowOrTab()
+		endif
 	else
 		call system('tmux select-pane -t :.'.a:direction)
 	endif
