@@ -16,3 +16,5 @@ nmap <BS> b
 nmap b <C-u>
 nmap <Space> <C-d>
 imap ;w<CR> <Esc>:w<CR>
+
+nmap ` %
