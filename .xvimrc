@@ -18,3 +18,5 @@ nmap <Space> <C-d>
 imap ;w<CR> <Esc>:w<CR>
 
 nmap ` %
+
+imap <F10> <ESC>
