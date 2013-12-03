@@ -1,4 +1,4 @@
-nnoremap <C-N> J
+nnoremap <C-n> J
 nmap ; :
 nmap <S-H> 7h
 nmap <S-J> 5j
