@@ -600,7 +600,7 @@ vnoremap <silent> # :<C-U>
 " selected) (and staying in the same spot by searching backward once)
 vmap <silent> <CR> *N
 
-" map Q to :q (I find Ex mode useless)
+" map Q to :q
 nnoremap Q :q<CR>
 
 " nnoremap <F5> :TlistToggle<CR>
@@ -682,7 +682,7 @@ let g:ycm_server_log_level = 'debug'
 inoremap <C-P> <C-O>p<CR>
 
 " set highlight for search to be less blinding
-hi Search ctermbg=25 ctermfg=NONE
+highlight Search ctermbg=25 ctermfg=NONE
 
 " only on an italic term do we set comment to use italic cterm highlight
 if &term == 'xterm-256color-italic'
@@ -1023,52 +1023,75 @@ function! MyConfirmSaveQuitAll()
 endfunc
 inoremap ;wqa<CR> <ESC>:call MyConfirmSaveQuitAll()<CR>
 
-" prevent common typos from actually writing files to disk
-cmap wq1 wq!
-cmap w1 w!
-cmap q1 q!
-cmap qa1 qa!
-cmap e1 e!
+"""" Commenting out cmaps because cmap applies when e.g. typing in (/)-search mode
+" " prevent common typos from actually writing files to disk
+" cmap wq1 wq!
+" cmap w1 w!
+" cmap q1 q!
+" cmap qa1 qa!
+" cmap e1 e!
+" 
+" cmap w; w
+" 
+" cmap qw wq
+" cmap qw! wq!
+" cmap qw1 wq!
+" 
+" " and more combinatorially exploding goodness for dealing with flubbing the
+" " enter key
+" cmap wq\ wq
+" cmap wq1\ wq!
+" cmap wq!\ wq!
+" cmap w\ w
+" cmap w1\ w!
+" cmap w!\ w!
+" cmap q\ q
+" cmap q1\ q!
+" cmap q!\ q!
+" cmap qa\ qa
+" cmap qa1\ qa!
+" cmap qa!\ qa!
+" cmap e\ e
+" cmap e1\ e!
+" cmap e!\ e!
+" " I am tempted to do more cases to address overzealous shift key, but screw it
+" " because I will not have a hard time becoming more lazy with the shift key
+" " which is what the above bindings allow for.
+" 
+" " This actually happens a lot and makes scary errors and opens some shit.
+" cmap lw w
+" cmap lwq wq
+" cmap lw! w!
+" cmap lw1 w!
+" cmap lwq! wq!
+" cmap lwq1 wq!
+" cmap le! e!
+" cmap le1 e!
+" cmap lq q
+" cmap lq! q!
+" cmap lq1 q!
 
-cmap w; w
+" taken from http://stackoverflow.com/a/6052704/340947 and with some stylistic 
+" changes and functional enhancements of mine (the backing up of session files)
+fu! SaveSess()
+	" if the session file exists, rename it to a dotfile with a timestamp
+	if filereadable(getcwd().'/.session.vim')
+		call system('mv '.getcwd().'/.session.vim '.getcwd().'/.session-'.strftime("%Y_%b_%d_%X").'.vim');
+	endif
+    execute 'mksession '.getcwd().'/.session.vim'
+endfunction
 
-cmap qw wq
-cmap qw! wq!
-cmap qw1 wq!
+fu! RestoreSess()
+	if filereadable(getcwd().'/.session.vim')
+		execute 'so '.getcwd().'/.session.vim'
+	endif
+endfunction
 
-" and more combinatorially exploding goodness for dealing with flubbing the
-" enter key
-cmap wq\ wq
-cmap wq1\ wq!
-cmap wq!\ wq!
-cmap w\ w
-cmap w1\ w!
-cmap w!\ w!
-cmap q\ q
-cmap q1\ q!
-cmap q!\ q!
-cmap qa\ qa
-cmap qa1\ qa!
-cmap qa!\ qa!
-cmap e\ e
-cmap e1\ e!
-cmap e!\ e!
-" I am tempted to do more cases to address overzealous shift key, but screw it
-" because I will not have a hard time becoming more lazy with the shift key
-" which is what the above bindings allow for.
+autocmd VimLeave * call SaveSess()
+" autocmd VimEnter * call RestoreSess()
 
-" This actually happens a lot and makes scary errors and opens some shit.
-cmap lw w
-cmap lwq wq
-cmap lw! w!
-cmap lw1 w!
-cmap lwq! wq!
-cmap lwq1 wq!
-cmap le! e!
-cmap le1 e!
-cmap lq q
-cmap lq! q!
-cmap lq1 q!
+" ------------ the vimenter restoresess isn't really working at all :(
+
 
 " This is for not putting two spaces after a period when Vim formats things
 set nojoinspaces
