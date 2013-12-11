@@ -1073,21 +1073,21 @@ inoremap ;wqa<CR> <ESC>:call MyConfirmSaveQuitAll()<CR>
 
 " taken from http://stackoverflow.com/a/6052704/340947 and with some stylistic 
 " changes and functional enhancements of mine (the backing up of session files)
-fu! SaveSess()
-	" if the session file exists, rename it to a dotfile with a timestamp
-	if filereadable(getcwd().'/.session.vim')
-		call system('mv '.getcwd().'/.session.vim '.getcwd().'/.session-'.strftime("%Y_%b_%d_%X").'.vim');
-	endif
-    execute 'mksession '.getcwd().'/.session.vim'
-endfunction
-
-fu! RestoreSess()
-	if filereadable(getcwd().'/.session.vim')
-		execute 'so '.getcwd().'/.session.vim'
-	endif
-endfunction
-
-autocmd VimLeave * call SaveSess()
+" fu! SaveSess()
+" 	" if the session file exists, rename it to a dotfile with a timestamp
+" 	if filereadable(getcwd().'/.session.vim')
+" 		call system('mv '.getcwd().'/.session.vim '.getcwd().'/.session-'.strftime("%Y_%b_%d_%X").'.vim');
+" 	endif
+"     execute 'mksession '.getcwd().'/.session.vim'
+" endfunction
+" 
+" fu! RestoreSess()
+" 	if filereadable(getcwd().'/.session.vim')
+" 		execute 'so '.getcwd().'/.session.vim'
+" 	endif
+" endfunction
+" 
+" autocmd VimLeave * call SaveSess()
 " autocmd VimEnter * call RestoreSess()
 
 " ------------ the vimenter restoresess isn't really working at all :(
