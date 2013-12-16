@@ -342,7 +342,7 @@ noremap <S-H> 7h
 noremap <S-L> 7l
 
 set wrap
-set textwidth=79
+set textwidth=120
 set formatoptions=caq1njw
 
 " Helpful warning message
