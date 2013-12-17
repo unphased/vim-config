@@ -42,6 +42,7 @@ Bundle 'mhinz/vim-signify'
 Bundle 'pangloss/vim-javascript'
 Bundle 'beyondmarc/glsl.vim'
 "Bundle 'kana/vim-smartinput'
+Bundle 'SirVer/ultisnips'
 
 " Bundle 'Decho'
 
@@ -69,6 +70,17 @@ nnoremap <Leader>g :call TimeLapse()<CR>
 
 nnoremap <Leader>e :silent !p4 edit %:p<CR>:redraw!<CR>
 nnoremap <Leader>R :silent redraw!<CR>
+
+" Ultisnips settings (to have it work together with YCM)
+let g:UltiSnipsExpandTrigger="<F25>"
+let g:UltiSnipsJumpForwardTrigger="<F25>"
+let g:UltiSnipsJumpBackwardTrigger="<F24>"
+" Using Ctrl Tab to fire the snippets. Shift tab is taken by YCM
+" the weird custom mapping doesn't really seem to help anything and I cannot 
+" figure out how to get it to respond to tab properly, so it should be an easy 
+" enough thing to get used to to use Ctrl+(Shift+)Tab to control snips. Should 
+" even allow seamless use of YCM while entering an ultisnip segment, so this is 
+" pretty much near perfect for snippets
 
 " indent guides plugin
 let g:indent_guides_enable_on_vim_startup = 1
@@ -358,20 +370,6 @@ au FileChangedShell * echo "Warning: File changed on disk!!"
 " nnoremap <C-l> w
 " inoremap <C-l> <C-o>w
 
-" This is for yankstack
-" have it not bind anything
-let g:yankstack_map_keys = 0
-
-" the yankstack plugin requires loading prior to my binds (wonder what other
-" plugins have this sort of behavior)
-call yankstack#setup()
-set <F26>=d
-set <A-S-D>=D
-nmap <F26> <Plug>yankstack_substitute_older_paste
-nmap <C-D> <Plug>yankstack_substitute_older_paste
-" Keep the old bind I had because it is often convenient to type, the real
-" shame is that there is no way to pass in Ctrl+Shift+letter.
-nmap <A-S-D> <Plug>yankstack_substitute_newer_paste
 nnoremap P P`[
 
 " Snippets
@@ -856,8 +854,28 @@ nnoremap <F29> :wincmd J<CR>
 nnoremap <F28> :wincmd K<CR>
 nnoremap <F27> :wincmd L<CR>
 
+" This is for yankstack
+" have it not bind anything
+let g:yankstack_map_keys = 0
+
+" the yankstack plugin requires loading prior to my binds (wonder what other
+" plugins have this sort of behavior)
+call yankstack#setup()
+set <F26>=d
+set <A-S-D>=D
+nmap <F26> <Plug>yankstack_substitute_older_paste
+nmap <C-D> <Plug>yankstack_substitute_older_paste
+" Keep the old bind I had because it is often convenient to type, the real
+" shame is that there is no way to pass in Ctrl+Shift+letter.
+nmap <A-S-D> <Plug>yankstack_substitute_newer_paste
+
+" These are apparently the defacto terminal codes for Ctrl+Tab and Ctrl+Shift+Tab
+" but Vim has no knowledge of it. so here i am adding it to the fastkey repertoire
+set <F25>=[27;5;9~
+set <F24>=[27;6;9~
+
 " make recordings easier to fire off, binding comma to @q (use qq to record
-" what you wanna repeat)
+" what you wanna repeat using comma)
 nnoremap , @q
 
 " more ctrlp settings
