@@ -1,3 +1,3 @@
-highlight SignifySignAdd    cterm=bold ctermbg=237  ctermfg=119
-highlight SignifySignDelete cterm=bold ctermbg=237  ctermfg=167
-highlight SignifySignChange cterm=bold ctermbg=237  ctermfg=227
+highlight SignifySignAdd    cterm=bold ctermfg=35
+highlight SignifySignDelete cterm=bold ctermfg=197
+highlight SignifySignChange cterm=bold ctermfg=202
