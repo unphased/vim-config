@@ -19,7 +19,7 @@
 [difftool]
 	prompt = false
 [diff]
-	external = sift
+	external = sift -256
 	# tool = pydifflib
 	tool = opendiff
 [pager]
