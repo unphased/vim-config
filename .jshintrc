@@ -10,7 +10,7 @@
 	"node": true,
 	"lastsemic": true,
 	"funcscope": true,
-	"maxlen": 120,
+	"maxlen": 121,
 	"es3": true,
 	"indent": 4,
 	"maxerr": 100
