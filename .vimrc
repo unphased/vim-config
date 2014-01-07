@@ -78,9 +78,10 @@ let g:UltiSnipsJumpBackwardTrigger="<F24>"
 " Using Ctrl Tab to fire the snippets. Shift tab is taken by YCM
 " the weird custom mapping doesn't really seem to help anything and I cannot 
 " figure out how to get it to respond to tab properly, so it should be an easy 
-" enough thing to get used to to use Ctrl+(Shift+)Tab to control snips. Should 
-" even allow seamless use of YCM while entering an ultisnip segment, so this is 
-" pretty much near perfect for snippets
+" enough thing to get used to to use Ctrl+(Shift+)Tab to control snips. Should even allow seamless use of YCM while 
+" entering an ultisnip segment, so this is pretty much near perfect for snippets since too much overloading is confusing
+" anyway.
+let g:UltiSnipsEditSplit="vertical"
 
 " indent guides plugin
 let g:indent_guides_enable_on_vim_startup = 1
@@ -861,12 +862,12 @@ let g:yankstack_map_keys = 0
 " the yankstack plugin requires loading prior to my binds (wonder what other
 " plugins have this sort of behavior)
 call yankstack#setup()
-set <F26>=d
+set <F26>=d " the reason for this one here is <A-D> appears to be the same as <A-S-D> as far as vim is concerned
 set <A-S-D>=D
 nmap <F26> <Plug>yankstack_substitute_older_paste
-nmap <C-D> <Plug>yankstack_substitute_older_paste
-" Keep the old bind I had because it is often convenient to type, the real
-" shame is that there is no way to pass in Ctrl+Shift+letter.
+" nmap <C-D> <Plug>yankstack_substitute_older_paste
+" The old bind (Ctrl+D) is confusing, so i am commenting it out.
+" the real shame is that there is no way to pass in Ctrl+Shift+letter.
 nmap <A-S-D> <Plug>yankstack_substitute_newer_paste
 
 " These are apparently the defacto terminal codes for Ctrl+Tab and Ctrl+Shift+Tab

@@ -13,5 +13,5 @@
 	"maxlen": 121,
 	"es3": true,
 	"indent": 4,
-	"maxerr": 100
+	"maxerr": 20
 }
