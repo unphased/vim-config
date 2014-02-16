@@ -1106,7 +1106,8 @@ fu! RestoreSess()
 	endif
 endfunction
 
-autocmd VimLeave * call SaveSess()
+" autocmd VimLeave * call SaveSess()
+" Disabling this --- it's too goddamn cluttery to leave session files EVERY time
 " autocmd VimEnter * call RestoreSess()
 
 

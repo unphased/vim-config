@@ -29,5 +29,5 @@ alias gp="git push"
 alias gst="git status"
 
 alias ds="dirs -v | head -10"
-alias d="gd"
+alias d="gde"
 

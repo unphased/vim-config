@@ -25,3 +25,5 @@ vmap <F10> <ESC>
 cmap <F10> <ESC>
 
 nnoremap S ddO
+
+inoremap <D-S> <ESC><D-S>
