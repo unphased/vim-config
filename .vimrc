@@ -355,7 +355,7 @@ noremap <S-H> 7h
 noremap <S-L> 7l
 
 set wrap
-set textwidth=120
+set textwidth=80 " after much messing around, 80 is still a good wrap point
 set formatoptions=caq1njw
 
 " Helpful warning message
