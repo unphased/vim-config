@@ -14,10 +14,11 @@ alias gg="git lg --all"
 alias gca="git commit -av"
 alias gcm="git commit -am"
 unalias gcp # I rarely cherry pick
+unalias gm # I also rarely merge
 
 # I often want to commit and push in one step
 gcp() {
-    [ -n "$2" ] && echo "args" && return
+    # [ -n "$2" ] && echo "args" && return
     gcm "$*" && gp
 }
 
