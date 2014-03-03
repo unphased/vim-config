@@ -15,6 +15,7 @@ alias gca="git commit -av"
 alias gcm="git commit -am"
 unalias gcp # I rarely cherry pick
 unalias gm # I also rarely merge
+alias k='l' # this is a bit tongue in cheek
 
 # I often want to commit and push in one step
 gcp() {

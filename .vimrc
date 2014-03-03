@@ -57,8 +57,9 @@ filetype plugin indent on "more Vundle setup
  "
  " see :h vundle for more details or wiki for FAQ
 
-" This is athena-specific
-au! BufRead,BufNewFile *.esp setfiletype perl
+" These are file extension filetype settings
+au! BufRead,BufNewFile *.esp set ft=perl
+au! BufRead,BufNewFile *.mm set ft=objcpp
 
 autocmd BufNewFile,BufRead *.vsh,*.fsh,*.vp,*.fp,*.gp,*.vs,*.fs,*.gs,*.tcs,*.tes,*.cs,*.vert,*.frag,*.geom,*.tess,*.shd,*.gls,*.glsl set ft=glsl440
 
