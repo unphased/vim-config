@@ -43,6 +43,7 @@ Bundle 'pangloss/vim-javascript'
 Bundle 'beyondmarc/glsl.vim'
 "Bundle 'kana/vim-smartinput'
 Bundle 'SirVer/ultisnips'
+Bundle 'oblitum/rainbow'
 
 " Bundle 'Decho'
 
@@ -57,9 +58,11 @@ filetype plugin indent on "more Vundle setup
  "
  " see :h vundle for more details or wiki for FAQ
 
+
 " These are file extension filetype settings
 au! BufRead,BufNewFile *.esp set ft=perl
 au! BufRead,BufNewFile *.mm set ft=objcpp
+
 
 autocmd BufNewFile,BufRead *.vsh,*.fsh,*.vp,*.fp,*.gp,*.vs,*.fs,*.gs,*.tcs,*.tes,*.cs,*.vert,*.frag,*.geom,*.tess,*.shd,*.gls,*.glsl set ft=glsl440
 
@@ -1122,3 +1125,6 @@ set ve=block
 " something somebody cameup with in response to my SO topic
 onoremap <silent> X :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr2char(getchar())<CR>
 vnoremap <silent> X :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr2char(getchar())<CR>
+
+" auto enable rainbow on c/cpp files
+au FileType c,cpp,objc,objcpp call rainbow#load()
