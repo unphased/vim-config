@@ -43,6 +43,7 @@ Bundle 'pangloss/vim-javascript'
 Bundle 'beyondmarc/glsl.vim'
 "Bundle 'kana/vim-smartinput'
 Bundle 'SirVer/ultisnips'
+Bundle 'oblitum/rainbow'
 
 " Bundle 'Decho'
 
@@ -57,8 +58,11 @@ filetype plugin indent on "more Vundle setup
  "
  " see :h vundle for more details or wiki for FAQ
 
-" This is athena-specific
-au! BufRead,BufNewFile *.esp setfiletype perl
+
+" These are file extension filetype settings
+au! BufRead,BufNewFile *.esp set ft=perl
+au! BufRead,BufNewFile *.mm set ft=objcpp
+
 
 autocmd BufNewFile,BufRead *.vsh,*.fsh,*.vp,*.fp,*.gp,*.vs,*.fs,*.gs,*.tcs,*.tes,*.cs,*.vert,*.frag,*.geom,*.tess,*.shd,*.gls,*.glsl set ft=glsl440
 
@@ -355,7 +359,7 @@ noremap <S-H> 7h
 noremap <S-L> 7l
 
 set wrap
-set textwidth=120
+set textwidth=80 " after much messing around, 80 is still a good wrap point
 set formatoptions=caq1njw
 
 " Helpful warning message
@@ -1107,7 +1111,8 @@ fu! RestoreSess()
 	endif
 endfunction
 
-autocmd VimLeave * call SaveSess()
+" autocmd VimLeave * call SaveSess()
+" Disabling this --- it's too goddamn cluttery to leave session files EVERY time
 " autocmd VimEnter * call RestoreSess()
 
 
@@ -1120,3 +1125,6 @@ set ve=block
 " something somebody cameup with in response to my SO topic
 onoremap <silent> X :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr2char(getchar())<CR>
 vnoremap <silent> X :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr2char(getchar())<CR>
+
+" auto enable rainbow on c/cpp files
+au FileType c,cpp,objc,objcpp call rainbow#load()
