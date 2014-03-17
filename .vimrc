@@ -62,6 +62,7 @@ filetype plugin indent on "more Vundle setup
 " These are file extension filetype settings
 au! BufRead,BufNewFile *.esp set ft=perl
 au! BufRead,BufNewFile *.mm set ft=objcpp
+au! BufRead,BufNewFile *.mlp set ft=xml
 
 
 autocmd BufNewFile,BufRead *.vsh,*.fsh,*.vp,*.fp,*.gp,*.vs,*.fs,*.gs,*.tcs,*.tes,*.cs,*.vert,*.frag,*.geom,*.tess,*.shd,*.gls,*.glsl set ft=glsl440
@@ -1126,5 +1127,9 @@ set ve=block
 onoremap <silent> X :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr2char(getchar())<CR>
 vnoremap <silent> X :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr2char(getchar())<CR>
 
+" scrollbinding to view a file in columns
+:noremap <silent> <Leader>c :<C-u>let @z=&so<CR>:set so=0 noscb<CR>:bo vs<CR>Ljzt:setl scb<CR><C-w>p:setl scb<CR>:let &so=@z<CR>
+
 " auto enable rainbow on c/cpp files
-au FileType c,cpp,objc,objcpp call rainbow#load()
+" Nope! too slow on preprocessor output
+" au FileType c,cpp,objc,objcpp call rainbow#load()
