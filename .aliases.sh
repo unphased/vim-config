@@ -14,6 +14,7 @@ alias gg="git lg --all"
 alias gca="git commit -av"
 alias gcm="git commit -am"
 unalias gcp # I rarely cherry pick
+alias gp="git push"
 unalias gm # I also rarely merge
 alias k='l' # this is a bit tongue in cheek
 
