@@ -810,7 +810,9 @@ set <F36>=z
 inoremap <F36> <C-O>u
 " This is gonna suspend vim and is not really a working bind
 nnoremap <F36> u
-vnoremap <F36> <ESC>u " todo: figure out how to make this save and restore the selection area
+vnoremap <F36> <ESC>u 
+" todo: figure out how to make this save and restore the selection area
+
 " note that pressing u in visual mode lowercases the selection 
 set <F35>=Z
 inoremap <F35> <C-O><C-R>
