@@ -680,6 +680,10 @@ let g:ycm_collect_identifiers_from_comments_and_strings = 1
 "let g:ycm_server_use_vim_stdout = 1
 let g:ycm_server_log_level = 'debug'
 
+" special disabling for os x because i cant make semantic work anymore on here 
+" :(
+let g:ycm_enable_diagnostic_signs = 0
+
 " This insert mapping is for pasting; it appears that YCM only takes over the
 " <C-P> when it has the complete box open (this may be a Vim
 " limitation/builtin)
