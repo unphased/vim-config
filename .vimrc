@@ -44,6 +44,7 @@ Bundle 'beyondmarc/glsl.vim'
 "Bundle 'kana/vim-smartinput'
 Bundle 'SirVer/ultisnips'
 " Bundle 'oblitum/rainbow'
+Bundle 'marijnh/tern_for_vim'
 
 " Bundle 'Decho'
 
