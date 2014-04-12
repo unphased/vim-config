@@ -1269,11 +1269,11 @@
 	<key>NSWindow Frame NSFontPanel</key>
 	<string>974 268 444 258 0 0 1680 1028 </string>
 	<key>NSWindow Frame Preferences</key>
-	<string>255 167 924 485 0 0 1440 878 </string>
+	<string>864 651 924 485 0 0 2880 1778 </string>
 	<key>NSWindow Frame com.apple.typography_panel_Menlo-Regular</key>
 	<string>341 780 260 68 0 0 1440 878 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>416 -701 600 831 0 0 1440 878 </string>
+	<string>1024 0 412 797 0 0 1440 878 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
 	<string>10 360 570 376 0 0 1680 1028 </string>
 	<key>NeverWarnAboutShortLivedSessions_BABC3C6F-E892-4635-AD49-85E57CE1D5AF</key>
@@ -4745,7 +4745,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2014-04-01T23:33:12Z</date>
+	<date>2014-04-12T17:52:37Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>Show Toolbelt</key>
@@ -4773,7 +4773,7 @@
 	<key>URLHandlersByGuid</key>
 	<dict/>
 	<key>UseBorder</key>
-	<true/>
+	<false/>
 	<key>UseCompactLabel</key>
 	<true/>
 	<key>UseLionStyleFullscreen</key>
