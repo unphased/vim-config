@@ -1,4 +1,5 @@
 alias l="ls"
+alias sl="ls"
 alias ll="l -l"
 alias la="ll -a"
 alias g="git"
