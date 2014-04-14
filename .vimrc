@@ -1171,7 +1171,7 @@ let g:airline_theme='powerlineish'
 
 highlight TechWordsToAvoid ctermbg=red ctermfg=white
 function MatchTechWordsToAvoid()
-	match TechWordsToAvoid /\c\<\(obviously\|basically\|simply\|of\scourse\|clearly\|just\|everyone\sknows\|however\|so,\)\>/
+	match TechWordsToAvoid /\c\<\(obviously\|basically\|simply\|of\scourse\|clearly\|just\|everyone\sknows\|so,\)\>/
 endfunction
 autocmd FileType markdown call MatchTechWordsToAvoid()
 autocmd BufWinEnter *.md call MatchTechWordsToAvoid()
