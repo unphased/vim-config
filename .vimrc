@@ -46,6 +46,7 @@ Bundle 'beyondmarc/glsl.vim'
 " Bundle 'oblitum/rainbow'
 Bundle 'marijnh/tern_for_vim'
 Bundle 'bling/vim-airline'
+Bundle 'itchyny/lightline.vim'
 
 " Bundle 'Decho'
 
@@ -1150,8 +1151,12 @@ let g:airline#extensions#tabline#enabled = 1
 if !exists('g:airline_symbols')
   let g:airline_symbols = {}
 endif
-let g:airline_symbols.linenr = '␤'
-let g:airline_left_sep = '▶'
-let g:airline_right_sep = '◀'
+let g:airline_left_sep = '⮀'
+let g:airline_left_alt_sep = '⮁'
+let g:airline_right_sep = '⮂'
+let g:airline_right_alt_sep = '⮃'
+let g:airline_symbols.branch = '⭠'
+let g:airline_symbols.readonly = '⭤'
+let g:airline_symbols.linenr = '⭡'
 let g:airline#extensions#tabline#left_sep = ' '
 let g:airline#extensions#tabline#left_alt_sep = '|'
