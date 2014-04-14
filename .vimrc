@@ -245,7 +245,7 @@ function! InsertLeaveActions()
 endfunction
 
 hi CursorLine ctermbg=16
-set cursorline
+set nocursorline
 
 au! InsertEnter * call InsertEnterActions(v:insertmode)
 " au InsertChange * call InsertStatuslineColor(v:insertmode)
@@ -1140,3 +1140,6 @@ vnoremap <silent> X :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr
 " auto enable rainbow on c/cpp files
 " Nope! too slow on preprocessor output
 " au FileType c,cpp,objc,objcpp call rainbow#load()
+
+" syntax sync minlines=256 " this was an attempt to speed up syntax on raspi. 
+" May not be necessary now that i took out line highlight
