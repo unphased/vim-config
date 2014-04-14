@@ -8,7 +8,7 @@ set rtp+=~/.vim/bundle/vundle/
 call vundle#rc()
 
 Bundle 'gmarik/vundle'
-Bundle 'Valloric/YouCompleteMe'
+" Bundle 'Valloric/YouCompleteMe'
 Bundle 'unphased/gundo.vim'
 
 " iTerm2 support for focusing
@@ -16,7 +16,7 @@ Bundle 'unphased/gundo.vim'
 
 " Fakeclip doesn't seem to work well on OSX
 " Tmux resize-window zoom has obsoleted this
-" Bundle 'unphased/vim-fakeclip' 
+" Bundle 'unphased/vim-fakeclip'
 
 Bundle 'scrooloose/nerdtree'
 Bundle 'scrooloose/syntastic'
@@ -25,7 +25,7 @@ Bundle 'diffchanges.vim'
 Bundle 'tpope/vim-repeat'
 Bundle 'tpope/vim-surround'
 Bundle 'tpope/vim-speeddating'
-Bundle 'unphased/vim-powerline'
+" Bundle 'unphased/vim-powerline' -- disabling this to try airline
 Bundle 'vim-perl/vim-perl'
 "Bundle 'Raimondi/delimitMate'
 Bundle 'mattn/emmet-vim'
@@ -42,9 +42,10 @@ Bundle 'mhinz/vim-signify'
 Bundle 'pangloss/vim-javascript'
 Bundle 'beyondmarc/glsl.vim'
 "Bundle 'kana/vim-smartinput'
-Bundle 'SirVer/ultisnips'
+" Bundle 'SirVer/ultisnips' -- this needs python to work
 " Bundle 'oblitum/rainbow'
 Bundle 'marijnh/tern_for_vim'
+Bundle 'bling/vim-airline'
 
 " Bundle 'Decho'
 
@@ -68,7 +69,7 @@ au! BufRead,BufNewFile *.mlp set ft=xml
 
 autocmd BufNewFile,BufRead *.vsh,*.fsh,*.vp,*.fp,*.gp,*.vs,*.fs,*.gs,*.tcs,*.tes,*.cs,*.vert,*.frag,*.geom,*.tess,*.shd,*.gls,*.glsl set ft=glsl440
 
-" Friendly for editing temp files (the case that prompted this was 
+" Friendly for editing temp files (the case that prompted this was
 " submit_files.pl
 autocmd BufNew,BufRead /tmp/* setlocal formatoptions=tcq
 
@@ -82,10 +83,11 @@ let g:UltiSnipsExpandTrigger="<F25>"
 let g:UltiSnipsJumpForwardTrigger="<F25>"
 let g:UltiSnipsJumpBackwardTrigger="<F24>"
 " Using Ctrl Tab to fire the snippets. Shift tab is taken by YCM
-" the weird custom mapping doesn't really seem to help anything and I cannot 
-" figure out how to get it to respond to tab properly, so it should be an easy 
-" enough thing to get used to to use Ctrl+(Shift+)Tab to control snips. Should even allow seamless use of YCM while 
-" entering an ultisnip segment, so this is pretty much near perfect for snippets since too much overloading is confusing
+" the weird custom mapping doesn't really seem to help anything and I cannot
+" figure out how to get it to respond to tab properly, so it should be an easy
+" enough thing to get used to to use Ctrl+(Shift+)Tab to control snips. Should
+" even allow seamless use of YCM while entering an ultisnip segment, so this is
+" pretty much near perfect for snippets since too much overloading is confusing
 " anyway.
 let g:UltiSnipsEditSplit="vertical"
 
@@ -147,17 +149,17 @@ set smarttab
 
 " This was just pulled from the help because it seems so awesome
 augroup gzip
-     autocmd!
-     autocmd BufReadPre,FileReadPre	*.gz set bin
-     autocmd BufReadPost,FileReadPost	*.gz '[,']!gunzip
-     autocmd BufReadPost,FileReadPost	*.gz set nobin
-     autocmd BufReadPost,FileReadPost	*.gz execute ":doautocmd BufReadPost " . expand("%:r")
-     autocmd BufWritePost,FileWritePost	*.gz !mv <afile> <afile>:r
-     autocmd BufWritePost,FileWritePost	*.gz !gzip <afile>:r
-     autocmd FileAppendPre		*.gz !gunzip <afile>
-     autocmd FileAppendPre		*.gz !mv <afile>:r <afile>
-     autocmd FileAppendPost		*.gz !mv <afile> <afile>:r
-     autocmd FileAppendPost		*.gz !gzip <afile>:r
+    autocmd!
+    autocmd BufReadPre,FileReadPre	*.gz set bin
+    autocmd BufReadPost,FileReadPost	*.gz '[,']!gunzip
+    autocmd BufReadPost,FileReadPost	*.gz set nobin
+    autocmd BufReadPost,FileReadPost	*.gz execute ":doautocmd BufReadPost " . expand("%:r")
+    autocmd BufWritePost,FileWritePost	*.gz !mv <afile> <afile>:r
+    autocmd BufWritePost,FileWritePost	*.gz !gzip <afile>:r
+    autocmd FileAppendPre		*.gz !gunzip <afile>
+    autocmd FileAppendPre		*.gz !mv <afile>:r <afile>
+    autocmd FileAppendPost		*.gz !mv <afile> <afile>:r
+    autocmd FileAppendPost		*.gz !gzip <afile>:r
 augroup END
 
 set autoread
@@ -191,7 +193,7 @@ set list
 hi NonText ctermbg=234 ctermfg=254
 hi SpecialKey ctermfg=239
 
-" Enhancements to regular old syntax highlighting
+" Enhancements which override colorscheme
 hi Statement cterm=bold
 hi Exception ctermfg=211
 
@@ -222,7 +224,7 @@ set updatetime=500
 " Unsure if updatetime gets overwritten by plugins. There are many plugins
 " I use which mess with updatetime (hicursorwords being one of them)
 
-noremap! <F5> <C-O>:YcmForceCompileAndDiagnostics<CR> 
+noremap! <F5> <C-O>:YcmForceCompileAndDiagnostics<CR>
 noremap <F5> :YcmForceCompileAndDiagnostics<CR>
 
 function! InsertEnterActions(mode)
@@ -275,7 +277,7 @@ au! InsertLeave * call InsertLeaveActions()
 
 " omnifunc, pulled from http://amix.dk/blog/post/19021
 "
-" Do I need these omnifuncs? 
+" Do I need these omnifuncs?
 " autocmd FileType python set omnifunc=pythoncomplete#Complete
 " autocmd FileType javascript set omnifunc=javascriptcomplete#CompleteJS
 " autocmd FileType html set omnifunc=htmlcomplete#CompleteTags
@@ -286,7 +288,7 @@ au! InsertLeave * call InsertLeaveActions()
 
 set mouse=a
 
-" for hopping words (from default shitty putty) 
+" for hopping words (from default shitty putty)
 " nnoremap [C <C-Right>
 " inoremap [C <C-Right>
 " nnoremap [D <C-Left>
@@ -616,7 +618,7 @@ inoremap <F6> <ESC>:CtrlPMRUFiles<CR>
 
 nnoremap <F7> :NERDTreeToggle<CR>
 
-" configuring CtrlP 
+" configuring CtrlP
 let g:ctrlp_max_files = 200000
 let g:ctrlp_clear_cache_on_exit = 0
 let g:ctrlp_root_markers = ['.ctrlp_root'] " insert this sentinel file anywhere that you'd like ctrlp to index from
@@ -625,14 +627,14 @@ noremap k gk
 noremap j gj
 
 " These are old mappings for line based home/end, I needed to change these to
-" prevent vim from hanging on escape 
+" prevent vim from hanging on escape
 " nnoremap <ESC>[1~ g^
 " inoremap <ESC>[1~ <C-o>g^
 " nnoremap <ESC>[4~ g$
 " inoremap <ESC>[4~ <C-o>g$
 
 " Remapping home and end because Vim gets these wrong (w.r.t. the terms I
-" use and tmux doesn't translate them either) 
+" use and tmux doesn't translate them either)
 " set t_kh=[1~
 " set t_@7=[4~
 " nnoremap <Home> :echo('pressed Home')<CR>
@@ -681,7 +683,7 @@ let g:ycm_collect_identifiers_from_comments_and_strings = 1
 "let g:ycm_server_use_vim_stdout = 1
 let g:ycm_server_log_level = 'debug'
 
-" special disabling for os x because i cant make semantic work anymore on here 
+" special disabling for os x because i cant make semantic work anymore on here
 " :(
 let g:ycm_enable_diagnostic_signs = 0
 
@@ -797,7 +799,7 @@ nnoremap <S-Tab> :call PrevWindowOrTab()<CR>
 " ~/.vim/after/ftplugin/gitcommit.vim
 " this:
 " :autocmd BufWinEnter <buffer> normal! gg0
-" to get this not to affect whatever filetypes 
+" to get this not to affect whatever filetypes
 " if has("autocmd")
   au! BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")
     \| exe "normal! g'\"" | endif
@@ -815,10 +817,10 @@ set <F36>=z
 inoremap <F36> <C-O>u
 " This is gonna suspend vim and is not really a working bind
 nnoremap <F36> u
-vnoremap <F36> <ESC>u 
+vnoremap <F36> <ESC>u
 " todo: figure out how to make this save and restore the selection area
 
-" note that pressing u in visual mode lowercases the selection 
+" note that pressing u in visual mode lowercases the selection
 set <F35>=Z
 inoremap <F35> <C-O><C-R>
 nnoremap <F35> <C-R>
@@ -834,7 +836,7 @@ vnoremap <F34> <ESC>:tabnext<CR>
 set <F33>=p
 
 set <F32>=w
-" keybinding for toggling word-wrap 
+" keybinding for toggling word-wrap
 nnoremap <F32> :set wrap!<CR>
 inoremap <F32> :set wrap!<CR>
 
@@ -1061,13 +1063,13 @@ inoremap ;wqa<CR> <ESC>:call MyConfirmSaveQuitAll()<CR>
 " cmap q1 q!
 " cmap qa1 qa!
 " cmap e1 e!
-" 
+"
 " cmap w; w
-" 
+"
 " cmap qw wq
 " cmap qw! wq!
 " cmap qw1 wq!
-" 
+"
 " " and more combinatorially exploding goodness for dealing with flubbing the
 " " enter key
 " cmap wq\ wq
@@ -1088,7 +1090,7 @@ inoremap ;wqa<CR> <ESC>:call MyConfirmSaveQuitAll()<CR>
 " " I am tempted to do more cases to address overzealous shift key, but screw it
 " " because I will not have a hard time becoming more lazy with the shift key
 " " which is what the above bindings allow for.
-" 
+"
 " " This actually happens a lot and makes scary errors and opens some shit.
 " cmap lw w
 " cmap lwq wq
@@ -1102,7 +1104,7 @@ inoremap ;wqa<CR> <ESC>:call MyConfirmSaveQuitAll()<CR>
 " cmap lq! q!
 " cmap lq1 q!
 
-" taken from http://stackoverflow.com/a/6052704/340947 and with some stylistic 
+" taken from http://stackoverflow.com/a/6052704/340947 and with some stylistic
 " changes and functional enhancements of mine (the backing up of session files)
 fu! SaveSess()
 	" if the session file exists, rename it to a dotfile with a timestamp
@@ -1141,5 +1143,5 @@ vnoremap <silent> X :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr
 " Nope! too slow on preprocessor output
 " au FileType c,cpp,objc,objcpp call rainbow#load()
 
-" syntax sync minlines=256 " this was an attempt to speed up syntax on raspi. 
+" syntax sync minlines=256 " this was an attempt to speed up syntax on raspi.
 " May not be necessary now that i took out line highlight
