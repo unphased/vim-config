@@ -1179,3 +1179,6 @@ autocmd InsertEnter *.md call MatchTechWordsToAvoid()
 autocmd InsertLeave *.md call MatchTechWordsToAvoid()
 autocmd BufWinLeave *.md call clearmatches()
 let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
+
+" woot, disable phantom clicktyping into random spots
+inoremap <LeftMouse> <Esc>
