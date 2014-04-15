@@ -82,7 +82,7 @@ nnoremap <Leader>R :silent redraw!<CR>
 let g:UltiSnipsExpandTrigger="<F25>"
 let g:UltiSnipsJumpForwardTrigger="<F25>"
 let g:UltiSnipsJumpBackwardTrigger="<F24>"
-" Using Ctrl Tab to fire the snippets. Shift tab is taken by YCM
+" Using Ctrl Tab to fire the snippets. Shift tab is taken by YCM.
 " the weird custom mapping doesn't really seem to help anything and I cannot
 " figure out how to get it to respond to tab properly, so it should be an easy
 " enough thing to get used to to use Ctrl+(Shift+)Tab to control snips. Should
