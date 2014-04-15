@@ -8,7 +8,7 @@ set rtp+=~/.vim/bundle/vundle/
 call vundle#rc()
 
 Bundle 'gmarik/vundle'
-Bundle 'Valloric/YouCompleteMe'
+" Bundle 'Valloric/YouCompleteMe'
 Bundle 'unphased/gundo.vim'
 
 " iTerm2 support for focusing
@@ -25,6 +25,7 @@ Bundle 'diffchanges.vim'
 Bundle 'tpope/vim-repeat'
 Bundle 'tpope/vim-surround'
 Bundle 'tpope/vim-speeddating'
+" Bundle 'unphased/vim-powerline' -- disabling this to try airline
 Bundle 'vim-perl/vim-perl'
 "Bundle 'Raimondi/delimitMate'
 Bundle 'mattn/emmet-vim'
@@ -41,7 +42,7 @@ Bundle 'mhinz/vim-signify'
 Bundle 'pangloss/vim-javascript'
 Bundle 'beyondmarc/glsl.vim'
 "Bundle 'kana/vim-smartinput'
-Bundle 'SirVer/ultisnips'
+" Bundle 'SirVer/ultisnips' -- this needs python to work
 " Bundle 'oblitum/rainbow'
 Bundle 'marijnh/tern_for_vim'
 Bundle 'bling/vim-airline'
@@ -81,7 +82,7 @@ nnoremap <Leader>R :silent redraw!<CR>
 let g:UltiSnipsExpandTrigger="<F25>"
 let g:UltiSnipsJumpForwardTrigger="<F25>"
 let g:UltiSnipsJumpBackwardTrigger="<F24>"
-" Using Ctrl Tab to fire the snippets. Shift tab is taken by YCM.
+" Using Ctrl Tab to fire the snippets. Shift tab is taken by YCM
 " the weird custom mapping doesn't really seem to help anything and I cannot
 " figure out how to get it to respond to tab properly, so it should be an easy
 " enough thing to get used to to use Ctrl+(Shift+)Tab to control snips. Should
