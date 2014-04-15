@@ -44,7 +44,7 @@ Bundle 'beyondmarc/glsl.vim'
 Bundle 'SirVer/ultisnips'
 " Bundle 'oblitum/rainbow'
 Bundle 'marijnh/tern_for_vim'
-Bundle 'bling/vim-airline'
+Bundle 'unphased/vim-airline'
 
 " Bundle 'Decho'
 
