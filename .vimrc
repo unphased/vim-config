@@ -1159,7 +1159,7 @@ let g:airline_right_alt_sep = '⮃'
 let g:airline_symbols.branch = '⭠'
 let g:airline_symbols.readonly = '⭤'
 let g:airline_symbols.linenr = '⭡'
-let g:airline_theme='powerlineish'
+let g:airline_theme='bubblegum'
 
 " Highlight words to avoid in tech writing
 " =======================================
@@ -1178,4 +1178,4 @@ autocmd BufWinEnter *.md call MatchTechWordsToAvoid()
 autocmd InsertEnter *.md call MatchTechWordsToAvoid()
 autocmd InsertLeave *.md call MatchTechWordsToAvoid()
 autocmd BufWinLeave *.md call clearmatches()
-
+let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
