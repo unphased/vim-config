@@ -1180,4 +1180,4 @@ autocmd BufWinLeave *.md call clearmatches()
 let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
 
 " woot, disable phantom clicktyping into random spots
-inoremap <LeftMouse> <Esc>
+inoremap <LeftMouse> <Nop>
