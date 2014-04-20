@@ -1133,8 +1133,8 @@ set nojoinspaces
 set ve=block
 
 " something somebody cameup with in response to my SO topic
-onoremap <silent> X :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr2char(getchar())<CR>
-vnoremap <silent> X :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr2char(getchar())<CR>
+onoremap <silent> x :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr2char(getchar())<CR>
+vnoremap <silent> x :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr2char(getchar())<CR>
 
 " scrollbinding to view a file in columns
 :noremap <silent> <Leader>c :<C-u>let @z=&so<CR>:set so=0 noscb<CR>:bo vs<CR>Ljzt:setl scb<CR><C-w>p:setl scb<CR>:let &so=@z<CR>
@@ -1170,15 +1170,31 @@ let g:airline_theme='bubblegum'
 "   http://css-tricks.com/words-avoid-educational-writing/
 
 highlight TechWordsToAvoid ctermbg=red ctermfg=white
-function MatchTechWordsToAvoid()
+function! MatchTechWordsToAvoid()
 	match TechWordsToAvoid /\c\<\(obviously\|basically\|simply\|of\scourse\|clearly\|just\|everyone\sknows\|so,\)\>/
 endfunction
-autocmd FileType markdown call MatchTechWordsToAvoid()
-autocmd BufWinEnter *.md call MatchTechWordsToAvoid()
-autocmd InsertEnter *.md call MatchTechWordsToAvoid()
-autocmd InsertLeave *.md call MatchTechWordsToAvoid()
-autocmd BufWinLeave *.md call clearmatches()
+autocmd FileType markdown,javascript,cpp,bash,zsh call MatchTechWordsToAvoid()
+" autocmd BufWinEnter *.md call MatchTechWordsToAvoid()
+" autocmd InsertEnter *.md call MatchTechWordsToAvoid()
+" autocmd InsertLeave *.md call MatchTechWordsToAvoid()
+" autocmd BufWinLeave *.md call clearmatches()
+
 let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
 
 " woot, disable phantom clicktyping into random spots
 inoremap <LeftMouse> <Nop>
+
+" Had this SO question answered a while ago but didnt get chance to insert it
+" till now.
+function! SmartInsert()
+	if synIDattr(synID(line("."), col("."), 1), "name") =~ "LineComment$"
+		normal! ^w
+		startinsert
+	else
+		normal! ^
+		startinsert
+	endif
+endfun
+" http://stackoverflow.com/a/22282505/340947
+nnoremap I :call SmartInsert()<CR>
+

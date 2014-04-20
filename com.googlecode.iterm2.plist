@@ -1275,7 +1275,7 @@
 	<key>NSWindow Frame com.apple.typography_panel_Menlo-Regular</key>
 	<string>341 780 260 68 0 0 1440 878 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>515 8 1214 1170 0 0 1920 1178 </string>
+	<string>0 0 410 878 0 0 1440 878 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
 	<string>10 360 570 376 0 0 1680 1028 </string>
 	<key>NeverWarnAboutShortLivedSessions_BABC3C6F-E892-4635-AD49-85E57CE1D5AF</key>
@@ -2146,7 +2146,7 @@
 			<key>Terminal Type</key>
 			<string>xterm-256color-italic</string>
 			<key>Transparency</key>
-			<real>0.066568046808242798</real>
+			<real>0.0</real>
 			<key>Triggers</key>
 			<array/>
 			<key>Unlimited Scrollback</key>
@@ -4747,7 +4747,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2014-04-15T07:11:42Z</date>
+	<date>2014-04-20T06:24:57Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>Show Toolbelt</key>
