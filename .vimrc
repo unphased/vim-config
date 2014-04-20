@@ -1169,14 +1169,15 @@ let g:airline_theme='bubblegum'
 "   http://css-tricks.com/words-avoid-educational-writing/
 
 highlight TechWordsToAvoid ctermbg=red ctermfg=white
-function MatchTechWordsToAvoid()
+function! MatchTechWordsToAvoid()
 	match TechWordsToAvoid /\c\<\(obviously\|basically\|simply\|of\scourse\|clearly\|just\|everyone\sknows\|so,\)\>/
 endfunction
-autocmd FileType markdown call MatchTechWordsToAvoid()
-autocmd BufWinEnter *.md call MatchTechWordsToAvoid()
-autocmd InsertEnter *.md call MatchTechWordsToAvoid()
-autocmd InsertLeave *.md call MatchTechWordsToAvoid()
-autocmd BufWinLeave *.md call clearmatches()
+autocmd FileType markdown,javascript,cpp,bash,zsh call MatchTechWordsToAvoid()
+" autocmd BufWinEnter *.md call MatchTechWordsToAvoid()
+" autocmd InsertEnter *.md call MatchTechWordsToAvoid()
+" autocmd InsertLeave *.md call MatchTechWordsToAvoid()
+" autocmd BufWinLeave *.md call clearmatches()
+
 let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
 
 " woot, disable phantom clicktyping into random spots
