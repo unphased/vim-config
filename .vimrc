@@ -1182,3 +1182,18 @@ let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
 
 " woot, disable phantom clicktyping into random spots
 inoremap <LeftMouse> <Nop>
+
+" Had this SO question answered a while ago but didnt get chance to insert it
+" till now.
+function! SmartInsert()
+	if synIDattr(synID(line("."), col("."), 1), "name") =~ "LineComment$"
+		normal! ^w
+		startinsert
+	else
+		normal! ^
+		startinsert
+	endif
+endfun
+" http://stackoverflow.com/a/22282505/340947
+nnoremap I :call SmartInsert()<CR>
+
