@@ -35,3 +35,6 @@ alias gst="git status"
 alias ds="dirs -v | head -10"
 alias d="gde"
 
+[[ $(uname) == Linux ]] && alias nano="nano -u"
+# We can compile and install a newer nano on OSX but there is DEFINITELY no 
+# reason to use it over vim on a machine running OSX. None at all.
