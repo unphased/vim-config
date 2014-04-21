@@ -1187,7 +1187,7 @@ inoremap <LeftMouse> <Nop>
 " Had this SO question answered a while ago but didnt get chance to insert it
 " till now.
 function! SmartInsert()
-	if synIDattr(synID(line("."), col("."), 1), "name") =~ "LineComment$"
+	if synIDattr(synID(line("."), col("."), 1), "name") =~ "Comment$"
 		normal! ^w
 		startinsert
 	else
