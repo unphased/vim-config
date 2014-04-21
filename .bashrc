@@ -8,5 +8,7 @@ export HISTCONTROL=ignoredups
 # append history entries.. 
 shopt -s histappend
 
+export PATH=$HOME/util:$PATH
+
 source $HOME/.aliases.sh
 # Remember to link this to ~/.profile if it doesn't exist. (more robust than .bashrc)
