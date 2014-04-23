@@ -4,6 +4,7 @@ alias ll="l -l"
 alias la="ll -a"
 alias g="git"
 alias gs="git s" # short status 
+alias gco="git checkout"
 alias glp="git log -p --no-ext-diff"
 alias glpe="git log -p --ext-diff"
 alias gdt="git difftool"
