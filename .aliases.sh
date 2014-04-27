@@ -32,6 +32,7 @@ alias mk="make"
 alias gl="git pull"
 alias gp="git push"
 alias gst="git status"
+alias ga="git add"
 
 alias ds="dirs -v | head -10"
 alias d="gde"
