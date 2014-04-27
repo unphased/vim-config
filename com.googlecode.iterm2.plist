@@ -1269,13 +1269,17 @@
 		<integer>1</integer>
 	</dict>
 	<key>NSWindow Frame NSFontPanel</key>
-	<string>996 0 444 258 0 0 1440 878 </string>
+	<string>812 60 444 258 0 0 1440 878 </string>
 	<key>NSWindow Frame Preferences</key>
 	<string>253 209 924 485 0 0 1440 878 </string>
+	<key>NSWindow Frame SUStatusFrame</key>
+	<string>79 725 384 129 0 0 1440 878 </string>
+	<key>NSWindow Frame UKCrashReporter</key>
+	<string>423 185 592 584 0 0 1440 878 </string>
 	<key>NSWindow Frame com.apple.typography_panel_Menlo-Regular</key>
 	<string>341 780 260 68 0 0 1440 878 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>0 0 410 878 0 0 1440 878 </string>
+	<string>309 11 410 866 0 0 1440 878 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
 	<string>10 360 570 376 0 0 1680 1028 </string>
 	<key>NeverWarnAboutShortLivedSessions_BABC3C6F-E892-4635-AD49-85E57CE1D5AF</key>
@@ -2160,7 +2164,7 @@
 			<key>Use Italic Font</key>
 			<true/>
 			<key>Vertical Spacing</key>
-			<real>1.0422297716140747</real>
+			<real>1.0320945978164673</real>
 			<key>Visual Bell</key>
 			<true/>
 			<key>Window Type</key>
@@ -4747,7 +4751,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2014-04-20T06:24:57Z</date>
+	<date>2014-04-27T00:21:32Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>Show Toolbelt</key>
@@ -4772,6 +4776,8 @@
 	<integer>10</integer>
 	<key>TripleClickSelectsFullWrappedLines</key>
 	<true/>
+	<key>UKCrashReporterLastCrashReportDate</key>
+	<real>1398558080</real>
 	<key>URLHandlersByGuid</key>
 	<dict/>
 	<key>UseBorder</key>
@@ -4795,6 +4801,6 @@
 	<key>findRegex_iTerm</key>
 	<true/>
 	<key>iTerm Version</key>
-	<string>1.0.0.20140112</string>
+	<string>1.0.0.20140421</string>
 </dict>
 </plist>
