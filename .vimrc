@@ -1173,7 +1173,7 @@ highlight TechWordsToAvoid ctermbg=red ctermfg=white
 function! MatchTechWordsToAvoid()
 	match TechWordsToAvoid /\c\<\(obviously\|basically\|simply\|of\scourse\|clearly\|just\|everyone\sknows\|so,\)\>/
 endfunction
-autocmd FileType markdown,javascript,cpp,bash,zsh call MatchTechWordsToAvoid()
+autocmd FileType vim,markdown,javascript,cpp,bash,zsh call MatchTechWordsToAvoid()
 " autocmd BufWinEnter *.md call MatchTechWordsToAvoid()
 " autocmd InsertEnter *.md call MatchTechWordsToAvoid()
 " autocmd InsertLeave *.md call MatchTechWordsToAvoid()
@@ -1187,7 +1187,7 @@ inoremap <LeftMouse> <Nop>
 " Had this SO question answered a while ago but didnt get chance to insert it
 " till now.
 function! SmartInsert()
-	if synIDattr(synID(line("."), col("."), 1), "name") =~ "Comment$"
+	if synIDattr(synID(line("."), col("."), 1), "name") =~ "Comment"
 		normal! ^w
 		startinsert
 	else
