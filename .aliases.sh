@@ -37,6 +37,9 @@ alias ga="git add"
 alias ds="dirs -v | head -10"
 alias d="gde"
 
-[[ $(uname) == Linux ]] && alias nano="nano -u"
+[[ $(uname) == Linux ]] && alias nano="TERM=xterm-256color nano -u"
+# need to use a non custom term to not confuse nano. Also enabling the 
+# experimental undo functionality for nano
+
 # We can compile and install a newer nano on OSX but there is DEFINITELY no 
 # reason to use it over vim on a machine running OSX. None at all.
