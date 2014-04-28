@@ -1190,8 +1190,7 @@ function! SmartInsert()
 		normal! ^w
 		startinsert
 	else
-		normal! ^
-		startinsert
+		call feedkeys('I', 'n')
 	endif
 endfun
 " http://stackoverflow.com/a/22282505/340947
