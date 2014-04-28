@@ -46,7 +46,7 @@ if [[ $(uname) == Linux ]]; then
 	# will quickly be seen whether this is a sane approach
 	function sudo() {
 		case $* in
-			nano* ) shift 1; command TERM=xterm-256color sudo nano -u "$@" ;;
+			nano* ) shift 1; TERM=xterm-256color command sudo nano -u "$@" ;;
 			* ) command sudo "$@" ;;
 		esac
 	}
