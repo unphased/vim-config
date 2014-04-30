@@ -1172,7 +1172,7 @@ highlight TechWordsToAvoid ctermbg=red ctermfg=white
 function! MatchTechWordsToAvoid()
 	match TechWordsToAvoid /\c\<\(obviously\|basically\|simply\|of\scourse\|clearly\|just\|everyone\sknows\|so,\)\>/
 endfunction
-autocmd FileType vim,markdown,javascript,cpp,bash,zsh call MatchTechWordsToAvoid()
+autocmd FileType vim,markdown,javascript,cpp,bash,zsh,sh call MatchTechWordsToAvoid()
 " autocmd BufWinEnter *.md call MatchTechWordsToAvoid()
 " autocmd InsertEnter *.md call MatchTechWordsToAvoid()
 " autocmd InsertLeave *.md call MatchTechWordsToAvoid()
@@ -1190,8 +1190,7 @@ function! SmartInsert()
 		normal! ^w
 		startinsert
 	else
-		normal! ^
-		startinsert
+		call feedkeys('I', 'n')
 	endif
 endfun
 " http://stackoverflow.com/a/22282505/340947
