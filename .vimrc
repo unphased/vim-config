@@ -587,7 +587,7 @@ function! Highlighting()
   let g:highlighting = 1
   return ":silent set hlsearch\<CR>"
 endfunction
-nnoremap <silent> <expr> <CR> Highlighting()
+nnoremap <silent> <CR> :call Highlighting()
 
 " This came out of http://vim.wikia.com/wiki/Search_for_visually_selected_text
 " Search for selected text, forwards or backwards.
