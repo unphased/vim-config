@@ -1835,7 +1835,7 @@
 					<key>Action</key>
 					<integer>10</integer>
 					<key>Text</key>
-					<string>[1;3D</string>
+					<string>[1~</string>
 				</dict>
 				<key>0xf703-0x220000</key>
 				<dict>
@@ -1870,7 +1870,7 @@
 					<key>Action</key>
 					<integer>10</integer>
 					<key>Text</key>
-					<string>[1;3C</string>
+					<string>[4~</string>
 				</dict>
 				<key>0xf704-0x20000</key>
 				<dict>

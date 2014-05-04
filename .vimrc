@@ -383,7 +383,7 @@ nnoremap P P`[
 " Snippets
 nnoremap <Leader>dump ause DumperHarness;<CR>DumperHarness::Examine(, 'green');<ESC>7h
 
-" this just makes sense
+" this just makes more sense
 nmap Y y$
 
 " I'm not sure what the semicolon is bound to but it
@@ -584,10 +584,13 @@ function! Highlighting()
     return ":silent nohlsearch\<CR>"
   endif
   let @/ = '\<'.expand('<cword>').'\>'
+  " add to history -- can clutter, but def helps
+  " NOTE! the item is added without /v so backspace first, then hunt
+  call histadd('search', expand('<cword>'))
   let g:highlighting = 1
   return ":silent set hlsearch\<CR>"
 endfunction
-nnoremap <silent> <CR> :call Highlighting()
+nnoremap <silent> <expr> <CR> Highlighting()
 
 " This came out of http://vim.wikia.com/wiki/Search_for_visually_selected_text
 " Search for selected text, forwards or backwards.
@@ -706,8 +709,8 @@ inoremap <C-W> <ESC><C-W>
 " file it was loaded from, thus the changes you made.
 " Only define it when not defined already.
 " if !exists(":DiffOrig")
-  " command DiffOrig vert new | set bt=nofile | r ++edit # | 0d_ | diffthis
-		  " \ | wincmd p | diffthis
+	" command DiffOrig vert new | set bt=nofile | r ++edit # | 0d_ | diffthis
+		" \ | wincmd p | diffthis
 " endif
 
 " set ^Z in insert mode to run undo (overloading insert mode for
@@ -887,6 +890,13 @@ nmap <A-S-D> <Plug>yankstack_substitute_newer_paste
 " but Vim has no knowledge of it. so here i am adding it to the fastkey repertoire
 set <F25>=[27;5;9~
 set <F24>=[27;6;9~
+
+" set the numpad key codes -- Mark helpfully already implements the stuff that 
+" calls <k0>, etc
+set <k0>=Op
+set <k1>=Oq
+set <k2>=Or
+set <k3>=Os
 
 " make recordings easier to fire off, binding comma to @q (use qq to record
 " what you wanna repeat using comma)
