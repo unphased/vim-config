@@ -897,6 +897,12 @@ set <k0>=Op
 set <k1>=Oq
 set <k2>=Or
 set <k3>=Os
+set <k4>=Ot
+set <k5>=Ou
+set <k6>=Ov
+set <k7>=Ow
+set <k8>=Ox
+set <k9>=Oy
 
 " make recordings easier to fire off, binding comma to @q (use qq to record
 " what you wanna repeat using comma)
