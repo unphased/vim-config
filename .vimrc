@@ -227,7 +227,7 @@ set updatetime=500
 " noremap! <F5> <C-O>:YcmForceCompileAndDiagnostics<CR>
 " noremap <F5> :YcmForceCompileAndDiagnostics<CR>
 
-" Binding F5 to the fswitch (switching between lc/cpp and h/hxx/hpp) -- I like 
+" Binding F5 to the fswitch (switching between lc/cpp and h/hxx/hpp) -- I like
 " to use this followed by ctrlp MRU rather than having to type in stuff
 nmap <silent> <F5> :FSSplitBelow<CR>
 
@@ -896,7 +896,7 @@ nmap <A-S-D> <Plug>yankstack_substitute_newer_paste
 set <F25>=[27;5;9~
 set <F24>=[27;6;9~
 
-" set the numpad key codes -- Mark helpfully already implements the stuff that 
+" set the numpad key codes -- Mark helpfully already implements the stuff that
 " calls <k0>, etc
 set <k0>=Op
 set <k1>=Oq
