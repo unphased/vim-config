@@ -45,6 +45,7 @@ Bundle 'SirVer/ultisnips'
 " Bundle 'oblitum/rainbow'
 Bundle 'marijnh/tern_for_vim'
 Bundle 'unphased/vim-airline'
+Bundle 'derekwyatt/vim-fswitch'
 
 " Bundle 'Decho'
 
@@ -223,8 +224,12 @@ set updatetime=500
 " Unsure if updatetime gets overwritten by plugins. There are many plugins
 " I use which mess with updatetime (hicursorwords being one of them)
 
-noremap! <F5> <C-O>:YcmForceCompileAndDiagnostics<CR>
-noremap <F5> :YcmForceCompileAndDiagnostics<CR>
+" noremap! <F5> <C-O>:YcmForceCompileAndDiagnostics<CR>
+" noremap <F5> :YcmForceCompileAndDiagnostics<CR>
+
+" Binding F5 to the fswitch (switching between lc/cpp and h/hxx/hpp) -- I like 
+" to use this followed by ctrlp MRU rather than having to type in stuff
+nmap <silent> <F5> :FSSplitBelow<CR>
 
 function! InsertEnterActions(mode)
 	echo 'islc'
