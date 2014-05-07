@@ -45,6 +45,7 @@ Bundle 'SirVer/ultisnips'
 " Bundle 'oblitum/rainbow'
 Bundle 'marijnh/tern_for_vim'
 Bundle 'unphased/vim-airline'
+Bundle 'derekwyatt/vim-fswitch'
 
 " Bundle 'Decho'
 
@@ -223,8 +224,12 @@ set updatetime=500
 " Unsure if updatetime gets overwritten by plugins. There are many plugins
 " I use which mess with updatetime (hicursorwords being one of them)
 
-noremap! <F5> <C-O>:YcmForceCompileAndDiagnostics<CR>
-noremap <F5> :YcmForceCompileAndDiagnostics<CR>
+" noremap! <F5> <C-O>:YcmForceCompileAndDiagnostics<CR>
+" noremap <F5> :YcmForceCompileAndDiagnostics<CR>
+
+" Binding F5 to the fswitch (switching between lc/cpp and h/hxx/hpp) -- I like
+" to use this followed by ctrlp MRU rather than having to type in stuff
+nmap <silent> <F5> :FSSplitBelow<CR>
 
 function! InsertEnterActions(mode)
 	echo 'islc'
@@ -383,7 +388,7 @@ nnoremap P P`[
 " Snippets
 nnoremap <Leader>dump ause DumperHarness;<CR>DumperHarness::Examine(, 'green');<ESC>7h
 
-" this just makes sense
+" this just makes more sense
 nmap Y y$
 
 " I'm not sure what the semicolon is bound to but it
@@ -584,6 +589,9 @@ function! Highlighting()
     return ":silent nohlsearch\<CR>"
   endif
   let @/ = '\<'.expand('<cword>').'\>'
+  " add to history -- can clutter, but def helps
+  " NOTE! the item is added without /v so backspace first, then hunt
+  call histadd('search', expand('<cword>'))
   let g:highlighting = 1
   return ":silent set hlsearch\<CR>"
 endfunction
@@ -706,8 +714,8 @@ inoremap <C-W> <ESC><C-W>
 " file it was loaded from, thus the changes you made.
 " Only define it when not defined already.
 " if !exists(":DiffOrig")
-  " command DiffOrig vert new | set bt=nofile | r ++edit # | 0d_ | diffthis
-		  " \ | wincmd p | diffthis
+	" command DiffOrig vert new | set bt=nofile | r ++edit # | 0d_ | diffthis
+		" \ | wincmd p | diffthis
 " endif
 
 " set ^Z in insert mode to run undo (overloading insert mode for
@@ -887,6 +895,19 @@ nmap <A-S-D> <Plug>yankstack_substitute_newer_paste
 " but Vim has no knowledge of it. so here i am adding it to the fastkey repertoire
 set <F25>=[27;5;9~
 set <F24>=[27;6;9~
+
+" set the numpad key codes -- Mark helpfully already implements the stuff that
+" calls <k0>, etc
+set <k0>=Op
+set <k1>=Oq
+set <k2>=Or
+set <k3>=Os
+set <k4>=Ot
+set <k5>=Ou
+set <k6>=Ov
+set <k7>=Ow
+set <k8>=Ox
+set <k9>=Oy
 
 " make recordings easier to fire off, binding comma to @q (use qq to record
 " what you wanna repeat using comma)
