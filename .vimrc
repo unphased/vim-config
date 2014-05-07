@@ -576,6 +576,16 @@ vnoremap <C-S> <ESC>:update<CR>
 cnoremap <C-S> <C-C>:update<CR>
 inoremap <C-S> <ESC>:update<CR>
 
+" helper bind http://stackoverflow.com/a/7078429/340947
+cmap w!! w !sudo tee > /dev/null %
+
+" bind CTRL-ALT-S for saving as root (run sudo tee)
+" SHIFT-CTRL is not possible on terminals (same as CTRL-S)
+set <C-A-S>=
+cnoremap <C-A-S> <C-C>:w !sudo tee > /dev/null %<CR>
+vnoremap <C-A-S> <ESC>:w !sudo tee > /dev/null %<CR>
+inoremap <C-A-S> <ESC>:w !sudo tee > /dev/null %<CR>
+
 " Use CTRL-Q for abort-quitting (no save)
 noremap <C-Q> :qa!<CR>
 vnoremap <C-Q> <C-C>:qa!<CR>
