@@ -177,6 +177,9 @@ endif
 
 "colorscheme Tomorrow-Night-Eighties
 
+" Setting Normal for indentguides
+colorscheme default
+
 "set listchars=tab:→\ ,extends:>,precedes:<,trail:·,nbsp:◆
 set listchars=tab:→\ ,extends:»,precedes:«,trail:·,nbsp:◆
 set list
