@@ -19,7 +19,6 @@ Bundle 'unphased/gundo.vim'
 " Bundle 'unphased/vim-fakeclip'
 
 " Bundle 'scrooloose/nerdtree'
-Bundle 'scrooloose/syntastic'
 Bundle 'kien/ctrlp.vim'
 Bundle 'diffchanges.vim'
 Bundle 'tpope/vim-repeat'
@@ -36,13 +35,11 @@ Bundle 'unphased/vim-mark'
 " Bundle 'kien/rainbow_parentheses.vim'
 "Bundle 'airblade/vim-gitgutter'
 "Bundle 'akiomik/git-gutter-vim'
-Bundle 'mhinz/vim-signify'
 Bundle 'pangloss/vim-javascript'
 Bundle 'beyondmarc/glsl.vim'
 "Bundle 'kana/vim-smartinput'
 " Bundle 'oblitum/rainbow'
 Bundle 'marijnh/tern_for_vim'
-Bundle 'unphased/vim-airline'
 Bundle 'derekwyatt/vim-fswitch'
 
 " Bundle 'Decho'
@@ -95,10 +92,6 @@ let g:indent_guides_auto_colors = 0
 let g:indent_guides_start_level = 1
 let g:indent_guides_guide_size = 1
 au! VimEnter,Colorscheme * :hi IndentGuidesOdd ctermbg=235 ctermfg=233 | hi IndentGuidesEven ctermbg=236 ctermfg=233
-
-" signify
-let g:signify_sign_overwrite = 0
-let g:signify_update_on_focusgained = 1
 
 nnoremap <F4> :GundoToggle<CR>
 inoremap <F4> <ESC>:GundoToggle<CR>
@@ -182,7 +175,7 @@ if &term =~ '256color'
     set t_ut=
 endif
 
-colorscheme Tomorrow-Night-Eighties
+"colorscheme Tomorrow-Night-Eighties
 
 "set listchars=tab:→\ ,extends:>,precedes:<,trail:·,nbsp:◆
 set listchars=tab:→\ ,extends:»,precedes:«,trail:·,nbsp:◆
@@ -256,24 +249,24 @@ au! InsertEnter * call InsertEnterActions(v:insertmode)
 au! InsertLeave * call InsertLeaveActions()
 
 " default the statusline to green when entering Vim
-" hi statusline guibg=DarkGrey ctermfg=237 guifg=Green ctermbg=250
+hi statusline guibg=DarkGrey ctermfg=237 guifg=Green ctermbg=250
 
 " Formats the statusline
-" set statusline=[%{strlen(&fenc)?&fenc:'none'}, "file encoding
-" set statusline+=%{&ff}] "file format
-" set statusline+=%y      "filetype
-" set statusline+=%f                           " file name
-" set statusline+=%h      "help file flag
-" set statusline+=%m      "modified flag
-" set statusline+=%m      "modified flag
-" set statusline+=%m      "modified flag
-" set statusline+=%r      "read only flag
-"
-" set statusline+=\ %=                        " align left
-" set statusline+=Line:\ %l/%L[%2p%%]            " line X of Y [percent of file]
-" set statusline+=\ Col:%-2c                    " current column
-" set statusline+=\ Buf:%n                    " Buffer number
-" set statusline+=\ %-3bx%02B\                 " ASCII and byte code under cursor
+set statusline=[%{strlen(&fenc)?&fenc:'none'}, "file encoding
+set statusline+=%{&ff}] "file format
+set statusline+=%y      "filetype
+set statusline+=%f                           " file name
+set statusline+=%h      "help file flag
+set statusline+=\ %m      "modified flag
+set statusline+=\ %m      "modified flag
+set statusline+=\ %m      "modified flag
+set statusline+=%r      "read only flag
+
+set statusline+=\ %=                        " align left
+set statusline+=Line:\ %l/%L[%2p%%]            " line X of Y [percent of file]
+set statusline+=\ Col:%-2c                    " current column
+set statusline+=\ Buf:%n                    " Buffer number
+set statusline+=\ %-3bx%02B\                 " ASCII and byte code under cursor
 "
 " end pulled from SO
 
@@ -1174,21 +1167,6 @@ vnoremap <silent> x :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr
 " syntax sync minlines=256 " this was an attempt to speed up syntax on raspi.
 " May not be necessary now that i took out line highlight
 
-let g:airline#extensions#tabline#enabled = 1
-let g:airline#extensions#tabline#left_sep = ''
-let g:airline#extensions#tabline#left_alt_sep = ''
-if !exists('g:airline_symbols')
-  let g:airline_symbols = {}
-endif
-let g:airline_left_sep = ''
-let g:airline_left_alt_sep = ''
-let g:airline_right_sep = ''
-let g:airline_right_alt_sep = ''
-let g:airline_symbols.branch = ''
-let g:airline_symbols.readonly = ''
-let g:airline_symbols.linenr = ''
-let g:airline_theme='bubblegum'
-
 " Highlight words to avoid in tech writing
 " =======================================
 "
@@ -1206,8 +1184,6 @@ autocmd FileType vim,markdown,javascript,cpp,bash,zsh,sh call MatchTechWordsToAv
 " autocmd InsertEnter *.md call MatchTechWordsToAvoid()
 " autocmd InsertLeave *.md call MatchTechWordsToAvoid()
 " autocmd BufWinLeave *.md call clearmatches()
-
-let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
 
 " woot, disable phantom clicktyping into random spots
 inoremap <LeftMouse> <Nop>
