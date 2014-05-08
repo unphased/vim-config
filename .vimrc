@@ -443,8 +443,8 @@ function! F10OverloadedFunctionalityCheckTmux(direction)
 		else
 			wincmd W "prev window
 		endif
-	else
-		call system('tmux select-pane -t :.'.a:direction)
+	" else
+		" call system('tmux select-pane -t :.'.a:direction)
 	endif
 endfunc
 nnoremap <F10> :call F10OverloadedFunctionalityCheckTmux('+')<CR>
