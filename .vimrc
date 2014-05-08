@@ -583,12 +583,12 @@ cmap w!! w !sudo tee > /dev/null %
 " SHIFT-CTRL is not possible on terminals (same as CTRL-S)
 set <C-A-S>=
 cnoremap <C-A-S> <C-C>:w !sudo tee > /dev/null %<CR>
-vnoremap <C-A-S> <ESC>:w !sudo tee > /dev/null %<CR>
+noremap <C-A-S> <ESC>:w !sudo tee > /dev/null %<CR>
 inoremap <C-A-S> <ESC>:w !sudo tee > /dev/null %<CR>
 
 " Use CTRL-Q for abort-quitting (no save)
 noremap <C-Q> :qa!<CR>
-vnoremap <C-Q> <C-C>:qa!<CR>
+cnoremap <C-Q> <C-C>:qa!<CR>
 inoremap <C-Q> <C-O>:qa!<CR>
 
 " this bit controls search and highlighting by using the Enter key in normal mode
