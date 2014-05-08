@@ -748,11 +748,6 @@ set undolevels=10000
 
 set iskeyword=@,$,48-57,_,192-255
 
-" Powerline config
-let g:Powerline_colorscheme='default'
-let g:Powerline_theme='default'
-let g:Powerline_symbols='compatible'
-
 " Ctrl+F for find -- tip on \v from
 " http://stevelosh.com/blog/2010/09/coming-home-to-vim/
 " May take some getting used to, but is generally saving on use of backslashes
