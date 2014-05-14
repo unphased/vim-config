@@ -771,8 +771,19 @@ vmap ` %
 " mapping normal mode Tab to swap to next window; saving the functionality of
 " tab (next jumplist position) to C-B (since PgUp serves that function well)
 nnoremap <C-B> <Tab>
-" context-sensitively overload Tab to switch either tabs or windows that are in current tab
-function! NextWindowOrTab()
+
+" context-sensitively overload Tab to switch either tabs or windows that are in
+" current tab since using airline I am digging the buffer tabline support, so
+" when only one tab is open, then tab cycles through the buffers that are in
+" that list (which i do believe means that the buffers are in memory. vim is
+" weird).
+function! NextWindowOrTabOrBuffer()
+	" prefer to cycle thru only the set of windows if more than one window
+	if (winnr('$') == 1 && tabpagenr('$') == 1)
+		" only situation where we cycle to next buffer
+		bn
+	endif
+	" Rest of logic is just as sound (and simple) as it ever was
 	if (winnr() == winnr('$'))
 		tabnext
 		1wincmd w "first window
@@ -781,7 +792,7 @@ function! NextWindowOrTab()
 	endif
 endfunc
 
-function! PrevWindowOrTab()
+function! PrevWindowOrTabOrBuffer()
 	if (winnr() == 1)
 		tabprev
 		let winnr = winnr('$')
@@ -796,8 +807,8 @@ endfunc
 "nnoremap <S-Tab> :wincmd W<CR>
 
 " Nevermind, I actually really need this on a small screen...
-nnoremap <Tab> :call NextWindowOrTab()<CR>
-nnoremap <S-Tab> :call PrevWindowOrTab()<CR>
+nnoremap <Tab> :call NextWindowOrTabOrBuffer()<CR>
+nnoremap <S-Tab> :call PrevWindowOrTabOrBuffer()<CR>
 
 " Uncomment the following to have Vim jump to the last position when
 " reopening a file
@@ -810,7 +821,6 @@ nnoremap <S-Tab> :call PrevWindowOrTab()<CR>
   au! BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")
     \| exe "normal! g'\"" | endif
 " endif
-
 
 "THIS SECTION CONTAINS THE FAST KEY BINDINGS
 " Make alt+BS do the same as in bash/zsh (I am doing experimental override of xF keys)
@@ -1175,7 +1185,7 @@ vnoremap <silent> x :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr
 
 highlight TechWordsToAvoid ctermbg=red ctermfg=white
 function! MatchTechWordsToAvoid()
-	match TechWordsToAvoid /\c\<\(obviously\|basically\|simply\|of\scourse\|clearly\|just\|everyone\sknows\|so,\)\>/
+	match TechWordsToAvoid /\c\<\(obviously\|basically\|simply\|of\scourse\|clearly\|everyone\sknows\|so,\)\>/
 endfunction
 autocmd FileType vim,markdown,javascript,cpp,bash,zsh,sh call MatchTechWordsToAvoid()
 " autocmd BufWinEnter *.md call MatchTechWordsToAvoid()
