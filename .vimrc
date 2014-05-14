@@ -781,7 +781,7 @@ function! NextWindowOrTabOrBuffer()
 	" prefer to cycle thru only the set of windows if more than one window
 	if (winnr('$') == 1 && tabpagenr('$') == 1)
 		" only situation where we cycle to next buffer
-		bn
+		bnext
 	endif
 	" Rest of logic is just as sound (and simple) as it ever was
 	if (winnr() == winnr('$'))
@@ -793,6 +793,10 @@ function! NextWindowOrTabOrBuffer()
 endfunc
 
 function! PrevWindowOrTabOrBuffer()
+	if (winnr('$') == 1 && tabpagenr('$') == 1)
+		" only situation where we cycle to next buffer
+		bprev
+	endif
 	if (winnr() == 1)
 		tabprev
 		let winnr = winnr('$')
