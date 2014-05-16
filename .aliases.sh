@@ -17,10 +17,10 @@ alias gca="git commit -av"
 alias gcm="git commit -am"
 unalias gcp # I rarely cherry pick
 alias gp="git push"
-unalias gm # I also rarely merge
 alias k='l' # this is a bit tongue in cheek
 
-# I often want to commit and push in one step
+# I often want to commit and push in one step -- rather than cherry pick, gcp 
+# shall be used for git commit push
 gcp() {
     # [ -n "$2" ] && echo "args" && return
     gcm "$*" && gp
