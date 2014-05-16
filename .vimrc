@@ -96,7 +96,7 @@ let g:indent_guides_enable_on_vim_startup = 1
 let g:indent_guides_auto_colors = 0
 let g:indent_guides_start_level = 1
 let g:indent_guides_guide_size = 1
-au! VimEnter,Colorscheme * :hi IndentGuidesOdd ctermbg=235 ctermfg=233 | hi IndentGuidesEven ctermbg=236 ctermfg=233
+au! VimEnter,Colorscheme * :hi IndentGuidesOdd ctermbg=235 ctermfg=16 | hi IndentGuidesEven ctermbg=236 ctermfg=234
 
 " signify
 let g:signify_sign_overwrite = 0
@@ -187,7 +187,7 @@ endif
 colorscheme Tomorrow-Night-Eighties
 
 "set listchars=tab:→\ ,extends:>,precedes:<,trail:·,nbsp:◆
-set listchars=tab:→\ ,extends:»,precedes:«,trail:·,nbsp:◆
+set listchars=tab:╶─,extends:»,precedes:«,trail:·,nbsp:◆
 set list
 
 hi NonText ctermbg=234 ctermfg=254
@@ -367,8 +367,14 @@ noremap <S-H> 7h
 noremap <S-L> 7l
 
 set wrap
-set textwidth=80 " after much messing around, 80 is still a good wrap point
+set textwidth=80 
+" after much messing around, 80 is still a good wrap point to keep at least the 
+" comments neat
+
 set formatoptions=caq1njw
+" override $VIMRUNTIME/ftplugin/*.vim messing up my formatoptions by forcing the 
+" options that i really care about at this point
+au BufEnter * setlocal fo-=r
 
 " Helpful warning message
 au FileChangedShell * echo "Warning: File changed on disk!!"
@@ -1199,6 +1205,8 @@ let g:airline_symbols.branch = ''
 let g:airline_symbols.readonly = ''
 let g:airline_symbols.linenr = ''
 let g:airline_theme='bubblegum'
+
+let g:airline#extensions#hunks#non_zero_only = 1
 
 " Highlight words to avoid in tech writing
 " =======================================
