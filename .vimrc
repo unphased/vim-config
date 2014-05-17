@@ -488,11 +488,11 @@ noremap <S-F1> :tabclose<CR>
 noremap! <F1> <ESC>:tabnew<CR>
 noremap <F1> :tabnew<CR>
 " inoremap <F1> <ESC>:tabnew<CR>
-noremap! <F2> <ESC>:call SwitchTabPrev()<CR>
-noremap <F2> :call SwitchTabPrev()<CR>
+noremap! <silent> <F2> <ESC>:call SwitchTabPrev()<CR>
+noremap <silent> <F2> :call SwitchTabPrev()<CR>
 " inoremap <F2> <ESC>:tabprev<CR>
-noremap! <F3> <ESC>:call SwitchTabNext()<CR>
-noremap <F3> :call SwitchTabNext()<CR>
+noremap! <silent> <F3> <ESC>:call SwitchTabNext()<CR>
+noremap <silent> <F3> :call SwitchTabNext()<CR>
 " inoremap <F3> <ESC>:tabnext<CR>
 " I am hoping to come up with mappings for the F-keys in insert mode that
 " can serve productive purposes.
