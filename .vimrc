@@ -1208,6 +1208,7 @@ let g:airline_theme='bubblegum'
 
 let g:airline#extensions#hunks#non_zero_only = 1
 let g:airline#extensions#whitespace#mixed_indent_algo = 1
+let g:airline#extensions#hunks#hunk_symbols = ['+', '◆', '-']
 
 " Highlight words to avoid in tech writing
 " =======================================
