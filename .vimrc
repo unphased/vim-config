@@ -1232,6 +1232,9 @@ let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
 
 " woot, disable phantom clicktyping into random spots
 inoremap <LeftMouse> <Nop>
+inoremap <2-LeftMouse> <Nop>
+inoremap <3-LeftMouse> <Nop>
+inoremap <4-LeftMouse> <Nop>
 
 " Had this SO question answered a while ago but didnt get chance to insert it
 " till now.
