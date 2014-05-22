@@ -11,6 +11,6 @@
       "baseURL": "./",
       "paths": {}
     },
-	"node": {}
+    "node": {}
   }
 }
