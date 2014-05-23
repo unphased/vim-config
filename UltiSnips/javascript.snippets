@@ -1,0 +1,172 @@
+
+snippet f "Basic function" !w
+function${1}(${2}) {
+${3}
+}
+endsnippet
+
+snippet r "return" !w
+return ${1}
+endsnippet
+
+snippet s "var self" !w
+var self = this;
+endsnippet
+
+snippet p "Promise" !w
+new Promise(function(resolve, reject){
+${1}
+});
+endsnippet
+
+snippet bp "break point" !w
+debugger;
+endsnippet
+
+snippet f, "Basic function with comma" !w
+function${3}(${1}) {
+${2}
+},
+endsnippet
+
+snippet f; "Basic function with semicolon" !w
+function${3}(${1}) {
+${2}
+};
+endsnippet
+
+snippet c "Callback" !w
+function(${1:err}) {
+${2}
+})
+endsnippet
+
+snippet c; "Callback with semicolon" !w
+function(${1:err}) {
+${2}
+});
+endsnippet
+
+snippet iferr "if error" !b
+if (err) {
+${1}
+}
+endsnippet
+
+snippet rerr "return if error" !b
+if (err) return cb(err);
+endsnippet
+
+snippet l "console.log()" !b
+console.log(${1});
+endsnippet
+
+snippet i "console.info()" !b
+console.info(${1});
+endsnippet
+
+snippet w "console.warn()" !b
+console.warn(${1});
+endsnippet
+
+snippet e "console.error()" !b
+console.error(${1});
+endsnippet
+
+snippet b "require(bluebird)" !b
+var Promise = require("bluebird");
+endsnippet
+
+snippet m "module.exports" !b
+module.exports = 
+endsnippet
+
+snippet i "Mocha it" !bw
+it("${1}", function() {
+${2}
+});
+endsnippet
+
+snippet desc "Mocha describe" !b
+describe("${1}", function() {
+${2}
+});
+endsnippet
+
+snippet mocha "Mocha globals" !b
+/*global it, describe, before, beforeEach, after, afterEach */
+endsnippet
+
+snippet ifmain "if (require.main === module)" !b
+if (require.main === module) {
+${1}
+}
+endsnippet
+
+snippet bs "Super (Backbone)" !b
+${1:Backbone.Model}.prototype.${2:constructor}.apply(this, arguments);
+endsnippet
+snippet super "Super (Backbone)" !b
+${1:Backbone.Model}.prototype.${2:constructor}.apply(this, arguments);
+endsnippet
+
+snippet exit "process.exit(0);" !b
+process.exit(${1:0});
+endsnippet
+
+snippet jsx "Add JSX comment" !b
+/** @jsx React.DOM */
+endsnippet
+
+snippet react "Create React Component" !b
+/**
+ * ${1/(.*)/$1/}
+ *
+ * @namespace components
+ * @class ${1/(.*)/$1/}
+ */
+var ${1:Component} = React.createClass({
+    render: function() {
+        return (
+            ${2}
+        );
+    }
+});
+endsnippet
+
+snippet me "Create method with docstring" !b
+/**
+ * ${3:TODO}
+ *
+ * @method ${1/(.*)/$1/}
+ */
+${1:method}: function(){
+${2}
+}
+endsnippet
+
+snippet use "use strict" !b
+"use strict";
+endsnippet
+
+snippet re "require(module)" !b
+var ${1:React} = require("$2${1/(.*)/$1/}");
+endsnippet
+
+snippet remove "Remove element from array" !b
+var ${3:i} = ${1:array}.indexOf(${2:value});
+if (${3/(.*)/$1/} > -1) ${1/(.*)/$1/}.splice(${3/(.*)/$1/}, 1);
+endsnippet
+
+
+snippet ** "yuidoc comment" !b
+/**
+ * @${2}
+ */
+endsnippet
+
+snippet t "then after a promise" !w
+.then(function(${1:val}) {
+${2}
+})${3}
+endsnippet

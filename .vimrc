@@ -361,12 +361,12 @@ noremap <S-H> 7h
 noremap <S-L> 7l
 
 set wrap
-set textwidth=80 
-" after much messing around, 80 is still a good wrap point to keep at least the 
+set textwidth=80
+" after much messing around, 80 is still a good wrap point to keep at least the
 " comments neat
 
 set formatoptions=caq1njw
-" override $VIMRUNTIME/ftplugin/*.vim messing up my formatoptions by forcing the 
+" override $VIMRUNTIME/ftplugin/*.vim messing up my formatoptions by forcing the
 " options that i really care about at this point
 au FileType * setlocal fo-=r
 
@@ -482,11 +482,11 @@ noremap <S-F1> :tabclose<CR>
 noremap! <F1> <ESC>:tabnew<CR>
 noremap <F1> :tabnew<CR>
 " inoremap <F1> <ESC>:tabnew<CR>
-noremap! <F2> <ESC>:call SwitchTabPrev()<CR>
-noremap <F2> :call SwitchTabPrev()<CR>
+noremap! <silent> <F2> <ESC>:call SwitchTabPrev()<CR>
+noremap <silent> <F2> :call SwitchTabPrev()<CR>
 " inoremap <F2> <ESC>:tabprev<CR>
-noremap! <F3> <ESC>:call SwitchTabNext()<CR>
-noremap <F3> :call SwitchTabNext()<CR>
+noremap! <silent> <F3> <ESC>:call SwitchTabNext()<CR>
+noremap <silent> <F3> :call SwitchTabNext()<CR>
 " inoremap <F3> <ESC>:tabnext<CR>
 " I am hoping to come up with mappings for the F-keys in insert mode that
 " can serve productive purposes.
@@ -594,11 +594,11 @@ inoremap <C-Q> <C-O>:qa!<CR>
 " this bit controls search and highlighting by using the Enter key in normal mode
 let g:highlighting = 0
 function! Highlighting()
-  if g:highlighting == 1 && @/ =~ '^\\<'.expand('<cword>').'\\>$'
+  if g:highlighting == 1 && @/ =~ '^'.expand('<cword>').'$'
     let g:highlighting = 0
     return ":silent nohlsearch\<CR>"
   endif
-  let @/ = '\<'.expand('<cword>').'\>'
+  let @/ = expand('<cword>')
   " add to history -- can clutter, but def helps
   " NOTE! the item is added without /v so backspace first, then hunt
   call histadd('search', expand('<cword>'))
@@ -1205,6 +1205,9 @@ autocmd FileType vim,markdown,javascript,cpp,bash,zsh,sh call MatchTechWordsToAv
 
 " woot, disable phantom clicktyping into random spots
 inoremap <LeftMouse> <Nop>
+inoremap <2-LeftMouse> <Nop>
+inoremap <3-LeftMouse> <Nop>
+inoremap <4-LeftMouse> <Nop>
 
 " Had this SO question answered a while ago but didnt get chance to insert it
 " till now.
