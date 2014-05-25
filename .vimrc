@@ -600,11 +600,11 @@ inoremap <C-Q> <C-O>:qa!<CR>
 " this bit controls search and highlighting by using the Enter key in normal mode
 let g:highlighting = 0
 function! Highlighting()
-  if g:highlighting == 1 && @/ =~ '^'.expand('<cword>').'$'
+  if g:highlighting == 1 && @/ =~ '^\\<'.expand('<cword>').'\\>$'
     let g:highlighting = 0
     return ":silent nohlsearch\<CR>"
   endif
-  let @/ = expand('<cword>')
+  let @/ = '\<'.expand('<cword>').'\>'
   " add to history -- can clutter, but def helps
   " NOTE! the item is added without /v so backspace first, then hunt
   call histadd('search', expand('<cword>'))
