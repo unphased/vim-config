@@ -354,7 +354,15 @@ vnoremap <Up> <C-Y>g<Up>
 vnoremap <Down> <C-E>g<Down>
 nnoremap <Up> <C-Y>g<Up>
 nnoremap <Down> <C-E>g<Down>
-" Not sure why but I couldn't i(nore)map Up and Down
+" Not sure why but I couldn't i(nore)map Up and Down -- i am not really sure how 
+" well it would work to allow scroll overriding in insert mode
+
+" Mapping left and right arrows to help scroll the view as well. I think I want 
+" to overdo the effect as well.
+vnoremap <Left> 2zhh
+vnoremap <Right> 2zll
+nnoremap <Left> 3zhh
+nnoremap <Right> 3zll
 
 " I like joining lines (I do this operation with the delete key a lot -- that
 " key is a reach) -- this map is used because it is *close* to J
