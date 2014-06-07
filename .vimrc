@@ -1218,6 +1218,11 @@ let g:airline#extensions#hunks#non_zero_only = 1
 let g:airline#extensions#whitespace#mixed_indent_algo = 1
 let g:airline#extensions#hunks#hunk_symbols = ['+', '◆', '-']
 
+" Honestly I spend way too much time cleaning up trailing spaces which has as 
+" yet never had any solid reason. There are legitimate uses of trailing spaces 
+" in e.g. markdown.
+let g:airline#extensions#whitespace#checks = [ 'indent' ]
+
 " Highlight words to avoid in tech writing
 " =======================================
 "
