@@ -647,7 +647,8 @@ nnoremap Q :q<CR>
 nnoremap <F6> :CtrlPMRUFiles<CR>
 inoremap <F6> <ESC>:CtrlPMRUFiles<CR>
 
-nnoremap <F7> :NERDTreeToggle<CR>
+" I definitely do not use this -- F7 is now YCM sign toggle.
+" nnoremap <F7> :NERDTreeToggle<CR>
 
 " configuring CtrlP
 let g:ctrlp_max_files = 200000
@@ -714,9 +715,20 @@ let g:ycm_collect_identifiers_from_comments_and_strings = 1
 "let g:ycm_server_use_vim_stdout = 1
 let g:ycm_server_log_level = 'debug'
 
-" special disabling for os x because i cant make semantic work anymore on here
-" :(
+" semantic on OSX works again! hooray -- now this has to be bound to a key 
+" because of limitations. see issue 887 at YCM's github
 let g:ycm_enable_diagnostic_signs = 0
+let g:ycm_enable_diagnostic_highlighting = 1
+
+" sadly, this doesn't work on the fly for some reason. It's supposed to!
+" nnoremap <F7> :call YCMSignToggle()<CR>
+" function! YCMSignToggle()
+" 	if g:ycm_enable_diagnostic_signs
+" 		let g:ycm_enable_diagnostic_signs = 0
+" 	else
+" 		let g:ycm_enable_diagnostic_signs = 1
+" 	endif
+" endfunc
 
 " This insert mapping is for pasting; it appears that YCM only takes over the
 " <C-P> when it has the complete box open (this may be a Vim

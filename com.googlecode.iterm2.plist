@@ -6,6 +6,8 @@
 	<true/>
 	<key>AllowClipboardAccess</key>
 	<false/>
+	<key>AlternateMouseScroll</key>
+	<true/>
 	<key>AnimateDimming</key>
 	<false/>
 	<key>AppleAntiAliasingThreshold</key>
@@ -1096,7 +1098,7 @@
 	<key>FocusFollowsMouse</key>
 	<false/>
 	<key>FsTabDelay</key>
-	<real>0.39791667461395264</real>
+	<real>10</real>
 	<key>GlobalKeyMap</key>
 	<dict>
 		<key>0x70-0x100000</key>
@@ -1269,9 +1271,9 @@
 		<integer>1</integer>
 	</dict>
 	<key>NSWindow Frame NSFontPanel</key>
-	<string>812 60 444 258 0 0 1440 878 </string>
+	<string>78 341 594 338 0 0 1440 878 </string>
 	<key>NSWindow Frame Preferences</key>
-	<string>36 393 924 485 0 0 1440 878 </string>
+	<string>208 261 606 456 0 0 1440 878 </string>
 	<key>NSWindow Frame SUStatusFrame</key>
 	<string>79 725 384 129 0 0 1440 878 </string>
 	<key>NSWindow Frame UKCrashReporter</key>
@@ -1279,7 +1281,7 @@
 	<key>NSWindow Frame com.apple.typography_panel_Menlo-Regular</key>
 	<string>341 780 260 68 0 0 1440 878 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>0 0 660 878 0 0 1440 878 </string>
+	<string>0 0 1440 900 0 0 1440 878 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
 	<string>10 360 570 376 0 0 1680 1028 </string>
 	<key>NeverWarnAboutShortLivedSessions_BABC3C6F-E892-4635-AD49-85E57CE1D5AF</key>
@@ -1440,7 +1442,7 @@
 			<key>Automatically Log</key>
 			<false/>
 			<key>BM Growl</key>
-			<true/>
+			<false/>
 			<key>Background Color</key>
 			<dict>
 				<key>Blue Component</key>
@@ -2019,7 +2021,7 @@
 			<key>Non-ASCII Anti Aliased</key>
 			<true/>
 			<key>Normal Font</key>
-			<string>Menlo-Regular 9</string>
+			<string>MenloForPowerline-Regular 9</string>
 			<key>Option Key Sends</key>
 			<integer>2</integer>
 			<key>Prompt Before Closing 2</key>
@@ -2184,8 +2186,10 @@
 			<false/>
 			<key>Use Italic Font</key>
 			<true/>
+			<key>Use Non-ASCII Font</key>
+			<false/>
 			<key>Vertical Spacing</key>
-			<real>1.0320945978164673</real>
+			<real>1.0037650602409638</real>
 			<key>Visual Bell</key>
 			<true/>
 			<key>Window Type</key>
@@ -5586,11 +5590,11 @@
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
 	<key>SUFeedURL</key>
-	<string>http://iterm2.com/appcasts/testing.xml</string>
+	<string>http://iterm2.com/appcasts/nightly.xml</string>
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2014-05-19T22:34:09Z</date>
+	<date>2014-07-18T14:21:52Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>Show Toolbelt</key>
@@ -5640,6 +5644,6 @@
 	<key>findRegex_iTerm</key>
 	<true/>
 	<key>iTerm Version</key>
-	<string>1.0.0.20140421</string>
+	<string>2.9.20140716-nightly</string>
 </dict>
 </plist>
