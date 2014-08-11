@@ -732,6 +732,9 @@ highlight YcmWarningLine guibg=#282800
 " 	endif
 " endfunc
 
+" setting F7 to ycmdiags
+nnoremap <F7> :YcmDiags<CR>
+
 " This insert mapping is for pasting; it appears that YCM only takes over the
 " <C-P> when it has the complete box open (this may be a Vim
 " limitation/builtin)
