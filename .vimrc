@@ -719,6 +719,8 @@ let g:ycm_server_log_level = 'debug'
 " because of limitations. see issue 887 at YCM's github
 let g:ycm_enable_diagnostic_signs = 0
 let g:ycm_enable_diagnostic_highlighting = 1
+highlight YcmErrorLine guibg=#3f0000
+highlight YcmWarningLine guibg=#282800
 
 " sadly, this doesn't work on the fly for some reason. It's supposed to!
 " nnoremap <F7> :call YCMSignToggle()<CR>
