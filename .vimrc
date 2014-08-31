@@ -1295,4 +1295,7 @@ function! SmartInsertEndOfLine()
 	endif
 endfun
 
-nnoremap A :call SmartInsertEndOfLine()<CR>
+" Overriding the key that normally moves to the end of a big-word. I never use 
+" that... however it may be smart to eventually remap some other combo to that 
+" functionality
+nnoremap E :call SmartInsertEndOfLine()<CR>
