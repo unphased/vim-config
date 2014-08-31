@@ -1,3 +1,8 @@
+
+" this just makes more sense (may need to be at top due to yankstack and other 
+" plugins -- however i confirm that this no longer works...
+nmap Y y$
+
 set nocompatible
 set encoding=utf-8
 set showcmd
@@ -401,9 +406,6 @@ nnoremap P P`[
 
 " Snippets
 nnoremap <Leader>dump ause DumperHarness;<CR>DumperHarness::Examine(, 'green');<ESC>7h
-
-" this just makes more sense
-nmap Y y$
 
 " I'm not sure what the semicolon is bound to but it
 " will never be as useful as this binding
@@ -1268,7 +1270,7 @@ inoremap <4-LeftMouse> <Nop>
 
 " Had this SO question answered a while ago but didnt get chance to insert it
 " till now.
-function! SmartInsert()
+function! SmartInsertStartOfLine()
 	if synIDattr(synID(line("."), col("."), 1), "name") =~ "Comment"
 		normal! ^w
 		startinsert
@@ -1277,5 +1279,20 @@ function! SmartInsert()
 	endif
 endfun
 " http://stackoverflow.com/a/22282505/340947
-nnoremap I :call SmartInsert()<CR>
+nnoremap I :call SmartInsertStartOfLine()<CR>
 
+" corresponding bind for A which smartly places the cursor before any semicolon
+" that may be present at the end of the line
+function! SmartInsertEndOfLine()
+	let l:linenrsearch = search(';\s*$', 'n')
+	if (l:linenrsearch == line('.')) " If the current line ends in semicolon 
+										 " using 'n' to not move the cursor to 
+										 " a different line
+		call search(';\s*$')
+		startinsert
+	else
+		call feedkeys('A', 'n')
+	endif
+endfun
+
+nnoremap A :call SmartInsertEndOfLine()<CR>
