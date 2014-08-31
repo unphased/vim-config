@@ -1,6 +1,6 @@
 
 " this just makes more sense (may need to be at top due to yankstack and other 
-" plugins -- however i confirm that this no longer works...
+" plugins -- however i confirm that this no longer works...)
 nmap Y y$
 
 set nocompatible
