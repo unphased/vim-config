@@ -1303,6 +1303,6 @@ nnoremap E :call SmartInsertEndOfLine()<CR>
 " also), so i will use this opportunity to bind the z to what i had bound to 
 " b for a while, which is page up half a page (the counterpoint to spacebar). 
 " it's a bit of a compromise because its not quite as close to the spacebar as 
-" i want, but it is sort of close. somehow even though z binds were not deleted 
+" i want, but it is sort of close. Somehow even though z binds were not deleted 
 " it does not do the wait. Maybe that is how vim actually works. Oh vim.
 nnoremap z <C-U>
