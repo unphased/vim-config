@@ -314,7 +314,6 @@ set mouse=a
 " consistency with pagers in normal mode
 nnoremap <Space> <C-D>
 vnoremap <Space> <C-D>
-nnoremap b <C-U>
 
 " Do something more useful than what the h key already does with normal mode backspace
 nnoremap <BS> b
@@ -1299,3 +1298,11 @@ endfun
 " that... however it may be smart to eventually remap some other combo to that 
 " functionality
 nnoremap E :call SmartInsertEndOfLine()<CR>
+
+" All the z-binds appear to do nothing for me (well zz works but zz is useless 
+" also), so i will use this opportunity to bind the z to what i had bound to 
+" b for a while, which is page up half a page (the counterpoint to spacebar). 
+" it's a bit of a compromise because its not quite as close to the spacebar as 
+" i want, but it is sort of close. somehow even though z binds were not deleted 
+" it does not do the wait. Maybe that is how vim actually works. Oh vim.
+nnoremap z <C-U>
