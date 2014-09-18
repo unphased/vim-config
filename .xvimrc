@@ -21,10 +21,9 @@ nmap ;<F10>
 
 nmap ` %
 
-" not needed, the keyboard mapping is done in Xcode settings
-" imap <F10> <ESC>
-" vmap <F10> <ESC>
-" cmap <F10> <ESC>
+imap <F10> <ESC>
+vmap <F10> <ESC>
+cmap <F10> <ESC>
 
 nnoremap S ddO
 
