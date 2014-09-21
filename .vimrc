@@ -715,6 +715,7 @@ let g:ycm_seed_identifiers_with_syntax = 1
 let g:ycm_collect_identifiers_from_comments_and_strings = 1
 "let g:ycm_server_use_vim_stdout = 1
 let g:ycm_server_log_level = 'debug'
+let g:ycm_max_diagnostics_to_display = 300
 
 " semantic on OSX works again! hooray -- now this has to be bound to a key 
 " because of limitations. see issue 887 at YCM's github
