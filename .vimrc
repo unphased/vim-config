@@ -744,7 +744,7 @@ nnoremap <S-F7> :YcmCompleter GoToDefinition<CR>
 inoremap <C-P> <C-O>p<CR>
 
 " set highlight for search to be less blinding
-highlight Search ctermbg=166 ctermfg=NONE
+highlight Search ctermbg=166 ctermfg=253
 
 " only on an italic term do we set comment to use italic cterm highlight
 if &term == 'xterm-256color-italic'
