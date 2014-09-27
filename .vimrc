@@ -368,9 +368,29 @@ vnoremap <Right> 2zll
 nnoremap <Left> 3zhh
 nnoremap <Right> 3zll
 
+" Have to override the shift and ctrl + arrow keys in insert and normal mode, 
+" these do aggravating things by default
+nnoremap <S-Left> b
+vnoremap <S-Left> b
+nnoremap <S-Right> e
+vnoremap <S-Right> e
+
+nnoremap <C-Left> B
+vnoremap <C-Left> B
+nnoremap <C-Right> E
+vnoremap <C-Right> E
+
+" Using these is sort of questionable as it does pollute undo history :(
+inoremap <S-Left> <C-O>b
+inoremap <S-Right> <C-O>e
+inoremap <C-Left> <C-O>B
+inoremap <C-Right> <C-O>E
+
 " I like joining lines (I do this operation with the delete key a lot -- that
 " key is a reach) -- this map is used because it is *close* to J
 nnoremap <C-N> J
+" I can't have this: inoremap <C-N> <C-O>J
+" because ctrl n and p are overriden by YCM for stuff. Too hard to deal with.
 
 " accelerated j/k navigation
 noremap <S-J> 5gj
