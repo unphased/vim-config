@@ -1,5 +1,6 @@
 {
 	"browser": true,
+	"validthis": true,
 	"trailing": true,
 	"sub": true,
 	"strict": false,

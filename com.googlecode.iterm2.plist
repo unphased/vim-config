@@ -1273,7 +1273,9 @@
 	<key>NSWindow Frame NSFontPanel</key>
 	<string>78 341 594 338 0 0 1440 878 </string>
 	<key>NSWindow Frame Preferences</key>
-	<string>208 319 606 456 0 0 1440 878 </string>
+	<string>208 321 606 456 0 0 1440 878 </string>
+	<key>NSWindow Frame SUAutomaticUpdateAlert</key>
+	<string>410 528 616 174 0 0 1440 878 </string>
 	<key>NSWindow Frame SUStatusFrame</key>
 	<string>79 725 384 129 0 0 1440 878 </string>
 	<key>NSWindow Frame UKCrashReporter</key>
@@ -1281,7 +1283,7 @@
 	<key>NSWindow Frame com.apple.typography_panel_Menlo-Regular</key>
 	<string>341 780 260 68 0 0 1440 878 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>769 11 585 867 0 0 1440 878 </string>
+	<string>96 92 450 786 0 0 1440 878 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
 	<string>10 360 570 376 0 0 1680 1028 </string>
 	<key>NeverWarnAboutShortLivedSessions_BABC3C6F-E892-4635-AD49-85E57CE1D5AF</key>
@@ -2189,7 +2191,7 @@
 			<key>Use Non-ASCII Font</key>
 			<false/>
 			<key>Vertical Spacing</key>
-			<real>1.0037650602409638</real>
+			<real>0.99472891566265065</real>
 			<key>Visual Bell</key>
 			<true/>
 			<key>Window Type</key>
@@ -5589,12 +5591,14 @@
 	<true/>
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
+	<key>SUFeedAlternateAppNameKey</key>
+	<string>iTerm</string>
 	<key>SUFeedURL</key>
 	<string>https://iterm2.com/appcasts/nightly.xml</string>
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2014-09-02T15:19:58Z</date>
+	<date>2014-09-13T07:38:40Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>Secure Input</key>
@@ -5646,6 +5650,6 @@
 	<key>findRegex_iTerm</key>
 	<true/>
 	<key>iTerm Version</key>
-	<string>2.9.20140812-nightly</string>
+	<string>2.9.20140911-nightly</string>
 </dict>
 </plist>
