@@ -1321,10 +1321,10 @@ endfun
 " functionality
 nnoremap E :call SmartInsertEndOfLine()<CR>
 
-" All the z-binds appear to do nothing for me (well zz works but zz is useless 
-" also), so i will use this opportunity to bind the z to what i had bound to 
-" b for a while, which is page up half a page (the counterpoint to spacebar). 
-" it's a bit of a compromise because its not quite as close to the spacebar as 
-" i want, but it is sort of close. Somehow even though z binds were not deleted 
-" it does not do the wait. Maybe that is how vim actually works. Oh vim.
-nnoremap z <C-U>
+" I decided i wanted the b for page up again. i already got used to backspace to 
+" go back a word; i dont have a problem with it. the reach for the z key is not 
+" nice. And its not like i was going to make the backspace key do page up 
+" either, thats too reachy to navigate around. it does seem to work well enough 
+" when moving back short distances on a line so i like it the way i had it 
+" before.
+nnoremap b <C-U>
