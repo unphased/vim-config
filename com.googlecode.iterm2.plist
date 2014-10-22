@@ -1273,9 +1273,9 @@
 	<key>NSWindow Frame NSFontPanel</key>
 	<string>78 341 594 338 0 0 1440 878 </string>
 	<key>NSWindow Frame Preferences</key>
-	<string>208 321 606 456 0 0 1440 878 </string>
+	<string>208 376 606 456 0 0 1440 900 </string>
 	<key>NSWindow Frame SUAutomaticUpdateAlert</key>
-	<string>410 528 616 174 0 0 1440 878 </string>
+	<string>530 640 616 174 0 0 1680 1028 </string>
 	<key>NSWindow Frame SUStatusFrame</key>
 	<string>79 725 384 129 0 0 1440 878 </string>
 	<key>NSWindow Frame UKCrashReporter</key>
@@ -1283,7 +1283,7 @@
 	<key>NSWindow Frame com.apple.typography_panel_Menlo-Regular</key>
 	<string>341 780 260 68 0 0 1440 878 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>96 92 450 786 0 0 1440 878 </string>
+	<string>0 242 450 786 0 0 1680 1028 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
 	<string>10 360 570 376 0 0 1680 1028 </string>
 	<key>NeverWarnAboutShortLivedSessions_BABC3C6F-E892-4635-AD49-85E57CE1D5AF</key>
@@ -1630,6 +1630,34 @@
 					<integer>10</integer>
 					<key>Text</key>
 					<string>Oy</string>
+				</dict>
+				<key>0x48-0x120000</key>
+				<dict>
+					<key>Action</key>
+					<integer>10</integer>
+					<key>Text</key>
+					<string>[98H</string>
+				</dict>
+				<key>0x4a-0x120000</key>
+				<dict>
+					<key>Action</key>
+					<integer>10</integer>
+					<key>Text</key>
+					<string>[98J</string>
+				</dict>
+				<key>0x4b-0x120000</key>
+				<dict>
+					<key>Action</key>
+					<integer>10</integer>
+					<key>Text</key>
+					<string>[98K</string>
+				</dict>
+				<key>0x4c-0x120000</key>
+				<dict>
+					<key>Action</key>
+					<integer>10</integer>
+					<key>Text</key>
+					<string>[98L</string>
 				</dict>
 				<key>0x5a-0x120000</key>
 				<dict>
@@ -2175,7 +2203,7 @@
 			<key>Terminal Type</key>
 			<string>xterm-256color-italic</string>
 			<key>Transparency</key>
-			<real>0.0</real>
+			<real>0.061242603550295857</real>
 			<key>Triggers</key>
 			<array/>
 			<key>Unlimited Scrollback</key>
@@ -5538,6 +5566,8 @@
 	</array>
 	<key>NoSyncNeverRemindPrefsChangesCopy</key>
 	<true/>
+	<key>NoSyncSuppressAnnyoingBellOffer</key>
+	<true/>
 	<key>OnlyWhenMoreTabs</key>
 	<true/>
 	<key>OpenArrangementAtStartup</key>
@@ -5598,7 +5628,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2014-09-13T07:38:40Z</date>
+	<date>2014-10-13T23:03:15Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>Secure Input</key>
@@ -5650,6 +5680,6 @@
 	<key>findRegex_iTerm</key>
 	<true/>
 	<key>iTerm Version</key>
-	<string>2.9.20140911-nightly</string>
+	<string>2.9.20141012-nightly</string>
 </dict>
 </plist>
