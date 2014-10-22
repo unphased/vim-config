@@ -1330,3 +1330,6 @@ nnoremap E :call SmartInsertEndOfLine()<CR>
 " before.
 nnoremap b <C-U>
 
+" fixes aggravating default indentation for switch case statements, which also 
+" affects e.g. javascript
+set cinoptions=l1
