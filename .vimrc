@@ -1332,4 +1332,4 @@ nnoremap b <C-U>
 
 " fixes aggravating default indentation for switch case statements, which also 
 " affects e.g. javascript
-set cinoptions=l1
+set cinoptions=b1
