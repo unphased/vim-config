@@ -1329,6 +1329,7 @@ nnoremap E :call SmartInsertEndOfLine()<CR>
 " when moving back short distances on a line so i like it the way i had it 
 " before.
 nnoremap b <C-U>
+vnoremap b <C-U>
 
 " fixes aggravating default indentation for switch case statements, which also 
 " affects e.g. javascript
