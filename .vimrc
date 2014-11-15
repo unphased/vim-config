@@ -52,6 +52,7 @@ Bundle 'marijnh/tern_for_vim'
 Bundle 'unphased/vim-airline'
 Bundle 'derekwyatt/vim-fswitch'
 Bundle 'wakatime/vim-wakatime'
+Bundle 'panozzaj/vim-autocorrect'
 
 " Bundle 'Decho'
 
