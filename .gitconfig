@@ -49,6 +49,8 @@
 	untracked = cyan
 [rerere]
 	enabled = true
+[merge]
+	stat = true
 [difftool "sourcetree"]
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
 	path = 
