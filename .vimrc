@@ -1,8 +1,3 @@
-
-" this just makes more sense (may need to be at top due to yankstack and other 
-" plugins -- however i confirm that this no longer works...)
-nmap Y y$
-
 set nocompatible
 set encoding=utf-8
 set showcmd
@@ -1335,3 +1330,8 @@ vnoremap b <C-U>
 " fixes aggravating default indentation for switch case statements, which also 
 " affects e.g. javascript
 set cinoptions=b1
+
+" this just makes more sense (there is potential quirkiness with yankstack, but 
+" with minimal testing, this appears to now work well)
+nmap Y y$
+
