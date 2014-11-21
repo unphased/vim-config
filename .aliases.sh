@@ -1,3 +1,8 @@
+# todo: make me a function
+# idempotent alias check (or prints existing alias -- might wanna suppress that 
+# too)
+alias ls 2>/dev/null >/dev/null || alias ls="ls --color=always"
+
 alias l="ls"
 alias sl="ls"
 alias ll="l -l"
