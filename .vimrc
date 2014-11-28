@@ -1340,3 +1340,8 @@ set cinoptions=b1
 " with minimal testing, this appears to now work well)
 nmap Y y$
 let g:NumberToggleTrigger="n" " alt+n
+
+" now that focuslost works with iterm and tmux maybe this is just generally 
+" improved behavior. Do have to be careful, but it speeds some shit up 
+"
+:au FocusLost * silent! wa
