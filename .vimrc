@@ -1342,6 +1342,6 @@ nmap Y y$
 let g:NumberToggleTrigger="n" " alt+n
 
 " now that focuslost works with iterm and tmux maybe this is just generally 
-" improved behavior. Do have to be careful, but it speeds some shit up 
-"
+" improved behavior. Do have to be careful, but it speeds shit up when rapidly 
+" working
 :au FocusLost * silent! wa
