@@ -1337,3 +1337,7 @@ set cinoptions=b1
 " with minimal testing, this appears to now work well)
 nmap Y y$
 
+" Here's an interesting thing to try
+
+autocmd InsertEnter * :set norelativenumber
+autocmd InsertLeave * :set relativenumber
