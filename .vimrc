@@ -12,7 +12,7 @@ Bundle 'Valloric/YouCompleteMe'
 Bundle 'unphased/gundo.vim'
 
 " iTerm2 support for focusing
-" Bundle 'sjl/vitality.vim'
+Bundle 'sjl/vitality.vim'
 
 " Fakeclip doesn't seem to work well on OSX
 " Tmux resize-window zoom has obsoleted this
@@ -49,6 +49,8 @@ Bundle 'unphased/vim-airline'
 Bundle 'derekwyatt/vim-fswitch'
 Bundle 'wakatime/vim-wakatime'
 Bundle 'panozzaj/vim-autocorrect'
+Bundle 'kshenoy/vim-signature'
+Bundle 'jeffkreeftmeijer/vim-numbertoggle'
 
 " Bundle 'Decho'
 
@@ -82,9 +84,9 @@ nnoremap <Leader>e :silent !p4 edit %:p<CR>:redraw!<CR>
 nnoremap <Leader>R :silent redraw!<CR>
 
 " Ultisnips settings (to have it work together with YCM)
-let g:UltiSnipsExpandTrigger="<F25>"
-let g:UltiSnipsJumpForwardTrigger="<F25>"
-let g:UltiSnipsJumpBackwardTrigger="<F24>"
+let g:UltiSnipsExpandTrigger="<F23>"
+let g:UltiSnipsJumpForwardTrigger="<F23>"
+let g:UltiSnipsJumpBackwardTrigger="<F22>"
 " Using Ctrl Tab to fire the snippets. Shift tab is taken by YCM.
 " the weird custom mapping doesn't really seem to help anything and I cannot
 " figure out how to get it to respond to tab properly, so it should be an easy
@@ -963,9 +965,11 @@ nmap <F26> <Plug>yankstack_substitute_older_paste
 nmap <A-S-D> <Plug>yankstack_substitute_newer_paste
 
 " These are apparently the defacto terminal codes for Ctrl+Tab and Ctrl+Shift+Tab
-" but Vim has no knowledge of it. so here i am adding it to the fastkey repertoire
-set <F25>=[27;5;9~
-set <F24>=[27;6;9~
+" but Vim has no knowledge of it. so here i am adding it to the fastkey 
+" repertoire, but skipping F24 and F25 because the actual vitality plugin uses 
+" this method specifically on F24 and F25
+set <F23>=[27;5;9~
+set <F22>=[27;6;9~
 
 " set the numpad key codes -- Mark helpfully already implements the stuff that
 " calls <k0>, etc
@@ -1335,4 +1339,9 @@ set cinoptions=b1
 " this just makes more sense (there is potential quirkiness with yankstack, but 
 " with minimal testing, this appears to now work well)
 nmap Y y$
+let g:NumberToggleTrigger="n" " alt+n
 
+" now that focuslost works with iterm and tmux maybe this is just generally 
+" improved behavior. Do have to be careful, but it speeds shit up when rapidly 
+" working
+:au FocusLost * silent! wa
