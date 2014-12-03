@@ -1339,6 +1339,8 @@ set cinoptions=b1
 " this just makes more sense (there is potential quirkiness with yankstack, but 
 " with minimal testing, this appears to now work well)
 nmap Y y$
+
+" bind to not the default
 let g:NumberToggleTrigger="n" " alt+n
 
 " now that focuslost works with iterm and tmux maybe this is just generally 
