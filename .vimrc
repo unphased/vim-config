@@ -1217,9 +1217,11 @@ fu! RestoreSess()
 endfunction
 
 " autocmd VimLeave * call SaveSess()
-" Disabling this --- it's too goddamn cluttery to leave session files EVERY time
+" Sadly gotta disable this --- it's too goddamn cluttery to leave session files 
+" EVERY time. I need to come up with something to more easily save though. 
+" I reckon I should re-enable this, but make it auto-clean all but the 3 most 
+" recent session files. These session shits work REALLY good.
 " autocmd VimEnter * call RestoreSess()
-
 
 " This is for not putting two spaces after a period when Vim formats things
 set nojoinspaces
