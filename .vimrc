@@ -1343,6 +1343,17 @@ nmap Y y$
 " bind to not the default
 let g:NumberToggleTrigger="n" " alt+n
 
+" Keep these types of binds, and also keep esc from binding annoyingly for 
+" a second.
+if ! has('gui_running')
+	set ttimeoutlen=10
+	augroup FastEscape
+		autocmd!
+		au InsertEnter * set timeoutlen=1000
+		au InsertLeave * set timeoutlen=0
+	augroup END
+endif
+
 " now that focuslost works with iterm and tmux maybe this is just generally 
 " improved behavior. Do have to be careful, but it speeds shit up when rapidly 
 " working
