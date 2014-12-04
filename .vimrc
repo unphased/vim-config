@@ -971,6 +971,8 @@ nmap <A-S-D> <Plug>yankstack_substitute_newer_paste
 set <F23>=[27;5;9~
 set <F22>=[27;6;9~
 
+set <F21>=n
+
 " set the numpad key codes -- Mark helpfully already implements the stuff that
 " calls <k0>, etc
 set <k0>=Op
@@ -1343,18 +1345,7 @@ set cinoptions=b1
 nmap Y y$
 
 " bind to not the default
-let g:NumberToggleTrigger="n" " alt+n
-
-" Keep these types of binds, and also keep esc from binding annoyingly for 
-" a second.
-if ! has('gui_running')
-	set ttimeoutlen=10
-	augroup FastEscape
-		autocmd!
-		au InsertEnter * set timeoutlen=1000
-		au InsertLeave * set timeoutlen=0
-	augroup END
-endif
+let g:NumberToggleTrigger="<F21>" " alt+n
 
 " now that focuslost works with iterm and tmux maybe this is just generally 
 " improved behavior. Do have to be careful, but it speeds shit up when rapidly 
