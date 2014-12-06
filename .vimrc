@@ -1130,7 +1130,7 @@ vnoremap >> >
 " if ;w<CR> is typed in insert mode, exit insert mode and run a prompt asking
 " if you really want to save the file (rather than inserting ;w<CR> into file)
 function! MyConfirmSave()
-	if confirm('Save file? (you are getting lazy...)', "OK\nNo") == 1
+	if confirm('Save file? (you probably hit ;w<CR> in insert mode...)', "OK\nNo") == 1
 		w
 		silent redraw!
 	endif
@@ -1138,7 +1138,7 @@ endfunc
 inoremap ;w<CR> <ESC>:call MyConfirmSave()<CR>
 
 function! MyConfirmSaveQuit()
-	if confirm('Save file and then quit? (you are getting lazy...)', "OK\nNo") == 1
+	if confirm('Save file and then QUIT? (you probably hit ;wq<CR> in insert mode...)', "OK\nNo") == 1
 		wq
 		silent redraw!
 	endif
@@ -1146,7 +1146,7 @@ endfunc
 inoremap ;wq<CR> <ESC>:call MyConfirmSaveQuit()<CR>
 
 function! MyConfirmSaveQuitAll()
-	if confirm('Save file and then quit all? (you are getting lazy...)', "OK\nNo") == 1
+	if confirm('Save file and then QUIT ALL? (you probably hit ;wqa<CR> in insert mode...)', "OK\nNo") == 1
 		wqa
 		silent redraw!
 	endif
