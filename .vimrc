@@ -1339,7 +1339,6 @@ vnoremap b <C-U>
 " fixes aggravating default indentation for switch case statements, which also 
 " affects e.g. javascript
 set cinoptions=b1
-
 " this just makes more sense (there is potential quirkiness with yankstack, but 
 " with minimal testing, this appears to now work well)
 nmap Y y$
@@ -1350,4 +1349,7 @@ let g:NumberToggleTrigger="<F21>" " alt+n
 " now that focuslost works with iterm and tmux maybe this is just generally 
 " improved behavior. Do have to be careful, but it speeds shit up when rapidly 
 " working
-:au FocusLost * silent! wa
+au FocusLost * silent! wa
+
+" just also exit insert mode when swapping out via click or whatever
+au FocusLost,TabLeave * stopinsert 
