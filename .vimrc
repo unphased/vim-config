@@ -223,6 +223,7 @@ noremap ]l :lnext<CR>
 noremap [l :lprev<CR>
 
 " syntastic set up for jsx
+" MAKE SURE YOU HAVE npm install -g jsxhint
 let g:syntastic_javascript_checkers = ['jsxhint']
 
 " for debugging syntax
