@@ -385,6 +385,10 @@ vnoremap <C-Left> B
 nnoremap <C-Right> E
 vnoremap <C-Right> E
 
+" I just want to make visual mode yank also spit into system clipboard. Will 
+" only really work on OSX. I use a clipboard stack so clobbering is alright
+
+
 " Using these is sort of questionable as it does pollute undo history :(
 inoremap <S-Left> <C-O>b
 inoremap <S-Right> <C-O>e
@@ -1230,7 +1234,9 @@ endfunction
 " recent session files. These session shits work REALLY good.
 " autocmd VimEnter * call RestoreSess()
 
-" This is for not putting two spaces after a period when Vim formats things
+" This is for not putting two spaces after a period when Vim formats things. 
+" It's a dumb style that wastes perfectly good bytes and space for no good 
+" reason and looks annoying.
 set nojoinspaces
 
 " This is for less frustration in vblock mode (virtual-edit)
