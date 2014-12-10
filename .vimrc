@@ -51,6 +51,7 @@ Bundle 'wakatime/vim-wakatime'
 Bundle 'panozzaj/vim-autocorrect'
 Bundle 'kshenoy/vim-signature'
 Bundle 'jeffkreeftmeijer/vim-numbertoggle'
+Bundle 'mxw/vim-jsx'
 
 " Bundle 'Decho'
 
@@ -220,6 +221,9 @@ let g:HiCursorWords_delay = 15
 " map to move locationlist (syntastic errors)
 noremap ]l :lnext<CR>
 noremap [l :lprev<CR>
+
+" syntastic set up for jsx
+let g:syntastic_javascript_checkers = ['jsxhint']
 
 " for debugging syntax
 " (http://vim.wikia.com/wiki/Identify_the_syntax_highlighting_group_used_at_the_cursor)
