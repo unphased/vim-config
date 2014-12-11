@@ -1364,3 +1364,5 @@ au FocusLost * silent! wa
 
 " just also exit insert mode when swapping out via click or whatever
 au FocusLost,TabLeave * stopinsert 
+
+vnoremap y "+y
