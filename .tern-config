@@ -1,7 +1,9 @@
 {
   "libs": [
     "browser",
-    "jquery"
+    "jquery",
+    "underscore",
+    "ecma5"
   ],
   "loadEagerly": [
   ],
