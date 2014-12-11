@@ -1366,3 +1366,4 @@ au FocusLost * silent! wa
 au FocusLost,TabLeave * stopinsert 
 
 vnoremap y "+y
+
