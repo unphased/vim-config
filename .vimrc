@@ -52,6 +52,7 @@ Bundle 'panozzaj/vim-autocorrect'
 Bundle 'kshenoy/vim-signature'
 Bundle 'jeffkreeftmeijer/vim-numbertoggle'
 Bundle 'mxw/vim-jsx'
+Bundle 'shime/vim-livedown'
 
 " Bundle 'Decho'
 
@@ -74,6 +75,10 @@ au! BufRead,BufNewFile *.mlp set ft=xml
 
 
 autocmd BufNewFile,BufRead *.vsh,*.fsh,*.vp,*.fp,*.gp,*.vs,*.fs,*.gs,*.tcs,*.tes,*.cs,*.vert,*.frag,*.geom,*.tess,*.shd,*.gls,*.glsl set ft=glsl440
+
+autocmd BufNewFile,BufReadPost *.md set filetype=markdown
+
+let g:livedown_autorun = 1
 
 " Friendly for editing temp files (the case that prompted this was
 " submit_files.pl
@@ -851,6 +856,7 @@ function! NextWindowOrTabOrBuffer()
 	if (winnr('$') == 1 && tabpagenr('$') == 1)
 		" only situation where we cycle to next buffer
 		bnext
+		return
 	endif
 	" Rest of logic is just as sound (and simple) as it ever was
 	if (winnr() == winnr('$'))
@@ -858,6 +864,9 @@ function! NextWindowOrTabOrBuffer()
 		1wincmd w "first window
 	else
 		wincmd w "next window
+	endif
+	if (&bufhidden == 'wipe')
+		wincmd w "skip scratch buffers provided by YCM
 	endif
 endfunc
 
@@ -872,6 +881,9 @@ function! PrevWindowOrTabOrBuffer()
 		exec winnr . 'wincmd w'
 	else
 		wincmd W
+	endif
+	if (&bufhidden == 'wipe')
+		wincmd w "skip scratch buffers provided by YCM
 	endif
 endfunc
 
