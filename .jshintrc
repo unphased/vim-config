@@ -11,6 +11,6 @@
 	"node": true,
 	"lastsemic": true,
 	"funcscope": true,
-	"maxlen": 120,
+	"maxlen": 5000,
 	"debug": true
 }
