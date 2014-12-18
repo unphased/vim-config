@@ -4,6 +4,9 @@ set showcmd
 
 filetype off " Vundle needs this
 
+" testing this before loading plugins
+vnoremap y "+y
+
 set rtp+=~/.vim/bundle/vundle/
 call vundle#rc()
 
@@ -874,6 +877,7 @@ function! PrevWindowOrTabOrBuffer()
 	if (winnr('$') == 1 && tabpagenr('$') == 1)
 		" only situation where we cycle to next buffer
 		bprev
+		return
 	endif
 	if (winnr() == 1)
 		tabprev
@@ -883,7 +887,7 @@ function! PrevWindowOrTabOrBuffer()
 		wincmd W
 	endif
 	if (&bufhidden == 'wipe')
-		wincmd w "skip scratch buffers provided by YCM
+		wincmd W "skip scratch buffers provided by YCM
 	endif
 endfunc
 
@@ -1376,6 +1380,4 @@ au FocusLost * silent! wa
 
 " just also exit insert mode when swapping out via click or whatever
 au FocusLost,TabLeave * stopinsert 
-
-vnoremap y "+y
 
