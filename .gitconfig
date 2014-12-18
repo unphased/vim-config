@@ -4,7 +4,7 @@
 [core]
 	editor = vim
 	whitespace = cr-at-eol
-	excludesfile = /Users/lust/.gitignore
+	excludesfile = /root/.gitignore
 [color]
 	ui = true
 [alias]
