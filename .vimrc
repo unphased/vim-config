@@ -4,9 +4,6 @@ set showcmd
 
 filetype off " Vundle needs this
 
-" testing this before loading plugins
-vnoremap y "+y
-
 set rtp+=~/.vim/bundle/vundle/
 call vundle#rc()
 
@@ -29,6 +26,7 @@ Bundle 'tpope/vim-repeat'
 Bundle 'tpope/vim-surround'
 Bundle 'tpope/vim-speeddating'
 Bundle 'tpope/vim-commentary'
+Bundle 'tpope/vim-obsession'
 Bundle 'vim-perl/vim-perl'
 "Bundle 'Raimondi/delimitMate'
 Bundle 'mattn/emmet-vim'
@@ -56,6 +54,8 @@ Bundle 'kshenoy/vim-signature'
 Bundle 'jeffkreeftmeijer/vim-numbertoggle'
 Bundle 'mxw/vim-jsx'
 Bundle 'shime/vim-livedown'
+
+Bundle 'tmux-plugins/vim-tmux'
 
 " Bundle 'Decho'
 
