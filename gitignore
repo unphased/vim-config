@@ -3,4 +3,5 @@
 *.un~
 *.swp
 .session*.vim
+Session.vim
 *.pyc
