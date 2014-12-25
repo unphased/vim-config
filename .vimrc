@@ -57,8 +57,6 @@ Plugin 'shime/vim-livedown'
 
 Plugin 'tmux-plugins/vim-tmux'
 
-Plugin 'xolox/vim-misc'
-Plugin 'xolox/vim-easytags'
 Plugin 'majutsushi/tagbar'
 
 " Bundle 'Decho'
@@ -1387,8 +1385,8 @@ au FocusLost,TabLeave * stopinsert
 
 " for tagbar
 " add a definition for Objective-C to tagbar
-let g:tagbar_type_objc = {
-	\ 'ctagstype' : 'objc',
+let g:tagbar_type_objcpp = {
+	\ 'ctagstype' : 'objcpp',
 	\ 'kinds': [
 	\     'i:class interface'
 	\,    'x:class extension'
@@ -1404,5 +1402,5 @@ let g:tagbar_type_objc = {
 	\,    'g:pragma'
 	\,    'c:constant'
 	\, ],
-	\ 'sro'        : ' ',
+	\ 'sro'        : ' '
 	\ }

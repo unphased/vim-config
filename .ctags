@@ -1,5 +1,5 @@
---langdef=objc
---langmap=objc:.m.mm.h
+--langdef=objcpp
+--langmap=objcpp:.mm.m.h
 --regex-objc=/\@interface[[:space:]]+([[:alnum:]_]+)[[:space:]]*:/\1/i,interface/
 --regex-objc=/\@interface[[:space:]]+([[:alnum:]_]+)[[:space:]]*\(([[:alnum:]_]*)\)/\1(\2)/x,extension/
 --regex-objc=/\@implementation[[:space:]]+([[:alnum:]_]+)[[:space:]]*$/\1/I,implementation/
