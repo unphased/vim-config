@@ -247,15 +247,22 @@ set updatetime=500
 " noremap! <F5> <C-O>:YcmForceCompileAndDiagnostics<CR>
 " noremap <F5> :YcmForceCompileAndDiagnostics<CR>
 
-" Binding F5 to the fswitch (switching between lc/cpp and h/hxx/hpp) -- I like
-" to use this followed by ctrlp MRU rather than having to type in stuff
+" Binding F5 to the fswitch (switching between c/cpp and h/hxx/hpp) -- I like
+" to use this and ctrlp MRU rather than having to type in stuff
 nmap <silent> <F5> :FSSplitBelow<CR>
+
+" additional fswitch definitions are implemented not through any friendly 
+" variables but through defining variables via file autocommands -- i think it's
+" admissible as its fairly straightforward reasoning, at least
+au BufEnter *.vsh let b:fswitchdst = 'fsh'
+au BufEnter *.fsh let b:fswitchdst = 'vsh'
+au BufEnter *.mm  let b:fswitchdst = 'h' | let b:fswitchlocs = 'reg:/src/include/,reg:|src|include/**|,ifrel:|/src/|../include|'
 
 function! InsertEnterActions(mode)
 	echo 'islc'
   if a:mode == 'i'
-	hi CursorLine ctermbg=237
-	hi CursorLineNr cterm=bold ctermfg=255
+	hi CursorLine ctermbg=235
+	hi CursorLineNr cterm=bold ctermfg=199 ctermbg=237
   elseif a:mode == 'r'
 	hi CursorLine cterm=reverse
   else
@@ -263,15 +270,15 @@ function! InsertEnterActions(mode)
 endfunction
 
 function! InsertLeaveActions()
-	hi CursorLine ctermbg=16 cterm=NONE
-	hi CursorLineNr ctermfg=11
+	hi CursorLine ctermbg=234 cterm=NONE
+	hi CursorLineNr ctermfg=11 ctermbg=NONE
 	" This next line is actually really cool, but I am taking it out for
 	" consistency with other editors whose vim-modes do not allow me to do this
 	" call cursor([getpos('.')[1], getpos('.')[2]+1]) " move cursor forward
 endfunction
 
-hi CursorLine ctermbg=16
-set nocursorline
+hi CursorLine ctermbg=234
+set cursorline
 
 au! InsertEnter * call InsertEnterActions(v:insertmode)
 " au InsertChange * call InsertStatuslineColor(v:insertmode)
@@ -805,8 +812,10 @@ inoremap <C-W> <ESC><C-W>
 " functionality that is already ingrained)
 inoremap <C-Z> <C-O>u
 
-nnoremap <F8> :DiffChangesDiffToggle<CR>
 nnoremap <F9> :DiffChangesPatchToggle<CR>
+nnoremap <S-F9> :DiffChangesDiffToggle<CR>
+
+nnoremap <F8> :TagbarToggle<CR>
 
 " this is a ctrl + backslash binding to vsplit
 nnoremap <C-\> :vsplit<CR>
