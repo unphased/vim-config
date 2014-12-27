@@ -270,14 +270,14 @@ function! InsertEnterActions(mode)
 endfunction
 
 function! InsertLeaveActions()
-	hi CursorLine ctermbg=234 cterm=NONE
+	hi CursorLine ctermbg=NONE cterm=NONE
 	hi CursorLineNr ctermfg=11 ctermbg=NONE
 	" This next line is actually really cool, but I am taking it out for
 	" consistency with other editors whose vim-modes do not allow me to do this
 	" call cursor([getpos('.')[1], getpos('.')[2]+1]) " move cursor forward
 endfunction
 
-hi CursorLine ctermbg=234
+hi CursorLine ctermbg=NONE
 set cursorline
 
 au! InsertEnter * call InsertEnterActions(v:insertmode)
