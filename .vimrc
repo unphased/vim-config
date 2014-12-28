@@ -1029,7 +1029,7 @@ nnoremap , @q
 " more ctrlp settings
 let g:ctrlp_switch_buffer = 'Et' " Jump to tab AND buffer if already open
 let g:ctrlp_open_new_file = 'r' " Open new files in a new tab
-let g:ctrlp_open_multiple_files = 'trj'
+let g:ctrlp_open_multiple_files = 'vj'
 let g:ctrlp_show_hidden = 1 " Index hidden files
 let g:ctrlp_follow_symlinks = 1
 
