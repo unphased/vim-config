@@ -791,6 +791,8 @@ inoremap <C-P> <C-O>p<CR>
 
 " set highlight for search to be less blinding
 highlight Search ctermbg=22 ctermfg=253
+highlight Error term=reverse ctermfg=8 ctermbg=9
+highlight SpellBad term=reverse ctermfg=16 ctermbg=9
 
 " only on an italic term do we set comment to use italic cterm highlight
 if &term == 'xterm-256color-italic'
