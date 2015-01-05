@@ -53,7 +53,6 @@ Plugin 'panozzaj/vim-autocorrect'
 Plugin 'kshenoy/vim-signature'
 Plugin 'jeffkreeftmeijer/vim-numbertoggle'
 Plugin 'mxw/vim-jsx'
-Plugin 'shime/vim-livedown'
 
 Plugin 'tmux-plugins/vim-tmux'
 
@@ -82,8 +81,6 @@ au! BufRead,BufNewFile *.mlp set ft=xml
 autocmd BufNewFile,BufRead *.vsh,*.fsh,*.vp,*.fp,*.gp,*.vs,*.fs,*.gs,*.tcs,*.tes,*.cs,*.vert,*.frag,*.geom,*.tess,*.shd,*.gls,*.glsl set ft=glsl440
 
 autocmd BufNewFile,BufReadPost *.md set filetype=markdown
-
-let g:livedown_autorun = 1
 
 " Friendly for editing temp files (the case that prompted this was
 " submit_files.pl
