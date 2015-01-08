@@ -550,7 +550,9 @@ noremap <silent> <F3> :call SwitchTabNext()<CR>
 " can serve productive purposes.
 
 " This is for accomodating PuTTY's behavior of turning shift+F1 into F11
-nnoremap <F11> :tabclose<CR>
+" But I don't want it because sometimes i turn off the volume keys bind on osx 
+" (for being able to use those keys in parallels)
+" nnoremap <F11> :tabclose<CR>
 
 set showtabline=1  " 0, 1 or 2; when to use a tab pages line
 " set tabline=%!MyTabLine()  " custom tab pages line
