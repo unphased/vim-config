@@ -407,7 +407,9 @@ vnoremap <C-Right> E
 inoremap <S-Left> <C-O>b
 inoremap <S-Right> <C-O>e
 inoremap <C-Left> <C-O>B
-inoremap <C-Right> <C-O>E
+inoremap <C-Right> <C-O>e
+" This last one isnt E because of some stupid bind problem with E (which is my 
+" smart semicolon aware end of line edit key, which i never use... grr)
 
 " I like joining lines (I do this operation with the delete key a lot -- that
 " key is a reach) -- this map is used because it is *close* to J
