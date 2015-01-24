@@ -12,6 +12,7 @@ alias gs="git s" # short status
 alias gco="git checkout"
 alias glp="git log -p --no-ext-diff"
 alias glpe="git log -p --ext-diff"
+alias glpef="git log -p --ext-diff --follow"
 alias gdt="git difftool"
 alias gd="git diff --no-ext-diff"
 alias gds="git diff --stat"
