@@ -424,7 +424,7 @@ noremap <S-H> 7h
 noremap <S-L> 7l
 
 set wrap
-set textwidth=80 
+set textwidth=79 
 " after much messing around, 80 is still a good wrap point to keep at least the 
 " comments neat
 
