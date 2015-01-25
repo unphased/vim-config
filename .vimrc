@@ -219,8 +219,7 @@ highlight DiffDelete term=reverse ctermbg=red ctermfg=white
 
 " mostly for syntastic
 highlight SpellCap ctermfg=16
-highlight Error ctermfg=7
-highlight SpellBad ctermfg=7 ctermbg=196
+highlight SyntasticError ctermbg=196
 
 hi clear SignColumn
 
@@ -228,8 +227,9 @@ hi clear SignColumn
 let g:HiCursorWords_delay = 15
 
 " map to move locationlist (syntastic errors)
-noremap ]l :lnext<CR>
-noremap [l :lprev<CR>
+" (now taken care of by unimpaired)
+" noremap ]l :lnext<CR>
+" noremap [l :lprev<CR>
 
 " syntastic set up for jsx
 " MAKE SURE YOU HAVE npm install -g jsxhint
