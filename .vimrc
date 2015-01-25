@@ -58,6 +58,8 @@ Plugin 'tmux-plugins/vim-tmux'
 
 Plugin 'majutsushi/tagbar'
 
+Plugin 'tpope/vim-unimpaired'
+
 " Bundle 'Decho'
 
 filetype plugin indent on "more Vundle setup
@@ -1436,9 +1438,13 @@ map <leader>ev :vsp %%
 map <leader>et :tabe %%
 
 " Spell check on by default. Why not? It just needs to be a style that is 
-" superbly subtle so that it does not become annoying. The default of red 
-" background is problematic.
+" sufficiently subtle so that it does not become annoying. The default of red 
+" background is problematic. I am a little undecided on if underline is 
+" sufficient.
 set spell
 nmap <leader>s :set spell!<CR>
 
 highlight SpellBad ctermbg=NONE ctermfg=NONE cterm=underline
+" There exist some other spelling related highlight styles but i'll just deal 
+" with them when i see them show up as I see fit. the capitalization one is 
+" pretty acceptable for now also.
