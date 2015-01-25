@@ -1364,21 +1364,21 @@ function! SmartInsertEndOfLine()
 endfun
 
 " Overriding the key that normally moves to the end of a big-word. I never use 
-" that... however it may be smart to eventually remap some other combo to that 
+" that... However, it may be smart to eventually remap some other combo to that 
 " functionality
 nnoremap E :call SmartInsertEndOfLine()<CR>
 
 " I decided i wanted the b for page up again. i already got used to backspace to 
-" go back a word; i dont have a problem with it. the reach for the z key is not 
+" go back a word; i don't have a problem with it. The reach for the Z key is not 
 " nice. And its not like i was going to make the backspace key do page up 
-" either, thats too reachy to navigate around. it does seem to work well enough 
+" either, thats too reachy to navigate around. It does seem to work well enough 
 " when moving back short distances on a line so i like it the way i had it 
 " before.
 nnoremap b <C-U>
 vnoremap b <C-U>
 
 " fixes aggravating default indentation for switch case statements, which also 
-" affects e.g. javascript
+" affects e.g. JavaScript
 set cinoptions=b1
 " this just makes more sense (there is potential quirkiness with yankstack, but 
 " with minimal testing, this appears to now work well)
@@ -1434,3 +1434,11 @@ map <leader>ew :e %%
 map <leader>es :sp %%
 map <leader>ev :vsp %%
 map <leader>et :tabe %%
+
+" Spell check on by default. Why not? It just needs to be a style that is 
+" superbly subtle so that it does not become annoying. The default of red 
+" background is problematic.
+set spell
+nmap <leader>s :set spell!<CR>
+
+highlight SpellBad ctermbg=NONE ctermfg=NONE cterm=underline
