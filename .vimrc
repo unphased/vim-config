@@ -1448,3 +1448,12 @@ highlight SpellBad ctermbg=NONE ctermfg=NONE cterm=underline
 " There exist some other spelling related highlight styles but i'll just deal 
 " with them when i see them show up as I see fit. the capitalization one is 
 " pretty acceptable for now also.
+
+" Macro meta commands. For editing macros to refine them. This is just brimming 
+" with power. Found here: 
+" http://dailyvim.blogspot.com/2007/11/macro-registers.html
+" Not too much but just a wrinkle, not really able (easily) to start recording 
+" into the p or d registers. lol
+
+nnoremap qp Go<ESC>"qp
+nnoremap qd G0"qd$
