@@ -1425,3 +1425,12 @@ let vimtmp = $HOME . '/.tmp/' . getpid()
 silent! call mkdir(vimtmp, "p", 0700)
 let &backupdir=vimtmp
 let &directory=vimtmp
+
+" I've been watching Drew Neil's vimcasts.
+" Here are some binds that are just brilliant for the :e command which remains 
+" greatly useful even in the presence of CtrlP
+cnoremap %% <C-R>=fnameescape(expand('%:h')).'/'<cr>
+map <leader>ew :e %%
+map <leader>es :sp %%
+map <leader>ev :vsp %%
+map <leader>et :tabe %%
