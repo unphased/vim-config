@@ -90,7 +90,7 @@ autocmd BufNew,BufRead /tmp/* setlocal formatoptions=tcq
 
 nnoremap <Leader>g :call TimeLapse()<CR>
 
-nnoremap <Leader>e :silent !p4 edit %:p<CR>:redraw!<CR>
+" nnoremap <Leader>e :silent !p4 edit %:p<CR>:redraw!<CR>
 nnoremap <Leader>R :silent redraw!<CR>
 
 " Ultisnips settings (to have it work together with YCM)
