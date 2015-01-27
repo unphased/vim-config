@@ -1422,6 +1422,9 @@ let g:tagbar_type_objcpp = {
 " set tagbar highlight color
 hi TagBarHighlight ctermbg=27 ctermfg=254
 
+" set tagbar to open on the left side
+let g:tagbar_left=1
+
 " Store temporary files in a central spot
 let vimtmp = $HOME . '/.tmp/' . getpid()
 silent! call mkdir(vimtmp, "p", 0700)
