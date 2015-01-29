@@ -1038,6 +1038,12 @@ let g:ctrlp_open_multiple_files = 'vj'
 let g:ctrlp_show_hidden = 1 " Index hidden files
 let g:ctrlp_follow_symlinks = 1
 
+" Edit this as necessary as work patterns change...
+let g:ctrlp_custom_ignore = { 
+  \ 'dir':  '\v[\/]node_modules|public\/js\/app\/views|(\.(git|hg|svn))$',
+  \ 'file': '\v\.(exe|so|dll|DS_Store|un~)$',
+  \ }
+
 " pulled from http://vim.wikia.com/wiki/Move_current_window_between_tabs
 function! MoveToPrevTab()
   "there is only one window
