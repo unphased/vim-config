@@ -17,6 +17,7 @@
 		"_",
 		"app",
 		"define",
-		"page"
+		"page",
+		"moment"
 	]
 }
