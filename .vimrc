@@ -1039,9 +1039,10 @@ let g:ctrlp_show_hidden = 1 " Index hidden files
 let g:ctrlp_follow_symlinks = 1
 
 " Edit this as necessary as work patterns change...
+" Do note that you have to manually rescan with F5 to see this applied!
 let g:ctrlp_custom_ignore = { 
   \ 'dir':  '\v[\/]node_modules|public\/js\/app\/views|(\.(git|hg|svn))$',
-  \ 'file': '\v\.(exe|so|dll|DS_Store|un~)$',
+  \ 'file': '\v\.(exe|so|dll|DS_Store|un\~)$',
   \ }
 
 " pulled from http://vim.wikia.com/wiki/Move_current_window_between_tabs
@@ -1386,8 +1387,9 @@ nnoremap b <C-U>
 vnoremap b <C-U>
 
 " fixes aggravating default indentation for switch case statements, which also 
-" affects e.g. JavaScript
-set cinoptions=b1
+" affects e.g. JavaScript -- except it stopped working, lets try l
+set cinoptions=l1
+
 " this just makes more sense (there is potential quirkiness with yankstack, but 
 " with minimal testing, this appears to now work well)
 nmap Y y$
