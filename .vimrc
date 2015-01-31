@@ -1497,4 +1497,4 @@ set colorcolumn=80
 highlight ColorColumn ctermbg=235 term=NONE
 
 " This one is insane. In the membraaaane...
-nnoremap . :normal! j.<CR>
+nnoremap . :normal! .j<CR>
