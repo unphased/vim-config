@@ -1106,7 +1106,7 @@ func! MyResizeDown()
 	else
 		wincmd p
 	endif
-	3wincmd +
+	res +3
 	exec curwindow.'wincmd w'
 endfunc
 
@@ -1118,7 +1118,7 @@ func! MyResizeUp()
 	else
 		wincmd p
 	endif
-	3wincmd -
+	res -3
 	exec curwindow.'wincmd w'
 endfunc
 
@@ -1130,7 +1130,7 @@ func! MyResizeRight()
 	else
 		wincmd p
 	endif
-	5wincmd >
+	vertical res +5
 	exec curwindow.'wincmd w'
 endfunc
 
@@ -1142,7 +1142,7 @@ func! MyResizeLeft()
 	else
 		wincmd p
 	endif
-	5wincmd <
+	vertical res -5
 	exec curwindow.'wincmd w'
 endfunc
 
