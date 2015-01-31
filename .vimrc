@@ -218,7 +218,6 @@ highlight DiffText term=reverse ctermbg=blue ctermfg=16
 highlight DiffDelete term=reverse ctermbg=red ctermfg=white
 
 " mostly for syntastic
-highlight SpellCap ctermfg=16
 highlight SyntasticError ctermbg=196
 
 hi clear SignColumn
@@ -795,7 +794,6 @@ inoremap <C-P> <C-O>p<CR>
 " set highlight for search to be less blinding
 highlight Search ctermbg=22 ctermfg=253
 highlight Error term=reverse ctermfg=8 ctermbg=9
-highlight SpellBad term=reverse ctermfg=16 ctermbg=9
 
 " only on an italic term do we set comment to use italic cterm highlight
 if &term == 'xterm-256color-italic'
@@ -1461,6 +1459,7 @@ set spell
 nmap <leader>s :set spell!<CR>
 
 highlight SpellBad ctermbg=NONE ctermfg=NONE cterm=underline
+highlight SpellCap ctermbg=NONE ctermfg=NONE cterm=underline,bold
 " There exist some other spelling related highlight styles but i'll just deal 
 " with them when i see them show up as I see fit. the capitalization one is 
 " pretty acceptable for now also.
@@ -1473,3 +1472,25 @@ highlight SpellBad ctermbg=NONE ctermfg=NONE cterm=underline
 
 nnoremap qp Go<ESC>"qp
 nnoremap qd G0"qd$
+
+" globally highlight some keywords
+
+autocmd BufEnter * highlight OverLength ctermbg=52
+autocmd BufEnter * match OverLength /\%>79v.\+/
+autocmd BufEnter * let w:long_line_match = 1
+ 
+fu! LongLineHighlightToggle()
+  highlight OverLength ctermbg=52
+  if exists('w:long_line_match') 
+    match OverLength //
+    unlet w:long_line_match
+  else 
+    match OverLength /\%>79v.\+/
+    let w:long_line_match = 1
+  endif
+endfunction
+map <Leader>l :call LongLineHighlightToggle()<CR>
+
+set colorcolumn=80
+highlight ColorColumn ctermbg=235 term=NONE
+
