@@ -1484,9 +1484,11 @@ fu! LongLineHighlightToggle()
   if exists('w:long_line_match') 
     match OverLength //
     unlet w:long_line_match
+    set colorcolumn=""
   else 
     match OverLength /\%>79v.\+/
     let w:long_line_match = 1
+    set colorcolumn=80
   endif
 endfunction
 map <Leader>l :call LongLineHighlightToggle()<CR>
