@@ -1400,7 +1400,12 @@ let g:NumberToggleTrigger="<F21>" " alt+n
 " now that focuslost works with iterm and tmux maybe this is just generally 
 " improved behavior. Do have to be careful, but it speeds shit up when rapidly 
 " working
-au FocusLost * silent! wa
+" Update not too many weeks later -- This actually causes phantom unintended 
+" undoes being committed -- Also complicit in that particular brand of 
+" treachery is Airline's tab bar. I am bringing back the old utilitarian tab 
+" bar of mine again...
+
+" au FocusLost * silent! wa
 
 " just also exit insert mode when swapping out via click or whatever
 au FocusLost,TabLeave * stopinsert 
