@@ -1476,20 +1476,19 @@ nnoremap qd G0"qd$
 " globally highlight some keywords
 
 autocmd BufEnter * highlight OverLength ctermbg=52
-autocmd BufEnter * match OverLength /\%>79v.\+/
-autocmd BufEnter * let w:long_line_match = 1
+autocmd BufEnter * match OverLength //
  
 fu! LongLineHighlightToggle()
-  highlight OverLength ctermbg=52
-  if exists('w:long_line_match') 
-    match OverLength //
-    unlet w:long_line_match
-    set colorcolumn=""
-  else 
-    match OverLength /\%>79v.\+/
-    let w:long_line_match = 1
-    set colorcolumn=80
-  endif
+	highlight OverLength ctermbg=52
+	if exists('w:long_line_match') 
+		match OverLength //
+		unlet w:long_line_match
+		" set colorcolumn=""
+	else 
+		match OverLength /\%>79v.\+/
+		let w:long_line_match = 1
+		" set colorcolumn=80
+	endif
 endfunction
 map <Leader>l :call LongLineHighlightToggle()<CR>
 
