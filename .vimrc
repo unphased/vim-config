@@ -60,6 +60,8 @@ Plugin 'majutsushi/tagbar'
 
 Plugin 'tpope/vim-unimpaired'
 
+Plugin 'vim-scripts/camelcasemotion'
+
 " Bundle 'Decho'
 
 filetype plugin indent on "more Vundle setup
@@ -149,7 +151,16 @@ inoremap <F4> <ESC>:GundoToggle<CR>
 " nmap <C-V> "*p
 " vmap <C-C> "*y
 
+" The new way to do copypaste is with + register -- I already have it set up to 
+" have visual mode y yank to OS X pasteboard.
+
 nnoremap <Leader>L :so $MYVIMRC<CR>:runtime! after/plugin/*.vim<CR>
+
+" for camelcasemotion, bringing back the original , by triggering it with ,,
+" the comma repeats last t/f/T/F which I use more than i did before
+    nnoremap ,, ,
+    xnoremap ,, ,
+    onoremap ,, ,
 
 set hlsearch
 set incsearch
@@ -1041,6 +1052,8 @@ set <F22>=[27;6;9~
 
 set <F21>=n
 
+set <F20>=.
+
 " set the numpad key codes -- Mark helpfully already implements the stuff that
 " calls <k0>, etc
 set <k0>=Op
@@ -1054,9 +1067,9 @@ set <k7>=Ow
 set <k8>=Ox
 set <k9>=Oy
 
-" make recordings easier to fire off, binding comma to @q (use qq to record
-" what you wanna repeat using comma)
-nnoremap , @q
+" make recordings easier to fire off, binding alt+period to @q (use qq to 
+" record to q register)
+nnoremap <F20> @q
 
 " more ctrlp settings
 let g:ctrlp_switch_buffer = 'Et' " Jump to tab AND buffer if already open
