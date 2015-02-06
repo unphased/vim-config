@@ -1383,7 +1383,9 @@ let g:airline#extensions#whitespace#checks = [ 'indent' ]
 
 "   http://css-tricks.com/words-avoid-educational-writing/
 
-highlight TechWordsToAvoid ctermbg=red ctermfg=white
+highlight TechWordsToAvoid ctermbg=52
+" 52 is the darkest red and it is a handy non-painful color
+
 function! MatchTechWordsToAvoid()
 	match TechWordsToAvoid /\c\<\(obviously\|basically\|simply\|of\scourse\|clearly\|everyone\sknows\|so,\)\>/
 endfunction
