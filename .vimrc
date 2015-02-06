@@ -61,6 +61,8 @@ Plugin 'majutsushi/tagbar'
 Plugin 'tpope/vim-unimpaired'
 
 Plugin 'vim-scripts/camelcasemotion'
+Plugin 'vim-scripts/EnhancedJumps'
+Plugin 'vim-scripts/ingo-library' " needed for EnhancedJumps
 
 " Bundle 'Decho'
 
@@ -158,9 +160,19 @@ nnoremap <Leader>L :so $MYVIMRC<CR>:runtime! after/plugin/*.vim<CR>
 
 " for camelcasemotion, bringing back the original , by triggering it with ,,
 " the comma repeats last t/f/T/F which I use more than i did before
-    nnoremap ,, ,
-    xnoremap ,, ,
-    onoremap ,, ,
+nnoremap ,, ,
+xnoremap ,, ,
+onoremap ,, ,
+
+" remapping keys for EnhancedJumps: I obviously cant let tab get mapped. Since 
+" curly braces are conveniently available as hopping by paragraphs is not 
+" useful, this example given by the doc will work out well.
+nmap {          <Plug>EnhancedJumpsOlder
+nmap }          <Plug>EnhancedJumpsNewer
+nmap g{         <Plug>EnhancedJumpsLocalOlder
+nmap g}         <Plug>EnhancedJumpsLocalNewer
+nmap <Leader>{  <Plug>EnhancedJumpsRemoteOlder
+nmap <Leader>}  <Plug>EnhancedJumpsRemoteNewer
 
 set hlsearch
 set incsearch
