@@ -117,6 +117,30 @@ au! VimEnter,Colorscheme * :hi IndentGuidesOdd ctermbg=235 ctermfg=16 | hi Inden
 let g:signify_sign_overwrite = 0
 let g:signify_update_on_focusgained = 1
 
+" customizing the vim-signature bindings (to un-delay the backtick)
+
+let g:SignatureMap = {
+	\ 'Leader'             :  "m",
+	\ 'PlaceNextMark'      :  "m,",
+	\ 'ToggleMarkAtLine'   :  "m.",
+	\ 'PurgeMarksAtLine'   :  "m-",
+	\ 'DeleteMark'         :  "dm",
+	\ 'PurgeMarks'         :  "m<Space>",
+	\ 'PurgeMarkers'       :  "m<BS>",
+	\ 'GotoNextSpotAlpha'  :  "']",
+	\ 'GotoPrevSpotAlpha'  :  "'[",
+	\ 'GotoNextLineByPos'  :  "]'",
+	\ 'GotoPrevLineByPos'  :  "['",
+	\ 'GotoNextSpotByPos'  :  "]`",
+	\ 'GotoPrevSpotByPos'  :  "[`",
+	\ 'GotoNextMarker'     :  "[+",
+	\ 'GotoPrevMarker'     :  "[-",
+	\ 'GotoNextMarkerAny'  :  "]=",
+	\ 'GotoPrevMarkerAny'  :  "[=",
+	\ 'ListLocalMarks'     :  "m/",
+	\ 'ListLocalMarkers'   :  "m?"
+	\ }
+
 nnoremap <F4> :GundoToggle<CR>
 inoremap <F4> <ESC>:GundoToggle<CR>
 
