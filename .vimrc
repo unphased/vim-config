@@ -698,6 +698,9 @@ nnoremap <F6> :CtrlPMRUFiles<CR>
 inoremap <F6> <ESC>:CtrlPMRUFiles<CR>
 nnoremap <S-F6> :NERDTreeToggle<CR>
 
+" opens the current buffer in nerdtree
+nnoremap <Leader>f :NERDTreeFind<CR>
+
 " I definitely do not use this -- F7 is now YCM sign toggle.
 " nnoremap <F7> :NERDTreeToggle<CR>
 
