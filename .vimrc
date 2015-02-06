@@ -266,6 +266,7 @@ highlight DiffDelete term=reverse ctermbg=red ctermfg=white
 
 " mostly for syntastic
 highlight SyntasticError ctermbg=196
+highlight SyntasticWarning ctermbg=31
 
 hi clear SignColumn
 
