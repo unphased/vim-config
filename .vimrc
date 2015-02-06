@@ -174,6 +174,9 @@ nmap g}         <Plug>EnhancedJumpsLocalNewer
 nmap <Leader>{  <Plug>EnhancedJumpsRemoteOlder
 nmap <Leader>}  <Plug>EnhancedJumpsRemoteNewer
 
+" some possible conflict with :redir
+let g:EnhancedJumps_CaptureJumpMessages = 0
+
 set hlsearch
 set incsearch
 set showmatch " May be overly conspicuous and unnecessary
@@ -1531,8 +1534,7 @@ nnoremap qd G0"qd$
 " globally highlight some keywords
 
 autocmd BufEnter * highlight OverLength ctermbg=52
-autocmd BufEnter * match OverLength //
- 
+
 fu! LongLineHighlightToggle()
 	highlight OverLength ctermbg=52
 	if exists('w:long_line_match') 
