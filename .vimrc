@@ -1007,7 +1007,7 @@ nnoremap <F35> <C-R>
 vnoremap <F35> <ESC><C-R>
 
 " Make Alt+Tab switch vim tabs  (todo: figure out a less wrong escape code to
-" use) -- this one is clearly only possible on a Mac
+" use) -- this one is only possible on a Mac
 set <F34>=[99Z
 inoremap <F34> <C-O>:tabnext<CR>
 nnoremap <F34> :tabnext<CR>
@@ -1554,6 +1554,13 @@ nnoremap qd G0"qd$
 " aaa aaaa a a
 "          aaa
 
+" ############&&&&&^^^
+" ##########&&&&&&&
+" ###text#&&&&&&
+" ##########&&&&&&&
+" ############&&&&&^^^
+
+
 " Converts using outline.pl to:
  
 " ┌───┬────┬┬┬┬──┬┐
@@ -1566,12 +1573,6 @@ nnoremap qd G0"qd$
 " │└┘││└─┘│││││
 " └──┘└───┘│└┘│
 "          └──┘
-
-" ┌┐┌─────┬────┬┬┬┬──┬┐
-" │││ ┌─┐ │ ┌┐ ││├┘  │└─┐
-" │││ │ │ │ └┘ ││└┐  │┌┬┘
-" │││ └─┘ │    ││┌┤  │├┘
-" └┘└─────┴────┴┴┴┴──┴┘
 
 " Note how this is really easy to invoke (visual select, then :!out<Tab><CR>)
 " Outline has been edited by me to only accept numeric and special char values
