@@ -160,9 +160,14 @@ nnoremap <Leader>L :so $MYVIMRC<CR>:runtime! after/plugin/*.vim<CR>
 
 " for camelcasemotion, bringing back the original , by triggering it with ,,
 " the comma repeats last t/f/T/F which I use more than i did before
-nnoremap ,, ;
-xnoremap ,, ;
-onoremap ,, ;
+" alt reverses it
+nnoremap , ;
+xnoremap , ;
+onoremap , ;
+
+nnoremap <F19> ,
+xnoremap <F19> ,
+onoremap <F19> ,
 
 " remapping keys for EnhancedJumps: I obviously cant let tab get mapped. Since 
 " curly braces are conveniently available as hopping by paragraphs is not 
@@ -1069,6 +1074,7 @@ set <F22>=[27;6;9~
 set <F21>=n
 
 set <F20>=.
+set <F19>=,
 
 " set the numpad key codes -- Mark helpfully already implements the stuff that
 " calls <k0>, etc
@@ -1085,7 +1091,9 @@ set <k9>=Oy
 
 " make recordings easier to fire off, binding alt+period to @q (use qq to 
 " record to q register)
-nnoremap <F20> @q
+" TBH since i wanted to bring comma back and stick with defaults, @ isnt too 
+" hard to reach anyway, I'm abandoning this map
+" nnoremap <F20> @q
 
 " more ctrlp settings
 let g:ctrlp_switch_buffer = 'Et' " Jump to tab AND buffer if already open
@@ -1533,7 +1541,71 @@ highlight SpellCap ctermbg=NONE ctermfg=NONE cterm=underline,bold
 nnoremap qp Go<ESC>"qp
 nnoremap qd G0"qd$
 
-" globally highlight some keywords
+" Just taking some space here to document the method for generating nice 
+" unicode fixed-width-text tables.
+
+" aaaabbbbbcdefffg
+" a  abbdbbcdffffggg
+" a  abbbbcddfffgh
+" aaaabbbbbcdefffg
+" 
+" aaa aaaa aaa
+" a a a  a a a
+" aaa aaaa a a
+"          aaa
+
+" Converts using outline.pl to:
+ 
+" ┌───┬────┬┬┬┬──┬┐
+" │┌─┐│ ┌┐ ││├┘  │└─┐
+" ││ ││ └┘┌┼┘│  ┌┼┬─┘
+" │└─┘│   └┼┐├┐ └┼┤
+" └───┴────┴┴┴┴──┴┘
+" ┌──┐┌───┐┌──┐
+" │┌┐││┌─┐││┌┐│
+" │└┘││└─┘│││││
+" └──┘└───┘│└┘│
+"          └──┘
+
+" ┌┐┌─────┬────┬┬┬┬──┬┐
+" │││ ┌─┐ │ ┌┐ ││├┘  │└─┐
+" │││ │ │ │ └┘ ││└┐  │┌┬┘
+" │││ └─┘ │    ││┌┤  │├┘
+" └┘└─────┴────┴┴┴┴──┴┘
+
+" Note how this is really easy to invoke (visual select, then :!out<Tab><CR>)
+" Outline has been edited by me to only accept numeric and special char values
+" to convert to lines while leaving the rest as-is -- this way a table can be 
+" edited and re-rendered much more readily.
+
+" there is also bdua2b.pl
+
+" +------+
+" | text |
+" +--+---+--+
+" +--+   |  |
+" +--+---+  |
+" +---------+
+
+" ┌──────┐
+" │ text │
+" ├──┬───┼──┐
+" ├──┤   │  │
+" ├──┴───┘  │
+" └─────────┘
+
+" The combination of smart non-text-destructive box rendering combined with 
+" textmanip makes for extremely powerful visual text-based drawing.
+
+
+" globally highlight, remember the match only can be set to one thing
+
+" Right now I initialize it to show bad tech writing words, but with the toggle 
+" here we can explicitly highlight the overlong lines. There is a potential 
+" tweak which is to toggle between the regex for the bad words and the regex 
+" for long lines AND bad words... But it's a lot less editable/maintainable -- 
+" so I am going to leave it like this for now since the match is per buffer not 
+" per vim session.
 
 autocmd BufEnter * highlight OverLength ctermbg=52
 
@@ -1555,7 +1627,7 @@ set colorcolumn=80
 highlight ColorColumn ctermbg=235 term=NONE
 
 " This one is insane. In the membraaaane...
-nnoremap . :normal! .j<CR>
+nmap <F20> :normal! .j<CR>
 
 " keymap definitions for textmanip
 xmap <C-D> <Plug>(textmanip-duplicate-down)
