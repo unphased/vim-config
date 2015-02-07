@@ -64,6 +64,8 @@ Plugin 'vim-scripts/camelcasemotion'
 Plugin 'vim-scripts/EnhancedJumps'
 Plugin 'vim-scripts/ingo-library' " needed for EnhancedJumps
 
+Plugin 't9md/vim-textmanip'
+
 " Bundle 'Decho'
 
 filetype plugin indent on "more Vundle setup
@@ -77,12 +79,10 @@ filetype plugin indent on "more Vundle setup
 "
 " see :h vundle for more details or wiki for FAQ
 
-
 " These are file extension filetype settings
 au! BufRead,BufNewFile *.esp set ft=perl
 au! BufRead,BufNewFile *.mm set ft=objcpp
 au! BufRead,BufNewFile *.mlp set ft=xml
-
 
 autocmd BufNewFile,BufRead *.vsh,*.fsh,*.vp,*.fp,*.gp,*.vs,*.fs,*.gs,*.tcs,*.tes,*.cs,*.vert,*.frag,*.geom,*.tess,*.shd,*.gls,*.glsl set ft=glsl440
 
@@ -1556,3 +1556,19 @@ highlight ColorColumn ctermbg=235 term=NONE
 
 " This one is insane. In the membraaaane...
 nnoremap . :normal! .j<CR>
+
+" keymap definitions for textmanip
+xmap <C-D> <Plug>(textmanip-duplicate-down)
+nmap <C-D> <Plug>(textmanip-duplicate-down)
+" Not sure if i need to consume ctrl+u for this. May not ever use it...
+xmap <C-U> <Plug>(textmanip-duplicate-up)
+nmap <C-U> <Plug>(textmanip-duplicate-up)
+
+xmap <Down> <Plug>(textmanip-move-down)
+xmap <Up> <Plug>(textmanip-move-up)
+xmap <Left> <Plug>(textmanip-move-left)
+xmap <Right> <Plug>(textmanip-move-right)
+
+" toggle insert/replace with <F10>
+nmap <C-E> <Plug>(textmanip-toggle-mode)
+xmap <C-E> <Plug>(textmanip-toggle-mode)
