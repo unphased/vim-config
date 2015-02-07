@@ -160,9 +160,9 @@ nnoremap <Leader>L :so $MYVIMRC<CR>:runtime! after/plugin/*.vim<CR>
 
 " for camelcasemotion, bringing back the original , by triggering it with ,,
 " the comma repeats last t/f/T/F which I use more than i did before
-nnoremap ,, ,
-xnoremap ,, ,
-onoremap ,, ,
+nnoremap ,, ;
+xnoremap ,, ;
+onoremap ,, ;
 
 " remapping keys for EnhancedJumps: I obviously cant let tab get mapped. Since 
 " curly braces are conveniently available as hopping by paragraphs is not 
