@@ -918,8 +918,6 @@ vnoremap / /\v
 nmap ` %
 vmap ` %
 
-
-
 " mapping normal mode Tab to swap to next window; saving the functionality of
 " tab (next jumplist position) to C-B (since PgUp serves that function well)
 nnoremap <C-B> <Tab>
@@ -943,8 +941,24 @@ function! NextWindowOrTabOrBuffer()
 	else
 		wincmd w "next window
 	endif
-	if (&bufhidden == 'wipe')
-		wincmd w "skip scratch buffers provided by YCM
+
+	" also provide a user friendly treatment: When this command lands us into 
+	" a non-regular-file window, we will re-evaluate and push to next tab or 
+	" window or buffer as appropriate.
+	if (&bufhidden == 'wipe' || (exists("b:NERDTreeType") && b:NERDTreeType == "primary"))
+		" do not make a recursive call (inf loop)
+		if (winnr('$') == 2 && tabpagenr('$') == 1)
+			" have to switch back to the main buffer to do the swap in there
+			wincmd w
+			bnext
+			return
+		endif
+		if (winnr() == winnr('$'))
+			tabnext
+			1wincmd w "first window
+		else
+			wincmd w "next window
+		endif
 	endif
 endfunc
 
@@ -956,13 +970,25 @@ function! PrevWindowOrTabOrBuffer()
 	endif
 	if (winnr() == 1)
 		tabprev
-		let winnr = winnr('$')
-		exec winnr . 'wincmd w'
+		exec winnr('$').'wincmd w'
 	else
 		wincmd W
 	endif
-	if (&bufhidden == 'wipe')
-		wincmd W "skip scratch buffers provided by YCM
+
+	" for skipping special buffers
+	if (&bufhidden == 'wipe' || (exists("b:NERDTreeType") && b:NERDTreeType == "primary"))
+		if (winnr('$') == 2 && tabpagenr('$') == 1)
+			" switch to the main before traversing bufferlist
+			wincmd w
+			bprev
+			return
+		endif
+		if (winnr() == 1)
+			tabprev
+			exec winnr('$').'wincmd w'
+		else
+			wincmd W
+		endif
 	endif
 endfunc
 
@@ -1459,6 +1485,8 @@ set cinoptions=l1
 " this just makes more sense (there is potential quirkiness with yankstack, but 
 " with minimal testing, this appears to now work well)
 nmap Y y$
+
+set switchbuf=usetab,split
 
 " bind to not the default
 let g:NumberToggleTrigger="<F21>" " alt+n
