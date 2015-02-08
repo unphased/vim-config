@@ -928,7 +928,12 @@ nnoremap <C-B> <Tab>
 " that list (which i do believe means that the buffers are in memory. vim is
 " weird).
 function! NextWindowOrTabOrBuffer()
-	" prefer to cycle thru only the set of windows if more than one window
+	" prefer to cycle thru only the set of windows if more than one window 
+	" (rather than to start going through buffer list) -- however if there are 
+	" tabs, will continue through tabs once at end of windows for current tab
+
+	" store the original window index for use in checking done later
+	let startWindowIndex = winnr()
 	if (winnr('$') == 1 && tabpagenr('$') == 1)
 		" only situation where we cycle to next buffer
 		bnext
@@ -945,15 +950,25 @@ function! NextWindowOrTabOrBuffer()
 	" also provide a user friendly treatment: When this command lands us into 
 	" a non-regular-file window, we will re-evaluate and push to next tab or 
 	" window or buffer as appropriate.
-	if (&bufhidden == 'wipe' || (exists("b:NERDTreeType") && b:NERDTreeType == "primary"))
-		" do not make a recursive call (inf loop)
-		if (winnr('$') == 2 && tabpagenr('$') == 1)
-			" have to switch back to the main buffer to do the swap in there
-			wincmd w
+	if (&bufhidden == 'wipe' || &bufhidden == 'hide')
+		if (tabpagenr('$') == 1)
+			" determine for sure whether we're looking at a single-openfile-tab
+			while winnr() != startWindowIndex
+				if (&bufhidden == 'wipe' || &bufhidden == 'hide')
+					" ensure to not list any buffer like this (this may be 
+					" a bad hack -- but i see no consequences yet)
+					set nobuflisted
+					wincmd w
+				else
+					return
+					" actually our job is done
+				endif
+			endwhile
+
+			" now winnr == startWindowIndex... So we've already switched back 
+			" to the main buffer so we'll do the swap
 			bnext
-			return
-		endif
-		if (winnr() == winnr('$'))
+		elseif (winnr() == winnr('$'))
 			tabnext
 			1wincmd w "first window
 		else
