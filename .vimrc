@@ -964,9 +964,6 @@ function! NextWindowOrTabOrBuffer()
 					" actually our job is done
 				endif
 			endwhile
-
-			" now winnr == startWindowIndex... So we've already switched back 
-			" to the main buffer so we'll do the swap
 			bnext
 		elseif (winnr() == winnr('$'))
 			tabnext
@@ -978,6 +975,7 @@ function! NextWindowOrTabOrBuffer()
 endfunc
 
 function! PrevWindowOrTabOrBuffer()
+	let startWindowIndex = winnr()
 	if (winnr('$') == 1 && tabpagenr('$') == 1)
 		" only situation where we cycle to next buffer
 		bprev
@@ -991,14 +989,26 @@ function! PrevWindowOrTabOrBuffer()
 	endif
 
 	" for skipping special buffers
-	if (&bufhidden == 'wipe' || (exists("b:NERDTreeType") && b:NERDTreeType == "primary"))
-		if (winnr('$') == 2 && tabpagenr('$') == 1)
-			" switch to the main before traversing bufferlist
-			wincmd w
+	if (&bufhidden == 'wipe' || &bufhidden == 'hide')
+		if (tabpagenr('$') == 1)
+			" determine for sure whether we're looking at a single-openfile-tab
+			while winnr() != startWindowIndex
+				if (&bufhidden == 'wipe' || &bufhidden == 'hide')
+					" ensure to not list any buffer like this (this may be 
+					" a bad hack -- but i see no consequences yet)
+					set nobuflisted
+					wincmd W
+				else
+					return
+					" actually our job is done
+				endif
+			endwhile
+
+			" now winnr == startWindowIndex... So we've already switched back 
+			" to the main buffer so it means that it is necessary to go do the 
+			" buffer swap
 			bprev
-			return
-		endif
-		if (winnr() == 1)
+		elseif (winnr() == 1)
 			tabprev
 			exec winnr('$').'wincmd w'
 		else
