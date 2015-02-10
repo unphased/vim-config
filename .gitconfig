@@ -9,13 +9,13 @@
 	ui = true
 [alias]
 	lg = log --graph --date-order --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
-	s = "!f() { git status --short; ignored=$(git ignored); [ -n \"$ignored\" ] && echo \"git skip-worktree:\n$ignored\"; };f"
+	s = "!f() { git status --short; ignored=$(git ignored); [ -n \"$ignored\" ] && echo \"$ignored\"; };f"
 	unadd = reset HEAD
 	d = difftool
 	ignore = update-index --skip-worktree
 	unignore = update-index --no-skip-worktree
 	ignored = !git ls-files -v | grep "^S"
-	status-with-ignored = "!f() { ignored=$(git ignored); git status; [ -n \"$ignored\" ] && echo \"git skip-worktree:\n$ignored\"; };f"
+	status-with-ignored = "!f() { git status; ignored=$(git ignored); [ -n \"$ignored\" ] && echo \"git skip-worktree:\n$ignored\"; };f"
 [difftool "pydifflib"]
 	cmd = pydifflib $LOCAL $REMOTE
 [difftool "dmp"]
