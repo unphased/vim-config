@@ -38,7 +38,7 @@ alias mk="make"
 #Dupes of useful ones from omz
 alias gl="git pull"
 alias gp="git push"
-alias gst="git status"
+alias gst="git status-with-ignored"
 alias ga="git add"
 
 alias ds="dirs -v | head -10"
