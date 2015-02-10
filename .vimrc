@@ -27,6 +27,7 @@ Plugin 'tpope/vim-surround'
 Plugin 'tpope/vim-speeddating'
 Plugin 'tpope/vim-commentary'
 Plugin 'tpope/vim-obsession'
+Plugin 'tpope/vim-fugitive'
 Plugin 'vim-perl/vim-perl'
 "Bundle 'Raimondi/delimitMate'
 Plugin 'mattn/emmet-vim'
@@ -212,7 +213,6 @@ set smartcase
 
 set gdefault " Reverses meaning of /g in regex
 
-set smartindent
 au! FileType python setl nosmartindent
 
 set shiftwidth=4
