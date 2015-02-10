@@ -277,7 +277,7 @@ highlight DiffDelete term=reverse ctermbg=red ctermfg=white
 
 " mostly for syntastic
 highlight SyntasticError ctermbg=196
-highlight SyntasticWarning ctermbg=31
+highlight SyntasticWarning ctermbg=24
 
 hi clear SignColumn
 
@@ -1159,7 +1159,7 @@ let g:ctrlp_follow_symlinks = 1
 " Edit this as necessary as work patterns change...
 " Do note that you have to manually rescan with F5 to see this applied!
 let g:ctrlp_custom_ignore = { 
-  \ 'dir':  '\v[\/]node_modules|public\/js\/app\/views|(\.(git|hg|svn))$',
+  \ 'dir':  '\v[\/]node_modules|(public\/js\/app\/views)|(\.(git|hg|svn))',
   \ 'file': '\v\.(exe|so|dll|DS_Store|un\~)$',
   \ }
 
