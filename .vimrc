@@ -213,7 +213,8 @@ set smartcase
 
 set gdefault " Reverses meaning of /g in regex
 
-au! FileType python setl nosmartindent
+" I took out smartindent
+" au! FileType python setl nosmartindent
 
 set shiftwidth=4
 set tabstop=4
