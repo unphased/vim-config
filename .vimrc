@@ -1227,7 +1227,7 @@ func! MyResizeDown()
 	else
 		wincmd p
 	endif
-	res +3
+	res +8
 	exec curwindow.'wincmd w'
 endfunc
 
@@ -1239,7 +1239,7 @@ func! MyResizeUp()
 	else
 		wincmd p
 	endif
-	res -3
+	res -8
 	exec curwindow.'wincmd w'
 endfunc
 
@@ -1251,7 +1251,7 @@ func! MyResizeRight()
 	else
 		wincmd p
 	endif
-	vertical res +5
+	vertical res +15
 	exec curwindow.'wincmd w'
 endfunc
 
@@ -1263,7 +1263,7 @@ func! MyResizeLeft()
 	else
 		wincmd p
 	endif
-	vertical res -5
+	vertical res -15
 	exec curwindow.'wincmd w'
 endfunc
 
@@ -1459,6 +1459,7 @@ autocmd FileType vim,markdown,javascript,cpp,bash,zsh,sh call MatchTechWordsToAv
 " autocmd BufWinLeave *.md call clearmatches()
 
 let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
+let g:airline#extensions#branch#displayed_head_limit = 15
 
 " woot, disable phantom clicktyping into random spots
 inoremap <LeftMouse> <Nop>
