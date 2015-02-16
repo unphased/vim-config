@@ -163,19 +163,17 @@ inoremap <F4> <ESC>:GundoToggle<CR>
 nnoremap <Leader>L :so $MYVIMRC<CR>:runtime! after/plugin/*.vim<CR>
 
 " for camelcasemotion, bringing back the original , by triggering it with ,,
-" the comma repeats last t/f/T/F which I use more than i did before
-" alt reverses it
-nnoremap , ;
-xnoremap , ;
-onoremap , ;
+" the comma repeats last t/f/T/F, which is *still* completely useless... Here's
+" the thing. There's nothing useful to bind comma to, because comma is used 
+" with camelcasemotion in normal mode because it's still marginally useful that 
+" way.
+nnoremap , <Nop>
+xnoremap , <Nop>
+onoremap , <Nop>
 
-nnoremap <F19> ,
-xnoremap <F19> ,
-onoremap <F19> ,
-
-" remapping keys for EnhancedJumps: I obviously cant let tab get mapped. Since 
-" curly braces are conveniently available as hopping by paragraphs is not 
-" useful, this example given by the doc will work out well.
+" remapping keys for EnhancedJumps: I cant let tab get mapped. Since curly 
+" braces are conveniently available as hopping by paragraphs is not useful for 
+" me, this example given by the doc will work out well.
 nmap {          <Plug>EnhancedJumpsOlder
 nmap }          <Plug>EnhancedJumpsNewer
 nmap g{         <Plug>EnhancedJumpsLocalOlder
@@ -1144,11 +1142,11 @@ set <k7>=Ow
 set <k8>=Ox
 set <k9>=Oy
 
-" make recordings easier to fire off, binding alt+period to @q (use qq to 
-" record to q register)
+" make recordings easier to fire off, binding alt+comma to @q (use qq to record 
+" to q register)
 " TBH since i wanted to bring comma back and stick with defaults, @ isnt too 
-" hard to reach anyway, I'm abandoning this map
-" nnoremap <F20> @q
+" hard to reach anyway, I abandoned this map for a while
+nnoremap <F19> @q
 
 " more ctrlp settings
 let g:ctrlp_switch_buffer = 'Et' " Jump to tab AND buffer if already open
@@ -1686,6 +1684,11 @@ set colorcolumn=80
 highlight ColorColumn ctermbg=235 term=NONE
 
 " This one is insane. In the membraaaane...
+" So I originally wanted to bind this behavior to period since itd be sick 
+" (except for times when it would cause me to skip some search&repeat 
+" applications), I can't actually do this because of repeat.vim dynamically 
+" overriding the period binding. That's quite alright, though, now I just have 
+" to remember to use ctrl period to trigger this neatness.
 nmap <F20> :normal! .j<CR>
 
 " keymap definitions for textmanip
