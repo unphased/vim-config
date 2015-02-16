@@ -1044,6 +1044,9 @@ nnoremap <S-Tab> :call PrevWindowOrTabOrBuffer()<CR>
 set <F37>=
 inoremap <F37> <C-W>
 
+" force bash mode for sh syntax
+let g:is_bash=1
+
 " Make alt+z perform the undo function (mapping ctrl z to alt z may need to be
 " done at shell level, but this helps on OSX at least)
 set <F36>=z
