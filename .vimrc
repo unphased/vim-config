@@ -832,6 +832,7 @@ let g:ycm_max_diagnostics_to_display = 300
 " because of limitations. see issue 887 at YCM's github
 let g:ycm_enable_diagnostic_signs = 0
 let g:ycm_enable_diagnostic_highlighting = 1
+let g:ycm_server_keep_logfiles = 1
 highlight YcmErrorLine guibg=#3f0000
 highlight YcmWarningLine guibg=#282800
 
@@ -1709,3 +1710,4 @@ xmap <Right> <Plug>(textmanip-move-right)
 " toggle insert/replace with <F10>
 nmap <C-E> <Plug>(textmanip-toggle-mode)
 xmap <C-E> <Plug>(textmanip-toggle-mode)
+
