@@ -1711,3 +1711,14 @@ xmap <Right> <Plug>(textmanip-move-right)
 nmap <C-E> <Plug>(textmanip-toggle-mode)
 xmap <C-E> <Plug>(textmanip-toggle-mode)
 
+" I had a little scare which i dont have a good place to document it, so 
+" I guess I will write about it in here. Which is sort of the wrong place, but 
+" oh well. Today is Fri Feb 20 12:14:33 EST 2015, and I discovered that for 
+" some reason my caps lock bind on OS X was being super sluggish. Eventually 
+" i found that it affected the response of the key system-wide, and so it was 
+" not restricted to tmux, nor iTerm. Since the other F-keys were responding 
+" mostly fine (still generally rather sluggish due to OS X being OS X) I ended 
+" up finding out through a helpful message given by Seil that the setting in 
+" the System Keyboard preferences somehow got reset where the Caps Lock key got
+" bound back to Caps Lock, which apparently causes the key response to be 
+" awful. That fixed it. No code config is relevant.
