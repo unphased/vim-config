@@ -1713,3 +1713,7 @@ xmap <Right> <Plug>(textmanip-move-right)
 nmap <C-E> <Plug>(textmanip-toggle-mode)
 xmap <C-E> <Plug>(textmanip-toggle-mode)
 
+" save for php (so far its the only language having insane files i need folding
+" to work in
+au BufWinLeave *.php mkview
+au BufWinEnter *.php silent loadview

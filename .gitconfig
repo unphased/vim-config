@@ -7,7 +7,7 @@
 [color]
 	ui = true
 [alias]
-	lg = log --graph --date-order --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+	lg = log --graph --date-order --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
 	s = "!f() { git status --short; ignored=$(git ignored); [ -n \"$ignored\" ] && echo \"$ignored\"; };f"
 	unadd = reset HEAD
 	d = difftool
