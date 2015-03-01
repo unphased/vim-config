@@ -277,7 +277,7 @@ highlight DiffText term=reverse ctermbg=blue ctermfg=16
 highlight DiffDelete term=reverse ctermbg=red ctermfg=white
 
 " mostly for syntastic
-highlight SyntasticError ctermbg=196
+highlight SyntasticError ctermbg=124
 highlight SyntasticWarning ctermbg=24
 
 hi clear SignColumn
