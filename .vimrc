@@ -1536,7 +1536,7 @@ let g:NumberToggleTrigger="<F21>" " alt+n
 " au FocusLost * silent! wa
 
 " just also exit insert mode when swapping out via click or whatever
-" au FocusLost,TabLeave * stopinsert 
+au FocusLost * stopinsert 
 
 " for tagbar
 " add a definition for Objective-C to tagbar
