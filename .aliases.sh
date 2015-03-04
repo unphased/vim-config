@@ -26,14 +26,8 @@ unalias gcp # I rarely cherry pick
 alias gp="git push"
 alias k='l' # this is a bit tongue in cheek
 
-# I often want to commit and push in one step -- rather than cherry pick, gcp 
-# shall be used for git commit push
-gcp() {
-    # [ -n "$2" ] && echo "args" && return
-    gcm "$*" && gp
-}
-
 alias mk="make"
+alias gcp="git commit-push"
 
 #Dupes of useful ones from omz
 alias gl="git pull"
