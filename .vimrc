@@ -9,7 +9,7 @@ call vundle#rc()
 
 Plugin 'gmarik/vundle'
 Plugin 'Valloric/YouCompleteMe'
-Plugin 'unphased/gundo.vim'
+Plugin 'dsummersl/gundo.vim'
 
 " iTerm2 support for focusing
 Plugin 'sjl/vitality.vim'
@@ -68,6 +68,7 @@ Plugin 'vim-scripts/ingo-library' " needed for EnhancedJumps
 Plugin 't9md/vim-textmanip'
 Plugin 'vim-scripts/hexman.vim'
 Plugin 'tpope/vim-afterimage'
+Plugin 'junegunn/vim-easy-align'
 
 " Bundle 'Decho'
 
