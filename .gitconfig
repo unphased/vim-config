@@ -17,7 +17,7 @@
 	ignored = !git ls-files -v | grep "^S"
 	status-with-ignored = "!f() { git status; ignored=$(git ignored); [ -n \"$ignored\" ] && echo \"git skip-worktree:\n$ignored\"; };f"
 
-	commit-push = "!f() { git commit -am "$*" && git push; };f"
+	commit-push = "!f() { git commit -am \"$*\" && git push; };f"
 [difftool "pydifflib"]
 	cmd = pydifflib $LOCAL $REMOTE
 [difftool "dmp"]
