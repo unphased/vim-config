@@ -510,6 +510,7 @@ set autoindent
 
 " Prevent middle click paste (horrific with touchpad on mac)
 noremap <MiddleMouse> <LeftMouse>
+inoremap <MiddleMouse> <Nop>
 
 " vim-window management keys
 " <C-L> is refresh screen, use :refresh if needed. (and since I am abolishing
