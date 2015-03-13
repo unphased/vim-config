@@ -1696,7 +1696,7 @@ xmap <Up> <Plug>(textmanip-move-up)
 xmap <Left> <Plug>(textmanip-move-left)
 xmap <Right> <Plug>(textmanip-move-right)
 
-" toggle insert/replace with <F10>
+" toggle insert/replace for textmanip with Ctrl+E
 nmap <C-E> <Plug>(textmanip-toggle-mode)
 xmap <C-E> <Plug>(textmanip-toggle-mode)
 
@@ -1704,3 +1704,9 @@ xmap <C-E> <Plug>(textmanip-toggle-mode)
 " to work in
 au BufWinLeave *.php mkview
 au BufWinEnter *.php silent loadview
+
+" easy-align bindings
+" hit lowercase a in visual to align it. Surprising unmapped key...
+vmap a <Plug>(EasyAlign)
+" use ga such as gaip to align paragraph
+nmap ga <Plug>(EasyAlign)
