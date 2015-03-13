@@ -47,7 +47,7 @@ Plugin 'beyondmarc/glsl.vim'
 Plugin 'SirVer/ultisnips'
 " Bundle 'oblitum/rainbow'
 Plugin 'marijnh/tern_for_vim'
-Plugin 'unphased/vim-airline'
+" Plugin 'unphased/vim-airline'
 Plugin 'derekwyatt/vim-fswitch'
 Plugin 'wakatime/vim-wakatime'
 Plugin 'panozzaj/vim-autocorrect'
@@ -606,7 +606,7 @@ noremap <silent> <F3> :call SwitchTabNext()<CR>
 " nnoremap <F11> :tabclose<CR>
 
 set showtabline=1  " 0, 1 or 2; when to use a tab pages line
-" set tabline=%!MyTabLine()  " custom tab pages line
+set tabline=%!MyTabLine()  " custom tab pages line
 function! MyTabLine()
 	let s = '' " complete tabline goes here
 	" loop through each tab page
