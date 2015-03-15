@@ -332,23 +332,21 @@ au! InsertLeave * call InsertLeaveActions()
 " hi statusline guibg=DarkGrey ctermfg=237 guifg=Green ctermbg=250
 
 " Formats the statusline
-" set statusline=[%{strlen(&fenc)?&fenc:'none'}, "file encoding
-" set statusline+=%{&ff}] "file format
-" set statusline+=%y      "filetype
-" set statusline+=%f                           " file name
-" set statusline+=%h      "help file flag
-" set statusline+=%m      "modified flag
-" set statusline+=%m      "modified flag
-" set statusline+=%m      "modified flag
-" set statusline+=%r      "read only flag
-"
-" set statusline+=\ %=                        " align left
-" set statusline+=Line:\ %l/%L[%2p%%]            " line X of Y [percent of file]
-" set statusline+=\ Col:%-2c                    " current column
-" set statusline+=\ Buf:%n                    " Buffer number
-" set statusline+=\ %-3bx%02B\                 " ASCII and byte code under cursor
-"
-" end pulled from SO
+set statusline=[%{strlen(&fenc)?&fenc:'none'}, "file encoding
+set statusline+=%{&ff}] "file format
+set statusline+=%y      "filetype
+set statusline+=%f                           " file name
+set statusline+=%h      "help file flag
+set statusline+=%m      "modified flag
+set statusline+=%m      "modified flag
+set statusline+=%m      "modified flag
+set statusline+=%r      "read only flag
+
+set statusline+=\ %=                        " align left
+set statusline+=Line:\ %l/%L[%2p%%]            " line X of Y [percent of file]
+set statusline+=\ Col:%-2c                    " current column
+set statusline+=\ Buf:%n                    " Buffer number
+set statusline+=\ %-3bx%02B\                 " ASCII and byte code under cursor
 
 " omnifunc, pulled from http://amix.dk/blog/post/19021
 "
