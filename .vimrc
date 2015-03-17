@@ -710,7 +710,7 @@ function! Highlighting()
   let @/ = '\<'.expand('<cword>').'\>'
   " add to history -- can clutter, but def helps
   " NOTE! the item is added without /v so backspace first, then hunt
-  call histadd('search', expand('<cword>'))
+  call histadd('search', '\v<' . expand('<cword>') . '>')
   let g:highlighting = 1
   return ":silent set hlsearch\<CR>"
 endfunction
@@ -1679,8 +1679,22 @@ highlight ColorColumn ctermbg=235 term=NONE
 " (except for times when it would cause me to skip some search&repeat 
 " applications), I can't actually do this because of repeat.vim dynamically 
 " overriding the period binding. That's quite alright, though, now I just have 
-" to remember to use ctrl period to trigger this neatness.
-nmap <F20> :normal! .j<CR>
+" to remember to use alt period to trigger this neatness (because ctrl period 
+" is not supported by the terminal *shakefist*).
+
+" I further enhance my special alt period bind with a contextual superpower 
+" based on the searching state -- if searching highlight is enabled, we will 
+" hop to the next match before calling dot! Otherwise, hop down a line. This 
+" handles both situations so elegantly that it almost hurts.
+nmap <F20> call MyAmazingEnhancedDot()<CR>
+
+fu! MyAmazingEnhancedDot()
+	if g:highlighting == 1
+		:normal! .n<CR>
+	else
+		:normal! .j<CR>
+	endif
+endfun
 
 " keymap definitions for textmanip
 xmap <C-D> <Plug>(textmanip-duplicate-down)
