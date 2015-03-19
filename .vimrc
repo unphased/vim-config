@@ -41,13 +41,13 @@ Plugin 'unphased/vim-mark'
 "Bundle 'airblade/vim-gitgutter'
 "Bundle 'akiomik/git-gutter-vim'
 Plugin 'mhinz/vim-signify'
-Plugin 'pangloss/vim-javascript'
+" Plugin 'pangloss/vim-javascript'
 Plugin 'beyondmarc/glsl.vim'
 "Bundle 'kana/vim-smartinput'
 Plugin 'SirVer/ultisnips'
 " Bundle 'oblitum/rainbow'
 Plugin 'marijnh/tern_for_vim'
-" Plugin 'unphased/vim-airline'
+Plugin 'unphased/vim-airline'
 Plugin 'derekwyatt/vim-fswitch'
 Plugin 'wakatime/vim-wakatime'
 Plugin 'panozzaj/vim-autocorrect'
@@ -332,21 +332,21 @@ au! InsertLeave * call InsertLeaveActions()
 " hi statusline guibg=DarkGrey ctermfg=237 guifg=Green ctermbg=250
 
 " Formats the statusline
-set statusline=[%{strlen(&fenc)?&fenc:'none'}, "file encoding
-set statusline+=%{&ff}] "file format
-set statusline+=%y      "filetype
-set statusline+=%f                           " file name
-set statusline+=%h      "help file flag
-set statusline+=%m      "modified flag
-set statusline+=%m      "modified flag
-set statusline+=%m      "modified flag
-set statusline+=%r      "read only flag
+" set statusline=[%{strlen(&fenc)?&fenc:'none'}, "file encoding
+" set statusline+=%{&ff}] "file format
+" set statusline+=%y      "filetype
+" set statusline+=%f                           " file name
+" set statusline+=%h      "help file flag
+" set statusline+=%m      "modified flag
+" set statusline+=%m      "modified flag
+" set statusline+=%m      "modified flag
+" set statusline+=%r      "read only flag
 
-set statusline+=\ %=                        " align left
-set statusline+=Line:\ %l/%L[%2p%%]            " line X of Y [percent of file]
-set statusline+=\ Col:%-2c                    " current column
-set statusline+=\ Buf:%n                    " Buffer number
-set statusline+=\ %-3bx%02B\                 " ASCII and byte code under cursor
+" set statusline+=\ %=                        " align left
+" set statusline+=Line:\ %l/%L[%2p%%]            " line X of Y [percent of file]
+" set statusline+=\ Col:%-2c                    " current column
+" set statusline+=\ Buf:%n                    " Buffer number
+" set statusline+=\ %-3bx%02B\                 " ASCII and byte code under cursor
 
 " omnifunc, pulled from http://amix.dk/blog/post/19021
 "
@@ -604,7 +604,7 @@ noremap <silent> <F3> :call SwitchTabNext()<CR>
 " nnoremap <F11> :tabclose<CR>
 
 set showtabline=1  " 0, 1 or 2; when to use a tab pages line
-set tabline=%!MyTabLine()  " custom tab pages line
+" set tabline=%!MyTabLine()  " custom tab pages line
 function! MyTabLine()
 	let s = '' " complete tabline goes here
 	" loop through each tab page
@@ -1403,32 +1403,32 @@ vnoremap <silent> x :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr
 " syntax sync minlines=256 " this was an attempt to speed up syntax on raspi.
 " May not be necessary now that i took out line highlight
 
-" let g:airline#extensions#tabline#enabled = 1
-" let g:airline#extensions#tabline#left_sep = ''
-" let g:airline#extensions#tabline#left_alt_sep = ''
-" if !exists('g:airline_symbols')
-"   let g:airline_symbols = {}
-" endif
-" let g:airline_left_sep = ''
-" let g:airline_left_alt_sep = ''
-" let g:airline_right_sep = ''
-" let g:airline_right_alt_sep = ''
-" let g:airline_symbols.branch = ''
-" let g:airline_symbols.readonly = ''
-" let g:airline_symbols.linenr = ''
-" let g:airline_theme='bubblegum'
+let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tabline#left_sep = ''
+let g:airline#extensions#tabline#left_alt_sep = ''
+if !exists('g:airline_symbols')
+  let g:airline_symbols = {}
+endif
+let g:airline_left_sep = ''
+let g:airline_left_alt_sep = ''
+let g:airline_right_sep = ''
+let g:airline_right_alt_sep = ''
+let g:airline_symbols.branch = ''
+let g:airline_symbols.readonly = ''
+let g:airline_symbols.linenr = ''
+let g:airline_theme='bubblegum'
 
-" let g:airline#extensions#hunks#non_zero_only = 1
-" let g:airline#extensions#whitespace#mixed_indent_algo = 1
-" let g:airline#extensions#hunks#hunk_symbols = ['+', '~', '-']
+let g:airline#extensions#hunks#non_zero_only = 1
+let g:airline#extensions#whitespace#mixed_indent_algo = 1
+let g:airline#extensions#hunks#hunk_symbols = ['+', '~', '-']
 
-" " Honestly I spend way too much time cleaning up trailing spaces which has as 
-" " yet never had any solid reason. There are legitimate uses of trailing spaces 
-" " in e.g. markdown.
-" let g:airline#extensions#whitespace#checks = [ 'indent' ]
+" Honestly I spend way too much time cleaning up trailing spaces which has as 
+" yet never had any solid reason. There are legitimate uses of trailing spaces 
+" in e.g. markdown.
+let g:airline#extensions#whitespace#checks = [ 'indent' ]
 
-" let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
-" let g:airline#extensions#branch#displayed_head_limit = 15
+let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
+let g:airline#extensions#branch#displayed_head_limit = 15
 
 " Highlight words to avoid in tech writing
 " =======================================
