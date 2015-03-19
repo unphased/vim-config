@@ -1421,6 +1421,8 @@ let g:airline_theme='bubblegum'
 let g:airline#extensions#hunks#non_zero_only = 1
 let g:airline#extensions#whitespace#mixed_indent_algo = 1
 let g:airline#extensions#hunks#hunk_symbols = ['+', '~', '-']
+let g:airline#extensions#tagbar#enabled = 1 " not sure if does anything
+let g:airline#extensions#tagbar#flags = 'f' " not sure if does anything
 
 " Honestly I spend way too much time cleaning up trailing spaces which has as 
 " yet never had any solid reason. There are legitimate uses of trailing spaces 
@@ -1429,6 +1431,12 @@ let g:airline#extensions#whitespace#checks = [ 'indent' ]
 
 let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
 let g:airline#extensions#branch#displayed_head_limit = 15
+let g:airline#extensions#default#section_truncate_width = {
+  \ 'b': 70,
+  \ 'x': 105,
+  \ 'y': 90,
+  \ 'z': 60,
+  \ }
 
 " Highlight words to avoid in tech writing
 " =======================================
