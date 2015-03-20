@@ -847,7 +847,7 @@ highlight Search ctermbg=22 ctermfg=253
 highlight Error term=reverse ctermfg=8 ctermbg=9
 
 " only on an italic term do we set comment to use italic cterm highlight
-if &term == 'xterm-256color-italic'
+if &term == 'xterm-256color-italic' || &term == 'nvim'
 	hi Comment cterm=italic
 endif
 
@@ -1115,10 +1115,12 @@ nmap <A-S-D> <Plug>yankstack_substitute_newer_paste
 set <F23>=[27;5;9~
 set <F22>=[27;6;9~
 
-set <F21>=n
+if !has('nvim')
+	set <F21>=n
 
-set <F20>=.
-set <F19>=,
+	set <F20>=.
+	set <F19>=,
+endif
 
 " set the numpad key codes -- Mark helpfully already implements the stuff that
 " calls <k0>, etc
@@ -1137,7 +1139,11 @@ set <k9>=Oy
 " to q register)
 " TBH since i wanted to bring comma back and stick with defaults, @ isnt too 
 " hard to reach anyway, I abandoned this map for a while
-nnoremap <F19> @q
+if has('nvim')
+	nnoremap <m-,> @q
+else
+	nnoremap <F19> @q
+endif
 
 " more ctrlp settings
 let g:ctrlp_switch_buffer = 'Et' " Jump to tab AND buffer if already open
@@ -1516,7 +1522,11 @@ nmap Y y$
 set switchbuf=usetab,split
 
 " bind to not the default
-let g:NumberToggleTrigger="<F21>" " alt+n
+if has('nvim')
+	let g:NumberToggleTrigger="<m-n>"
+else
+	let g:NumberToggleTrigger="<F21>" " alt+n
+endif
 
 " now that focuslost works with iterm and tmux maybe this is just generally 
 " improved behavior. Do have to be careful, but it speeds shit up when rapidly 
@@ -1694,7 +1704,12 @@ highlight ColorColumn ctermbg=235 term=NONE
 " based on the searching state -- if searching highlight is enabled, we will 
 " hop to the next match before calling dot! Otherwise, hop down a line. This 
 " handles both situations so elegantly that it almost hurts.
-nmap <F20> call MyAmazingEnhancedDot()<CR>
+if has('nvim')
+	" shit neovim has issues with binding keys...
+	nmap <m-.> call MyAmazingEnhancedDot()<CR>
+else
+	nmap <F20> call MyAmazingEnhancedDot()<CR>
+endif
 
 fu! MyAmazingEnhancedDot()
 	if g:highlighting == 1
