@@ -1513,7 +1513,7 @@ vnoremap b <C-U>
 
 " fixes aggravating default indentation for switch case statements, which also 
 " affects e.g. JavaScript -- except it stopped working, lets try l
-set cinoptions=l1
+set cinoptions=J1
 
 " this just makes more sense (there is potential quirkiness with yankstack, but 
 " with minimal testing, this appears to now work well)

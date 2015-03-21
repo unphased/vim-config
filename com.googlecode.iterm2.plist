@@ -1273,7 +1273,7 @@
 	<key>NSWindow Frame NSFontPanel</key>
 	<string>78 155 575 255 0 0 1440 877 </string>
 	<key>NSWindow Frame Preferences</key>
-	<string>291 591 606 456 0 0 1680 1050 </string>
+	<string>199 442 606 456 0 0 1440 900 </string>
 	<key>NSWindow Frame SUAutomaticUpdateAlert</key>
 	<string>530 640 616 174 0 0 1680 1028 </string>
 	<key>NSWindow Frame SUStatusFrame</key>
@@ -1283,7 +1283,7 @@
 	<key>NSWindow Frame com.apple.typography_panel_Menlo-Regular</key>
 	<string>341 780 260 68 0 0 1440 878 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>1001 80 435 797 0 0 1440 877 </string>
+	<string>0 0 1440 900 0 0 1440 877 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
 	<string>10 360 570 376 0 0 1680 1028 </string>
 	<key>NeverWarnAboutShortLivedSessions_BABC3C6F-E892-4635-AD49-85E57CE1D5AF</key>
@@ -5632,7 +5632,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2015-02-07T22:18:41Z</date>
+	<date>2015-03-19T11:35:17Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>Secure Input</key>
@@ -5657,6 +5657,10 @@
 	<false/>
 	<key>TmuxDashboardLimit</key>
 	<integer>10</integer>
+	<key>ToolbeltTools</key>
+	<array>
+		<string>Profiles</string>
+	</array>
 	<key>TripleClickSelectsFullWrappedLines</key>
 	<true/>
 	<key>UKCrashReporterLastCrashReportDate</key>
@@ -5684,7 +5688,7 @@
 	<key>findRegex_iTerm</key>
 	<true/>
 	<key>iTerm Version</key>
-	<string>2.9.20150128-nightly</string>
+	<string>2.9.20150309-nightly</string>
 	<key>kCommandHistoryHasEverBeenUsed</key>
 	<true/>
 </dict>
