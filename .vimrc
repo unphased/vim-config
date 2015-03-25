@@ -1156,53 +1156,54 @@ let g:ctrlp_follow_symlinks = 1
 " Edit this as necessary as work patterns change...
 " Do note that you have to manually rescan with F5 to see this applied!
 let g:ctrlp_custom_ignore = { 
-  \ 'dir':  '\v[\/]node_modules|(public\/js\/app\/views)|(\.(git|hg|svn))',
-  \ 'file': '\v\.(exe|so|dll|DS_Store|un\~)$',
-  \ }
+			\ 'dir':  '\v[\/]node_modules|(public\/js\/app\/views)|(\.(git|hg|svn))',
+			\ 'file': '\v\.(exe|so|dll|DS_Store|un\~)$',
+			\ }
 
 " pulled from http://vim.wikia.com/wiki/Move_current_window_between_tabs
 function! MoveToPrevTab()
-  "there is only one window
-  if tabpagenr('$') == 1 && winnr('$') == 1
-    return
-  endif
-  "preparing new window
-  let l:tab_nr = tabpagenr('$')
-  let l:cur_buf = bufnr('%')
-  if tabpagenr() != 1
-    close!
-    if l:tab_nr == tabpagenr('$')
-      tabprev
-    endif
-    sp
-  else
-    close!
-    exe "0tabnew"
-  endif
-  "opening current buffer in new window
-  exe "b".l:cur_buf
+	"there is only one window
+	if tabpagenr('$') == 1 && winnr('$') == 1
+		return
+	endif
+	"preparing new window
+	let l:tab_nr = tabpagenr()
+	let l:tab_nr_end = tabpagenr('$')
+	let l:cur_buf = bufnr('%')
+	if tabpagenr() != 1
+		close!
+		if l:tab_nr == tabpagenr()
+			tabprev
+		endif
+		sp
+	else
+		close!
+		exe "0tabnew"
+	endif
+	"opening current buffer in new window
+	exe "b".l:cur_buf
 endfunc
 
 function! MoveToNextTab()
-  "there is only one window
-  if tabpagenr('$') == 1 && winnr('$') == 1
-    return
-  endif
-  "preparing new window
-  let l:tab_nr = tabpagenr('$')
-  let l:cur_buf = bufnr('%')
-  if tabpagenr() < tab_nr
-    close!
-    if l:tab_nr == tabpagenr('$')
-      tabnext
-    endif
-    sp
-  else
-    close!
-    tabnew
-  endif
-  "opening current buffer in new window
-  exe "b".l:cur_buf
+	"there is only one window
+	if tabpagenr('$') == 1 && winnr('$') == 1
+		return
+	endif
+	"preparing new window
+	let l:tab_nr = tabpagenr('$')
+	let l:cur_buf = bufnr('%')
+	if tabpagenr() < l:tab_nr
+		close!
+		if l:tab_nr == tabpagenr('$')
+			tabnext
+		endif
+		sp
+	else
+		close!
+		tabnew
+	endif
+	"opening current buffer in new window
+	exe "b".l:cur_buf
 endfunc
 
 nnoremap y<F2> :call MoveToPrevTab()<CR>
