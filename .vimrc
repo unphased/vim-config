@@ -35,7 +35,7 @@ Plugin 'unphased/git-time-lapse'
 Plugin 'maxbrunsfeld/vim-yankstack'
 Plugin 'unphased/Vim-IndentFinder'
 Plugin 'nathanaelkane/vim-indent-guides'
-Plugin 'ihacklog/HiCursorWords'
+" Plugin 'ihacklog/HiCursorWords'
 Plugin 'unphased/vim-mark'
 " Bundle 'kien/rainbow_parentheses.vim'
 "Bundle 'airblade/vim-gitgutter'
@@ -270,7 +270,7 @@ highlight SyntasticWarning ctermbg=24
 hi clear SignColumn
 
 " HiCursorWords
-let g:HiCursorWords_delay = 15
+let g:HiCursorWords_delay = 50
 
 " map to move locationlist (syntastic errors)
 " (now taken care of by unimpaired)
@@ -285,7 +285,7 @@ let g:syntastic_javascript_checkers = ['jsxhint']
 " (http://vim.wikia.com/wiki/Identify_the_syntax_highlighting_group_used_at_the_cursor)
 command! SyntaxDetect :echom "hi<" . synIDattr(synID(line("."),col("."),1),"name") . '> trans<' . synIDattr(synID(line("."),col("."),0),"name") . "> lo<" . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"
 
-set updatetime=500
+" set updatetime=500
 " Unsure if updatetime gets overwritten by plugins. There are many plugins
 " I use which mess with updatetime (hicursorwords being one of them)
 
