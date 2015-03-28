@@ -35,7 +35,7 @@ Plugin 'unphased/git-time-lapse'
 Plugin 'maxbrunsfeld/vim-yankstack'
 Plugin 'unphased/Vim-IndentFinder'
 Plugin 'nathanaelkane/vim-indent-guides'
-" Plugin 'ihacklog/HiCursorWords'
+Plugin 'ihacklog/HiCursorWords'
 Plugin 'unphased/vim-mark'
 " Bundle 'kien/rainbow_parentheses.vim'
 "Bundle 'airblade/vim-gitgutter'
@@ -824,6 +824,8 @@ let g:ycm_enable_diagnostic_highlighting = 1
 let g:ycm_server_keep_logfiles = 1
 highlight YcmErrorLine guibg=#3f0000
 highlight YcmWarningLine guibg=#282800
+
+let g:ycm_filetype_specific_completion_to_disable = { 'php': 1 }
 
 " sadly, this doesn't work on the fly for some reason. It's supposed to!
 " nnoremap <F7> :call YCMSignToggle()<CR>
