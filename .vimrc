@@ -305,18 +305,20 @@ au BufEnter *.fsh let b:fswitchdst = 'vsh'
 au BufEnter *.mm  let b:fswitchdst = 'h' | let b:fswitchlocs = 'reg:/src/include/,reg:|src|include/**|,ifrel:|/src/|../include|'
 
 function! InsertEnterActions(mode)
-	echo 'islc'
-  if a:mode == 'i'
-	hi CursorLine ctermbg=235
-	hi CursorLineNr cterm=bold ctermfg=199 ctermbg=237
-  elseif a:mode == 'r'
-	hi CursorLine cterm=reverse
-  else
-  endif
+	"echo 'islc'
+	set cursorline
+	if a:mode == 'i'
+		hi CursorLine ctermbg=235
+		hi CursorLineNr cterm=bold ctermfg=199 ctermbg=237
+	elseif a:mode == 'r'
+		hi CursorLine cterm=reverse
+	else
+	endif
 endfunction
 
 function! InsertLeaveActions()
-	hi CursorLine ctermbg=NONE cterm=NONE
+	set nocursorline
+	" hi CursorLine ctermbg=NONE cterm=NONE
 	hi CursorLineNr ctermfg=11 ctermbg=NONE
 	" This next line is actually really cool, but I am taking it out for
 	" consistency with other editors whose vim-modes do not allow me to do this
@@ -324,7 +326,6 @@ function! InsertLeaveActions()
 endfunction
 
 hi CursorLine ctermbg=NONE
-set cursorline
 
 au! InsertEnter * call InsertEnterActions(v:insertmode)
 " au InsertChange * call InsertStatuslineColor(v:insertmode)
