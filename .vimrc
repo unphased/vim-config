@@ -1105,13 +1105,18 @@ let g:yankstack_map_keys = 0
 " the yankstack plugin requires loading prior to my binds (wonder what other
 " plugins have this sort of behavior)
 call yankstack#setup()
-set <F26>=d " the reason for this one here is <A-D> appears to be the same as <A-S-D> as far as vim is concerned
-set <A-S-D>=D
-nmap <F26> <Plug>yankstack_substitute_older_paste
-" nmap <C-D> <Plug>yankstack_substitute_older_paste
-" The old bind (Ctrl+D) is confusing, so i am commenting it out.
-" the real shame is that there is no way to pass in Ctrl+Shift+letter.
-nmap <A-S-D> <Plug>yankstack_substitute_newer_paste
+if has('nvim')
+	nmap <m-d> <Plug>yankstack_substitute_older_paste
+	nmap <M-S-D> <Plug>yankstack_substitute_newer_paste
+else
+	set <F26>=d " the reason for this one here is <A-D> appears to be the same as <A-S-D> as far as vim is concerned
+	set <A-S-D>=D
+	nmap <F26> <Plug>yankstack_substitute_older_paste
+	" nmap <C-D> <Plug>yankstack_substitute_older_paste
+	" The old bind (Ctrl+D) is confusing, so i am commenting it out.
+	" the real shame is that there is no way to pass in Ctrl+Shift+letter.
+	nmap <A-S-D> <Plug>yankstack_substitute_newer_paste
+endif
 
 " These are apparently the defacto terminal codes for Ctrl+Tab and Ctrl+Shift+Tab
 " but Vim has no knowledge of it. so here i am adding it to the fastkey 
