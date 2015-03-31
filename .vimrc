@@ -1534,7 +1534,8 @@ set switchbuf=usetab,split
 
 " bind to not the default
 if has('nvim')
-	let g:NumberToggleTrigger="<m-n>"
+	let g:NumberToggleTrigger="<m-n>" " this seems to not be working
+	nnoremap <M-n> :call NumberToggle()<CR>
 else
 	let g:NumberToggleTrigger="<F21>" " alt+n
 endif
