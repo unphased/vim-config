@@ -54,7 +54,7 @@ Plugin 'wakatime/vim-wakatime'
 Plugin 'panozzaj/vim-autocorrect'
 Plugin 'kshenoy/vim-signature'
 Plugin 'jeffkreeftmeijer/vim-numbertoggle'
-Plugin 'mxw/vim-jsx'
+"Plugin 'mxw/vim-jsx'
 
 Plugin 'tmux-plugins/vim-tmux'
 
