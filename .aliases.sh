@@ -38,6 +38,8 @@ alias ga="git add"
 alias ds="dirs -v | head -10"
 alias d="gde"
 
+alias iack="ack -i"
+
 if [[ $(uname) == Linux ]]; then
 	# need to use a non custom term to not confuse nano. Also enabling the 
 	# experimental undo functionality for nano
