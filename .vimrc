@@ -280,7 +280,7 @@ let g:HiCursorWords_delay = 50
 
 " syntastic set up for jsx
 " MAKE SURE YOU HAVE npm install -g jsxhint
-let g:syntastic_javascript_checkers = ['jsxhint']
+let g:syntastic_javascript_checkers = ['jsxhint', 'jshint']
 
 " for debugging syntax
 " (http://vim.wikia.com/wiki/Identify_the_syntax_highlighting_group_used_at_the_cursor)
