@@ -71,6 +71,7 @@ Plugin 'vim-scripts/hexman.vim'
 Plugin 'tpope/vim-afterimage'
 Plugin 'junegunn/vim-easy-align'
 Plugin 'unphased/auto-pairs'
+Plugin 'octol/vim-cpp-enhanced-highlight'
 
 " Bundle 'Decho'
 
@@ -280,7 +281,7 @@ let g:HiCursorWords_delay = 50
 
 " syntastic set up for jsx
 " MAKE SURE YOU HAVE npm install -g jsxhint
-let g:syntastic_javascript_checkers = ['jsxhint', 'jshint']
+let g:syntastic_javascript_checkers = ['jsxhint']
 
 " for debugging syntax
 " (http://vim.wikia.com/wiki/Identify_the_syntax_highlighting_group_used_at_the_cursor)
@@ -1757,3 +1758,7 @@ au BufWinEnter *.php silent loadview
 vmap a <Plug>(EasyAlign)
 " use ga such as gaip to align paragraph
 nmap ga <Plug>(EasyAlign)
+
+" for the octol/vim-cpp-enhanced-highlight plugin
+let g:cpp_experimental_template_highlight=1
+let g:cpp_class_scope_highlight=1
