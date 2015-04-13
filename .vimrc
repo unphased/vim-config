@@ -71,6 +71,7 @@ Plugin 'vim-scripts/hexman.vim'
 Plugin 'tpope/vim-afterimage'
 Plugin 'junegunn/vim-easy-align'
 Plugin 'unphased/auto-pairs'
+Plugin 'vim-scripts/argtextobj.vim'
 
 " Bundle 'Decho'
 
