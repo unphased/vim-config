@@ -72,6 +72,7 @@ Plugin 'tpope/vim-afterimage'
 Plugin 'junegunn/vim-easy-align'
 Plugin 'unphased/auto-pairs'
 Plugin 'octol/vim-cpp-enhanced-highlight'
+Plugin 'vim-scripts/argtextobj.vim'
 
 " Bundle 'Decho'
 
