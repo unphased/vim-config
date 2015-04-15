@@ -72,7 +72,7 @@ Plugin 'tpope/vim-afterimage'
 Plugin 'junegunn/vim-easy-align'
 Plugin 'unphased/auto-pairs'
 Plugin 'octol/vim-cpp-enhanced-highlight'
-Plugin 'vim-scripts/argtextobj.vim'
+Plugin 'blueyed/argtextobj.vim'
 
 " Bundle 'Decho'
 
@@ -1451,10 +1451,10 @@ let g:airline#extensions#whitespace#checks = [ 'indent' ]
 let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
 let g:airline#extensions#branch#displayed_head_limit = 15
 let g:airline#extensions#default#section_truncate_width = {
-  \ 'b': 70,
-  \ 'x': 105,
-  \ 'y': 90,
-  \ 'z': 60,
+  \ 'b': 80,
+  \ 'x': 145,
+  \ 'y': 133,
+  \ 'z': 120,
   \ }
 
 " Highlight words to avoid in tech writing
