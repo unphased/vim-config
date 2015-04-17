@@ -12,7 +12,7 @@ Plugin 'Valloric/YouCompleteMe'
 Plugin 'dsummersl/gundo.vim'
 
 " iTerm2 support for focusing
-Plugin 'sjl/vitality.vim'
+" Plugin 'sjl/vitality.vim'
 
 " Fakeclip doesn't seem to work well on OSX
 " Tmux resize-window zoom has obsoleted this
