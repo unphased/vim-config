@@ -310,7 +310,7 @@ function! InsertEnterActions(mode)
 	"echo 'islc'
 	set cursorline
 	if a:mode == 'i'
-		hi CursorLine ctermbg=235
+		hi CursorLine ctermbg=235 cterm=NONE
 		hi CursorLineNr cterm=bold ctermfg=199 ctermbg=237
 	elseif a:mode == 'r'
 		hi CursorLine cterm=reverse
