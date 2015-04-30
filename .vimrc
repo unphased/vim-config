@@ -204,7 +204,7 @@ set ttimeout
 set ttimeoutlen=10
 
 " set t_Co=256
-" set term=xterm-256color-italic
+" set term=screen-256color-italic
 
 set ttymouse=xterm2
 
