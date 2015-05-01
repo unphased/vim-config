@@ -1720,7 +1720,7 @@ highlight ColorColumn ctermbg=235 term=NONE
 " handles both situations so elegantly that it almost hurts.
 if has('nvim')
 	" shit neovim has issues with binding keys...
-	nnoremap ® :call MyAmazingEnhancedDot()<CR>
+	nnoremap <m-.> :call MyAmazingEnhancedDot()<CR>
 else
 	nnoremap <F20> :call MyAmazingEnhancedDot()<CR>
 endif
