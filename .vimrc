@@ -1726,7 +1726,7 @@ else
 endif
 
 function! MyAmazingEnhancedDot()
-	if g:highlighting == 1
+	if v:hlsearch == 1
 		:normal! .n<CR>
 	else
 		:normal! .j<CR>
