@@ -1806,3 +1806,17 @@ nmap ga <Plug>(EasyAlign)
 " for the octol/vim-cpp-enhanced-highlight plugin
 let g:cpp_experimental_template_highlight=1
 let g:cpp_class_scope_highlight=1
+
+" neat bracketed paste handling (not sure if i need special tmux shit but lets 
+" try this minimal version first)
+
+let &t_SI .= "\<Esc>[?2004h"
+let &t_EI .= "\<Esc>[?2004l"
+
+inoremap <special> <expr> <Esc>[200~ XTermPasteBegin()
+
+function! XTermPasteBegin()
+  set pastetoggle=<Esc>[201~
+  set paste
+  return ""
+endfunction
