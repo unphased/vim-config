@@ -706,7 +706,7 @@ cnoremap <C-Q> <C-C>:qa!<CR>
 inoremap <C-Q> <C-O>:qa!<CR>
 
 " this bit controls search and highlighting by using the Enter key in normal mode
-let g:highlighting = 0
+let g:highlighting = 1
 function! Highlighting()
   if g:highlighting == 1 && @/ =~ '^\\<'.expand('<cword>').'\\>$'
     let g:highlighting = 0
