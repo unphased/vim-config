@@ -1089,17 +1089,59 @@ set showmode
 " the latter of which may be intercepted by tmux and passed through
 " a shell script! (tmux is smart, though, and does the term timeout on
 " the escape, it will be letting it pass through)
-set <F30>=h
-set <F29>=j
-set <F28>=k
-set <F27>=l
+if has('nvim')
+	" nvim's binds are simpler
+	nnoremap <m-h> :wincmd H<CR>
+	nnoremap <m-j> :wincmd J<CR>
+	nnoremap <m-k> :wincmd K<CR>
+	nnoremap <m-l> :wincmd L<CR>
+else
+	set <F30>=h
+	set <F29>=j
+	set <F28>=k
+	set <F27>=l
 
-" These binds are for quick rearrangement of windows, very awesome function
-" that sadly I'll need to do hacking to get the same on tmux
-nnoremap <F30> :wincmd H<CR>
-nnoremap <F29> :wincmd J<CR>
-nnoremap <F28> :wincmd K<CR>
-nnoremap <F27> :wincmd L<CR>
+	" These binds are for quick rearrangement of windows, very awesome function
+	" that sadly I'll need to do hacking to get the same on tmux
+	nnoremap <F30> :wincmd H<CR>
+	nnoremap <F29> :wincmd J<CR>
+	nnoremap <F28> :wincmd K<CR>
+	nnoremap <F27> :wincmd L<CR>
+endif
+
+" This is a new thing that I realized I could implement with vimscript -- it 
+" mirrors my simplistic rearrangement shortcuts for Tmux (which are annoyingly 
+" basic yet surprisingly powerful for the types of organization that do not 
+" happen at short intervals)
+
+" these binds query and store the current buffer #, close the window, splits 
+" whatever window we fall into either horiz. or vertically, and then restores 
+" the buffer. Really simple. It will potentially resize the rest of the window 
+" heights/widths because of annoying vim legacy behavior, and I can't do much 
+" about it.
+function! MyForceHorizSplit()
+	let curbuffer = bufnr('%')
+	hide
+	" hide buffer, do not need to unload or whatever
+	split
+	exec 'b '.curbuffer
+endfunc
+function! MyForceVertSplit()
+	let curbuffer = bufnr('%')
+	hide
+	vsplit
+	exec 'b '.curbuffer
+endfunc
+if has('nvim')
+	nnoremap <M-F> :call MyForceVertSplit()<CR>
+	nnoremap <M-R> :call MyForceHorizSplit()<CR>
+else
+	set <F18>=F
+	set <F17>=R
+
+	nnoremap <F18> :call MyForceVertSplit()<CR>
+	nnoremap <F17> :call MyForceHorizSplit()<CR>
+endif
 
 " This is for yankstack
 " have it not bind anything
