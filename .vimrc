@@ -1494,10 +1494,10 @@ let g:airline#extensions#whitespace#checks = [ 'indent' ]
 let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
 let g:airline#extensions#branch#displayed_head_limit = 15
 let g:airline#extensions#default#section_truncate_width = {
-  \ 'b': 80,
-  \ 'x': 145,
-  \ 'y': 133,
-  \ 'z': 120,
+  \ 'b': 60,
+  \ 'x': 125,
+  \ 'y': 113,
+  \ 'z': 100,
   \ }
 
 " Highlight words to avoid in tech writing
