@@ -464,7 +464,7 @@ inoremap <C-Right> <C-O>e
 
 " I like joining lines (I do this operation with the delete key a lot -- that
 " key is a reach) -- this map is used because it is *close* to J
-nnoremap <C-N> :let poscursorjoinlines=getpos('.')<Bar>join<Bar>call setpos('.', poscursorjoinlines)<CR>
+nnoremap <silent> <C-N> :let poscursorjoinlines=getpos('.')<Bar>join<Bar>call setpos('.', poscursorjoinlines)<CR>
 " I have this: imap <C-N> <C-O><C-N>
 " in the after/plugin/YouCompleteMe dir becuase the ctrl n in insert mode is 
 " overridden by YCM to move around the completion picker (which is useless)
