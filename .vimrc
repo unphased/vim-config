@@ -567,7 +567,12 @@ function! F10OverloadedFunctionalityCheckTmux(direction)
 	endif
 endfunc
 nnoremap <F10> :call F10OverloadedFunctionalityCheckTmux('+')<CR>
-set <S-F10>=[34~
+
+" I am not really sure what happened here but, tmux 2 seems to just have its 
+" own idea about how to send Shift F10 if TERM is screen-*. (before this used 
+" to set <S-F10> to \x1b[34~ but that seems to have no effect when I commented 
+" it out! Even under TERM=xterm-*!)
+set <S-F10>=[21;2~
 noremap <S-F10> <ESC>
 noremap! <S-F10> <ESC>
 nnoremap <S-F10> :call F10OverloadedFunctionalityCheckTmux('-')<CR>
@@ -1820,3 +1825,4 @@ function! XTermPasteBegin()
   set paste
   return ""
 endfunction
+
