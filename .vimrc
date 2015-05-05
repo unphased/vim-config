@@ -1812,17 +1812,25 @@ nmap ga <Plug>(EasyAlign)
 let g:cpp_experimental_template_highlight=1
 let g:cpp_class_scope_highlight=1
 
-" neat bracketed paste handling (not sure if i need special tmux shit but lets 
-" try this minimal version first)
+" " neat bracketed paste handling (not sure if i need special tmux shit but lets 
+" " try this minimal version first)
 
-let &t_SI .= "\<Esc>[?2004h"
-let &t_EI .= "\<Esc>[?2004l"
+" let &t_SI .= "\<Esc>[?2004h"
+" let &t_EI .= "\<Esc>[?2004l"
 
-inoremap <special> <expr> <Esc>[200~ XTermPasteBegin()
+" inoremap <special> <expr> <Esc>[200~ XTermPasteBegin()
 
-function! XTermPasteBegin()
-  set pastetoggle=<Esc>[201~
-  set paste
-  return ""
-endfunction
+" function! XTermPasteBegin()
+"   set pastetoggle=<Esc>[201~
+"   set paste
+"   return ""
+" endfunction
 
+" bind Alt+V to insert mode temporary entry into visual mode mainly for 
+" facilitating fast vim-surround operations with brackets and such things
+if has('nvim')
+	inoremap <m-v> <c-o>v
+else
+	set <F16>=v
+	inoremap <F16> <c-o>v
+endif
