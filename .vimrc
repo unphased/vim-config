@@ -1775,9 +1775,9 @@ endif
 
 function! MyAmazingEnhancedDot()
 	if v:hlsearch == 1
-		:normal! .n<CR>
+		:normal! .n
 	else
-		:normal! .j<CR>
+		:normal! .j
 	endif
 endfun
 
