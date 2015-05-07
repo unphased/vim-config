@@ -1184,16 +1184,18 @@ endif
 
 " set the numpad key codes -- Mark helpfully already implements the stuff that
 " calls <k0>, etc
-set <k0>=Op
-set <k1>=Oq
-set <k2>=Or
-set <k3>=Os
-set <k4>=Ot
-set <k5>=Ou
-set <k6>=Ov
-set <k7>=Ow
-set <k8>=Ox
-set <k9>=Oy
+if !has('nvim')
+	set <k0>=Op
+	set <k1>=Oq
+	set <k2>=Or
+	set <k3>=Os
+	set <k4>=Ot
+	set <k5>=Ou
+	set <k6>=Ov
+	set <k7>=Ow
+	set <k8>=Ox
+	set <k9>=Oy
+endif
 
 " make recordings easier to fire off, binding alt+comma to @q (use qq to record 
 " to q register)
