@@ -1848,8 +1848,19 @@ let g:cpp_class_scope_highlight=1
 "   return ""
 " endfunction
 
-" bind Alt+V to insert mode temporary entry into visual mode mainly for 
-" facilitating fast vim-surround operations with brackets and such things
+" bind Alt+B to insert mode temporary entry into visual mode and automatically 
+" travel to the end of the current word, mainly useful for facilitating fast 
+" vim-surround operations with brackets and such things via visual mode
+if has('nvim')
+	inoremap <m-b> <ESC>lve
+else
+	set <F15>=b
+	inoremap <F15> <ESC>lve
+endif
+
+" bind Alt+V to do the same as alt+B but do less work whereby visual mode is 
+" temporarily engaged (and we return to insert mode afterwards), and also the 
+" movement to end of word is not auto performed
 if has('nvim')
 	inoremap <m-v> <c-o>v
 else
@@ -1857,4 +1868,11 @@ else
 	inoremap <F16> <c-o>v
 endif
 
+" Override the default which uses m-p which conflicts with my paste mode 
+" binding
 let g:AutoPairsShortcutToggle = '<m-z>'
+
+" bind Alt+P in insert mode to paste
+if has('nvim')
+	inoremap <m-p> <c-o>p
+endif
