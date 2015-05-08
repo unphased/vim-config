@@ -1070,23 +1070,35 @@ inoremap <F34> <C-O>:tabnext<CR>
 nnoremap <F34> :tabnext<CR>
 vnoremap <F34> <ESC>:tabnext<CR>
 
-set <F33>=p
+if !has('nvim')
+	set <F33>=p
+	set <F32>=w
+	" keybinding for toggling word-wrap
+	nnoremap <F32> :set wrap!<CR>
+	inoremap <F32> :set wrap!<CR>
 
-set <F32>=w
-" keybinding for toggling word-wrap
-nnoremap <F32> :set wrap!<CR>
-inoremap <F32> :set wrap!<CR>
+	set <F31>=s
 
-set <F31>=s
-" just a convenience thing for being lazy what with switching OS's and this
-" being a rather common key sequence and macs...
-noremap <F31> :update<CR>
-vnoremap <F31> <ESC>:update<CR>
-cnoremap <F31> <C-C>:update<CR>
-inoremap <F31> <ESC>:update<CR>
+	" just a convenience thing for being lazy what with switching OS's and this
+	" being a rather common key sequence and macs...
+	noremap <F31> :update<CR>
+	vnoremap <F31> <ESC>:update<CR>
+	cnoremap <F31> <C-C>:update<CR>
+	inoremap <F31> <ESC>:update<CR>
 
-nnoremap <silent> <F33> :set invpaste paste?<CR>:set number!<CR>:set list!<CR>
-set pastetoggle=<F33>
+	nnoremap <silent> <F33> :set invpaste paste?<CR>:set number!<CR>:set list!<CR>
+	set pastetoggle=<F33>
+else
+	nnoremap <m-w> :set wrap!<CR>
+	inoremap <m-w> :set wrap!<CR>
+	noremap <m-s> :update<CR>
+	vnoremap <m-s> <ESC>:update<CR>
+	cnoremap <m-s> <C-C>:update<CR>
+	inoremap <m-s> <ESC>:update<CR>
+
+	nnoremap <silent> <m-p> :set invpaste paste?<CR>:set number!<CR>:set list!<CR>
+	set pastetoggle=<m-p>
+endif
 set showmode
 
 " A slightly perilous set of binds:
@@ -1840,3 +1852,5 @@ else
 	set <F16>=v
 	inoremap <F16> <c-o>v
 endif
+
+let g:AutoPairsShortcutToggle = '<m-z>'
