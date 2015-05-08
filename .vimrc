@@ -1815,8 +1815,12 @@ xmap <Right> <Plug>(textmanip-move-right)
 nmap <C-E> <Plug>(textmanip-toggle-mode)
 xmap <C-E> <Plug>(textmanip-toggle-mode)
 
-" save for php (so far its the only language having insane files i need folding
-" to work in
+" save states for php. This affects too many variables for comfort, but I do 
+" want it to work so I can maintain folding state. It's a sad compromise for 
+" now. (so php is the only language having insane files i need folding to work 
+" in -- whenever i find persistent buffer settings due to this mkview I can 
+" manually erase these files (after exiting Vim, as exiting vim causes it to 
+" write the view))
 au BufWinLeave *.php mkview
 au BufWinEnter *.php silent loadview
 
