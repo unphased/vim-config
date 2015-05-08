@@ -110,9 +110,20 @@ nnoremap <Leader>g :call TimeLapse()<CR>
 nnoremap <Leader>R :silent redraw!<CR>
 
 " Ultisnips settings (to have it work together with YCM)
-let g:UltiSnipsExpandTrigger="<F23>"
-let g:UltiSnipsJumpForwardTrigger="<F23>"
-let g:UltiSnipsJumpBackwardTrigger="<F22>"
+if has('nvim')
+	let g:UltiSnipsExpandTrigger="<C-TAB>"
+	let g:UltiSnipsJumpForwardTrigger="<C-TAB>"
+	let g:UltiSnipsJumpBackwardTrigger="<C-S-TAB>"
+
+	" Just set to something so that c-tab wont be used (needed for nvim)
+	let g:UltiSnipsListSnippets="<M-c>"
+else
+	" I believe default <c-tab> binding fails to work on vim so this just ends 
+	" up working the way i want
+	let g:UltiSnipsExpandTrigger="<F23>"
+	let g:UltiSnipsJumpForwardTrigger="<F23>"
+	let g:UltiSnipsJumpBackwardTrigger="<F22>"
+endif
 " Using Ctrl Tab to fire the snippets. Shift tab is taken by YCM.
 " the weird custom mapping doesn't really seem to help anything and I cannot
 " figure out how to get it to respond to tab properly, so it should be an easy
@@ -1184,10 +1195,9 @@ endif
 " but Vim has no knowledge of it. so here i am adding it to the fastkey 
 " repertoire, but skipping F24 and F25 because the actual vitality plugin uses 
 " this method specifically on F24 and F25
-set <F23>=[27;5;9~
-set <F22>=[27;6;9~
-
 if !has('nvim')
+	set <F23>=[27;5;9~
+	set <F22>=[27;6;9~
 	set <F21>=n
 
 	set <F20>=.
