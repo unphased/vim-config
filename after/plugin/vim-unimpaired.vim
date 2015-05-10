@@ -1,2 +1,2 @@
-nunmap =P
-nunmap =p
+silent! nunmap =P
+silent! nunmap =p
