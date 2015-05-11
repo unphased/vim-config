@@ -871,7 +871,7 @@ highlight Search ctermbg=22 ctermfg=253
 highlight Error term=reverse ctermfg=8 ctermbg=9
 
 " only on an italic term do we set comment to use italic cterm highlight
-if &term == 'xterm-256color-italic' || &term == 'nvim'
+if &term == 'tmux-256color-italic' || &term == 'nvim'
 	hi Comment cterm=italic
 endif
 
