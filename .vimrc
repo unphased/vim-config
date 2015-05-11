@@ -717,10 +717,16 @@ cnoremap <C-A-S> <C-C>:w !sudo tee > /dev/null %<CR>
 noremap <C-A-S> <ESC>:w !sudo tee > /dev/null %<CR>
 inoremap <C-A-S> <ESC>:w !sudo tee > /dev/null %<CR>
 
+function! MyConfirmQuitAllNoSave()
+	qall
+	if confirm('DISCARD CHANGES and then QUIT ALL? (you hit Ctrl+Q)', "OK\nNo") == 1
+		qall!
+	endif
+endfunc
 " Use CTRL-Q for abort-quitting (no save)
-noremap <C-Q> :qa!<CR>
-cnoremap <C-Q> <C-C>:qa!<CR>
-inoremap <C-Q> <C-O>:qa!<CR>
+noremap <C-Q> :call MyConfirmQuitAllNoSave()<CR>
+cnoremap <C-Q> <C-C>:call MyConfirmQuitAllNoSave()<CR>
+inoremap <C-Q> <C-O>:call MyConfirmQuitAllNoSave()<CR>
 
 " this bit controls search and highlighting by using the Enter key in normal mode
 let g:highlighting = 1
