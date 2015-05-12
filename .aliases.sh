@@ -39,6 +39,7 @@ alias ds="dirs -v | head -10"
 alias d="gde"
 
 alias iack="ack -i"
+alias vim="TERM=xterm-256color-italic vim"
 
 # TODO: deal with this abomination
 if [[ $(uname) == Linux ]]; then

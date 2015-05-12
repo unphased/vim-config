@@ -876,8 +876,11 @@ inoremap <C-P> <C-O>p<CR>
 highlight Search ctermbg=22 ctermfg=253
 highlight Error term=reverse ctermfg=8 ctermbg=9
 
+" set t_ZH=[3m
+" set t_ZR=[23m
+
 " only on an italic term do we set comment to use italic cterm highlight
-if &term == 'tmux-256color-italic' || &term == 'nvim'
+if &term == 'xterm-256color-italic' || &term == 'nvim'
 	hi Comment cterm=italic
 endif
 
