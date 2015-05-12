@@ -9,5 +9,5 @@
 #   export TERM=xterm-256color-italic
 #
 xterm-256color-italic|xterm with 256 colors and italic,
-	sitm=\E[3m, ritm=\E[23m, khome=\E[1~, kend=\E[4~, kbs=\177,
+	sitm=\E[3m, ritm=\E[23m, khome=\EOH, kend=\EOF, kbs=\177,
 	use=xterm-256color,

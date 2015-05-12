@@ -9,10 +9,10 @@ set convert-meta off
 set output-meta on
 
 #These next ones were made using PuTTY and may not work always
-"[1~": beginning-of-line
-"[4~": end-of-line
-"[5~": history-search-backward
-"[6~": history-search-forward
+"OH": beginning-of-line
+"OF": end-of-line
+# "[5~": history-search-backward
+# "[6~": history-search-forward
 "[3~": delete-char
 "[2~": quoted-insert
 "[1;5C": forward-word
@@ -26,8 +26,8 @@ set output-meta on
 
 # history search with pgup/pgdn remains very very very handy however.
 # Theres an entry in default inputrc but it's commented. 
-"\e[5~": history-search-backward
-"\e[6~": history-search-forward
+# "\e[5~": history-search-backward
+# "\e[6~": history-search-forward
 
 #"\e[3~": delete-char
 #"\e[2~": quoted-insert
