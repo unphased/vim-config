@@ -873,7 +873,7 @@ nnoremap <S-F7> :YcmCompleter GoToDefinition<CR>
 inoremap <C-P> <C-O>p<CR>
 
 " set highlight for search to be less blinding
-highlight Search ctermbg=22 ctermfg=253
+highlight Search ctermbg=124 ctermfg=253
 highlight Error term=reverse ctermfg=8 ctermbg=9
 
 " set t_ZH=[3m
