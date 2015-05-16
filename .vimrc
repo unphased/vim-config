@@ -1658,6 +1658,25 @@ let g:tagbar_type_objcpp = {
 	\, ],
 	\ 'sro'        : ' '
 	\ }
+let g:tagbar_type_objc = {
+	\ 'ctagstype' : 'objcpp',
+	\ 'kinds': [
+	\     'i:class interface'
+	\,    'x:class extension'
+	\,    'I:class implementation'
+	\,    'P:protocol'
+	\,    'M:method'
+	\,    't:typedef'
+	\,    'v:variable'
+	\,    'p:property'
+	\,    'e:enumeration'
+	\,    'f:function'
+	\,    'd:macro'
+	\,    'g:pragma'
+	\,    'c:constant'
+	\, ],
+	\ 'sro'        : ' '
+	\ }
 
 " set tagbar highlight color
 hi TagBarHighlight ctermbg=27 ctermfg=254
