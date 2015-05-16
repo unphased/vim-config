@@ -279,7 +279,7 @@ highlight DiffText term=reverse ctermbg=blue ctermfg=16
 highlight DiffDelete term=reverse ctermbg=red ctermfg=white
 
 " mostly for syntastic
-highlight SyntasticError ctermbg=124
+highlight SyntasticError ctermbg=88
 highlight SyntasticWarning ctermbg=24
 
 hi clear SignColumn
@@ -873,7 +873,8 @@ nnoremap <S-F7> :YcmCompleter GoToDefinition<CR>
 inoremap <C-P> <C-O>p<CR>
 
 " set highlight for search to be less blinding
-highlight Search ctermbg=124 ctermfg=253
+" highlight Search ctermbg=33 ctermfg=16
+highlight Search ctermbg=none ctermfg=none cterm=reverse
 highlight Error term=reverse ctermfg=8 ctermbg=9
 
 " set t_ZH=[3m
