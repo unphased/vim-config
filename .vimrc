@@ -74,6 +74,7 @@ Plugin 'junegunn/vim-easy-align'
 Plugin 'unphased/auto-pairs'
 Plugin 'octol/vim-cpp-enhanced-highlight'
 Plugin 'blueyed/argtextobj.vim'
+Plugin 'unphased/Cpp11-Syntax-Support'
 
 " Bundle 'Decho'
 
