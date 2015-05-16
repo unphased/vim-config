@@ -54,7 +54,7 @@ Plugin 'derekwyatt/vim-fswitch'
 Plugin 'wakatime/vim-wakatime'
 Plugin 'panozzaj/vim-autocorrect'
 Plugin 'kshenoy/vim-signature'
-Plugin 'jeffkreeftmeijer/vim-numbertoggle'
+" Plugin 'jeffkreeftmeijer/vim-numbertoggle'
 "Plugin 'mxw/vim-jsx'
 
 Plugin 'tmux-plugins/vim-tmux'
@@ -1617,13 +1617,13 @@ nmap Y y$
 
 set switchbuf=usetab,split
 
-" bind to not the default
-if has('nvim')
-	let g:NumberToggleTrigger="<m-n>" " this seems to not be working
-	nnoremap <M-n> :call NumberToggle()<CR>
-else
-	let g:NumberToggleTrigger="<F21>" " alt+n
-endif
+" " bind to not the default
+" if has('nvim')
+" 	let g:NumberToggleTrigger="<m-n>" " this seems to not be working
+" 	nnoremap <M-n> :call NumberToggle()<CR>
+" else
+" 	let g:NumberToggleTrigger="<F21>" " alt+n
+" endif
 
 " now that focuslost works with iterm and tmux maybe this is just generally 
 " improved behavior. Do have to be careful, but it speeds shit up when rapidly 
