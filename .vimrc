@@ -1920,6 +1920,9 @@ let g:AutoPairsShortcutToggle = '<m-z>'
 let g:AutoPairsShortcutBackInsert = '<m-x>'
 
 " bind Alt+P in insert mode to paste (for nvim)..
+" this actually conflicts with internal vim binding, see i_CTRL_P, but 
+" basically it does work somehow, only once per insertmode excursion. Better 
+" than nothing.
 if has('nvim')
-	inoremap <m-p> <c-o>P
+	inorenoremmap <c-p> <c-r>"
 endif
