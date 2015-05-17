@@ -1897,7 +1897,7 @@ endif
 let g:AutoPairsShortcutToggle = '<m-z>'
 let g:AutoPairsShortcutBackInsert = '<m-x>'
 
-" bind Alt+P in insert mode to paste
+" bind Alt+P in insert mode to paste (for nvim)..
 if has('nvim')
-	inoremap <m-p> <c-o>p
+	inoremap <m-p> <c-o>P
 endif
