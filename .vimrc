@@ -54,7 +54,7 @@ Plugin 'derekwyatt/vim-fswitch'
 Plugin 'wakatime/vim-wakatime'
 Plugin 'panozzaj/vim-autocorrect'
 Plugin 'kshenoy/vim-signature'
-Plugin 'jeffkreeftmeijer/vim-numbertoggle'
+" Plugin 'jeffkreeftmeijer/vim-numbertoggle'
 "Plugin 'mxw/vim-jsx'
 
 Plugin 'tmux-plugins/vim-tmux'
@@ -74,6 +74,7 @@ Plugin 'junegunn/vim-easy-align'
 Plugin 'unphased/auto-pairs'
 Plugin 'octol/vim-cpp-enhanced-highlight'
 Plugin 'blueyed/argtextobj.vim'
+Plugin 'unphased/Cpp11-Syntax-Support'
 
 " Bundle 'Decho'
 
@@ -279,7 +280,7 @@ highlight DiffText term=reverse ctermbg=blue ctermfg=16
 highlight DiffDelete term=reverse ctermbg=red ctermfg=white
 
 " mostly for syntastic
-highlight SyntasticError ctermbg=124
+highlight SyntasticError ctermbg=88
 highlight SyntasticWarning ctermbg=24
 
 hi clear SignColumn
@@ -873,7 +874,8 @@ nnoremap <S-F7> :YcmCompleter GoToDefinition<CR>
 inoremap <C-P> <C-O>p<CR>
 
 " set highlight for search to be less blinding
-highlight Search ctermbg=124 ctermfg=253
+" highlight Search ctermbg=33 ctermfg=16
+highlight Search ctermbg=none ctermfg=none cterm=reverse
 highlight Error term=reverse ctermfg=8 ctermbg=9
 
 " set t_ZH=[3m
@@ -1615,13 +1617,13 @@ nmap Y y$
 
 set switchbuf=usetab,split
 
-" bind to not the default
-if has('nvim')
-	let g:NumberToggleTrigger="<m-n>" " this seems to not be working
-	nnoremap <M-n> :call NumberToggle()<CR>
-else
-	let g:NumberToggleTrigger="<F21>" " alt+n
-endif
+" " bind to not the default
+" if has('nvim')
+" 	let g:NumberToggleTrigger="<m-n>" " this seems to not be working
+" 	nnoremap <M-n> :call NumberToggle()<CR>
+" else
+" 	let g:NumberToggleTrigger="<F21>" " alt+n
+" endif
 
 " now that focuslost works with iterm and tmux maybe this is just generally 
 " improved behavior. Do have to be careful, but it speeds shit up when rapidly 
@@ -1639,6 +1641,25 @@ au FocusLost * stopinsert
 " for tagbar
 " add a definition for Objective-C to tagbar
 let g:tagbar_type_objcpp = {
+	\ 'ctagstype' : 'objcpp',
+	\ 'kinds': [
+	\     'i:class interface'
+	\,    'x:class extension'
+	\,    'I:class implementation'
+	\,    'P:protocol'
+	\,    'M:method'
+	\,    't:typedef'
+	\,    'v:variable'
+	\,    'p:property'
+	\,    'e:enumeration'
+	\,    'f:function'
+	\,    'd:macro'
+	\,    'g:pragma'
+	\,    'c:constant'
+	\, ],
+	\ 'sro'        : ' '
+	\ }
+let g:tagbar_type_objc = {
 	\ 'ctagstype' : 'objcpp',
 	\ 'kinds': [
 	\     'i:class interface'
