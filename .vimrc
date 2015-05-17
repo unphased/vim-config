@@ -1539,6 +1539,7 @@ let g:airline#extensions#default#section_truncate_width = {
   \ 'x': 125,
   \ 'y': 113,
   \ 'z': 100,
+  \ 'warning': 50,
   \ }
 
 " Highlight words to avoid in tech writing
