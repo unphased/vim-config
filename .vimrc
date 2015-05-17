@@ -71,7 +71,7 @@ Plugin 't9md/vim-textmanip'
 Plugin 'vim-scripts/hexman.vim'
 Plugin 'tpope/vim-afterimage'
 Plugin 'junegunn/vim-easy-align'
-Plugin 'unphased/auto-pairs'
+Plugin 'jiangmiao/auto-pairs'
 Plugin 'octol/vim-cpp-enhanced-highlight'
 Plugin 'blueyed/argtextobj.vim'
 Plugin 'unphased/Cpp11-Syntax-Support'
@@ -1919,6 +1919,7 @@ endif
 " binding
 let g:AutoPairsShortcutToggle = '<m-z>'
 let g:AutoPairsShortcutBackInsert = '<m-x>'
+let g:AutoPairsCenterLine = 0
 
 " bind Alt+P in insert mode to paste (for nvim)..
 " this actually conflicts with internal vim binding, see i_CTRL_P, but 
