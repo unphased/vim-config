@@ -1926,5 +1926,5 @@ let g:AutoPairsCenterLine = 0
 " basically it does work somehow, only once per insertmode excursion. Better 
 " than nothing.
 if has('nvim')
-	inorenoremmap <c-p> <c-r>"
+	inoremap <c-p> <c-r>"
 endif
