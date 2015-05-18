@@ -1928,3 +1928,6 @@ let g:AutoPairsCenterLine = 0
 if has('nvim')
 	inoremap <c-p> <c-r>"
 endif
+
+" a special case for surrounding with newlines
+vmap S<CR> S<C-J>V2j=
