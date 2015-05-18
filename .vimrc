@@ -72,9 +72,9 @@ Plugin 'vim-scripts/hexman.vim'
 Plugin 'tpope/vim-afterimage'
 Plugin 'junegunn/vim-easy-align'
 Plugin 'jiangmiao/auto-pairs'
-Plugin 'octol/vim-cpp-enhanced-highlight'
 Plugin 'blueyed/argtextobj.vim'
-Plugin 'unphased/Cpp11-Syntax-Support'
+" Plugin 'octol/vim-cpp-enhanced-highlight'
+" Plugin 'unphased/Cpp11-Syntax-Support'
 
 " Bundle 'Decho'
 

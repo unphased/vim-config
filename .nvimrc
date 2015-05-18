@@ -2,7 +2,7 @@
 
 set rtp+=~/.vim/
 set rtp+=~/.vim/after/
-set rtp+=~/usr/share/vim/vim74/
+" set rtp+=~/usr/share/vim/vim74/
 
 " echom "RTP is now: ".&rtp
 
