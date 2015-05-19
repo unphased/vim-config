@@ -920,7 +920,7 @@ let g:gundo_preview_bottom = 1
 
 set undolevels=10000
 
-set iskeyword=@,$,48-57,_,192-255
+" set iskeyword=@,$,48-57,_,192-255
 
 " Ctrl+F for find -- tip on \v from
 " http://stevelosh.com/blog/2010/09/coming-home-to-vim/
@@ -1061,33 +1061,15 @@ nnoremap <S-Tab> :call PrevWindowOrTabOrBuffer()<CR>
 
 "THIS SECTION CONTAINS THE FAST KEY BINDINGS
 " Make alt+BS do the same as in bash/zsh (I am doing experimental override of xF keys)
-set <F37>=
-inoremap <F37> <C-W>
+if !has('nvim')
+	set <F37>=
+	inoremap <F37> <C-W>
+else
+	inoremap <M-BS> <C-W>
+endif
 
 " force bash mode for sh syntax
 let g:is_bash=1
-
-" Make alt+z perform the undo function (mapping ctrl z to alt z may need to be
-" done at shell level, but this helps on OSX at least)
-set <F36>=z
-inoremap <F36> <C-O>u
-" This is gonna suspend vim and is not really a working bind
-nnoremap <F36> u
-vnoremap <F36> <ESC>u
-" todo: figure out how to make this save and restore the selection area
-
-" note that pressing u in visual mode lowercases the selection
-set <F35>=Z
-inoremap <F35> <C-O><C-R>
-nnoremap <F35> <C-R>
-vnoremap <F35> <ESC><C-R>
-
-" Make Alt+Tab switch vim tabs  (todo: figure out a less wrong escape code to
-" use) -- this one is only possible on a Mac
-set <F34>=[99Z
-inoremap <F34> <C-O>:tabnext<CR>
-nnoremap <F34> :tabnext<CR>
-vnoremap <F34> <ESC>:tabnext<CR>
 
 if !has('nvim')
 	set <F33>=p
@@ -1707,6 +1689,7 @@ nmap <leader>s :set spell!<CR>
 
 highlight SpellBad ctermbg=NONE ctermfg=NONE cterm=underline
 highlight SpellCap ctermbg=NONE ctermfg=NONE cterm=underline,bold
+highlight SpellRare ctermbg=NONE ctermfg=NONE cterm=underline
 " There exist some other spelling related highlight styles but i'll just deal 
 " with them when i see them show up as I see fit. the capitalization one is 
 " pretty acceptable for now also.
@@ -1715,7 +1698,7 @@ highlight SpellCap ctermbg=NONE ctermfg=NONE cterm=underline,bold
 " with power. Found here: 
 " http://dailyvim.blogspot.com/2007/11/macro-registers.html
 " Not too much but just a wrinkle, not really able (easily) to start recording 
-" into the p or d registers. lol
+" into the p or d registers. well then  i think
 
 nnoremap qp Go<ESC>"qp
 nnoremap qd G0"qd$
