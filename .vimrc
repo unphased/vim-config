@@ -747,7 +747,7 @@ nnoremap <silent> <expr> <CR> Highlighting()
 
 " This came out of http://vim.wikia.com/wiki/Search_for_visually_selected_text
 " Search for selected text, forwards or backwards.
-vnoremap <silent> * :<C-U>
+vnoremap <silent> <CR> :<C-U>
   \let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
   \gvy/<C-R><C-R>=substitute(
   \escape(@", '/\.*$^~['), '\_s\+', '\\_s\\+', 'g')<CR><CR>
@@ -757,10 +757,6 @@ vnoremap <silent> # :<C-U>
   \gvy?<C-R><C-R>=substitute(
   \escape(@", '?\.*$^~['), '\_s\+', '\\_s\\+', 'g')<CR><CR>
   \gV:call setreg('"', old_reg, old_regtype)<CR>
-
-" mapping Enter to also perform a search from visual mode (search what is
-" selected) (and staying in the same spot by searching backward once)
-vmap <silent> <CR> *N
 
 " map Q to :q
 nnoremap Q :q<CR>
@@ -941,8 +937,8 @@ vnoremap / /\v
 " helpful anyway.
 " These maps are non-recursive to accomodate the fact that matchit.vim
 " overloads %, so we try not to mess that up.
-nmap ` %
-vmap ` %
+nnoremap ` %
+vnoremap ` %
 
 " mapping normal mode Tab to swap to next window; saving the functionality of
 " tab (next jumplist position) to C-B (since PgUp serves that function well)
