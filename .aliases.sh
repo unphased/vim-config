@@ -41,7 +41,7 @@ alias d="gde"
 alias iack="ack -i"
 alias vim="TERM=xterm-256color-italic vim"
 
-# TODO: deal with this abomination
+# TODO: deal with this abomination (viz. make it worse by generalizing it)
 if [[ $(uname) == Linux ]]; then
 	# need to use a non custom term to not confuse nano. Also enabling the 
 	# experimental undo functionality for nano
@@ -59,6 +59,8 @@ if [[ $(uname) == Linux ]]; then
 	# We can compile and install a newer nano on OSX but there is DEFINITELY no 
 	# reason to use it over vim on a machine running OSX. None at all.
 fi
+
+alias dc="cd"
 
 # unfortunately this is turning into a place where i collect environment 
 # settings for both zsh/bash. Not that theres anything wrong with that per se, 
