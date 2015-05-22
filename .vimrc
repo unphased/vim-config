@@ -297,6 +297,8 @@ let g:HiCursorWords_delay = 50
 " MAKE SURE YOU HAVE npm install -g jsxhint
 let g:syntastic_javascript_checkers = ['jsxhint']
 
+let g:syntastic_always_populate_loc_list = 1
+
 " for debugging syntax
 " (http://vim.wikia.com/wiki/Identify_the_syntax_highlighting_group_used_at_the_cursor)
 command! SyntaxDetect :echom "hi<" . synIDattr(synID(line("."),col("."),1),"name") . '> trans<' . synIDattr(synID(line("."),col("."),0),"name") . "> lo<" . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"
@@ -842,7 +844,7 @@ let g:ycm_max_diagnostics_to_display = 300
 
 " semantic on OSX works again! hooray -- now this has to be bound to a key 
 " because of limitations. see issue 887 at YCM's github
-let g:ycm_enable_diagnostic_signs = 0
+let g:ycm_enable_diagnostic_signs = 1
 let g:ycm_enable_diagnostic_highlighting = 1
 let g:ycm_server_keep_logfiles = 1
 highlight YcmErrorLine guibg=#3f0000
