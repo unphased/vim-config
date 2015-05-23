@@ -9,7 +9,7 @@ call vundle#rc()
 
 Plugin 'gmarik/vundle'
 Plugin 'Valloric/YouCompleteMe'
-Plugin 'dsummersl/gundo.vim'
+Plugin 'simnalamburt/vim-mundo'
 
 " iTerm2 support for focusing
 " Plugin 'sjl/vitality.vim'
