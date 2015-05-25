@@ -783,6 +783,11 @@ let g:ctrlp_root_markers = ['.ctrlp_root'] " insert this sentinel file anywhere 
 
 noremap k gk
 noremap j gj
+noremap gk k
+noremap gj j
+
+" for wrapping based on words
+set linebreak
 
 " These are old mappings for line based home/end, I needed to change these to
 " prevent vim from hanging on escape
