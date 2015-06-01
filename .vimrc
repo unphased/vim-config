@@ -1158,11 +1158,11 @@ function! MyForceVertSplit()
 	exec 'b '.curbuffer
 endfunc
 if has('nvim')
-	nnoremap <M-F> :call MyForceVertSplit()<CR>
-	nnoremap <M-R> :call MyForceHorizSplit()<CR>
+	nnoremap <M-R> :call MyForceVertSplit()<CR>
+	nnoremap <M-F> :call MyForceHorizSplit()<CR>
 else
-	set <F18>=F
-	set <F17>=R
+	set <F18>=R
+	set <F17>=F
 
 	nnoremap <F18> :call MyForceVertSplit()<CR>
 	nnoremap <F17> :call MyForceHorizSplit()<CR>
