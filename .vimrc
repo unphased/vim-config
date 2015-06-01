@@ -43,7 +43,7 @@ Plugin 'dimasg/vim-mark'
 "Bundle 'akiomik/git-gutter-vim'
 Plugin 'mhinz/vim-signify'
 " Plugin 'pangloss/vim-javascript'
-Plugin 'jelera/vim-javascript-syntax'
+" Plugin 'jelera/vim-javascript-syntax'
 Plugin 'beyondmarc/glsl.vim'
 "Bundle 'kana/vim-smartinput'
 Plugin 'SirVer/ultisnips'
@@ -1367,6 +1367,14 @@ vmap ] S]
 " This is way too cool (auto lets you enter tags)
 vmap < S<
 vmap > S>
+
+" shortcut for visual mode space wrapping makes it more reasonable than using 
+" default vim surround space maps which require hitting space twice or 
+" modifying wrap actions by prepending space to their triggers -- i am guiding 
+" the default workflow toward being more visualmode centric which involves less 
+" cognitive frontloading.
+vmap <Space> S<Space><Space>
+
 " restore the functions for shifting selections
 vnoremap << <
 vnoremap >> >
