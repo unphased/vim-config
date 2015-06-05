@@ -1925,3 +1925,21 @@ endif
 
 " a special case for surrounding with newlines
 vmap S<CR> S<C-J>V2j=
+
+if has('python')
+	python << EOF
+# print 'hi from python'
+EOF
+	function MungeArgListPython()
+		python << EOF
+# check we are inside parens
+print 'current line is ' + vim.current.line
+EOF
+	endfun
+	" X does something rather kind of useful but i never use it --- I am 
+	" binding to
+	" a custom python line munger whose purpose is to clean the inside of the 
+	" parens we are inside of -- e.g. useful with argtextobj operations, just 
+	" litter with extra commas at the beginning or whatever and we mop them up.
+	nnoremap X :call MungeArgListPython()<CR>
+endif
