@@ -1911,8 +1911,8 @@ endif
 
 " Override the default which uses m-p which conflicts with my paste mode 
 " binding
-let g:AutoPairsShortcutToggle = '<m-z>'
-let g:AutoPairsShortcutBackInsert = '<m-x>'
+let g:AutoPairsShortcutToggle = '<M-z>'
+let g:AutoPairsShortcutBackInsert = '<M-x>'
 let g:AutoPairsCenterLine = 0
 
 " bind Alt+P in insert mode to paste (for nvim)..
