@@ -1932,14 +1932,18 @@ if has('python')
 EOF
 	function MungeArgListPython()
 		python << EOF
+import string
 # check we are inside parens
-print 'current line is ' + vim.current.line
+curcol = vim.current.window.cursor[1];
+parensstart = string.rfind(vim.current.line, '(', 0, curcol);
+parensend = string.find(vim.current.line, ')', curcol);
+print 'curcol ' + str(curcol)+ ' idxs are ' + str(parensstart) + ', ' + str(parensend) + ' line inside parens is >>' + vim.current.line[parensstart:parensend+1] + '<<'
 EOF
 	endfun
 	" X does something rather kind of useful but i never use it --- I am 
-	" binding to
-	" a custom python line munger whose purpose is to clean the inside of the 
-	" parens we are inside of -- e.g. useful with argtextobj operations, just 
-	" litter with extra commas at the beginning or whatever and we mop them up.
+	" binding to a custom python line munger whose purpose is to clean the 
+	" inside of the parens we are inside of -- e.g. useful with argtextobj 
+	" operations, just litter with extra commas at the beginning or whatever 
+	" and we mop them up.
 	nnoremap X :call MungeArgListPython()<CR>
 endif
