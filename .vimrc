@@ -75,6 +75,7 @@ Plugin 'jiangmiao/auto-pairs'
 Plugin 'blueyed/argtextobj.vim'
 Plugin 'octol/vim-cpp-enhanced-highlight'
 Plugin 'unphased/Cpp11-Syntax-Support'
+Plugin 'unphased/vim-html-escape'
 
 " Bundle 'Decho'
 
