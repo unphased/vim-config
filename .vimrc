@@ -54,6 +54,7 @@ Plugin 'derekwyatt/vim-fswitch'
 Plugin 'wakatime/vim-wakatime'
 Plugin 'panozzaj/vim-autocorrect'
 Plugin 'kshenoy/vim-signature'
+Plugin 'jiangmiao/auto-pairs'
 Plugin 'jeffkreeftmeijer/vim-numbertoggle'
 "Plugin 'mxw/vim-jsx'
 
@@ -71,7 +72,6 @@ Plugin 't9md/vim-textmanip'
 Plugin 'vim-scripts/hexman.vim'
 Plugin 'tpope/vim-afterimage'
 Plugin 'junegunn/vim-easy-align'
-Plugin 'jiangmiao/auto-pairs'
 Plugin 'blueyed/argtextobj.vim'
 Plugin 'octol/vim-cpp-enhanced-highlight'
 Plugin 'unphased/Cpp11-Syntax-Support'
@@ -1914,6 +1914,7 @@ endif
 " binding
 let g:AutoPairsShortcutToggle = '<M-z>'
 let g:AutoPairsShortcutBackInsert = '<M-x>'
+let g:AutoPairsShortcutJump = '<M-a>'
 let g:AutoPairsCenterLine = 0
 
 " bind Alt+P in insert mode to paste (for nvim)..
