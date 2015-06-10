@@ -1949,3 +1949,16 @@ EOF
 	" and we mop them up.
 	nnoremap X :call MungeArgListPython()<CR>
 endif
+
+let g:mwPalettes = {
+	\	'original': [
+	\   { 'ctermbg':'26',       'ctermfg':'7'},
+	\   { 'ctermbg':'22',      'ctermfg':'7'},
+	\   { 'ctermbg':'137',     'ctermfg':'7'},
+	\   { 'ctermbg':'125',        'ctermfg':'7'},
+	\   { 'ctermbg':'57',    'ctermfg':'7'},
+	\   { 'ctermbg':'20',       'ctermfg':'7'},
+	\],
+	\	'extended': function('mark#palettes#Extended'),
+	\	'maximum': function('mark#palettes#Maximum')
+	\}
