@@ -1624,6 +1624,7 @@ endif
 " now that focuslost works with iterm and tmux maybe this is just generally 
 " improved behavior. Do have to be careful, but it speeds shit up when rapidly 
 " working
+" working
 " Update not too many weeks later -- This actually causes phantom unintended 
 " undoes being committed -- Also complicit in that particular brand of 
 " treachery is Airline's tab bar. I am bringing back the old utilitarian tab 
@@ -1954,10 +1955,22 @@ let g:mwPalettes = {
 	\	'original': [
 	\   { 'ctermbg':'26',       'ctermfg':'7'},
 	\   { 'ctermbg':'22',      'ctermfg':'7'},
-	\   { 'ctermbg':'137',     'ctermfg':'7'},
 	\   { 'ctermbg':'125',        'ctermfg':'7'},
 	\   { 'ctermbg':'57',    'ctermfg':'7'},
 	\   { 'ctermbg':'20',       'ctermfg':'7'},
+	\   { 'ctermbg':'58',     'ctermfg':'7'},
+	\   { 'ctermbg':'30',     'ctermfg':'7'},
+	\   { 'ctermbg':'28',     'ctermfg':'7'},
+	\   { 'ctermbg':'89',     'ctermfg':'7'},
+	\   { 'ctermbg':'54',     'ctermfg':'7'},
+	\   { 'ctermbg':'18',     'ctermfg':'7'},
+	\   { 'ctermbg':'166',     'ctermfg':'7'},
+	\   { 'ctermbg':'24',     'ctermfg':'7'},
+	\   { 'ctermbg':'132',     'ctermfg':'7'},
+	\   { 'ctermbg':'162',     'ctermfg':'7'},
+	\   { 'ctermbg':'90',     'ctermfg':'7'},
+	\   { 'ctermbg':'63',     'ctermfg':'7'},
+	\   { 'ctermbg':'202',     'ctermfg':'7'},
 	\],
 	\	'extended': function('mark#palettes#Extended'),
 	\	'maximum': function('mark#palettes#Maximum')
