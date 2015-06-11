@@ -1977,3 +1977,7 @@ let g:mwPalettes = {
 	\}
 
 nnoremap <Leader>N :MarkClear<CR>
+nmap <unique> <F11> <Plug>MarkSet
+xmap <unique> <F11> <Plug>MarkSet
+" this is hard to use on the Mac but I am leaving <Leader>m to be usable -- 
+" this is just a shortcut
