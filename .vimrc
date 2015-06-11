@@ -219,8 +219,9 @@ set ttimeoutlen=10
 
 " set t_Co=256
 " set term=screen-256color-italic
-
-set ttymouse=xterm2
+if !has('nvim')
+	set ttymouse=xterm2
+endif
 
 syntax on
 set number
