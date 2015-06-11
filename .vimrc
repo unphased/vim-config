@@ -1975,3 +1975,5 @@ let g:mwPalettes = {
 	\	'extended': function('mark#palettes#Extended'),
 	\	'maximum': function('mark#palettes#Maximum')
 	\}
+
+nnoremap <Leader>N :MarkClear<CR>
