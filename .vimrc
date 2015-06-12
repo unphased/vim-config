@@ -1530,11 +1530,11 @@ let g:airline#extensions#whitespace#checks = [ 'indent' ]
 let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
 let g:airline#extensions#branch#displayed_head_limit = 15
 let g:airline#extensions#default#section_truncate_width = {
-  \ 'b': 60,
-  \ 'x': 125,
-  \ 'y': 113,
-  \ 'z': 100,
-  \ 'warning': 50,
+  \ 'b': 120,
+  \ 'x': 45,
+  \ 'y': 115,
+  \ 'z': 120,
+  \ 'warning': 40,
   \ }
 
 " Highlight words to avoid in tech writing
