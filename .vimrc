@@ -1984,3 +1984,5 @@ xmap <Leader>m <Plug>MarkSet
 xmap <F11> <Plug>MarkSet
 " this is hard to use on the Mac but I am leaving <Leader>m to be usable -- 
 " this is just a shortcut
+
+nnoremap d<CR> <Nop>
