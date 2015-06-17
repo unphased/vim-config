@@ -69,13 +69,15 @@ Plugin 'vim-scripts/EnhancedJumps'
 Plugin 'vim-scripts/ingo-library' " needed for EnhancedJumps
 
 Plugin 't9md/vim-textmanip'
-Plugin 'vim-scripts/hexman.vim'
+" Plugin 'vim-scripts/hexman.vim'
 Plugin 'tpope/vim-afterimage'
 Plugin 'junegunn/vim-easy-align'
 Plugin 'blueyed/argtextobj.vim'
 Plugin 'octol/vim-cpp-enhanced-highlight'
 Plugin 'unphased/Cpp11-Syntax-Support'
 Plugin 'unphased/vim-html-escape'
+
+Plugin 'vim-scripts/showmultibase'
 
 " Bundle 'Decho'
 
