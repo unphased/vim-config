@@ -1098,7 +1098,7 @@ if !has('nvim')
 	cnoremap <F31> <C-C>:update<CR>
 	inoremap <F31> <ESC>:update<CR>
 
-	nnoremap <silent> <F33> :set invpaste paste?<CR>:set number!<CR>:set list!<CR>
+	nnoremap <silent> <F33> :set invpaste<CR>:set number!<CR>
 	set pastetoggle=<F33>
 else
 	nnoremap <m-w> :set wrap!<CR>
@@ -1108,8 +1108,11 @@ else
 	cnoremap <m-s> <C-C>:update<CR>
 	inoremap <m-s> <ESC>:update<CR>
 
-	nnoremap <silent> <m-p> :set invpaste paste?<CR>:set number!<CR>:set list!<CR>
+	nnoremap <silent> <m-p> :set invpaste<CR>:set number!<CR>
+	imap <m-p> <C-O>:set paste<CR><C-O>:set nonumber<CR>
+	" nvim pastetoggle setting doesnt stick (yet)
 	set pastetoggle=<m-p>
+	au! BufRead * set pastetoggle=<m-p>
 endif
 set showmode
 
@@ -1988,3 +1991,23 @@ xmap <F11> <Plug>MarkSet
 " this is just a shortcut
 
 nnoremap d<CR> <Nop>
+
+command! -complete=shellcmd -nargs=+ Shell call s:RunShellCommand(<q-args>)
+function! s:RunShellCommand(cmdline)
+  echo a:cmdline
+  let expanded_cmdline = a:cmdline
+  for part in split(a:cmdline, ' ')
+     if part[0] =~ '\v[%#<]'
+        let expanded_part = fnameescape(expand(part))
+        let expanded_cmdline = substitute(expanded_cmdline, part, expanded_part, '')
+     endif
+  endfor
+  botright new
+  setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile nowrap
+  call setline(1, 'You entered:    ' . a:cmdline)
+  call setline(2, 'Expanded Form:  ' .expanded_cmdline)
+  call setline(3,substitute(getline(2),'.','=','g'))
+  execute '$read !'. expanded_cmdline
+  setlocal nomodifiable
+  1
+endfunction
