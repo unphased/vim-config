@@ -229,6 +229,7 @@ syntax on
 set number
 set laststatus=2
 set undofile
+set undodir=~/.vim/undo
 
 set ignorecase
 set smartcase
@@ -926,7 +927,6 @@ set splitbelow
 set splitright
 
 " this makes gundo close the panel upon choosing a history location to warp to
-let g:gundo_close_on_revert = 1
 let g:gundo_preview_bottom = 1
 
 set undolevels=10000
