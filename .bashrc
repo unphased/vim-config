@@ -8,7 +8,9 @@ export HISTCONTROL=ignoredups
 # append history entries.. 
 shopt -s histappend
 
-export PATH=$HOME/util:$PATH
+export PATH=$HOME/shell-utils:$PATH
 
+export TERM=xterm-256color
 source $HOME/.aliases.sh
+alias t=". shell-utils/ios-textastic"
 # Remember to link this to ~/.profile if it doesn't exist. (more robust than .bashrc)

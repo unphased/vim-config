@@ -29,9 +29,9 @@
 	# tool = pydifflib
 	tool = opendiff
 [pager]
-	log = diff-highlight | less -M
-	show = diff-highlight | less -M
-	diff = less -M
+	log = less
+	show = less
+	# diff = less
 [color]
 	branch = auto
 	#diff = always
