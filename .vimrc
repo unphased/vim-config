@@ -1098,7 +1098,7 @@ if !has('nvim')
 	cnoremap <F31> <C-C>:update<CR>
 	inoremap <F31> <ESC>:update<CR>
 
-	nnoremap <silent> <F33> :set invpaste<CR>:set number!<CR>
+	nnoremap <silent> <F33> :set invpaste<CR>:set number!<CR>:set list!<CR>
 	set pastetoggle=<F33>
 else
 	nnoremap <m-w> :set wrap!<CR>
@@ -1108,8 +1108,8 @@ else
 	cnoremap <m-s> <C-C>:update<CR>
 	inoremap <m-s> <ESC>:update<CR>
 
-	nnoremap <silent> <m-p> :set invpaste<CR>:set number!<CR>
-	imap <m-p> <C-O>:set paste<CR><C-O>:set nonumber<CR>
+	nnoremap <silent> <m-p> :set invpaste<CR>:set number!<CR>:set list!<CR>
+	imap <m-p> <C-O>:set paste<CR><C-O>:set nonumber<CR><C-O>:set nolist<CR>
 	" nvim pastetoggle setting doesnt stick (yet)
 	set pastetoggle=<m-p>
 	au! BufRead * set pastetoggle=<m-p>
