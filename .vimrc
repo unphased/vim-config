@@ -298,9 +298,7 @@ let g:HiCursorWords_delay = 50
 " noremap ]l :lnext<CR>
 " noremap [l :lprev<CR>
 
-" syntastic set up for jsx
-" MAKE SURE YOU HAVE npm install -g jsxhint
-let g:syntastic_javascript_checkers = ['jsxhint']
+let g:syntastic_javascript_checkers = ['eslint']
 
 let g:syntastic_always_populate_loc_list = 1
 
