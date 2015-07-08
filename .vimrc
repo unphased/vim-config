@@ -228,7 +228,6 @@ endif
 syntax on
 set number
 set laststatus=2
-set undofile
 set undodir=~/.vim/undo
 
 set ignorecase
