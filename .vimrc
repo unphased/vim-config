@@ -228,7 +228,7 @@ endif
 syntax on
 set number
 set laststatus=2
-set undodir=~/.vim/undo
+set undodir=~/.tmp
 
 set ignorecase
 set smartcase
@@ -927,6 +927,7 @@ set splitright
 let g:gundo_preview_bottom = 1
 
 set undolevels=10000
+set undofile
 
 " set iskeyword=@,$,48-57,_,192-255
 
