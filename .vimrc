@@ -228,8 +228,7 @@ endif
 syntax on
 set number
 set laststatus=2
-set undofile
-set undodir=~/.vim/undo
+set undodir=~/.tmp
 
 set ignorecase
 set smartcase
@@ -298,9 +297,7 @@ let g:HiCursorWords_delay = 50
 " noremap ]l :lnext<CR>
 " noremap [l :lprev<CR>
 
-" syntastic set up for jsx
-" MAKE SURE YOU HAVE npm install -g jsxhint
-let g:syntastic_javascript_checkers = ['jsxhint']
+let g:syntastic_javascript_checkers = ['eslint']
 
 let g:syntastic_always_populate_loc_list = 1
 
@@ -930,6 +927,7 @@ set splitright
 let g:gundo_preview_bottom = 1
 
 set undolevels=10000
+set undofile
 
 " set iskeyword=@,$,48-57,_,192-255
 
@@ -1098,7 +1096,7 @@ if !has('nvim')
 	cnoremap <F31> <C-C>:update<CR>
 	inoremap <F31> <ESC>:update<CR>
 
-	nnoremap <silent> <F33> :set invpaste<CR>:set number!<CR>
+	nnoremap <silent> <F33> :set invpaste<CR>:set number!<CR>:set list!<CR>
 	set pastetoggle=<F33>
 else
 	nnoremap <m-w> :set wrap!<CR>
@@ -1108,8 +1106,8 @@ else
 	cnoremap <m-s> <C-C>:update<CR>
 	inoremap <m-s> <ESC>:update<CR>
 
-	nnoremap <silent> <m-p> :set invpaste<CR>:set number!<CR>
-	imap <m-p> <C-O>:set paste<CR><C-O>:set nonumber<CR>
+	nnoremap <silent> <m-p> :set invpaste<CR>:set number!<CR>:set list!<CR>
+	imap <m-p> <C-O>:set paste<CR><C-O>:set nonumber<CR><C-O>:set nolist<CR>
 	" nvim pastetoggle setting doesnt stick (yet)
 	set pastetoggle=<m-p>
 	au! BufRead * set pastetoggle=<m-p>
