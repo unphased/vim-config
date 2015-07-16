@@ -12,5 +12,8 @@ export PATH=$HOME/shell-utils:$PATH
 
 export TERM=xterm-256color
 source $HOME/.aliases.sh
-alias t=". shell-utils/ios-textastic"
+
+# for iphone
+alias t=". $HOME/shell-utils/ios-textastic"
+
 # Remember to link this to ~/.profile if it doesn't exist. (more robust than .bashrc)
