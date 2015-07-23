@@ -8,17 +8,23 @@
         "ecmascript": 6,
         "jsx": true
     },
+    "ecmaFeatures": {
+        "jsx": true
+    },
     "plugins": [
         "react"
     ],
     "globals": {
-        "app": true
-        "define": true
+        "app": true,
+        "define": true,
+        "_": true
     },
     "rules": {
         "quotes": 0,
         "strict": [0, "never"],
         "no-trailing-spaces": [0, { "skipBlankLines": true  }],
-        "semi": [2, "always"]
+        "semi": [2, "always"],
+        "no-underscore-dangle": 0,
+        "no-unused-vars": [1, {"vars": "all", "args": "none"}],
     }
 }
