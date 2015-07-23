@@ -1,5 +1,4 @@
 {
-    "parser": "babel-eslint",
     "env": {
         "browser": true,
         "node": true,
@@ -12,13 +11,14 @@
     "plugins": [
         "react"
     ],
+    "globals": {
+        "app": true
+        "define": true
+    },
     "rules": {
-        "strict": 0,
         "quotes": 0,
-        "no-unused-vars": 1,
-        "no-undef": 1,
-        "camelcase": 0,
-        "no-underscore-dangle": 0,
-        "trailing": 1
+        "strict": [0, "never"],
+        "no-trailing-spaces": [0, { "skipBlankLines": true  }],
+        "semi": [2, "always"]
     }
 }
