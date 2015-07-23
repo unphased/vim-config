@@ -26,5 +26,9 @@
         "semi": [2, "always"],
         "no-underscore-dangle": 0,
         "no-unused-vars": [1, {"vars": "all", "args": "none"}],
+        "no-use-before-define": 0,
+        "no-loop-func": 1,
+        "no-empty": 1,
+        "comma-dangle": 1
     }
 }
