@@ -27,8 +27,10 @@
         "no-underscore-dangle": 0,
         "no-unused-vars": [1, {"vars": "all", "args": "none"}],
         "no-use-before-define": 0,
-        "no-loop-func": 1,
+        "no-loop-func": 0,
         "no-empty": 1,
-        "comma-dangle": 1
+        "new-cap": 0,
+        "comma-dangle": 1,
+        "comma-spacing": 1
     }
 }
