@@ -104,10 +104,6 @@ autocmd BufNewFile,BufReadPost *.md set filetype=markdown
 " customize it for my usual workflow
 autocmd FileType gitcommit set nosmartindent | set formatoptions-=t
 
-" Friendly for editing temp files (the case that prompted this was
-" submit_files.pl
-autocmd BufNew,BufRead /tmp/* setlocal formatoptions=tcq
-
 nnoremap <Leader>g :call TimeLapse()<CR>
 
 " nnoremap <Leader>e :silent !p4 edit %:p<CR>:redraw!<CR>
