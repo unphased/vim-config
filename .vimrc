@@ -766,7 +766,7 @@ nnoremap Q :q<CR>
 
 nnoremap <F6> :CtrlPMRUFiles<CR>
 inoremap <F6> <ESC>:CtrlPMRUFiles<CR>
-nnoremap <S-F6> :NERDTreeToggle<CR>
+nnoremap <S-F6> :CtrlPLine<CR>
 
 " opens the current buffer in nerdtree
 nnoremap <Leader>f :NERDTreeFind<CR>
@@ -1703,6 +1703,8 @@ map <leader>et :tabe %%
 " sufficient.
 set spell
 nmap <leader>s :set spell!<CR>
+
+nmap <leader>S :sav %%
 
 highlight SpellBad ctermbg=NONE ctermfg=NONE cterm=underline
 highlight SpellCap ctermbg=NONE ctermfg=NONE cterm=underline,bold
