@@ -190,6 +190,11 @@ nnoremap ,, ;
 xnoremap ,, ;
 onoremap ,, ;
 
+" add some cases so that certain common keystrokes when used from visual mode 
+" (which i often land in) will do what i would want it to do
+xmap <C-P> <ESC><C-P>
+omap <C-P> <ESC><C-P>
+
 " remapping keys for EnhancedJumps: I cant let tab get mapped. Since curly 
 " braces are conveniently available as hopping by paragraphs is not useful for 
 " me, this example given by the doc will work out well.
