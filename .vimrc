@@ -186,9 +186,6 @@ nnoremap <Leader>L :so $MYVIMRC<CR>:runtime! after/plugin/*.vim<CR>
 " the thing. There's nothing useful to bind comma to, because comma is used 
 " with camelcasemotion in normal mode because it's still marginally useful that 
 " way.
-nnoremap , <Nop>
-xnoremap , <Nop>
-onoremap , <Nop>
 
 " remapping keys for EnhancedJumps: I cant let tab get mapped. Since curly 
 " braces are conveniently available as hopping by paragraphs is not useful for 
