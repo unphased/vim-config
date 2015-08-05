@@ -104,10 +104,6 @@ autocmd BufNewFile,BufReadPost *.md set filetype=markdown
 " customize it for my usual workflow
 autocmd FileType gitcommit set nosmartindent | set formatoptions-=t
 
-" Friendly for editing temp files (the case that prompted this was
-" submit_files.pl
-autocmd BufNew,BufRead /tmp/* setlocal formatoptions=tcq
-
 nnoremap <Leader>g :call TimeLapse()<CR>
 
 " nnoremap <Leader>e :silent !p4 edit %:p<CR>:redraw!<CR>
@@ -190,9 +186,14 @@ nnoremap <Leader>L :so $MYVIMRC<CR>:runtime! after/plugin/*.vim<CR>
 " the thing. There's nothing useful to bind comma to, because comma is used 
 " with camelcasemotion in normal mode because it's still marginally useful that 
 " way.
-nnoremap , <Nop>
-xnoremap , <Nop>
-onoremap , <Nop>
+nnoremap ,, ;
+xnoremap ,, ;
+onoremap ,, ;
+
+" add some cases so that certain common keystrokes when used from visual mode 
+" (which i often land in) will do what i would want it to do
+xmap <C-P> <ESC><C-P>
+omap <C-P> <ESC><C-P>
 
 " remapping keys for EnhancedJumps: I cant let tab get mapped. Since curly 
 " braces are conveniently available as hopping by paragraphs is not useful for 
@@ -770,7 +771,7 @@ nnoremap Q :q<CR>
 
 nnoremap <F6> :CtrlPMRUFiles<CR>
 inoremap <F6> <ESC>:CtrlPMRUFiles<CR>
-nnoremap <S-F6> :NERDTreeToggle<CR>
+nnoremap <S-F6> :CtrlPLine<CR>
 
 " opens the current buffer in nerdtree
 nnoremap <Leader>f :NERDTreeFind<CR>
@@ -1707,6 +1708,8 @@ map <leader>et :tabe %%
 " sufficient.
 set spell
 nmap <leader>s :set spell!<CR>
+
+nmap <leader>S :sav %%
 
 highlight SpellBad ctermbg=NONE ctermfg=NONE cterm=underline
 highlight SpellCap ctermbg=NONE ctermfg=NONE cterm=underline,bold
