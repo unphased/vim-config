@@ -17,7 +17,7 @@
 	ignored = !git ls-files -v | grep "^S"
 	status-with-ignored = "!f() { git status; ignored=$(git ignored | cut -d ' ' -f 2 | sed -e s/^/[31m/ -e s/$/[m/); [ -n \"$ignored\" ] && echo \"git skip-worktree (ignored):\n$ignored\"; };f"
 	diff-with-ignored = "!f() { git diff --no-ext-diff; ignored=$(git ignored | cut -d ' ' -f 2); [ -n \"$ignored\" ] && echo \"git skip-worktree (ignored):\" && for var in $ignored; do echo [31m$var[m; git show HEAD:$var | diff - $var; done };f"
-	diff-with-ignored-ext = "!f() { git diff --ext-diff; ignored=$(git ignored | cut -d ' ' -f 2); [ -n \"$ignored\" ] && echo \"git skip-worktree (ignored):\" && for var in $ignored; do echo [31m$var[m; git show HEAD:$var | sift - $var; done };f"
+	diff-with-ignored-ext = "!f() { git diff --ext-diff | cat; ignored=$(git ignored | cut -d ' ' -f 2); [ -n \"$ignored\" ] && echo \"git skip-worktree (ignored):\" && for var in $ignored; do echo [31m$var[m; git show HEAD:$var | sift - $var; done };f"
 
 	commit-push = "!f() { git commit -am \"$*\" && git push; };f"
 [difftool]
