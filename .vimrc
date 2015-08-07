@@ -1866,8 +1866,9 @@ xmap <C-E> <Plug>(textmanip-toggle-mode)
 " in -- whenever i find persistent buffer settings due to this mkview I can 
 " manually erase these files (after exiting Vim, as exiting vim causes it to 
 " write the view))
-au BufWinLeave *.php mkview
-au BufWinEnter *.php silent loadview
+
+" au BufWinLeave *.php mkview
+" au BufWinEnter *.php silent loadview
 
 " easy-align bindings
 " hit uppercase a in visual to align it. I thought it was unmapped but it is 
@@ -2036,10 +2037,94 @@ function! SetHeightToBuffer()
 	if good
 		exe line('$').'wincmd_'
 		" also scroll all the way back up
-		exe 'normal '.line("$").''
+		" store cursor pos
+		let cur = getpos('.')
+		normal! gg
+		call cursor(cur[1], cur[2])
+		set nowrap
 	endif
 endfun
 
-" a function to scan up and down running the function above to distribute 
-" vertical space based on file lengths (I intend to maybe call this on new 
-" window/bufload)
+" a function to distribute vertical space based on file lengths (I intend to 
+" maybe call this on new window/bufload)
+function! HeightSpread()
+	" This has to do some clever shit because the problem is that shrinking 
+	" a window will generally expand the one underneath it. This means that 
+	" multiple short files not at the top (i.e. top having a large file) will 
+	" result in the large file failing to get expanded out.
+	" 
+	" So, what I will do is do a scan to query the height of each file, then 
+	" sort them and figure out how many of the shortest files can all fit on 
+	" screen at once. Then, I distribute the height of the rest of the files 
+	" evenly and assign all of these values in a second pass.
+	let startwin = winnr()
+	" loop all the way to top (but we have to store the winnrs due to 
+	" possibility of arbitrary window arrangement)
+	let lastwin = startwin
+	let start = [lastwin, line('$'), winheight(lastwin)]
+	let wins = []
+	let totspace = winheight(lastwin)
+	wincmd k
+	while (winnr() != lastwin)
+		" echo 'a'.lastwin.'-'.winnr()
+		let lastwin = winnr()
+		let hei = winheight(lastwin)
+		call insert(wins, [lastwin, line('$'), hei])
+		let totspace += hei
+		wincmd k
+	endwhile
+	exe startwin.'wincmd w'
+	let lastwin = startwin
+	wincmd j
+	while (winnr() != lastwin)
+		" echo 'b'.lastwin.'-'.winnr()
+		let lastwin = winnr()
+		let hei = winheight(lastwin)
+		call add(wins, [lastwin, line('$'), hei])
+		let totspace += hei
+		wincmd j
+	endwhile
+
+	let fits = []
+	let split = []
+
+	" sort (vimscript algorithms are insane so i am pythoning)
+	python << EOF
+import operator
+lens = vim.eval('wins')
+lines = vim.eval('&lines')
+start = vim.eval('start')
+totspc = vim.eval('totspace')
+sortedk = sorted(lens, key=lambda x: int(x[1]))
+if ((int(start[1]) + 10) < int(lines)):
+	sortedk.insert(0, start)
+else:
+	# go to the bottom, dont care
+	sortedk.append(start)
+print sortedk
+tot = 0
+for i, l, hei in sortedk:
+	if ((tot + int(l) + 10) < int(lines)):
+		tot = tot + int(l)
+		vim.command('call add(fits, [' + i + ', ' + l + '])')
+	else:
+		vim.command('call add(split, ' + i + ')')
+
+vim.command('let splitlen = ' + str(int(totspc) - tot))
+EOF
+
+	echo 'fits'
+	echo fits
+	echo split
+	echo splitlen
+	" go back to starting window
+	if lastwin != startwin
+		exe startwin.'wincmd w'
+	endif
+endfun
+
+" Not sure if this one here is overkill or not, but on terminal resizing it 
+" will be useful to call the routine
+" au BufWinEnter * silent call HeightSpread()
+" I will use \H
+nnoremap <Leader>H :call HeightSpread()
