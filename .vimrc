@@ -1940,7 +1940,7 @@ if has('python')
 	python << EOF
 # print 'hi from python'
 EOF
-	function MungeArgListPython()
+	function! MungeArgListPython()
 		python << EOF
 import string
 # check we are inside parens
@@ -1995,20 +1995,51 @@ nnoremap d<CR> <Nop>
 
 command! -complete=shellcmd -nargs=+ Shell call s:RunShellCommand(<q-args>)
 function! s:RunShellCommand(cmdline)
-  echo a:cmdline
-  let expanded_cmdline = a:cmdline
-  for part in split(a:cmdline, ' ')
-     if part[0] =~ '\v[%#<]'
-        let expanded_part = fnameescape(expand(part))
-        let expanded_cmdline = substitute(expanded_cmdline, part, expanded_part, '')
-     endif
-  endfor
-  botright new
-  setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile nowrap
-  call setline(1, 'You entered:    ' . a:cmdline)
-  call setline(2, 'Expanded Form:  ' .expanded_cmdline)
-  call setline(3,substitute(getline(2),'.','=','g'))
-  execute '$read !'. expanded_cmdline
-  setlocal nomodifiable
-  1
+	echo a:cmdline
+	let expanded_cmdline = a:cmdline
+	for part in split(a:cmdline, ' ')
+		if part[0] =~ '\v[%#<]'
+			let expanded_part = fnameescape(expand(part))
+			let expanded_cmdline = substitute(expanded_cmdline, part, expanded_part, '')
+		endif
+	endfor
+	botright new
+	setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile nowrap
+	call setline(1, 'You entered:    ' . a:cmdline)
+	call setline(2, 'Expanded Form:  ' .expanded_cmdline)
+	call setline(3,substitute(getline(2),'.','=','g'))
+	execute '$read !'. expanded_cmdline
+	setlocal nomodifiable
+	1
 endfunction
+
+" a func to set the height of the window to file height
+function! SetHeightToBuffer()
+	let good = 0
+	if &lines - 15 > line('$')
+		" only attempt to set this if there is either a buffer above or below 
+		" me (otherwise I will end up significantly enlarging the command line 
+		" which is just useless)
+		let curwin = winnr()
+		wincmd j
+		if (winnr() != curwin)
+			wincmd k
+			let good = 1
+		else
+			wincmd k
+			if (winnr() != curwin)
+				wincmd j
+				let good = 1
+			endif
+		endif
+	endif
+	if good
+		exe line('$').'wincmd_'
+		" also scroll all the way back up
+		exe 'normal '.line("$").''
+	endif
+endfun
+
+" a function to scan up and down running the function above to distribute 
+" vertical space based on file lengths (I intend to maybe call this on new 
+" window/bufload)
