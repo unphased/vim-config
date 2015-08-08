@@ -1302,58 +1302,11 @@ runtime macros/matchit.vim
 inoremap <C-Left> <ESC>bi
 inoremap <C-Right> <ESC>lwi
 
-func! MyResizeDown()
-	let curwindow = winnr()
-	wincmd j
-	if winnr() == curwindow
-		wincmd k
-	else
-		wincmd p
-	endif
-	res +8
-	exec curwindow.'wincmd w'
-endfunc
-
-func! MyResizeUp()
-	let curwindow = winnr()
-	wincmd j
-	if winnr() == curwindow
-		wincmd k
-	else
-		wincmd p
-	endif
-	res -8
-	exec curwindow.'wincmd w'
-endfunc
-
-func! MyResizeRight()
-	let curwindow = winnr()
-	wincmd l
-	if winnr() == curwindow
-		wincmd h
-	else
-		wincmd p
-	endif
-	vertical res +15
-	exec curwindow.'wincmd w'
-endfunc
-
-func! MyResizeLeft()
-	let curwindow = winnr()
-	wincmd l
-	if winnr() == curwindow
-		wincmd h
-	else
-		wincmd p
-	endif
-	vertical res -15
-	exec curwindow.'wincmd w'
-endfunc
-
-nnoremap - :call MyResizeLeft()<CR>
-nnoremap = :call MyResizeRight()<CR>
-nnoremap _ :call MyResizeDown()<CR>
-nnoremap + :call MyResizeUp()<CR>
+" changing these to not switch window because its too damn slow
+nnoremap - :vertical res +8<CR>
+nnoremap = :vertical res -8<CR>
+nnoremap _ :res +8<CR>
+nnoremap + :res -8<CR>
 
 " delimitMate configuration
 " let delimitMate_expand_space = 1
