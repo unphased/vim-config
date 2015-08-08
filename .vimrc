@@ -2128,7 +2128,3 @@ endfun
 " au BufWinEnter * silent call HeightSpread()
 " I will use \H
 nnoremap <Leader>H :call HeightSpread()
-
-" stupid unmapped shit in visual mode piss me off
-xnoremap i <ESC>i
-xnoremap a <ESC>a
