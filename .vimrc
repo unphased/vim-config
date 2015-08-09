@@ -1857,9 +1857,11 @@ let g:cpp_class_scope_highlight=1
 " vim-surround operations with brackets and such things via visual mode
 if has('nvim')
 	inoremap <m-b> <ESC>lve
+	inoremap <c-b> <ESC>lve
 else
 	set <F15>=b
 	inoremap <F15> <ESC>lve
+	inoremap <c-b> <ESC>lve
 endif
 
 " bind Alt+V to do the same as alt+B but do less work whereby visual mode is 
