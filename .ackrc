@@ -1,4 +1,2 @@
 --type-set=jsx=.jsx
---type-set=map=.min.map
---no-map
---ignore-file=is:jquery-2.1.1.min.map
+--ignore-file=match:[.]min[.]map$
