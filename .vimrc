@@ -54,7 +54,7 @@ Plugin 'derekwyatt/vim-fswitch'
 Plugin 'wakatime/vim-wakatime'
 Plugin 'panozzaj/vim-autocorrect'
 Plugin 'kshenoy/vim-signature'
-Plugin 'jiangmiao/auto-pairs'
+Plugin 'unphased/auto-pairs'
 Plugin 'jeffkreeftmeijer/vim-numbertoggle'
 "Plugin 'mxw/vim-jsx'
 
