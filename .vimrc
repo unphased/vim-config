@@ -135,7 +135,7 @@ Plug 'ap/vim-css-color'
 " Plug 'chrisbra/NrrwRgn'
 Plug 'https://github.com/wesQ3/vim-windowswap'
 Plug 'sbdchd/neoformat'
-Plug 'rhysd/conflict-marker.vim'
+Plug 'anowlcalledjosh/conflict-marker.vim', { 'branch': 'stable' }
 Plug 'elzr/vim-json'
 Plug 'myhere/vim-nodejs-complete'
 Plug 'Shougo/echodoc.vim'
