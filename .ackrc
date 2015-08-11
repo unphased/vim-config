@@ -1,2 +1,3 @@
---type-set=jsx=.jsx
---ignore-file=match:[.]min[.]map$
+--type-set=jsx:ext:jsx
+--type-set=minifiedmap:match:[.]min[.]map$
+--no-minifiedmap
