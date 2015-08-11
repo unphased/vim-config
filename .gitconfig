@@ -29,7 +29,7 @@
 [pager]
 	log = diff-highlight | less -M
 	show = diff-highlight | less -M
-	diff = less -M
+	diff = diff-highlight | less -M
 [color]
 	branch = auto
 	#diff = always

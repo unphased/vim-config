@@ -2083,3 +2083,7 @@ endfun
 " au BufWinEnter * silent call HeightSpread()
 " I will use \H
 nnoremap <Leader>H :call HeightSpread()
+
+" cleanup regex 
+let match_stuff = "0-9a-zA-Z'\"()[]{}"
+let cleanup_regexes = []

@@ -34,6 +34,6 @@
         "new-cap": 0,
         "comma-dangle": 1,
         "comma-spacing": 1,
-        "camelcase": 1,
+        "camelcase": 0,
     }
 }
