@@ -1284,7 +1284,7 @@
 	<key>NSWindow Frame NSFontPanel</key>
 	<string>78 155 575 255 0 0 1440 877 </string>
 	<key>NSWindow Frame Preferences</key>
-	<string>131 455 924 485 0 0 1680 1027 </string>
+	<string>131 474 924 485 0 0 1680 1050 </string>
 	<key>NSWindow Frame SUAutomaticUpdateAlert</key>
 	<string>530 640 616 174 0 0 1680 1028 </string>
 	<key>NSWindow Frame SUStatusFrame</key>
@@ -1294,7 +1294,7 @@
 	<key>NSWindow Frame com.apple.typography_panel_Menlo-Regular</key>
 	<string>341 780 260 68 0 0 1440 878 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>0 0 1680 1050 0 0 1680 1027 </string>
+	<string>36 0 1170 1027 0 0 1680 1027 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
 	<string>10 360 570 376 0 0 1680 1028 </string>
 	<key>NeverWarnAboutShortLivedSessions_BABC3C6F-E892-4635-AD49-85E57CE1D5AF</key>
@@ -2013,6 +2013,20 @@
 					<key>Text</key>
 					<string>[34~</string>
 				</dict>
+				<key>0xf70d-0x40000</key>
+				<dict>
+					<key>Action</key>
+					<integer>10</integer>
+					<key>Text</key>
+					<string>[44~</string>
+				</dict>
+				<key>0xf70d-0x60000</key>
+				<dict>
+					<key>Action</key>
+					<integer>10</integer>
+					<key>Text</key>
+					<string>[54~</string>
+				</dict>
 				<key>0xf70e-0x20000</key>
 				<dict>
 					<key>Action</key>
@@ -2221,7 +2235,7 @@
 			<key>Terminal Type</key>
 			<string>xterm-256color-italic</string>
 			<key>Transparency</key>
-			<real>0.1784023642539978</real>
+			<real>0.11449704319238663</real>
 			<key>Triggers</key>
 			<array/>
 			<key>Unlimited Scrollback</key>
@@ -5591,7 +5605,7 @@
 	<key>NoSyncTimeOfLastPromo</key>
 	<real>453242860.28998202</real>
 	<key>NoSyncTimeOfLastPromoDownload</key>
-	<real>459925079.12536597</real>
+	<real>460765799.27982801</real>
 	<key>OnlyWhenMoreTabs</key>
 	<true/>
 	<key>OpenArrangementAtStartup</key>
@@ -5652,7 +5666,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2015-07-29T19:44:45Z</date>
+	<date>2015-08-08T20:22:41Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>Secure Input</key>
