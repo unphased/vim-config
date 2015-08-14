@@ -14,15 +14,16 @@ alias glp="git log -p --no-ext-diff"
 alias glpf="git log -p --no-ext-diff --follow"
 alias glpe="git log -p --ext-diff"
 alias glpef="git log -p --ext-diff --follow"
-alias gdt="git difftool"
 alias gd="git diff --no-ext-diff"
 alias gds="git diff --stat"
+alias gdi="git diff-with-ignored"
+alias di="git diff-with-ignored-ext"
 alias gde="git diff --ext-diff"
 alias gdc="gd --cached"
 alias gg="git lg --all"
 alias gca="git commit -av"
 alias gcm="git commit -am"
-unalias gcp # I rarely cherry pick
+unalias gcp # I rarely cherry pick (if not using ohmyzsh, this will cause bash to emit a warning)
 alias gp="git push"
 alias k='l' # this is a bit tongue in cheek
 

@@ -1,0 +1,42 @@
+{
+    "env": {
+        "browser": true,
+        "node": true,
+        "jquery": true
+    },
+    "settings": {
+        "ecmascript": 6,
+        "jsx": true
+    },
+    "ecmaFeatures": {
+        "jsx": true
+    },
+    "plugins": [
+        "react"
+    ],
+    "globals": {
+        "app": true,
+        "define": true,
+        "_": true,
+        "logger": true
+    },
+    "rules": {
+        "quotes": 0,
+        "strict": [0, "never"],
+        "no-trailing-spaces": [0, { "skipBlankLines": true  }],
+        "semi": [2, "always"],
+        "no-underscore-dangle": 0,
+        "no-unused-vars": [1, {"vars": "all", "args": "none"}],
+        "no-use-before-define": 0,
+        "no-loop-func": 0,
+        "no-multi-spaces": 1,
+        "no-empty": 1,
+        "new-cap": 0,
+        "no-shadow": 1,
+        "comma-dangle": 1,
+        "comma-spacing": 1,
+        "curly": 1,
+        "camelcase": 0,
+        "consistent-return": 1,
+    }
+}

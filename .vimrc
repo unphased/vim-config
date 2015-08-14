@@ -36,7 +36,7 @@ Plugin 'unphased/git-time-lapse'
 Plugin 'maxbrunsfeld/vim-yankstack'
 Plugin 'ldx/vim-indentfinder'
 Plugin 'nathanaelkane/vim-indent-guides'
-Plugin 'ihacklog/HiCursorWords'
+Plugin 'unphased/HiCursorWords'
 Plugin 'dimasg/vim-mark'
 " Bundle 'kien/rainbow_parentheses.vim'
 "Bundle 'airblade/vim-gitgutter'
@@ -54,7 +54,8 @@ Plugin 'derekwyatt/vim-fswitch'
 Plugin 'wakatime/vim-wakatime'
 Plugin 'panozzaj/vim-autocorrect'
 Plugin 'kshenoy/vim-signature'
-" Plugin 'jeffkreeftmeijer/vim-numbertoggle'
+Plugin 'unphased/auto-pairs'
+Plugin 'jeffkreeftmeijer/vim-numbertoggle'
 "Plugin 'mxw/vim-jsx'
 
 Plugin 'tmux-plugins/vim-tmux'
@@ -68,13 +69,15 @@ Plugin 'vim-scripts/EnhancedJumps'
 Plugin 'vim-scripts/ingo-library' " needed for EnhancedJumps
 
 Plugin 't9md/vim-textmanip'
-Plugin 'vim-scripts/hexman.vim'
+" Plugin 'vim-scripts/hexman.vim'
 Plugin 'tpope/vim-afterimage'
 Plugin 'junegunn/vim-easy-align'
-Plugin 'jiangmiao/auto-pairs'
 Plugin 'blueyed/argtextobj.vim'
 Plugin 'octol/vim-cpp-enhanced-highlight'
 Plugin 'unphased/Cpp11-Syntax-Support'
+Plugin 'unphased/vim-html-escape'
+
+Plugin 'vim-scripts/showmultibase'
 
 " Bundle 'Decho'
 
@@ -100,10 +103,6 @@ autocmd BufNewFile,BufReadPost *.md set filetype=markdown
 
 " customize it for my usual workflow
 autocmd FileType gitcommit set nosmartindent | set formatoptions-=t
-
-" Friendly for editing temp files (the case that prompted this was
-" submit_files.pl
-autocmd BufNew,BufRead /tmp/* setlocal formatoptions=tcq
 
 nnoremap <Leader>g :call TimeLapse()<CR>
 
@@ -187,9 +186,14 @@ nnoremap <Leader>L :so $MYVIMRC<CR>:runtime! after/plugin/*.vim<CR>
 " the thing. There's nothing useful to bind comma to, because comma is used 
 " with camelcasemotion in normal mode because it's still marginally useful that 
 " way.
-nnoremap , <Nop>
-xnoremap , <Nop>
-onoremap , <Nop>
+nnoremap ,, ;
+xnoremap ,, ;
+onoremap ,, ;
+
+" add some cases so that certain common keystrokes when used from visual mode 
+" (which i often land in) will do what i would want it to do
+xmap <C-P> <ESC><C-P>
+omap <C-P> <ESC><C-P>
 
 " remapping keys for EnhancedJumps: I cant let tab get mapped. Since curly 
 " braces are conveniently available as hopping by paragraphs is not useful for 
@@ -218,13 +222,14 @@ set ttimeoutlen=10
 
 " set t_Co=256
 " set term=screen-256color-italic
-
-set ttymouse=xterm2
+if !has('nvim')
+	set ttymouse=xterm2
+endif
 
 syntax on
 set number
 set laststatus=2
-set undofile
+set undodir=~/.tmp
 
 set ignorecase
 set smartcase
@@ -264,7 +269,7 @@ endif
 colorscheme Tomorrow-Night-Eighties
 
 "set listchars=tab:→\ ,extends:>,precedes:<,trail:·,nbsp:◆
-set listchars=tab:╶─,extends:»,precedes:«,trail:·,nbsp:◆
+set listchars=tab:\ \ ,extends:»,precedes:«,trail:·,nbsp:◆
 set list
 
 hi NonText ctermbg=234 ctermfg=254
@@ -293,9 +298,7 @@ let g:HiCursorWords_delay = 50
 " noremap ]l :lnext<CR>
 " noremap [l :lprev<CR>
 
-" syntastic set up for jsx
-" MAKE SURE YOU HAVE npm install -g jsxhint
-let g:syntastic_javascript_checkers = ['jsxhint']
+let g:syntastic_javascript_checkers = ['eslint']
 
 let g:syntastic_always_populate_loc_list = 1
 
@@ -768,7 +771,7 @@ nnoremap Q :q<CR>
 
 nnoremap <F6> :CtrlPMRUFiles<CR>
 inoremap <F6> <ESC>:CtrlPMRUFiles<CR>
-nnoremap <S-F6> :NERDTreeToggle<CR>
+nnoremap <S-F6> :CtrlPLine<CR>
 
 " opens the current buffer in nerdtree
 nnoremap <Leader>f :NERDTreeFind<CR>
@@ -922,10 +925,10 @@ set splitbelow
 set splitright
 
 " this makes gundo close the panel upon choosing a history location to warp to
-let g:gundo_close_on_revert = 1
 let g:gundo_preview_bottom = 1
 
 set undolevels=10000
+set undofile
 
 " set iskeyword=@,$,48-57,_,192-255
 
@@ -1094,7 +1097,7 @@ if !has('nvim')
 	cnoremap <F31> <C-C>:update<CR>
 	inoremap <F31> <ESC>:update<CR>
 
-	nnoremap <silent> <F33> :set invpaste paste?<CR>:set number!<CR>:set list!<CR>
+	nnoremap <silent> <F33> :set invpaste<CR>:set number!<CR>:set list!<CR>
 	set pastetoggle=<F33>
 else
 	nnoremap <m-w> :set wrap!<CR>
@@ -1104,8 +1107,11 @@ else
 	cnoremap <m-s> <C-C>:update<CR>
 	inoremap <m-s> <ESC>:update<CR>
 
-	nnoremap <silent> <m-p> :set invpaste paste?<CR>:set number!<CR>:set list!<CR>
+	nnoremap <silent> <m-p> :set invpaste<CR>:set number!<CR>:set list!<CR>
+	imap <m-p> <C-O>:set paste<CR><C-O>:set nonumber<CR><C-O>:set nolist<CR>
+	" nvim pastetoggle setting doesnt stick (yet)
 	set pastetoggle=<m-p>
+	au! BufRead * set pastetoggle=<m-p>
 endif
 set showmode
 
@@ -1296,58 +1302,11 @@ runtime macros/matchit.vim
 inoremap <C-Left> <ESC>bi
 inoremap <C-Right> <ESC>lwi
 
-func! MyResizeDown()
-	let curwindow = winnr()
-	wincmd j
-	if winnr() == curwindow
-		wincmd k
-	else
-		wincmd p
-	endif
-	res +8
-	exec curwindow.'wincmd w'
-endfunc
-
-func! MyResizeUp()
-	let curwindow = winnr()
-	wincmd j
-	if winnr() == curwindow
-		wincmd k
-	else
-		wincmd p
-	endif
-	res -8
-	exec curwindow.'wincmd w'
-endfunc
-
-func! MyResizeRight()
-	let curwindow = winnr()
-	wincmd l
-	if winnr() == curwindow
-		wincmd h
-	else
-		wincmd p
-	endif
-	vertical res +15
-	exec curwindow.'wincmd w'
-endfunc
-
-func! MyResizeLeft()
-	let curwindow = winnr()
-	wincmd l
-	if winnr() == curwindow
-		wincmd h
-	else
-		wincmd p
-	endif
-	vertical res -15
-	exec curwindow.'wincmd w'
-endfunc
-
-nnoremap - :call MyResizeLeft()<CR>
-nnoremap = :call MyResizeRight()<CR>
-nnoremap _ :call MyResizeDown()<CR>
-nnoremap + :call MyResizeUp()<CR>
+" changing these to not switch window because its too damn slow
+nnoremap = :vertical res +8<CR>
+nnoremap - :vertical res -8<CR>
+nnoremap + :res +8<CR>
+nnoremap _ :res -8<CR>
 
 " delimitMate configuration
 " let delimitMate_expand_space = 1
@@ -1367,6 +1326,14 @@ vmap ] S]
 " This is way too cool (auto lets you enter tags)
 vmap < S<
 vmap > S>
+
+" shortcut for visual mode space wrapping makes it more reasonable than using 
+" default vim surround space maps which require hitting space twice or 
+" modifying wrap actions by prepending space to their triggers -- i am guiding 
+" the default workflow toward being more visualmode centric which involves less 
+" cognitive frontloading.
+vmap <Space> S<Space><Space>
+
 " restore the functions for shifting selections
 vnoremap << <
 vnoremap >> >
@@ -1520,11 +1487,11 @@ let g:airline#extensions#whitespace#checks = [ 'indent' ]
 let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
 let g:airline#extensions#branch#displayed_head_limit = 15
 let g:airline#extensions#default#section_truncate_width = {
-  \ 'b': 60,
-  \ 'x': 125,
-  \ 'y': 113,
-  \ 'z': 100,
-  \ 'warning': 50,
+  \ 'b': 120,
+  \ 'x': 45,
+  \ 'y': 115,
+  \ 'z': 120,
+  \ 'warning': 40,
   \ }
 
 " Highlight words to avoid in tech writing
@@ -1583,7 +1550,7 @@ endfun
 " Overriding the key that normally moves to the end of a big-word. I never use 
 " that... However, it may be smart to eventually remap some other combo to that 
 " functionality
-nnoremap E :call SmartInsertEndOfLine()<CR>
+nnoremap <Leader>E :call SmartInsertEndOfLine()<CR>
 
 " I decided i wanted the b for page up again. i already got used to backspace to 
 " go back a word; i don't have a problem with it. The reach for the Z key is not 
@@ -1604,16 +1571,17 @@ nmap Y y$
 
 set switchbuf=usetab,split
 
-" " bind to not the default
-" if has('nvim')
-" 	let g:NumberToggleTrigger="<m-n>" " this seems to not be working
-" 	nnoremap <M-n> :call NumberToggle()<CR>
-" else
-" 	let g:NumberToggleTrigger="<F21>" " alt+n
-" endif
+" bind to not the default
+if has('nvim')
+	let g:NumberToggleTrigger="<m-n>" " this seems to not be working
+	nnoremap <M-n> :call NumberToggle()<CR>
+else
+	let g:NumberToggleTrigger="<F21>" " alt+n
+endif
 
 " now that focuslost works with iterm and tmux maybe this is just generally 
 " improved behavior. Do have to be careful, but it speeds shit up when rapidly 
+" working
 " working
 " Update not too many weeks later -- This actually causes phantom unintended 
 " undoes being committed -- Also complicit in that particular brand of 
@@ -1693,6 +1661,8 @@ map <leader>et :tabe %%
 " sufficient.
 set spell
 nmap <leader>s :set spell!<CR>
+
+nmap <leader>S :sav %%
 
 highlight SpellBad ctermbg=NONE ctermfg=NONE cterm=underline
 highlight SpellCap ctermbg=NONE ctermfg=NONE cterm=underline,bold
@@ -1849,8 +1819,9 @@ xmap <C-E> <Plug>(textmanip-toggle-mode)
 " in -- whenever i find persistent buffer settings due to this mkview I can 
 " manually erase these files (after exiting Vim, as exiting vim causes it to 
 " write the view))
-au BufWinLeave *.php mkview
-au BufWinEnter *.php silent loadview
+
+" au BufWinLeave *.php mkview
+" au BufWinEnter *.php silent loadview
 
 " easy-align bindings
 " hit uppercase a in visual to align it. I thought it was unmapped but it is 
@@ -1886,9 +1857,11 @@ let g:cpp_class_scope_highlight=1
 " vim-surround operations with brackets and such things via visual mode
 if has('nvim')
 	inoremap <m-b> <ESC>lve
+	inoremap <c-b> <ESC>lve
 else
 	set <F15>=b
 	inoremap <F15> <ESC>lve
+	inoremap <c-b> <ESC>lve
 endif
 
 " bind Alt+V to do the same as alt+B but do less work whereby visual mode is 
@@ -1903,8 +1876,9 @@ endif
 
 " Override the default which uses m-p which conflicts with my paste mode 
 " binding
-let g:AutoPairsShortcutToggle = '<m-z>'
-let g:AutoPairsShortcutBackInsert = '<m-x>'
+let g:AutoPairsShortcutToggle = '<M-z>'
+let g:AutoPairsShortcutBackInsert = '<M-x>'
+let g:AutoPairsShortcutJump = '<M-a>'
 let g:AutoPairsCenterLine = 0
 
 " bind Alt+P in insert mode to paste (for nvim)..
@@ -1917,3 +1891,199 @@ endif
 
 " a special case for surrounding with newlines
 vmap S<CR> S<C-J>V2j=
+
+if has('python')
+	python << EOF
+# print 'hi from python'
+EOF
+	function! MungeArgListPython()
+		python << EOF
+import string
+# check we are inside parens
+curcol = vim.current.window.cursor[1];
+parensstart = string.rfind(vim.current.line, '(', 0, curcol);
+parensend = string.find(vim.current.line, ')', curcol);
+print 'curcol ' + str(curcol)+ ' idxs are ' + str(parensstart) + ', ' + str(parensend) + ' line inside parens is >>' + vim.current.line[parensstart:parensend+1] + '<<'
+EOF
+	endfun
+	" X does something rather kind of useful but i never use it --- I am 
+	" binding to a custom python line munger whose purpose is to clean the 
+	" inside of the parens we are inside of -- e.g. useful with argtextobj 
+	" operations, just litter with extra commas at the beginning or whatever 
+	" and we mop them up.
+	nnoremap X :call MungeArgListPython()<CR>
+endif
+
+let g:mwPalettes = {
+	\	'original': [
+	\   { 'ctermbg':'25',       'ctermfg':'7'},
+	\   { 'ctermbg':'22',      'ctermfg':'7'},
+	\   { 'ctermbg':'125',        'ctermfg':'7'},
+	\   { 'ctermbg':'57',    'ctermfg':'7'},
+	\   { 'ctermbg':'21',       'ctermfg':'7'},
+	\   { 'ctermbg':'58',     'ctermfg':'7'},
+	\   { 'ctermbg':'30',     'ctermfg':'7'},
+	\   { 'ctermbg':'89',     'ctermfg':'7'},
+	\   { 'ctermbg':'28',     'ctermfg':'7'},
+	\   { 'ctermbg':'54',     'ctermfg':'7'},
+	\   { 'ctermbg':'27',     'ctermfg':'7'},
+	\   { 'ctermbg':'166',     'ctermfg':'7'},
+	\   { 'ctermbg':'24',     'ctermfg':'7'},
+	\   { 'ctermbg':'162',     'ctermfg':'7'},
+	\   { 'ctermbg':'90',     'ctermfg':'7'},
+	\   { 'ctermbg':'63',     'ctermfg':'7'},
+	\   { 'ctermbg':'132',     'ctermfg':'7'},
+	\   { 'ctermbg':'202',     'ctermfg':'7'},
+	\],
+	\	'extended': function('mark#palettes#Extended'),
+	\	'maximum': function('mark#palettes#Maximum')
+	\}
+
+nnoremap <Leader>N :MarkClear<CR>
+nmap <Leader>m <Plug>MarkSet
+nmap <F11> <Plug>MarkSet
+xmap <Leader>m <Plug>MarkSet
+xmap <F11> <Plug>MarkSet
+" this is hard to use on the Mac but I am leaving <Leader>m to be usable -- 
+" this is just a shortcut
+
+nnoremap d<CR> <Nop>
+
+command! -complete=shellcmd -nargs=+ Shell call s:RunShellCommand(<q-args>)
+function! s:RunShellCommand(cmdline)
+	echo a:cmdline
+	let expanded_cmdline = a:cmdline
+	for part in split(a:cmdline, ' ')
+		if part[0] =~ '\v[%#<]'
+			let expanded_part = fnameescape(expand(part))
+			let expanded_cmdline = substitute(expanded_cmdline, part, expanded_part, '')
+		endif
+	endfor
+	botright new
+	setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile nowrap
+	call setline(1, 'You entered:    ' . a:cmdline)
+	call setline(2, 'Expanded Form:  ' .expanded_cmdline)
+	call setline(3,substitute(getline(2),'.','=','g'))
+	execute '$read !'. expanded_cmdline
+	setlocal nomodifiable
+	1
+endfunction
+
+" a func to set the height of the window to file height
+function! SetHeightToBuffer()
+	let good = 0
+	if &lines - 15 > line('$')
+		" only attempt to set this if there is either a buffer above or below 
+		" me (otherwise I will end up significantly enlarging the command line 
+		" which is just useless)
+		let curwin = winnr()
+		wincmd j
+		if (winnr() != curwin)
+			wincmd k
+			let good = 1
+		else
+			wincmd k
+			if (winnr() != curwin)
+				wincmd j
+				let good = 1
+			endif
+		endif
+	endif
+	if good
+		exe line('$').'wincmd_'
+		" also scroll all the way back up
+		" store cursor pos
+		let cur = getpos('.')
+		normal! gg
+		call cursor(cur[1], cur[2])
+		set nowrap
+	endif
+endfun
+
+" a function to distribute vertical space based on file lengths (I intend to 
+" maybe call this on new window/bufload)
+function! HeightSpread()
+	" This has to do some clever shit because the problem is that shrinking 
+	" a window will generally expand the one underneath it. This means that 
+	" multiple short files not at the top (i.e. top having a large file) will 
+	" result in the large file failing to get expanded out.
+	" 
+	" So, what I will do is do a scan to query the height of each file, then 
+	" sort them and figure out how many of the shortest files can all fit on 
+	" screen at once. Then, I distribute the height of the rest of the files 
+	" evenly and assign all of these values in a second pass.
+	let startwin = winnr()
+	" loop all the way to top (but we have to store the winnrs due to 
+	" possibility of arbitrary window arrangement)
+	let lastwin = startwin
+	let start = [lastwin, line('$'), winheight(lastwin)]
+	let wins = []
+	let totspace = winheight(lastwin)
+	wincmd k
+	while (winnr() != lastwin)
+		" echo 'a'.lastwin.'-'.winnr()
+		let lastwin = winnr()
+		let hei = winheight(lastwin)
+		call insert(wins, [lastwin, line('$'), hei])
+		let totspace += hei
+		wincmd k
+	endwhile
+	exe startwin.'wincmd w'
+	let lastwin = startwin
+	wincmd j
+	while (winnr() != lastwin)
+		" echo 'b'.lastwin.'-'.winnr()
+		let lastwin = winnr()
+		let hei = winheight(lastwin)
+		call add(wins, [lastwin, line('$'), hei])
+		let totspace += hei
+		wincmd j
+	endwhile
+
+	let fits = []
+	let split = []
+
+	" sort (vimscript algorithms are insane so i am pythoning)
+	python << EOF
+import operator
+lens = vim.eval('wins')
+lines = vim.eval('&lines')
+start = vim.eval('start')
+totspc = vim.eval('totspace')
+sortedk = sorted(lens, key=lambda x: int(x[1]))
+if ((int(start[1]) + 10) < int(lines)):
+	sortedk.insert(0, start)
+else:
+	# go to the bottom, dont care
+	sortedk.append(start)
+print sortedk
+tot = 0
+for i, l, hei in sortedk:
+	if ((tot + int(l) + 10) < int(lines)):
+		tot = tot + int(l)
+		vim.command('call add(fits, [' + i + ', ' + l + '])')
+	else:
+		vim.command('call add(split, ' + i + ')')
+
+vim.command('let splitlen = ' + str(int(totspc) - tot))
+EOF
+
+	echo 'fits'
+	echo fits
+	echo split
+	echo splitlen
+	" go back to starting window
+	if lastwin != startwin
+		exe startwin.'wincmd w'
+	endif
+endfun
+
+" Not sure if this one here is overkill or not, but on terminal resizing it 
+" will be useful to call the routine
+" au BufWinEnter * silent call HeightSpread()
+" I will use \H
+nnoremap <Leader>H :call HeightSpread()
+
+" cleanup regex 
+let match_stuff = "0-9a-zA-Z'\"()[]{}"
+let cleanup_regexes = []
