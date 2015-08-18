@@ -18,7 +18,8 @@
         "app": true,
         "define": true,
         "_": true,
-        "logger": true
+        "logger": true,
+        "moment": true
     },
     "rules": {
         "quotes": 0,
