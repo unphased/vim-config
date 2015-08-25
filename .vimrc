@@ -1109,9 +1109,10 @@ else
 
 	nnoremap <silent> <m-p> :set invpaste<CR>:set number!<CR>:set list!<CR>
 	imap <m-p> <C-O>:set paste<CR><C-O>:set nonumber<CR><C-O>:set nolist<CR>
-	" nvim pastetoggle setting doesnt stick (yet)
-	set pastetoggle=<m-p>
-	au! BufRead * set pastetoggle=<m-p>
+	" if nvim and osx and iterm, then leave pastetoggle as-is for well-behaved 
+	" bracketed paste mode default (slightly hokey) implementation.
+	" set pastetoggle=<m-p>
+	" au! BufRead * set pastetoggle=<m-p>
 endif
 set showmode
 
@@ -1843,6 +1844,11 @@ let g:cpp_class_scope_highlight=1
 
 " let &t_SI .= "\<Esc>[?2004h"
 " let &t_EI .= "\<Esc>[?2004l"
+
+" the above t_S/EI stuff was probably for vim only and neovim has its own 
+" custom shit for paste. Basically i only use vim by accident these days 
+" (neovim is much easier to build also!) and pretty much dont care all that 
+" much if paste doesnt work too well in vanilla vim
 
 " inoremap <special> <expr> <Esc>[200~ XTermPasteBegin()
 
