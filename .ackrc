@@ -2,3 +2,5 @@
 --type-set=minifiedmap:match:[.]min[.]map$
 --no-minifiedmap
 --ignore-dir=public/js/vendor
+--ignore-dir=mongodumps
+--ignore-dir=ghost
