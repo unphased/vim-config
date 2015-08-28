@@ -39,5 +39,6 @@
         "curly": 1,
         "camelcase": 0,
         "consistent-return": 1,
+        "no-mixed-spaces-and-tabs": 1
     }
 }
