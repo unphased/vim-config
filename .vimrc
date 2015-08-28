@@ -2113,6 +2113,8 @@ endfun
 " I will use \H
 nnoremap <Leader>H :call HeightSpread()
 
-" cleanup regex 
+" cleanup regex (I was using this to use regexes to fix code formatting -- well 
+" for JS and possibly other langs, the answer to that is unequivocally to use 
+" tools meant for that task)
 let match_stuff = "0-9a-zA-Z'\"()[]{}"
 let cleanup_regexes = []
