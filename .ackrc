@@ -3,3 +3,5 @@
 --no-minifiedmap
 --ignore-dir=public/js/vendor
 --ignore-dir=logs/
+--ignore-dir=mongodumps
+--ignore-dir=ghost
