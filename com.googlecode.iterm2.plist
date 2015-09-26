@@ -1294,7 +1294,7 @@
 	<key>NSWindow Frame com.apple.typography_panel_Menlo-Regular</key>
 	<string>341 780 260 68 0 0 1440 878 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>36 0 1170 1027 0 0 1680 1027 </string>
+	<string>0 0 1680 1050 0 0 1680 1027 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
 	<string>10 360 570 376 0 0 1680 1028 </string>
 	<key>NeverWarnAboutShortLivedSessions_BABC3C6F-E892-4635-AD49-85E57CE1D5AF</key>
@@ -1767,6 +1767,13 @@
 					<integer>11</integer>
 					<key>Text</key>
 					<string>0x15</string>
+				</dict>
+				<key>0x7f-0x120000</key>
+				<dict>
+					<key>Action</key>
+					<integer>11</integer>
+					<key>Text</key>
+					<string>0x18 0x7f</string>
 				</dict>
 				<key>0x9-0x40000</key>
 				<dict>
@@ -5605,7 +5612,7 @@
 	<key>NoSyncTimeOfLastPromo</key>
 	<real>453242860.28998202</real>
 	<key>NoSyncTimeOfLastPromoDownload</key>
-	<real>460765799.27982801</real>
+	<real>463171829.86350298</real>
 	<key>OnlyWhenMoreTabs</key>
 	<true/>
 	<key>OpenArrangementAtStartup</key>
@@ -5666,7 +5673,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2015-08-08T20:22:41Z</date>
+	<date>2015-09-06T20:28:00Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>Secure Input</key>

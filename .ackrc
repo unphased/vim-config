@@ -2,3 +2,4 @@
 --type-set=minifiedmap:match:[.]min[.]map$
 --no-minifiedmap
 --ignore-dir=public/js/vendor
+--ignore-dir=logs/
