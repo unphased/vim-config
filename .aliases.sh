@@ -42,6 +42,8 @@ alias d="gde"
 alias iack="ack -i"
 alias vim="TERM=xterm-256color-italic vim"
 
+alias c="cd"
+
 # TODO: deal with this abomination (viz. make it worse by generalizing it)
 if [[ $(uname) == Linux ]]; then
 	# need to use a non custom term to not confuse nano. Also enabling the 
