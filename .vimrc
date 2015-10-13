@@ -302,6 +302,10 @@ let g:syntastic_javascript_checkers = ['eslint']
 
 let g:syntastic_always_populate_loc_list = 1
 
+let g:syntastic_ignore_files = [
+			\ '\vpublic/js/app/utils/global.js$'
+			\ ]
+
 " for debugging syntax
 " (http://vim.wikia.com/wiki/Identify_the_syntax_highlighting_group_used_at_the_cursor)
 command! SyntaxDetect :echom "hi<" . synIDattr(synID(line("."),col("."),1),"name") . '> trans<' . synIDattr(synID(line("."),col("."),0),"name") . "> lo<" . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"
