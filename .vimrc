@@ -78,6 +78,8 @@ Plugin 'unphased/Cpp11-Syntax-Support'
 Plugin 'unphased/vim-html-escape'
 
 Plugin 'vim-scripts/showmultibase'
+Plugin 'rking/ag.vim'
+Plugin 'AndrewRadev/sideways.vim'
 
 " Bundle 'Decho'
 
