@@ -80,6 +80,7 @@ Plugin 'unphased/vim-html-escape'
 Plugin 'vim-scripts/showmultibase'
 Plugin 'rking/ag.vim'
 Plugin 'AndrewRadev/sideways.vim'
+Plugin 'kana/vim-textobj-user'
 
 " Bundle 'Decho'
 
