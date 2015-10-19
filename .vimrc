@@ -2127,7 +2127,7 @@ let match_stuff = "0-9a-zA-Z'\"()[]{}"
 let cleanup_regexes = []
 
 " conceal rule for javascript
-au! FileType javascript setl conceallevel=2 concealcursor=nc
+au! FileType javascript setl conceallevel=2 concealcursor=c
 
 "pangloss conceal rules
 let g:javascript_conceal_function   = "ƒ"
