@@ -34,7 +34,7 @@ Plugin 'vim-perl/vim-perl'
 Plugin 'mattn/emmet-vim'
 Plugin 'unphased/git-time-lapse'
 Plugin 'maxbrunsfeld/vim-yankstack'
-Plugin 'unphased/vim-indentfinder-1'
+Plugin 'ldx/vim-indentfinder'
 Plugin 'nathanaelkane/vim-indent-guides'
 Plugin 'unphased/HiCursorWords'
 Plugin 'dimasg/vim-mark'
@@ -42,8 +42,8 @@ Plugin 'dimasg/vim-mark'
 "Bundle 'airblade/vim-gitgutter'
 "Bundle 'akiomik/git-gutter-vim'
 Plugin 'mhinz/vim-signify'
-" Plugin 'pangloss/vim-javascript'
-Plugin 'jelera/vim-javascript-syntax'
+Plugin 'pangloss/vim-javascript'
+" Plugin 'jelera/vim-javascript-syntax'
 Plugin 'beyondmarc/glsl.vim'
 "Bundle 'kana/vim-smartinput'
 Plugin 'SirVer/ultisnips'
@@ -2125,3 +2125,17 @@ nnoremap <Leader>H :call HeightSpread()
 " tools meant for that task)
 let match_stuff = "0-9a-zA-Z'\"()[]{}"
 let cleanup_regexes = []
+
+" conceal rule for javascript
+au! FileType javascript setl conceallevel=2 concealcursor=nc
+
+"pangloss conceal rules
+let g:javascript_conceal_function   = "ƒ"
+let g:javascript_conceal_null       = "ø"
+let g:javascript_conceal_this       = "@"
+let g:javascript_conceal_return     = "↲"
+let g:javascript_conceal_undefined  = "¿"
+let g:javascript_conceal_NaN        = "ℕ"
+let g:javascript_conceal_prototype  = "¶"
+
+hi Conceal ctermbg=NONE ctermfg=NONE cterm=bold
