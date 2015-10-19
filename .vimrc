@@ -2138,4 +2138,4 @@ let g:javascript_conceal_undefined  = "¿"
 let g:javascript_conceal_NaN        = "ℕ"
 let g:javascript_conceal_prototype  = "¶"
 
-hi Conceal ctermbg=NONE ctermfg=NONE cterm=bold
+hi Conceal ctermbg=238 ctermfg=NONE cterm=NONE
