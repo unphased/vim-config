@@ -2139,3 +2139,6 @@ let g:javascript_conceal_NaN        = "ℕ"
 let g:javascript_conceal_prototype  = "¶"
 
 hi Conceal ctermbg=238 ctermfg=NONE cterm=NONE
+
+" TODO free up the [] maps from the pause (there is overloading done by vim 
+" impaired which is causing the craziness)
