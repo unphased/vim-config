@@ -5,3 +5,4 @@
 --ignore-dir=logs/
 --ignore-dir=mongodumps
 --ignore-dir=ghost
+--ignore-dir=public/css
