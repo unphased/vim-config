@@ -22,7 +22,7 @@ alias gde="git diff --ext-diff"
 alias gdc="gd --cached"
 alias gg="git lg --all"
 alias gca="git commit -av"
-alias gcm="git commit -am"
+alias gcm="git commit-message"
 unalias gcp # I rarely cherry pick (if not using ohmyzsh, this will cause bash to emit a warning)
 alias gp="git push"
 alias k='l' # this is a bit tongue in cheek

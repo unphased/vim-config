@@ -20,6 +20,7 @@
 	diff-with-ignored-ext = "!f() { git diff --ext-diff | cat; ignored=$(git ignored | cut -d ' ' -f 2); [ -n \"$ignored\" ] && echo \"git skip-worktree (ignored):\" && for var in $ignored; do echo [31m$var[m; git show HEAD:$var | sift - $var; done };f"
 
 	commit-push = "!f() { git commit -am \"$*\" && git push; };f"
+	commit-message = "!f() { git commit -am \"$*\" };f"
 [difftool]
 	prompt = false
 [diff]
