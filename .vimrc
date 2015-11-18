@@ -621,8 +621,8 @@ endfunc
 set <S-F1>=[1;2P
 noremap! <S-F1> <ESC>:tabclose<CR>
 noremap <S-F1> :tabclose<CR>
-noremap! <F1> <ESC>:tabnew<CR>
-noremap <F1> :tabnew<CR>
+" noremap! <F1> <ESC>:tabnew<CR>
+" noremap <F1> :tabnew<CR>
 " inoremap <F1> <ESC>:tabnew<CR>
 noremap! <silent> <F2> <ESC>:call SwitchTabPrev()<CR>
 noremap <silent> <F2> :call SwitchTabPrev()<CR>
