@@ -1551,6 +1551,11 @@ inoremap <2-LeftMouse> <Nop>
 inoremap <3-LeftMouse> <Nop>
 inoremap <4-LeftMouse> <Nop>
 
+" map back and forward (won't work without proper maps which term emulators 
+" dont provide)
+nnoremap <X1Mouse> u
+nnoremap <X2Mouse> <C-R>
+
 " Had this SO question answered a while ago but didnt get chance to insert it
 " till now.
 function! SmartInsertStartOfLine()
