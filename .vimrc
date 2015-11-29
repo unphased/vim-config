@@ -221,7 +221,7 @@ set sidescrolloff=3
 
 " fast terminal (this is for escape code wait time for escape code based keys)
 set ttimeout
-set ttimeoutlen=10
+set ttimeoutlen=3
 
 " set t_Co=256
 " set term=screen-256color-italic
