@@ -2151,9 +2151,10 @@ hi Conceal ctermbg=238 ctermfg=NONE cterm=NONE
 " comment originally.)
 
 " spell fix bind (my s, f, c binds are filled up, so I'm using x)
-inoremap <Leader>x <C-G>u<Esc>ms[s1z=:let g:correct_index = 1<CR>`sa
 nnoremap <Leader>x ms[s1z=:let g:correct_index = 1<CR>`s
+inoremap <Leader>x <C-G>u<Esc>ms[s1z=:let g:correct_index = 1<CR>`sa
 
 " only works immediately after use of <Leader> x corrected to not the proper 
 " word
 nnoremap <Leader>X :let g:correct_index += 1<CR>u:exec "normal! " . correct_index . "z=`s"<CR>
+inoremap <Leader>X <C-G>u<Esc>:let g:correct_index += 1<CR>u:exec "normal! " . correct_index . "z=`s"<CR>a
