@@ -2146,4 +2146,14 @@ let g:javascript_conceal_prototype  = "¶"
 hi Conceal ctermbg=238 ctermfg=NONE cterm=NONE
 
 " TODO free up the [] maps from the pause (there is overloading done by vim 
-" impaired which is causing the craziness)
+" impaired which is causing the craziness) (But i mean there isnt actually an 
+" action bound to [ or ] proper, so im not sure what i was getting at with this 
+" comment originally.)
+
+" spell fix bind (my s, f, c binds are filled up, so I'm using x)
+inoremap <Leader>x <C-G>u<Esc>ms[s1z=:let g:correct_index = 1<CR>`sa
+nnoremap <Leader>x ms[s1z=:let g:correct_index = 1<CR>`s
+
+" only works immediately after use of <Leader> x corrected to not the proper 
+" word
+nnoremap <Leader>X :let g:correct_index += 1<CR>u:exec "normal! " . correct_index . "z=`s"<CR>
