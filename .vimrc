@@ -1729,13 +1729,6 @@ nnoremap qd G0"qd$
 " aaa aaaa a a
 "          aaa
 
-" ############&&&&&^^^
-" ##########&&&&&&&
-" ###text#&&&&&&
-" ##########&&&&&&&
-" ############&&&&&^^^
-
-
 " Converts using outline.pl to:
  
 " ┌───┬────┬┬┬┬──┬┐
@@ -1748,6 +1741,17 @@ nnoremap qd G0"qd$
 " │└┘││└─┘│││││
 " └──┘└───┘│└┘│
 "          └──┘
+
+" note that outline.pl was recently rewritten such that special chars are the 
+" only ones that trigger empty boxes. So you may draw boxes like this and the 
+" alphanum content will remain unchanged, hopefully this makes it easier to 
+" write things quickly.
+
+" ############&&&&&^^^
+" ##########&&&&&&&
+" ###text#&&&&&&
+" ##########&&&&&&&
+" ############&&&&&^^^
 
 " Note how this is really easy to invoke (visual select, then :!out<Tab><CR>)
 " Outline has been edited by me to only accept numeric and special char values
@@ -1772,7 +1776,6 @@ nnoremap qd G0"qd$
 
 " The combination of smart non-text-destructive box rendering combined with 
 " textmanip makes for extremely powerful visual text-based drawing.
-
 
 " globally highlight, remember the match only can be set to one thing
 
