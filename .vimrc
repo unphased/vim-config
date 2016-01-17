@@ -1924,6 +1924,7 @@ let g:AutoPairsShortcutToggle = '<M-z>'
 let g:AutoPairsShortcutBackInsert = '<M-x>'
 let g:AutoPairsShortcutJump = '<M-a>'
 let g:AutoPairsCenterLine = 0
+let g:AutoPairsOnlyWhitespace = 1
 
 " bind Alt+P in insert mode to paste (for nvim)..
 " this actually conflicts with internal vim binding, see i_CTRL_P, but 
