@@ -975,10 +975,27 @@ vnoremap / /\v
 " This mostly alleviates the want for matching highlights for surrounding
 " stuff because moving back and forth between the endpoints can be quite
 " helpful anyway.
-" These maps are non-recursive to accomodate the fact that matchit.vim
+" see the after/plugin/matchit.vim for the bind since i have to bind it there
+
+" flipping ' and ` for convenience
+vnoremap ' `
+nnoremap ' `
+onoremap ' `
+
+" this is intended for:
+" swap and give myself the ability to still invoke the friggin jump 
+" functionality of vim (map to ', make ' do `, because its more useful.)
+" BUT, what happens is that matchit loads and overrides this. I need to not 
+" really touch the matchit script since it'd be overkill, and.. well, the only 
+" way then is to use a map
+nnoremap % '
+vnoremap % '
+
+" These maps are calling the stuff that matchit.vim sets.
 " overloads %, so we try not to mess that up.
-nnoremap ` %
-vnoremap ` %
+nmap ` %
+vmap ` %
+omap ` %
 
 " mapping normal mode Tab to swap to next window; saving the functionality of
 " tab (next jumplist position) to C-B (since PgUp serves that function well)
@@ -1087,17 +1104,8 @@ endfunc
 nnoremap <Tab> :call NextWindowOrTabOrBuffer()<CR>
 nnoremap <S-Tab> :call PrevWindowOrTabOrBuffer()<CR>
 
-" Uncomment the following to have Vim jump to the last position when
-" reopening a file
-" Put into e.g.
-" ~/.vim/after/ftplugin/gitcommit.vim
-" this:
-" :autocmd BufWinEnter <buffer> normal! gg0
-" to get this not to affect whatever filetypes
-" if has("autocmd")
-  au! BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")
-    \| exe "normal! g'\"" | endif
-" endif
+" This makes it restore the last position
+autocmd! BufReadPost * silent! normal! g`"zv
 
 "THIS SECTION CONTAINS THE FAST KEY BINDINGS
 " Make alt+BS do the same as in bash/zsh (I am doing experimental override of xF keys)
