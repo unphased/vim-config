@@ -1934,6 +1934,9 @@ let g:AutoPairsShortcutJump = '<M-a>'
 let g:AutoPairsCenterLine = 0
 let g:AutoPairsOnlyWhitespace = 1
 
+" make html files pair up brackets
+au Filetype html let b:AutoPairs = {'`': '`', '"': '"', '{': '}', '''': '''', '(': ')', '[': ']', '<':'>'}
+
 " bind Alt+P in insert mode to paste (for nvim)..
 " this actually conflicts with internal vim binding, see i_CTRL_P, but 
 " basically it does work somehow, only once per insertmode excursion. Better 
