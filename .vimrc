@@ -575,6 +575,7 @@ noremap! <C-L> <ESC>:call TmuxWindow('l')<CR>
 " Vim.
 noremap <F10> <ESC>
 noremap! <F10> <ESC>
+cnoremap <F10> <c-c>
 
 " this checks tmux to figure out if it should swap panes or trigger Tab
 " instead
@@ -725,7 +726,10 @@ cmap w!! w !sudo tee > /dev/null %
 
 " bind CTRL-ALT-S for saving as root (run sudo tee)
 " SHIFT-CTRL is not possible on terminals (same as CTRL-S)
-set <C-A-S>=
+if !has('nvim')
+	set <C-A-S>=
+endif
+
 cnoremap <C-A-S> <C-C>:w !sudo tee > /dev/null %<CR>
 noremap <C-A-S> <ESC>:w !sudo tee > /dev/null %<CR>
 inoremap <C-A-S> <ESC>:w !sudo tee > /dev/null %<CR>
