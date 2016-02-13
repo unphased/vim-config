@@ -1284,7 +1284,7 @@
 	<key>NSWindow Frame NSFontPanel</key>
 	<string>78 155 575 255 0 0 1440 877 </string>
 	<key>NSWindow Frame Preferences</key>
-	<string>131 474 924 485 0 0 1680 1050 </string>
+	<string>131 474 924 485 0 0 1680 1027 </string>
 	<key>NSWindow Frame SUAutomaticUpdateAlert</key>
 	<string>530 640 616 174 0 0 1680 1028 </string>
 	<key>NSWindow Frame SUStatusFrame</key>
@@ -1294,7 +1294,7 @@
 	<key>NSWindow Frame com.apple.typography_panel_Menlo-Regular</key>
 	<string>341 780 260 68 0 0 1440 878 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>0 0 1680 1050 0 0 1680 1027 </string>
+	<string>1407 72 625 829 0 0 1680 1027 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
 	<string>10 360 570 376 0 0 1680 1028 </string>
 	<key>NeverWarnAboutShortLivedSessions_BABC3C6F-E892-4635-AD49-85E57CE1D5AF</key>
@@ -2242,7 +2242,7 @@
 			<key>Terminal Type</key>
 			<string>xterm-256color-italic</string>
 			<key>Transparency</key>
-			<real>0.11449704319238663</real>
+			<real>0.26360946893692017</real>
 			<key>Triggers</key>
 			<array/>
 			<key>Unlimited Scrollback</key>
@@ -5612,7 +5612,7 @@
 	<key>NoSyncTimeOfLastPromo</key>
 	<real>453242860.28998202</real>
 	<key>NoSyncTimeOfLastPromoDownload</key>
-	<real>474244236.91681403</real>
+	<real>476916602.52035302</real>
 	<key>OnlyWhenMoreTabs</key>
 	<true/>
 	<key>OpenArrangementAtStartup</key>
@@ -5673,7 +5673,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2016-01-11T18:10:14Z</date>
+	<date>2016-02-11T20:49:57Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>Secure Input</key>
