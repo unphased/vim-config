@@ -253,9 +253,9 @@ augroup checktime
     if !has("gui_running")
         "silent! necessary otherwise throws errors when using command
         "line window.
-        autocmd BufEnter        * checktime
-        autocmd CursorHold      * checktime
-        autocmd CursorHoldI     * checktime
+        autocmd BufEnter        * silent! checktime
+        autocmd CursorHold      * silent! checktime
+        autocmd CursorHoldI     * silent! checktime
         "these two _may_ slow things down. Remove if they do.
         "autocmd CursorMoved     * silent! checktime
         "autocmd CursorMovedI    * silent! checktime
