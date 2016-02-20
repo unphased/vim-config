@@ -20,7 +20,7 @@ Plugin 'simnalamburt/vim-mundo'
 
 Plugin 'scrooloose/nerdtree'
 Plugin 'scrooloose/syntastic'
-Plugin 'kien/ctrlp.vim'
+Plugin 'ctrlpvim/ctrlp.vim'
 Plugin 'diffchanges.vim'
 Plugin 'tpope/vim-repeat'
 Plugin 'tpope/vim-surround'

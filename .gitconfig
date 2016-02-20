@@ -1,6 +1,5 @@
 [user]
-	email = stevenlu443@gmail.com
-	name = Steven Lu (Unknown environment)
+	email = "stevenlu443@gmail.com"
 [core]
 	editor = vim
 	whitespace = cr-at-eol
