@@ -1472,11 +1472,11 @@
 			<key>Background Image Location</key>
 			<string></string>
 			<key>Blend</key>
-			<real>0.30000001192092896</real>
+			<real>0.050000000000000003</real>
 			<key>Blink Allowed</key>
 			<true/>
 			<key>Blinking Cursor</key>
-			<false/>
+			<true/>
 			<key>Blur</key>
 			<false/>
 			<key>Blur Radius</key>
@@ -1498,6 +1498,8 @@
 			<integer>85</integer>
 			<key>Command</key>
 			<string>zsh</string>
+			<key>Cursor Boost</key>
+			<real>0.0</real>
 			<key>Cursor Color</key>
 			<dict>
 				<key>Blue Component</key>
@@ -1506,6 +1508,19 @@
 				<real>0.94117647409439087</real>
 				<key>Red Component</key>
 				<real>0.38516655564308167</real>
+			</dict>
+			<key>Cursor Guide Color</key>
+			<dict>
+				<key>Alpha Component</key>
+				<real>0.15625</real>
+				<key>Blue Component</key>
+				<real>0.85407561063766479</real>
+				<key>Color Space</key>
+				<string>Calibrated</string>
+				<key>Green Component</key>
+				<real>0.80801606178283691</real>
+				<key>Red Component</key>
+				<real>0.46082991361618042</real>
 			</dict>
 			<key>Cursor Text Color</key>
 			<dict>
@@ -2145,7 +2160,7 @@
 			<key>Silence Bell</key>
 			<false/>
 			<key>Smart Cursor Color</key>
-			<false/>
+			<true/>
 			<key>Smart Selection Rules</key>
 			<array>
 				<dict>
@@ -2243,8 +2258,10 @@
 			<array/>
 			<key>Terminal Type</key>
 			<string>xterm-256color-italic</string>
+			<key>Thin Strokes</key>
+			<integer>0</integer>
 			<key>Transparency</key>
-			<real>0.26360946893692017</real>
+			<real>0.1997041434931332</real>
 			<key>Triggers</key>
 			<array/>
 			<key>Unlimited Scrollback</key>
@@ -2255,6 +2272,8 @@
 			<false/>
 			<key>Use Canonical Parser</key>
 			<false/>
+			<key>Use Cursor Guide</key>
+			<true/>
 			<key>Use Italic Font</key>
 			<true/>
 			<key>Vertical Spacing</key>
@@ -5739,7 +5758,7 @@
 	<key>iTerm Version</key>
 	<string>2.9.20160206</string>
 	<key>kCPKSelectionViewPreferredModeKey</key>
-	<integer>0</integer>
+	<integer>6</integer>
 	<key>kCPKSelectionViewShowHSBTextFieldsKey</key>
 	<false/>
 	<key>kCommandHistoryHasEverBeenUsed</key>
