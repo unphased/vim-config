@@ -53,6 +53,7 @@
 	enabled = true
 [merge]
 	stat = true
+	conflictStyle = diff3
 [difftool "sourcetree"]
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
 	path = 

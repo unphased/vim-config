@@ -43,6 +43,7 @@
         "consistent-return": 1,
         "no-mixed-spaces-and-tabs": 1,
         "key-spacing": 1,
-        "dot-notation": 0
+        "dot-notation": 1,
+        "no-fallthrough": 1
     }
 }
