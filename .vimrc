@@ -171,8 +171,8 @@ let g:SignatureMap = {
 	\ 'ListLocalMarkers'   :  "m?"
 	\ }
 
-nnoremap <F4> :GundoToggle<CR>
-inoremap <F4> <ESC>:GundoToggle<CR>
+nnoremap <F4> :MundoToggle<CR>
+inoremap <F4> <ESC>:MundoToggle<CR>
 
 " These C-V and C-C mappings are for fakeclip, but fakeclip doesn't work on
 " OSX and I never really seem to do much copying and pasting
