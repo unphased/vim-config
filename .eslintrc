@@ -44,6 +44,7 @@
         "no-mixed-spaces-and-tabs": 1,
         "key-spacing": 1,
         "dot-notation": 1,
-        "no-fallthrough": 1
+        "no-fallthrough": 1,
+        "no-undef": 2
     }
 }
