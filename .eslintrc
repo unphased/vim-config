@@ -45,6 +45,8 @@
         "key-spacing": 1,
         "dot-notation": 1,
         "no-fallthrough": 1,
+        "no-redeclare": 1,
+        "no-alert": 0,
         "no-undef": 2
     }
 }
