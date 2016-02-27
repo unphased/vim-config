@@ -270,6 +270,8 @@ if &term =~ '256color'
 endif
 
 colorscheme Tomorrow-Night-Eighties
+hi LineNr ctermfg=242
+" overrides the linenr set by above colorscheme.
 
 "set listchars=tab:→\ ,extends:>,precedes:<,trail:·,nbsp:◆
 set listchars=tab:\ \ ,extends:»,precedes:«,trail:·,nbsp:◆
