@@ -82,6 +82,8 @@ Plugin 'rking/ag.vim'
 Plugin 'AndrewRadev/sideways.vim'
 Plugin 'kana/vim-textobj-user'
 
+Plugin 'Ron89/thesaurus_query.vim'
+
 " Bundle 'Decho'
 
 filetype plugin indent on "more Vundle setup
@@ -2179,3 +2181,5 @@ inoremap <Leader>x <C-G>u<Esc>ms[s1z=:let g:correct_index = 1<CR>`sa
 " word
 nnoremap <Leader>X :let g:correct_index += 1<CR>u:exec "normal! " . correct_index . "z=`s"<CR>
 inoremap <Leader>X <C-G>u<Esc>:let g:correct_index += 1<CR>u:exec "normal! " . correct_index . "z=`s"<CR>a
+
+nnoremap <Leader>t :ThesaurusQueryReplaceCurrentWord<CR>
