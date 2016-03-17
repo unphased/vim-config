@@ -80,6 +80,8 @@ export LESS_TERMCAP_us=$'\E[04;38;5;146m' # begin underline
 
 
 # because omz people are slightly incompetent and regressed these aliases i did 
-# start to use (these may come back later) when #4585 completes
+# start to use (these may come back later when #4585 completes)
 alias gdc='git diff --cached'
 alias gap='git add --patch'
+
+alias grepc='grep --color=always --exclude=\*{.,-}min.\*'
