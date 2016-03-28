@@ -85,3 +85,6 @@ alias gdc='git diff --cached'
 alias gap='git add --patch'
 
 alias grepc='grep --color=always --exclude=\*{.,-}min.\*'
+alias cack='ack --color'
+alias ackc='ack --color'
+alias agc='ag --color'
