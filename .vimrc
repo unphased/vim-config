@@ -175,8 +175,8 @@ let g:SignatureMap = {
 	\ 'ListLocalMarkers'   :  "m?"
 	\ }
 
-nnoremap <F4> :UndoTreeToggle<CR>
-inoremap <F4> <ESC>:UndoTreeToggle<CR>
+nnoremap <F4> :UndotreeToggle<CR>
+inoremap <F4> <ESC>:UndotreeToggle<CR>
 
 " These C-V and C-C mappings are for fakeclip, but fakeclip doesn't work on
 " OSX and I never really seem to do much copying and pasting
@@ -2031,22 +2031,89 @@ function! s:RunShellCommand(cmdline)
 	1
 endfunction
 
+" Returns true if at least delay seconds have elapsed since the last time this 
+" function was called, based on the time
+" contained in the variable "timer". The first time it is called, the variable is defined and the function returns
+" true.
+"
+" True means not zero.
+"
+" For example, to execute something no more than once every two seconds using a variable named "b:myTimer", do this:
+"
+" if LongEnough( "b:myTimer", 2 )
+"   <do the thing>
+" endif
+"
+" The optional 3rd parameter is the number of times to suppress the operation within the specified time and then let it
+" happen even though the required delay hasn't happened. For example:
+"
+" if LongEnough( "b:myTimer", 2, 5 )
+"   <do the thing>
+" endif
+"
+" Means to execute either every 2 seconds or every 5 calls, whichever happens first.
+function! LongEnough( timer, delay, ... )
+  let result = 0
+  let suppressionCount = 0
+  if ( exists( 'a:1' ) )
+    let suppressionCount = a:1
+  endif
+  " This is the first time we're being called.
+  if ( !exists( a:timer ) )
+    let result = 1
+  else
+    let timeElapsed = localtime() - {a:timer}
+    " If it's been a while...
+    if ( timeElapsed >= a:delay )
+      let result = 1
+    elseif ( suppressionCount > 0 )
+      let {a:timer}_callCount += 1
+      " It hasn't been a while, but the number of times we have been called has hit the suppression limit, so we activate
+      " anyway.
+      if ( {a:timer}_callCount >= suppressionCount )
+        let result = 1
+      endif
+    endif
+  endif
+  " Reset both the timer and the number of times we've been called since the last update.
+  if ( result )
+    let {a:timer} = localtime()
+    let {a:timer}_callCount = 0
+  endif
+  return result
+endfunction
+
+
 " a function to distribute vertical space based on file lengths (I intend to 
 " maybe call this on new window/bufload)
 function! HeightSpread()
+	if !LongEnough('g:heightspread', 1.5)
+		return
+		" This is not ideal because it does not guarantee it will run after the
+		" last thing that triggers me. But rate limiting to ensure performance 
+		" is more paramount than correct async cleanup so this will have to do 
+		" for now until I can dig into vim/nvim code to try to integrate this 
+		" shit.
+	endif
+	" echom 'running HeightSpread '.localtime()
+
 	" This has to do some clever shit because the problem is that shrinking 
 	" a window will generally expand the one underneath it. This means that 
 	" multiple short files not at the top (i.e. top having a large file) will 
 	" result in the large file failing to get expanded out.
-	" 
+
 	" So, what I will do is do a scan to query the height of each file, then 
 	" sort them and figure out how many of the shortest files can all fit on 
 	" screen at once. Then, I distribute the height of the rest of the files 
 	" evenly and assign all of these values in a second pass.
-	"
+
 	" Now the problem is that using wincmd j/k to obtain and set the heights 
-	" does not work well because of awful performance. So I have to adjust the 
-	" algorithm to just scan all the windows at this point.
+	" does not work well because of awful performance. So I want to adjust the 
+	" algorithm to just scan all the windows at this point. But, since there is
+	" no way to get the missing data about the x/y positioning of each window 
+	" without switching to it (here, so far, i implicitly pick out the ones 
+	" I care about by scanning up and down from the starting window) that 
+	" approach is doomed for now.
 	let startwin = winnr()
 	" loop all the way to top (but we have to store the winnrs due to 
 	" possibility of arbitrary window arrangement)
@@ -2107,8 +2174,8 @@ for i, l, hei, name, yaxis in sortedk:
 		split.append((i, hei, yaxis))
 splitlen = str(int(totspc) - tot)
 # print '::: ' + splitlen + ' ::: ' + str(fits_unsorted) + ' :: ' + str(split)
-# have to compute and apply all heights one after another otherwise vim will
-# yank the heights around and undo our work. this means sorting by yaxis
+# have to compute and apply all heights one after another otherwise Vim will
+# yank the heights around and undo our work. This means sorting by y-axis
 
 # we redistribute the heights of the remaining split items using their current
 # height ratios, and use greedy assignment to be fuzzy with divisions while
@@ -2141,7 +2208,7 @@ EOF
 		exe 'resize' string(i[1])
 		" echo i[0].' set to '.i[1]
 		if i[2] == 'fit'
-			echo 'going to top for window '.i[0]
+			" echo 'going to top for window '.i[0]
 			normal gg
 		endif
 	endfor
@@ -2149,6 +2216,19 @@ EOF
 	" go back to starting window
 	exe startwin.'wincmd w'
 endfun
+
+" for setting up ability to trigger something once on first creation of window
+" autocmd that will set up the w:created variable
+autocmd VimEnter * autocmd WinEnter * let w:created=1
+
+" Consider this one, since WinEnter doesn't fire on the first window created when Vim launches.
+" You'll need to set any options for the first window in your vimrc,
+" or in an earlier VimEnter autocmd if you include this
+autocmd VimEnter * let w:created=1
+
+" Example of how to use w:created in an autocmd to initialize a window-local option
+autocmd WinEnter * if !exists('w:created') | call HeightSpread() | endif
+
 
 " Not sure if this one here is overkill or not, but on terminal resizing it 
 " will be useful to call the routine
@@ -2191,3 +2271,4 @@ nnoremap <Leader>X :let g:correct_index += 1<CR>u:exec "normal! " . correct_inde
 inoremap C-X <C-G>u<Esc>:let g:correct_index += 1<CR>u:exec "normal! " . correct_index . "z=`s"<CR>a
 
 nnoremap <Leader>t :ThesaurusQueryReplaceCurrentWord<CR>
+
