@@ -1775,9 +1775,15 @@ highlight SpellRare ctermbg=NONE ctermfg=NONE cterm=underline
 
 " ############&&&&&^^^
 " ##########&&&&&&&
-" ###text#&&&&&&
-" ##########&&&&&&&
+" ## text#&&&&&&
+" ##     ###&&&&&&&
+" ##########&&&&^&&
 " ############&&&&&^^^
+
+" If you test this you will find quite some breakage... there is a whole 
+" edge-case situation going on here thats a bit unfortunate and I don't think 
+" I can realistically make it fully featured. It's quite safer to use the below 
+" lines and pluses at any rate.
 
 " Note how this is really easy to invoke (visual select, then :!out<Tab><CR>)
 " Outline has been edited by me to only accept numeric and special char values
