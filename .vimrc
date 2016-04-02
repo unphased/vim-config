@@ -2183,6 +2183,8 @@ function! HeightSpread()
 	" sort (vimscript algorithms are insane so i am pythoning)
 	python << EOF
 # import operator
+for win in vim.windows:
+	print ", ".join([str(x) for x in [win.col, win.row, win.width, win.height]]);
 lens = vim.eval('wins')
 start = vim.eval('start')
 totspc = vim.eval('totspace')
