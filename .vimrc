@@ -1277,10 +1277,13 @@ endif
 " to q register)
 " TBH since i wanted to bring comma back and stick with defaults, @ isnt too 
 " hard to reach anyway, I abandoned this map for a while
+" Hmmm, I've been actually typing [n]@@ a lot lately to run my macros, i dunno.
 if has('nvim')
-	nnoremap <m-,> @q
+	" nnoremap <m-,> @q
+	nnoremap <m-,> :<C-u>call MyAmazingEnhancedDot()<CR>
 else
-	nnoremap <F19> @q
+	" nnoremap <F19> @q
+	nnoremap <F19> :<C-u>call MyAmazingEnhancedDot()<CR>
 endif
 
 " more ctrlp settings
@@ -1725,10 +1728,19 @@ highlight SpellRare ctermbg=NONE ctermfg=NONE cterm=underline
 " with power. Found here: 
 " http://dailyvim.blogspot.com/2007/11/macro-registers.html
 " Not too much but just a wrinkle, not really able (easily) to start recording 
-" into the p or d registers. well then  i think
+" into the p or d registers.
+" Now, turns out this shit has some issues, esp with YCM. I am disabling it now
+" entirely because it's really easier to just recreate the fucking recording 
+" manually after all... I think I just need to use a scratch buffer window to 
+" do this (which is good because then i can still see the other code i was in) 
+" and have YCM switched off in there, if possible. Anyhow it's quite some time 
+" away from being feasible for me to invest time into, as i still use macros 
+" fairly rarely. Also this binding is really aggravating because it makes 
+" finishing a macro recording have a delay in it, you wouldnt think so but it 
+" is aggravating.
 
-nnoremap qp Go<ESC>"qp
-nnoremap qd G0"qd$
+" nnoremap qp Go<ESC>"qp
+" nnoremap qd G0"qd$
 
 " Just taking some space here to document the method for generating nice 
 " unicode fixed-width-text tables.
@@ -1843,7 +1855,11 @@ endif
 " this will intelligently abort and undo at such time that it realizes 'n' did 
 " not move the cursor.
 function! MyAmazingEnhancedDot(count)
-	let c = a:count
+	" when no count, run it as many times as the match remains. That's done 
+	" with fancy redir technique
+	if exists(a:count)
+		let c = a:count
+	endif
 	let lastpos = getcurpos()
 	while c > 0
 		if v:hlsearch == 1
