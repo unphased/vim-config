@@ -2182,7 +2182,7 @@ function! HeightSpread()
 
 	" sort (vimscript algorithms are insane so i am pythoning)
 	python << EOF
-import operator
+# import operator
 lens = vim.eval('wins')
 start = vim.eval('start')
 totspc = vim.eval('totspace')
@@ -2213,7 +2213,7 @@ splitlen = int(totspc) - tot
 # height ratios, and use greedy assignment to be fuzzy with divisions while
 # ensuring total height count adds up.
 
-print 'before: ' + str(splitlen) + ', ' + str(fits_unsorted)
+# print 'before: ' + str(splitlen) + ', ' + str(fits_unsorted)
 
 if len(split) > 0:
 	split.insert(0, 0)
@@ -2231,14 +2231,14 @@ else:
 			e[1] = int(e[1]) + splitlen
 			break
 
-print 'af: ' + str(fits_unsorted)
+# print 'af: ' + str(fits_unsorted)
 
 # sort by position
 fits = sorted(fits_unsorted + split, key=lambda x: int(x[2]))
 for w, l, o, b in fits:
 	# last value is flag whether fits or not. only if fits do we scroll them up
 	vim.command('call add(final, [' + w + ', ' + str(l) + ', "' + ('fit' if b else 'no') + '"])')
-print 'after sortin: ' + str(fits)
+# print 'after sortin: ' + str(fits)
 EOF
 
 	" echo 'totspc: '. totspace
