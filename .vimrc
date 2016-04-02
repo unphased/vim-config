@@ -9,7 +9,9 @@ call vundle#rc()
 
 Plugin 'gmarik/vundle'
 Plugin 'Valloric/YouCompleteMe'
-Plugin 'simnalamburt/vim-mundo'
+" Plugin 'simnalamburt/vim-mundo'
+Plugin 'mbbill/undotree'
+Plugin 'rhysd/clever-f.vim'
 
 " iTerm2 support for focusing
 " Plugin 'sjl/vitality.vim'
@@ -173,8 +175,8 @@ let g:SignatureMap = {
 	\ 'ListLocalMarkers'   :  "m?"
 	\ }
 
-nnoremap <F4> :MundoToggle<CR>
-inoremap <F4> <ESC>:MundoToggle<CR>
+nnoremap <F4> :UndoTreeToggle<CR>
+inoremap <F4> <ESC>:UndoTreeToggle<CR>
 
 " These C-V and C-C mappings are for fakeclip, but fakeclip doesn't work on
 " OSX and I never really seem to do much copying and pasting
@@ -191,9 +193,10 @@ nnoremap <Leader>L :so $MYVIMRC<CR>:runtime! after/plugin/*.vim<CR>
 " the thing. There's nothing useful to bind comma to, because comma is used 
 " with camelcasemotion in normal mode because it's still marginally useful that 
 " way.
-nnoremap ,, ;
-xnoremap ,, ;
-onoremap ,, ;
+" nnoremap ,, ;
+" xnoremap ,, ;
+" onoremap ,, ;
+" now no longer really needed with cleverf
 
 " add some cases so that certain common keystrokes when used from visual mode 
 " (which i often land in) will do what i would want it to do
@@ -482,7 +485,8 @@ vnoremap <C-Right> E
 " only really work on OSX. I use a clipboard stack so clobbering is alright
 
 
-" Using these is sort of questionable as it does pollute undo history :(
+" Using these is sort of questionable as it does pollute undo history :( TODO: 
+" maybe not now with c-u g?
 inoremap <S-Left> <C-O>b
 inoremap <S-Right> <C-O>e
 inoremap <C-Left> <C-O>B
