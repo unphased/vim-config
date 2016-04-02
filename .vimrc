@@ -2043,6 +2043,10 @@ function! HeightSpread()
 	" sort them and figure out how many of the shortest files can all fit on 
 	" screen at once. Then, I distribute the height of the rest of the files 
 	" evenly and assign all of these values in a second pass.
+	"
+	" Now the problem is that using wincmd j/k to obtain and set the heights 
+	" does not work well because of awful performance. So I have to adjust the 
+	" algorithm to just scan all the windows at this point.
 	let startwin = winnr()
 	" loop all the way to top (but we have to store the winnrs due to 
 	" possibility of arbitrary window arrangement)
