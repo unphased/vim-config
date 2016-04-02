@@ -1349,12 +1349,6 @@ runtime macros/matchit.vim
 inoremap <C-Left> <ESC>bi
 inoremap <C-Right> <ESC>lwi
 
-" changing these to not switch window because its too damn slow
-nnoremap = :vertical res +8<CR>
-nnoremap - :vertical res -8<CR>
-nnoremap + :res +8<CR>
-nnoremap _ :res -8<CR>
-
 " delimitMate configuration
 " let delimitMate_expand_space = 1
 " let delimitMate_expand_cr = 1
@@ -2033,37 +2027,6 @@ function! s:RunShellCommand(cmdline)
 	1
 endfunction
 
-" a func to set the height of the window to file height
-function! SetHeightToBuffer()
-	let good = 0
-	if &lines - 15 > line('$')
-		" only attempt to set this if there is either a buffer above or below 
-		" me (otherwise I will end up significantly enlarging the command line 
-		" which is just useless)
-		let curwin = winnr()
-		wincmd j
-		if (winnr() != curwin)
-			wincmd k
-			let good = 1
-		else
-			wincmd k
-			if (winnr() != curwin)
-				wincmd j
-				let good = 1
-			endif
-		endif
-	endif
-	if good
-		exe line('$').'wincmd_'
-		" also scroll all the way back up
-		" store cursor pos
-		let cur = getpos('.')
-		normal! gg
-		call cursor(cur[1], cur[2])
-		set nowrap
-	endif
-endfun
-
 " a function to distribute vertical space based on file lengths (I intend to 
 " maybe call this on new window/bufload)
 function! HeightSpread()
@@ -2080,79 +2043,111 @@ function! HeightSpread()
 	" loop all the way to top (but we have to store the winnrs due to 
 	" possibility of arbitrary window arrangement)
 	let lastwin = startwin
-	let start = [lastwin, line('$'), winheight(lastwin)]
+	let yaxis = 0
+	let start = [lastwin, line('$'), winheight(lastwin), @%, yaxis]
 	let wins = []
 	let totspace = winheight(lastwin)
 	wincmd k
 	while (winnr() != lastwin)
+		let yaxis = yaxis - 1
 		" echo 'a'.lastwin.'-'.winnr()
 		let lastwin = winnr()
 		let hei = winheight(lastwin)
-		call insert(wins, [lastwin, line('$'), hei])
+		call insert(wins, [lastwin, line('$'), hei, @%, yaxis])
 		let totspace += hei
 		wincmd k
 	endwhile
 	exe startwin.'wincmd w'
 	let lastwin = startwin
+	let yaxis = 0
 	wincmd j
 	while (winnr() != lastwin)
+		let yaxis = yaxis + 1
 		" echo 'b'.lastwin.'-'.winnr()
 		let lastwin = winnr()
 		let hei = winheight(lastwin)
-		call add(wins, [lastwin, line('$'), hei])
+		call add(wins, [lastwin, line('$'), hei, @%, yaxis])
 		let totspace += hei
 		wincmd j
 	endwhile
 
-	let fits = []
-	let split = []
+	let final = []
 
 	" sort (vimscript algorithms are insane so i am pythoning)
 	python << EOF
 import operator
 lens = vim.eval('wins')
-lines = vim.eval('&lines')
 start = vim.eval('start')
 totspc = vim.eval('totspace')
+# print 'lens: ' + str(lens)
 sortedk = sorted(lens, key=lambda x: int(x[1]))
-if ((int(start[1]) + 10) < int(lines)):
+if ((int(start[1]) + 10) < int(totspc)):
+	# prioritize if current one "fits"
 	sortedk.insert(0, start)
 else:
-	# go to the bottom, dont care
+	# dont care
 	sortedk.append(start)
-print sortedk
+# print sortedk
 tot = 0
-for i, l, hei in sortedk:
-	if ((tot + int(l) + 10) < int(lines)):
+fits_unsorted = []
+split = []
+for i, l, hei, name, yaxis in sortedk:
+	if ((tot + int(l)) <= int(totspc)):
 		tot = tot + int(l)
-		vim.command('call add(fits, [' + i + ', ' + l + '])')
+		fits_unsorted.append((i, l, yaxis))
 	else:
-		vim.command('call add(split, ' + i + ')')
+		split.append((i, hei, yaxis))
+splitlen = str(int(totspc) - tot)
+# print '::: ' + splitlen + ' ::: ' + str(fits_unsorted) + ' :: ' + str(split)
+# have to compute and apply all heights one after another otherwise vim will
+# yank the heights around and undo our work. this means sorting by yaxis
 
-vim.command('let splitlen = ' + str(int(totspc) - tot))
+# we redistribute the heights of the remaining split items using their current
+# height ratios, and use greedy assignment to be fuzzy with divisions while
+# ensuring total height count adds up.
+
+if len(split) > 0:
+	split.insert(0, 0)
+	sum = reduce(lambda x,y: x + int(y[1]), split)
+	ratio = float(splitlen) / sum
+	# print 'ratio: ' + str(ratio)
+	# print 'split: ' + str(split)
+	split = [(x[0], round(ratio*int(x[1])), x[2]) for x in split[1:]]
+
+# sort by position
+fits = sorted(fits_unsorted + split, key=lambda x: int(x[2]))
+for w, l, o in fits:
+	vim.command('call add(final, [' + w + ', ' + str(l) + '])')
 EOF
 
-	echo 'fits'
-	echo fits
-	echo split
-	echo splitlen
+	" echo 'totspc: '. totspace
+	" echo 'fits'
+	" echo fits
+	" echo 'split'
+	" echo split
+	" echo splitlen
+
+	for i in final
+		exe i[0].'wincmd w'
+		exe 'resize' string(i[1])
+		" echo i[0].' set to '.i[1]
+	endfor
+
 	" go back to starting window
-	if lastwin != startwin
-		exe startwin.'wincmd w'
-	endif
+	exe startwin.'wincmd w'
 endfun
 
 " Not sure if this one here is overkill or not, but on terminal resizing it 
 " will be useful to call the routine
 " au BufWinEnter * silent call HeightSpread()
 " I will use \H
-nnoremap <Leader>H :call HeightSpread()
+nnoremap <Leader>H :call HeightSpread()<CR>
 
-" cleanup regex (I was using this to use regexes to fix code formatting -- well 
-" for JS and possibly other langs, the answer to that is unequivocally to use 
-" tools meant for that task)
-let match_stuff = "0-9a-zA-Z'\"()[]{}"
-let cleanup_regexes = []
+" changing these to not switch window because its too damn slow
+nnoremap = :vertical res +8<CR>
+nnoremap - :vertical res -8<CR>
+nnoremap + :res +8<CR>:call HeightSpread()<CR>
+nnoremap _ :res -8<CR>:call HeightSpread()<CR>
 
 " conceal rule for javascript
 au! FileType javascript setl conceallevel=2 concealcursor=c
