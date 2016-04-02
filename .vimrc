@@ -2102,7 +2102,7 @@ split = []
 for i, l, hei, name, yaxis in sortedk:
 	if ((tot + int(l)) <= int(totspc)):
 		tot = tot + int(l)
-		fits_unsorted.append((i, l, yaxis))
+		fits_unsorted.append((i, l, yaxis, True))
 	else:
 		split.append((i, hei, yaxis))
 splitlen = str(int(totspc) - tot)
@@ -2120,12 +2120,13 @@ if len(split) > 0:
 	ratio = float(splitlen) / sum
 	# print 'ratio: ' + str(ratio)
 	# print 'split: ' + str(split)
-	split = [(x[0], round(ratio*int(x[1])), x[2]) for x in split[1:]]
+	split = [(x[0], round(ratio*int(x[1])), x[2], False) for x in split[1:]]
 
 # sort by position
 fits = sorted(fits_unsorted + split, key=lambda x: int(x[2]))
-for w, l, o in fits:
-	vim.command('call add(final, [' + w + ', ' + str(l) + '])')
+for w, l, o, b in fits:
+	# last value is flag whether fits or not. only if fits do we scroll them up
+	vim.command('call add(final, [' + w + ', ' + str(l) + ', "' + ('fit' if b else 'no') + '"])')
 EOF
 
 	" echo 'totspc: '. totspace
@@ -2139,6 +2140,10 @@ EOF
 		exe i[0].'wincmd w'
 		exe 'resize' string(i[1])
 		" echo i[0].' set to '.i[1]
+		if i[2] == 'fit'
+			echo 'going to top for window '.i[0]
+			normal gg
+		endif
 	endfor
 
 	" go back to starting window
