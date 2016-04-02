@@ -496,7 +496,7 @@ inoremap <C-Right> <C-O>e
 
 " I like joining lines (I do this operation with the delete key a lot -- that
 " key is a reach) -- this map is used because it is *close* to J
-nnoremap <silent> <C-N> :let poscursorjoinlines=getcurpos()<Bar>join<Bar>call setpos('.', poscursorjoinlines)<CR>
+nnoremap <silent> <C-N> :let poscursorjoinlines=getpos('.')<Bar>join<Bar>call setpos('.', poscursorjoinlines)<CR>
 " I have this: imap <C-N> <C-O><C-N>
 " in the after/plugin/YouCompleteMe dir becuase the ctrl n in insert mode is 
 " overridden by YCM to move around the completion picker (which is useless)
@@ -1866,12 +1866,12 @@ function! MyAmazingEnhancedDot(count)
 	if exists(a:count)
 		let c = a:count
 	endif
-	let lastpos = getcurpos()
+	let lastpos = getpos('.')
 	while c > 0
 		if v:hlsearch == 1
 			normal .
 			silent! normal n
-			let nowpos = getcurpos()
+			let nowpos = getpos('.')
 			if nowpos[1] == lastpos[1] && nowpos[2] == lastpos[2]
 				return
 			endif
@@ -2201,10 +2201,10 @@ split = []
 for i, l, hei, name, yaxis in sortedk:
 	if ((tot + int(l)) <= int(totspc)):
 		tot = tot + int(l)
-		fits_unsorted.append((i, l, yaxis, True))
+		fits_unsorted.append([i, l, yaxis, True])
 	else:
-		split.append((i, hei, yaxis))
-splitlen = str(int(totspc) - tot)
+		split.append([i, hei, yaxis])
+splitlen = int(totspc) - tot
 # print '::: ' + splitlen + ' ::: ' + str(fits_unsorted) + ' :: ' + str(split)
 # have to compute and apply all heights one after another otherwise Vim will
 # yank the heights around and undo our work. This means sorting by y-axis
@@ -2213,19 +2213,32 @@ splitlen = str(int(totspc) - tot)
 # height ratios, and use greedy assignment to be fuzzy with divisions while
 # ensuring total height count adds up.
 
+print 'before: ' + str(splitlen) + ', ' + str(fits_unsorted)
+
 if len(split) > 0:
 	split.insert(0, 0)
 	sum = reduce(lambda x,y: x + int(y[1]), split)
 	ratio = float(splitlen) / sum
 	# print 'ratio: ' + str(ratio)
 	# print 'split: ' + str(split)
-	split = [(x[0], round(ratio*int(x[1])), x[2], False) for x in split[1:]]
+	split = [[x[0], round(ratio*int(x[1])), x[2], False] for x in split[1:]]
+else:
+	# if everything fits we have to be careful and pad out the one which is
+	# focused with the remainder of space which is splitlen, to still consume
+	# the space (otherwise the command line becomes enormous)
+	for e in fits_unsorted:
+		if (e[2] == '0'):
+			e[1] = int(e[1]) + splitlen
+			break
+
+print 'af: ' + str(fits_unsorted)
 
 # sort by position
 fits = sorted(fits_unsorted + split, key=lambda x: int(x[2]))
 for w, l, o, b in fits:
 	# last value is flag whether fits or not. only if fits do we scroll them up
 	vim.command('call add(final, [' + w + ', ' + str(l) + ', "' + ('fit' if b else 'no') + '"])')
+print 'after sortin: ' + str(fits)
 EOF
 
 	" echo 'totspc: '. totspace
