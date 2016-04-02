@@ -1286,7 +1286,7 @@
 	<key>NSWindow Frame NSFontPanel</key>
 	<string>78 155 575 255 0 0 1440 877 </string>
 	<key>NSWindow Frame Preferences</key>
-	<string>131 561 606 456 0 0 1680 1027 </string>
+	<string>171 716 606 456 0 0 1920 1200 </string>
 	<key>NSWindow Frame SUAutomaticUpdateAlert</key>
 	<string>530 640 616 174 0 0 1680 1028 </string>
 	<key>NSWindow Frame SUStatusFrame</key>
@@ -1296,7 +1296,7 @@
 	<key>NSWindow Frame com.apple.typography_panel_Menlo-Regular</key>
 	<string>341 780 260 68 0 0 1440 878 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>11 76 660 951 0 0 1680 1027 </string>
+	<string>509 211 435 797 0 0 1920 1177 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
 	<string>10 360 570 376 0 0 1680 1028 </string>
 	<key>NeverWarnAboutShortLivedSessions_BABC3C6F-E892-4635-AD49-85E57CE1D5AF</key>
@@ -1588,6 +1588,13 @@
 					<integer>11</integer>
 					<key>Text</key>
 					<string>0x1f</string>
+				</dict>
+				<key>0x2e-0x100000</key>
+				<dict>
+					<key>Action</key>
+					<integer>10</integer>
+					<key>Text</key>
+					<string>.</string>
 				</dict>
 				<key>0x30-0x200000</key>
 				<dict>
@@ -5629,7 +5636,7 @@
 	<key>NoSyncHaveShownPromoWithId_4</key>
 	<true/>
 	<key>NoSyncLastTipTime</key>
-	<real>478076805.59906298</real>
+	<real>481233085.12770599</real>
 	<key>NoSyncNeverRemindPrefsChangesCopy</key>
 	<true/>
 	<key>NoSyncPermissionToShowTip</key>
@@ -5646,6 +5653,37 @@
 	<array>
 		<string>000</string>
 		<string>0000</string>
+		<string>0001</string>
+		<string>0002</string>
+		<string>0003</string>
+		<string>0004</string>
+		<string>0005</string>
+		<string>0006</string>
+		<string>0007</string>
+		<string>0008</string>
+		<string>0009</string>
+		<string>0010</string>
+		<string>0011</string>
+		<string>0012</string>
+		<string>0013</string>
+		<string>0014</string>
+		<string>0015</string>
+		<string>0016</string>
+		<string>0017</string>
+		<string>0018</string>
+		<string>0019</string>
+		<string>0020</string>
+		<string>0021</string>
+		<string>0022</string>
+		<string>0023</string>
+		<string>0024</string>
+		<string>0025</string>
+		<string>0026</string>
+		<string>0027</string>
+		<string>0028</string>
+		<string>0029</string>
+		<string>0030</string>
+		<string>0031</string>
 	</array>
 	<key>OnlyWhenMoreTabs</key>
 	<true/>
@@ -5707,7 +5745,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2016-02-24T17:31:48Z</date>
+	<date>2016-04-01T18:16:06Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>Secure Input</key>
@@ -5765,7 +5803,7 @@
 	<key>findRegex_iTerm</key>
 	<true/>
 	<key>iTerm Version</key>
-	<string>2.9.20160206</string>
+	<string>2.9.20160313</string>
 	<key>kCPKSelectionViewPreferredModeKey</key>
 	<integer>6</integer>
 	<key>kCPKSelectionViewShowHSBTextFieldsKey</key>
