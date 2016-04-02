@@ -2272,3 +2272,27 @@ inoremap C-X <C-G>u<Esc>:let g:correct_index += 1<CR>u:exec "normal! " . correct
 
 nnoremap <Leader>t :ThesaurusQueryReplaceCurrentWord<CR>
 
+" because g: is easier to remember than :@* and also this is more full featured
+" i believe.
+function! SourceVimscript(type)
+  let sel_save = &selection
+  let &selection = "inclusive"
+  let reg_save = @"
+  if a:type == 'line'
+    silent execute "normal! '[V']y"
+  elseif a:type == 'char'
+    silent execute "normal! `[v`]y"
+  elseif a:type == "visual"
+    silent execute "normal! gvy"
+  elseif a:type == "currentline"
+    silent execute "normal! yy"
+  endif
+  let @" = substitute(@", '\n\s*\\', '', 'g')
+  " source the content
+  @"
+  let &selection = sel_save
+  let @" = reg_save
+endfunction
+nnoremap <silent> g: :set opfunc=SourceVimscript<cr>g@
+vnoremap <silent> g: :<c-U>call SourceVimscript("visual")<cr>
+nnoremap <silent> g:: :call SourceVimscript("currentline")<cr>
