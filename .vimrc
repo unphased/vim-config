@@ -496,7 +496,7 @@ inoremap <C-Right> <C-O>e
 
 " I like joining lines (I do this operation with the delete key a lot -- that
 " key is a reach) -- this map is used because it is *close* to J
-nnoremap <silent> <C-N> :let poscursorjoinlines=getpos('.')<Bar>join<Bar>call setpos('.', poscursorjoinlines)<CR>
+nnoremap <silent> <C-N> :let poscursorjoinlines=getcurpos()<Bar>join<Bar>call setpos('.', poscursorjoinlines)<CR>
 " I have this: imap <C-N> <C-O><C-N>
 " in the after/plugin/YouCompleteMe dir becuase the ctrl n in insert mode is 
 " overridden by YCM to move around the completion picker (which is useless)
@@ -1830,7 +1830,9 @@ highlight ColorColumn ctermbg=235 term=NONE
 " I further enhance my special alt period bind with a contextual superpower 
 " based on the searching state -- if searching highlight is enabled, we will 
 " hop to the next match before calling dot! Otherwise, hop down a line. This 
-" handles both situations so elegantly that it almost hurts.
+" handles both situations elegantly. Now if i could make it so that j doesnt 
+" often place the cursor in a not-so-great location, but usually whatever being
+" used for the dot make this workable.
 if has('nvim')
 	" shit neovim has issues with binding keys...
 	nnoremap <m-.> :<C-u>call MyAmazingEnhancedDot(v:count1)<CR>
@@ -1838,13 +1840,21 @@ else
 	nnoremap <F20> :<C-u>call MyAmazingEnhancedDot(v:count1)<CR>
 endif
 
+" this will intelligently abort and undo at such time that it realizes 'n' did 
+" not move the cursor.
 function! MyAmazingEnhancedDot(count)
 	let c = a:count
+	let lastpos = getcurpos()
 	while c > 0
 		if v:hlsearch == 1
-			:normal! .n
+			normal .
+			silent! normal n
+			let nowpos = getcurpos()
+			if nowpos[1] == lastpos[1] && nowpos[2] == lastpos[2]
+				return
+			endif
 		else
-			:normal! .j
+			normal .j
 		endif
 		let c -= 1
 	endwhile
