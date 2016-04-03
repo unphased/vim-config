@@ -2187,25 +2187,15 @@ function! HeightSpread()
 		wincmd j
 	endwhile
 
-	" find out about signcolumn
-	redir => signlist
-	silent sign list
-	redir END
-	echo 'signlist: '.signlist
-	let signcolpresent = strlen(signlist)
-	echo 'signcolpresent: '.signcolpresent
-
 	let final = []
 
 	" sort (vimscript algorithms are insane so i am pythoning)
 	python << EOF
 # import operator
-tabstop = int(vim.eval('&tabstop'))
-signlist = int(vim.eval('signcolpresent'))
 for win in vim.windows:
 	# print ", ".join([str(x) for x in [win.col, win.row, win.width, win.height]]);
-	# windir = dir(win)
-	# print 'dir: ' + str(windir)
+	windir = dir(win)
+	print 'dir: ' + str(windir)
 	# for method in windir:
 	# 	attr = getattr(win, method)
 	# 	if method == 'buffer':
@@ -2214,6 +2204,17 @@ for win in vim.windows:
 	# 	elif method[0] != '_':
 	# 		print '    ' + method + ': ' + str(attr)
 	# Compute real height of each window using its buffer and window width
+
+	print 'bufnum! ' + str(win.buffer.number)
+	tabstop = win.buffer.options['tabstop']
+	print 'tabstop! ' + str(tabstop)
+	vim.command('redir => signlist')
+	vim.command('silent sign place buffer=' + str(win.buffer.number))
+	vim.command('redir END')
+	vim.command('let signcolpresent = strlen(signlist)')
+	signlist = int(vim.eval('signcolpresent'))
+	print 'sign! ' + str(signlist) + ' ' + str(vim.eval('signlist'))
+
 	height = 0
 	i = 0
 	for line in win.buffer:
