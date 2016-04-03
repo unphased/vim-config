@@ -2212,7 +2212,7 @@ for win in vim.windows:
 	vim.command('silent sign place buffer=' + str(win.buffer.number))
 	vim.command('redir END')
 	signlist = vim.eval('signlist')
-	print 'sign! ' + str(signlist)
+	print 'sign! ' + str(signlist.count('line=')) + ' ---- ' + str(signlist)
 
 	height = 0
 	i = 0
