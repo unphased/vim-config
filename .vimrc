@@ -2224,8 +2224,8 @@ for win in vim.windows:
 		tabcount = line.count('\t')
 		actual = len(line) + (tabstop - 1) * tabcount
 		lineheight = actual / (win.width - signcolpresent - linenrdigits) + 1
-		# if (lineheight > 1):
-		# print str(i) + ' # ' + str(lineheight)
+		if (lineheight > 1):
+			print str(i) + ' # ' + str(lineheight)
 
 lens = vim.eval('wins')
 start = vim.eval('start')
