@@ -57,7 +57,6 @@ Plugin 'wakatime/vim-wakatime'
 Plugin 'panozzaj/vim-autocorrect'
 Plugin 'kshenoy/vim-signature'
 Plugin 'jiangmiao/auto-pairs'
-Plugin 'jeffkreeftmeijer/vim-numbertoggle'
 "Plugin 'mxw/vim-jsx'
 
 Plugin 'tmux-plugins/vim-tmux'
@@ -236,6 +235,8 @@ endif
 
 syntax on
 set number
+
+setglobal numberwidth=2
 set laststatus=2
 set undodir=~/.tmp
 
@@ -362,7 +363,6 @@ endfunction
 hi CursorLine ctermbg=NONE
 
 au! InsertEnter * call InsertEnterActions(v:insertmode)
-" au InsertChange * call InsertStatuslineColor(v:insertmode)
 au! InsertLeave * call InsertLeaveActions()
 
 " default the statusline to green when entering Vim
