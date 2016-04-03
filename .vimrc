@@ -2115,14 +2115,15 @@ endfunction
 " a function to distribute vertical space based on file lengths (I intend to 
 " maybe call this on new window/bufload)
 function! HeightSpread()
-	if !LongEnough('g:heightspread', 1.5)
-		return
-		" This is not ideal because it does not guarantee it will run after the
-		" last thing that triggers me. But rate limiting to ensure performance 
-		" is more paramount than correct async cleanup so this will have to do 
-		" for now until I can dig into vim/nvim code to try to integrate this 
-		" shit.
-	endif
+	" if !LongEnough('g:heightspread', 1.5)
+	" 	return
+	" 	" This is not ideal because it does not guarantee it will run after the
+	" 	" last thing that triggers me. But rate limiting to ensure performance 
+	" 	" is more paramount than correct async cleanup so this will have to do 
+	" 	" for now until I can dig into vim/nvim code to try to integrate this 
+	" 	" shit.
+	"   " Since then though, we found noautocmd and things have gotten faster.
+	" endif
 	" echom 'running HeightSpread '.localtime()
 
 	" This has to do some clever shit because the problem is that shrinking 
@@ -2188,12 +2189,14 @@ function! HeightSpread()
 	" sort (vimscript algorithms are insane so i am pythoning)
 	python << EOF
 # import operator
+# import time
+# timestart = time.time()
 windowData = [None] * (len(vim.windows) + 1)
 # print 'wins' + str(len(vim.windows))
 for win in vim.windows:
-	print ", ".join([str(x) for x in [win.col, win.row, win.width, win.height]]);
+	# print ", ".join([str(x) for x in [win.col, win.row, win.width, win.height]]);
 	windir = dir(win)
-	print 'dir: ' + str(windir)
+	# print 'dir: ' + str(windir)
 	# for method in windir:
 	# 	attr = getattr(win, method)
 	# 	if method == 'buffer':
@@ -2215,7 +2218,7 @@ for win in vim.windows:
 	linenrcols = len(str(len(win.buffer))) + 1
 	# not accounting for numberwidth or number options right now
 	height = len(win.buffer)
-	print 'vals! ' + str(linenrcols) + ' ' + str(signcols) + ' hei ' + str(height)
+	# print 'vals! ' + str(linenrcols) + ' ' + str(signcols) + ' hei ' + str(height)
 	i = 0
 	if wrapping:
 		height = 0
@@ -2228,11 +2231,11 @@ for win in vim.windows:
 			if (lineheight == 0):
 				lineheight = 1
 			height += lineheight
-			if lineheight != 1:
-				print str(i) + ' # ' + str(lineheight) + ' $ ' + str(win.width) + ' ' + str(win.width - signcols - linenrcols) + ' % ' + str(actual)
+			# if lineheight != 1:
+				# print str(i) + ' # ' + str(lineheight) + ' $ ' + str(win.width) + ' ' + str(win.width - signcols - linenrcols) + ' % ' + str(actual)
 	windowData[int(win.number)] = {'height': height}
 
-print str(windowData)
+# print str(windowData)
 
 lens = vim.eval('wins')
 start = vim.eval('start')
@@ -2266,7 +2269,7 @@ splitlen = int(totspc) - tot
 # height ratios, and use greedy assignment to be fuzzy with divisions while
 # ensuring total height count adds up.
 
-print 'before: ' + str(splitlen) + ', ' + str(fits_unsorted)
+# print 'before: ' + str(splitlen) + ', ' + str(fits_unsorted)
 
 if len(split) > 0:
 	split.insert(0, 0)
@@ -2283,14 +2286,15 @@ else:
 		if (e[2] == '0'):
 			e[1] = int(e[1]) + splitlen
 			break
-print 'after: ' + str(fits_unsorted)
+# print 'after: ' + str(fits_unsorted)
 
 # sort by position
 fits = sorted(fits_unsorted + split, key=lambda x: int(x[2]))
 for w, l, o, b in fits:
 	# last value is flag whether fits or not. only if fits do we scroll them up
 	vim.command('call add(final, [' + w + ', ' + str(l) + ', "' + ('fit' if b else 'no') + '"])')
-print 'after sortin: ' + str(fits)
+# print 'after sortin: ' + str(fits)
+# print 'taken ' + str(time.time() - timestart)
 EOF
 
 	" echo 'totspc: '. totspace
@@ -2316,15 +2320,15 @@ endfun
 
 " for setting up ability to trigger something once on first creation of window
 " autocmd that will set up the w:created variable
-autocmd VimEnter * autocmd WinEnter * let w:created=1
+" autocmd VimEnter * autocmd WinEnter * let w:created=1
 
 " Consider this one, since WinEnter doesn't fire on the first window created when Vim launches.
 " You'll need to set any options for the first window in your vimrc,
 " or in an earlier VimEnter autocmd if you include this
-autocmd VimEnter * let w:created=1
+" autocmd VimEnter * let w:created=1
 
 " Example of how to use w:created in an autocmd to initialize a window-local option
-autocmd WinEnter * if !exists('w:created') | noautocmd call HeightSpread() | endif
+autocmd WinEnter,BufWinEnter * noautocmd call HeightSpread()
 
 " Not sure if this one here is overkill or not, but on terminal resizing it 
 " will be useful to call the routine
