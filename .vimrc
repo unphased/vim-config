@@ -2123,7 +2123,7 @@ function WinTextWidth()
 	if signs !~# '^\n---[^\n]*\n$'
 		let winwidth -= 2
 	endif
-	echo "wtw ".winnr().": ".winwidth
+	" echo "wtw ".winnr().": ".winwidth
 	return winwidth
 endfunction
 function LineCount(...)
@@ -2133,13 +2133,13 @@ function LineCount(...)
 	let winwidth = WinTextWidth()
 	for lnr in range(startlnr, endlnr)
 		let lwidth = strdisplaywidth(getline(lnr))
-		let height = max([(lwidth - 1) / winwidth + 1, 1])
-		if height != 1
-			echo lnr.' # '.lwidth.' % '.height." ^ ".getline(lnr)
-		endif
-		let numlines += height
+		" let height =
+		" if height != 1
+		" 	echo lnr.' # '.lwidth.' % '.height." ^ ".getline(lnr)
+		" endif
+		let numlines += max([(lwidth - 1) / winwidth + 1, 1])
 	endfor
-	echo "lc: ".numlines
+	" echo "lc: ".numlines
 	return numlines
 endfunction
 
@@ -2284,7 +2284,7 @@ if ((int(start[1]) + 10) < int(totspc)):
 else:
 	# dont care
 	sortedk.append(start)
-print 'sortedk b: ' + str(sortedk)
+# print 'sortedk b: ' + str(sortedk)
 ## for e in sortedk:
 	## e.insert(1, windowData[int(e[0])]['height'])
 # print 'sortedk: ' + str(sortedk)
