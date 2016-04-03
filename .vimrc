@@ -829,7 +829,9 @@ noremap gj j
 " in screen real estate, and also because it makes my python linewrap counter 
 " code for HeightSpread easier to implement. I reckon it will also restore 
 " a teeny bit of performance anyhow.
-" set linebreak
+set linebreak
+let &showbreak="→ "
+set breakindent
 
 " These are old mappings for line based home/end, I needed to change these to
 " prevent vim from hanging on escape
