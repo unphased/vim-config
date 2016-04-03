@@ -13,13 +13,6 @@ Plugin 'Valloric/YouCompleteMe'
 Plugin 'mbbill/undotree'
 Plugin 'rhysd/clever-f.vim'
 
-" iTerm2 support for focusing
-" Plugin 'sjl/vitality.vim'
-
-" Fakeclip doesn't seem to work well on OSX
-" Tmux resize-window zoom has obsoleted this
-" Bundle 'unphased/vim-fakeclip'
-
 Plugin 'scrooloose/nerdtree'
 Plugin 'scrooloose/syntastic'
 Plugin 'ctrlpvim/ctrlp.vim'
@@ -2199,7 +2192,7 @@ function! HeightSpread()
 # timestart = time.time()
 windowData = [None] * (len(vim.windows) + 1)
 # print 'wins' + str(len(vim.windows))
-for win in vim.windows:
+for wini, win in enumerate(vim.windows):
 	# print ", ".join([str(x) for x in [win.col, win.row, win.width, win.height]]);
 	windir = dir(win)
 	# print 'dir: ' + str(windir)
@@ -2239,7 +2232,8 @@ for win in vim.windows:
 			height += lineheight
 			# if lineheight != 1:
 				# print str(i) + ' # ' + str(lineheight) + ' $ ' + str(win.width) + ' ' + str(win.width - signcols - linenrcols) + ' % ' + str(actual)
-	windowData[int(win.number)] = {'height': height}
+	windowData[wini + 1] = {'height': height}
+	# print str(win.number) + ' <> ' + str(wini + 1)
 
 # print str(windowData)
 
