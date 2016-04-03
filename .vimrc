@@ -2211,9 +2211,8 @@ for win in vim.windows:
 	vim.command('redir => signlist')
 	vim.command('silent sign place buffer=' + str(win.buffer.number))
 	vim.command('redir END')
-	vim.command('let signcolpresent = strlen(signlist)')
-	signlist = int(vim.eval('signcolpresent'))
-	print 'sign! ' + str(signlist) + ' ' + str(vim.eval('signlist'))
+	signlist = vim.eval('signlist')
+	print 'sign! ' + str(signlist)
 
 	height = 0
 	i = 0
