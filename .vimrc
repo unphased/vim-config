@@ -2188,8 +2188,8 @@ function! HeightSpread()
 	" sort (vimscript algorithms are insane so i am pythoning)
 	python << EOF
 # import operator
-# import time
-# timestart = time.time()
+import time
+timestart = time.time()
 windowData = [None] * (len(vim.windows) + 1)
 # print 'wins' + str(len(vim.windows))
 for wini, win in enumerate(vim.windows):
@@ -2294,7 +2294,7 @@ for w, l, o, b in fits:
 	# last value is flag whether fits or not. only if fits do we scroll them up
 	vim.command('call add(final, [' + w + ', ' + str(l) + ', "' + ('fit' if b else 'no') + '"])')
 # print 'after sortin: ' + str(fits)
-# print 'taken ' + str(time.time() - timestart)
+print 'taken ' + str(time.time() - timestart)
 EOF
 
 	" echo 'totspc: '. totspace
