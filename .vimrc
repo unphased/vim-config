@@ -832,7 +832,11 @@ noremap gk k
 noremap gj j
 
 " for wrapping based on words
-set linebreak
+" I'm temporarily disabling this because it gives an ever-so-slight efficiency 
+" in screen real estate, and also because it makes my python linewrap counter 
+" code for HeightSpread easier to implement. I reckon it will also restore 
+" a teeny bit of performance anyhow.
+" set linebreak
 
 " These are old mappings for line based home/end, I needed to change these to
 " prevent vim from hanging on escape
@@ -1827,7 +1831,7 @@ fu! LongLineHighlightToggle()
 		unlet w:long_line_match
 		" set colorcolumn=""
 	else 
-		match OverLength /\%>79v.\+/
+		match OverLength /\%>80v.\+/
 		let w:long_line_match = 1
 		" set colorcolumn=80
 	endif
@@ -2146,6 +2150,11 @@ function! HeightSpread()
 	" without switching to it (here, so far, i implicitly pick out the ones 
 	" I care about by scanning up and down from the starting window) that 
 	" approach is doomed for now.
+
+	" Update: found out about python ability to get window parameters including
+	" widths and heights so now i can definitely eliminate this walking up and 
+	" down stuff; it's still impossible to find the places that the cursors 
+	" are, but that's totally a non-issue...
 	let startwin = winnr()
 	" loop all the way to top (but we have to store the winnrs due to 
 	" possibility of arbitrary window arrangement)
@@ -2178,13 +2187,43 @@ function! HeightSpread()
 		wincmd j
 	endwhile
 
+	" find out about signcolumn
+	redir => signlist
+	silent sign list
+	redir END
+	echo 'signlist: '.signlist
+	let signcolpresent = strlen(signlist)
+	echo 'signcolpresent: '.signcolpresent
+
 	let final = []
 
 	" sort (vimscript algorithms are insane so i am pythoning)
 	python << EOF
 # import operator
+tabstop = int(vim.eval('&tabstop'))
+signlist = int(vim.eval('signcolpresent'))
 for win in vim.windows:
-	print ", ".join([str(x) for x in [win.col, win.row, win.width, win.height]]);
+	# print ", ".join([str(x) for x in [win.col, win.row, win.width, win.height]]);
+	# windir = dir(win)
+	# print 'dir: ' + str(windir)
+	# for method in windir:
+	# 	attr = getattr(win, method)
+	# 	if method == 'buffer':
+	# 		print '    buffer: length ' + str(len(attr))
+	# 		print '    buffer[0]: ' + str(attr[0])
+	# 	elif method[0] != '_':
+	# 		print '    ' + method + ': ' + str(attr)
+	# Compute real height of each window using its buffer and window width
+	height = 0
+	i = 0
+	for line in win.buffer:
+		i = i + 1
+		tabcount = line.count('\t')
+		actual = len(line) + (tabstop - 1) * tabcount
+		lineheight = actual / win.width + 1
+		if (lineheight > 1):
+			print str(i) + ' # ' + str(lineheight)
+
 lens = vim.eval('wins')
 start = vim.eval('start')
 totspc = vim.eval('totspace')
@@ -2232,8 +2271,7 @@ else:
 		if (e[2] == '0'):
 			e[1] = int(e[1]) + splitlen
 			break
-
-# print 'af: ' + str(fits_unsorted)
+# print 'after: ' + str(fits_unsorted)
 
 # sort by position
 fits = sorted(fits_unsorted + split, key=lambda x: int(x[2]))
