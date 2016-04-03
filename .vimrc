@@ -2220,9 +2220,10 @@ for win in vim.windows:
 	if wrapping:
 		height = 0
 		for line in win.buffer:
+			l8 = line.decode('utf-8')
 			i = i + 1
-			tabcount = line.count('\t')
-			actual = len(line) + (tabstop - 1) * tabcount
+			tabcount = l8.count('\t')
+			actual = len(l8) + (tabstop - 1) * tabcount
 			lineheight = (actual - 1) / (win.width - signcols - linenrcols) + 1
 			if (lineheight == 0):
 				lineheight = 1
