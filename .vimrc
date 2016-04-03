@@ -2112,6 +2112,36 @@ function! LongEnough( timer, delay, ... )
   return result
 endfunction
 
+" thanks to ZyX
+function WinTextWidth()
+	let winwidth = winwidth(0)
+	let winwidth -= (max([len(line('$')), &numberwidth]) * (&number || &relativenumber))
+	let winwidth -= &foldcolumn
+	redir => signs
+	execute 'silent sign place buffer=' . bufnr('%')
+	redir END
+	if signs !~# '^\n---[^\n]*\n$'
+		let winwidth -= 2
+	endif
+	echo "wtw ".winnr().": ".winwidth
+	return winwidth
+endfunction
+function LineCount(...)
+	let startlnr = get(a:000, 0, 1)
+	let endlnr = get(a:000, 1, line('$'))
+	let numlines = 0
+	let winwidth = WinTextWidth()
+	for lnr in range(startlnr, endlnr)
+		let lwidth = strdisplaywidth(getline(lnr))
+		let height = max([(lwidth - 1) / winwidth + 1, 1])
+		if height != 1
+			echo lnr.' # '.lwidth.' % '.height." ^ ".getline(lnr)
+		endif
+		let numlines += height
+	endfor
+	echo "lc: ".numlines
+	return numlines
+endfunction
 
 " a function to distribute vertical space based on file lengths (I intend to 
 " maybe call this on new window/bufload)
@@ -2149,12 +2179,16 @@ function! HeightSpread()
 	" widths and heights so now i can definitely eliminate this walking up and 
 	" down stuff; it's still impossible to find the places that the cursors 
 	" are, but that's totally a non-issue...
+
+	" Note: since then I have realized that noautocmd makes the traditional 
+	" vimL way performant enough again. Even though I spent yesterday writing 
+	" the python height calculator routine and polishing it up, the 
 	let startwin = winnr()
 	" loop all the way to top (but we have to store the winnrs due to 
 	" possibility of arbitrary window arrangement)
 	let lastwin = startwin
 	let yaxis = 0
-	let start = [lastwin, winheight(lastwin), @%, yaxis]
+	let start = [lastwin, LineCount(), winheight(lastwin), @%, yaxis]
 	let wins = []
 	let totspace = winheight(lastwin)
 	wincmd k
@@ -2163,7 +2197,7 @@ function! HeightSpread()
 		" echo 'a'.lastwin.'-'.winnr()
 		let lastwin = winnr()
 		let hei = winheight(lastwin)
-		call insert(wins, [lastwin, hei, @%, yaxis])
+		call insert(wins, [lastwin, LineCount(), hei, @%, yaxis])
 		let totspace += hei
 		wincmd k
 	endwhile
@@ -2176,7 +2210,7 @@ function! HeightSpread()
 		" echo 'b'.lastwin.'-'.winnr()
 		let lastwin = winnr()
 		let hei = winheight(lastwin)
-		call add(wins, [lastwin, hei, @%, yaxis])
+		call add(wins, [lastwin, LineCount(), hei, @%, yaxis])
 		let totspace += hei
 		wincmd j
 	endwhile
@@ -2192,50 +2226,50 @@ function! HeightSpread()
 # import operator
 import time
 timestart = time.time()
-windowData = [None] * (len(vim.windows) + 1)
+## windowData = [None] * (len(vim.windows) + 1)
 # print 'wins' + str(len(vim.windows))
-for wini, win in enumerate(vim.windows):
-	# print ", ".join([str(x) for x in [win.col, win.row, win.width, win.height]]);
-	windir = dir(win)
-	# print 'dir: ' + str(windir)
-	# for method in windir:
-	# 	attr = getattr(win, method)
-	# 	if method == 'buffer':
-	# 		print '    buffer: length ' + str(len(attr))
-	# 		print '    buffer[0]: ' + str(attr[0])
-	# 	elif method[0] != '_':
-	# 		print '    ' + method + ': ' + str(attr)
-	# Compute real height of each window using its buffer and window width
-
-	# print 'bufnum! ' + str(win.buffer.number)
-	tabstop = win.buffer.options['tabstop']
-	# print 'tabstop! ' + str(tabstop)
-	vim.command('redir => signlist')
-	vim.command('silent sign place buffer=' + str(win.buffer.number))
-	vim.command('redir END')
-	signlist = vim.eval('signlist')
-	wrapping = win.options['wrap']
-	signcols = 2 if (signlist.count('line=') > 0) else 0
-	linenrcols = len(str(len(win.buffer))) + 1
-	# not accounting for numberwidth or number options right now
-	height = len(win.buffer)
-	width = win.width
-	# print 'vals! ' + str(linenrcols) + ' ' + str(signcols) + ' hei ' + str(height)
-	i = 0
-	if wrapping:
-		height = 0
-		for line in win.buffer:
-			l8 = line.decode('utf-8')
-			i = i + 1
-			tabcount = l8.count('\t')
-			actual = len(l8) + (tabstop - 1) * tabcount
-			lineheight = (actual - 1) / (width - signcols - linenrcols) + 1
-			if (lineheight == 0):
-				lineheight = 1
-			height += lineheight
-			# if lineheight != 1:
-				# print str(i) + ' # ' + str(lineheight) + ' $ ' + str(win.width) + ' ' + str(win.width - signcols - linenrcols) + ' % ' + str(actual)
-	windowData[wini + 1] = {'height': height}
+## for wini, win in enumerate(vim.windows):
+## 	# print ", ".join([str(x) for x in [win.col, win.row, win.width, win.height]]);
+## 	# windir = dir(win)
+## 	# print 'dir: ' + str(windir)
+## 	# for method in windir:
+## 	# 	attr = getattr(win, method)
+## 	# 	if method == 'buffer':
+## 	# 		print '    buffer: length ' + str(len(attr))
+## 	# 		print '    buffer[0]: ' + str(attr[0])
+## 	# 	elif method[0] != '_':
+## 	# 		print '    ' + method + ': ' + str(attr)
+## 	# Compute real height of each window using its buffer and window width
+## 
+## 	# print 'bufnum! ' + str(win.buffer.number)
+## 	tabstop = win.buffer.options['tabstop']
+## 	# print 'tabstop! ' + str(tabstop)
+## 	vim.command('redir => signlist')
+## 	vim.command('silent sign place buffer=' + str(win.buffer.number))
+## 	vim.command('redir END')
+## 	signlist = vim.eval('signlist')
+## 	wrapping = win.options['wrap']
+## 	signcols = 2 if (signlist.count('line=') > 0) else 0
+## 	linenrcols = len(str(len(win.buffer))) + 1
+## 	# not accounting for numberwidth or number options right now
+## 	height = len(win.buffer)
+## 	width = win.width
+## 	# print 'vals! ' + str(linenrcols) + ' ' + str(signcols) + ' hei ' + str(height)
+## 	i = 0
+## 	if wrapping:
+## 		height = 0
+## 		for line in win.buffer:
+## 			l8 = line.decode('utf-8')
+## 			i = i + 1
+## 			tabcount = l8.count('\t')
+## 			actual = len(l8) + (tabstop - 1) * tabcount
+## 			lineheight = (actual - 1) / (width - signcols - linenrcols) + 1
+## 			if (lineheight == 0):
+## 				lineheight = 1
+## 			height += lineheight
+## 			# if lineheight != 1:
+## 				# print str(i) + ' # ' + str(lineheight) + ' $ ' + str(win.width) + ' ' + str(win.width - signcols - linenrcols) + ' % ' + str(actual)
+## 	windowData[wini + 1] = {'height': height}
 	# print str(win.number) + ' <> ' + str(wini + 1)
 
 # print str(windowData)
@@ -2250,9 +2284,9 @@ if ((int(start[1]) + 10) < int(totspc)):
 else:
 	# dont care
 	sortedk.append(start)
-# print 'sortedk b: ' + str(sortedk)
-for e in sortedk:
-	e.insert(1, windowData[int(e[0])]['height'])
+print 'sortedk b: ' + str(sortedk)
+## for e in sortedk:
+	## e.insert(1, windowData[int(e[0])]['height'])
 # print 'sortedk: ' + str(sortedk)
 # print sortedk
 tot = 0
