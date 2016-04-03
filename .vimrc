@@ -2219,6 +2219,7 @@ for wini, win in enumerate(vim.windows):
 	linenrcols = len(str(len(win.buffer))) + 1
 	# not accounting for numberwidth or number options right now
 	height = len(win.buffer)
+	width = win.width
 	# print 'vals! ' + str(linenrcols) + ' ' + str(signcols) + ' hei ' + str(height)
 	i = 0
 	if wrapping:
@@ -2228,7 +2229,7 @@ for wini, win in enumerate(vim.windows):
 			i = i + 1
 			tabcount = l8.count('\t')
 			actual = len(l8) + (tabstop - 1) * tabcount
-			lineheight = (actual - 1) / (win.width - signcols - linenrcols) + 1
+			lineheight = (actual - 1) / (width - signcols - linenrcols) + 1
 			if (lineheight == 0):
 				lineheight = 1
 			height += lineheight
