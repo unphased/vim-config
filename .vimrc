@@ -2193,7 +2193,7 @@ function! HeightSpread()
 	python << EOF
 # import operator
 for win in vim.windows:
-	# print ", ".join([str(x) for x in [win.col, win.row, win.width, win.height]]);
+	print ", ".join([str(x) for x in [win.col, win.row, win.width, win.height]]);
 	windir = dir(win)
 	print 'dir: ' + str(windir)
 	# for method in windir:
@@ -2212,10 +2212,9 @@ for win in vim.windows:
 	vim.command('silent sign place buffer=' + str(win.buffer.number))
 	vim.command('redir END')
 	signlist = vim.eval('signlist')
-	signcolpresent = (signlist.count('line=') > 0)
-	signcolamount = 2 if signcolpresent else 0
-	linenrdigits = len(str(len(win.buffer)))
-	print 'vals! ' + str(linenrdigits) + ' ' + str(signcolamount)
+	signcols = 2 if (signlist.count('line=') > 0) else 0
+	linenrcols = len(str(len(win.buffer))) + 1
+	print 'vals! ' + str(linenrcols) + ' ' + str(signcols)
 	# not accounting for numberwidth or number options right now
 	height = 0
 	i = 0
@@ -2223,9 +2222,9 @@ for win in vim.windows:
 		i = i + 1
 		tabcount = line.count('\t')
 		actual = len(line) + (tabstop - 1) * tabcount
-		lineheight = actual / (win.width - signcolpresent - linenrdigits) + 1
+		lineheight = actual / (win.width - signcols - linenrcols) + 1
 		if (lineheight > 1):
-			print str(i) + ' # ' + str(lineheight)
+			print str(i) + ' # ' + str(lineheight) + ' $ ' + str(win.width) + ' ' + str(win.width - signcols - linenrcols) + ' % ' + str(actual)
 
 lens = vim.eval('wins')
 start = vim.eval('start')
