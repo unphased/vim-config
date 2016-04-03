@@ -2212,8 +2212,7 @@ for win in vim.windows:
 	vim.command('silent sign place buffer=' + str(win.buffer.number))
 	vim.command('redir END')
 	signlist = vim.eval('signlist')
-	print 'sign! ' + str(signlist.count('line=')) + ' ---- ' + str(signlist)
-
+	signcolpresent = (signlist.count('line=') > 0)
 	height = 0
 	i = 0
 	for line in win.buffer:
@@ -2312,20 +2311,20 @@ autocmd VimEnter * autocmd WinEnter * let w:created=1
 autocmd VimEnter * let w:created=1
 
 " Example of how to use w:created in an autocmd to initialize a window-local option
-autocmd WinEnter * if !exists('w:created') | call HeightSpread() | endif
+autocmd WinEnter * if !exists('w:created') | noautocmd call HeightSpread() | endif
 
 
 " Not sure if this one here is overkill or not, but on terminal resizing it 
 " will be useful to call the routine
 " au BufWinEnter * silent call HeightSpread()
 " I will use \H
-nnoremap <Leader>H :call HeightSpread()<CR>
+nnoremap <Leader>H :noautocmd call HeightSpread()<CR>
 
 " changing these to not switch window because its too damn slow
 nnoremap = :vertical res +8<CR>
 nnoremap - :vertical res -8<CR>
-nnoremap + :res +8<CR>:call HeightSpread()<CR>
-nnoremap _ :res -8<CR>:call HeightSpread()<CR>
+nnoremap + :res +8<CR>:noautocmd call HeightSpread()<CR>
+nnoremap _ :res -8<CR>:noautocmd call HeightSpread()<CR>
 
 " conceal rule for javascript
 au! FileType javascript setl conceallevel=2 concealcursor=c
