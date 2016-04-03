@@ -2160,7 +2160,7 @@ function! HeightSpread()
 	" possibility of arbitrary window arrangement)
 	let lastwin = startwin
 	let yaxis = 0
-	let start = [lastwin, line('$'), winheight(lastwin), @%, yaxis]
+	let start = [lastwin, winheight(lastwin), @%, yaxis]
 	let wins = []
 	let totspace = winheight(lastwin)
 	wincmd k
@@ -2169,7 +2169,7 @@ function! HeightSpread()
 		" echo 'a'.lastwin.'-'.winnr()
 		let lastwin = winnr()
 		let hei = winheight(lastwin)
-		call insert(wins, [lastwin, line('$'), hei, @%, yaxis])
+		call insert(wins, [lastwin, hei, @%, yaxis])
 		let totspace += hei
 		wincmd k
 	endwhile
@@ -2182,7 +2182,7 @@ function! HeightSpread()
 		" echo 'b'.lastwin.'-'.winnr()
 		let lastwin = winnr()
 		let hei = winheight(lastwin)
-		call add(wins, [lastwin, line('$'), hei, @%, yaxis])
+		call add(wins, [lastwin, hei, @%, yaxis])
 		let totspace += hei
 		wincmd j
 	endwhile
@@ -2191,11 +2191,12 @@ function! HeightSpread()
 	" proper window height content requirements.
 
 	let final = []
+	" echo 'wins '.string(wins)
 
 	" sort (vimscript algorithms are insane so i am pythoning)
 	python << EOF
 # import operator
-windowData = [None] * len(vim.windows)
+windowData = [None] * (len(vim.windows) + 1)
 # print 'wins' + str(len(vim.windows))
 for win in vim.windows:
 	print ", ".join([str(x) for x in [win.col, win.row, win.width, win.height]]);
@@ -2225,22 +2226,22 @@ for win in vim.windows:
 	height = len(win.buffer)
 	i = 0
 	if wrapping:
+		height = 0
 		for line in win.buffer:
 			i = i + 1
 			tabcount = line.count('\t')
 			actual = len(line) + (tabstop - 1) * tabcount
 			lineheight = actual / (win.width - signcols - linenrcols) + 1
 			height += lineheight
-			# if (lineheight > 1):
-				# print str(i) + ' # ' + str(lineheight) + ' $ ' + str(win.width) + ' ' + str(win.width - signcols - linenrcols) + ' % ' + str(actual)
-	windowData[int(win.number) - 1] = {'height': height}
+			if (lineheight > 1):
+				print str(i) + ' # ' + str(lineheight) + ' $ ' + str(win.width) + ' ' + str(win.width - signcols - linenrcols) + ' % ' + str(actual)
+	windowData[int(win.number)] = {'height': height}
 
 print str(windowData)
 
 lens = vim.eval('wins')
 start = vim.eval('start')
 totspc = vim.eval('totspace')
-# print 'lens: ' + str(lens)
 sortedk = sorted(lens, key=lambda x: int(x[1]))
 if ((int(start[1]) + 10) < int(totspc)):
 	# prioritize if current one "fits"
@@ -2248,6 +2249,10 @@ if ((int(start[1]) + 10) < int(totspc)):
 else:
 	# dont care
 	sortedk.append(start)
+# print 'sortedk b: ' + str(sortedk)
+for e in sortedk:
+	e.insert(1, windowData[int(e[0])]['height'])
+# print 'sortedk: ' + str(sortedk)
 # print sortedk
 tot = 0
 fits_unsorted = []
@@ -2259,7 +2264,6 @@ for i, l, hei, name, yaxis in sortedk:
 	else:
 		split.append([i, hei, yaxis])
 splitlen = int(totspc) - tot
-# print '::: ' + splitlen + ' ::: ' + str(fits_unsorted) + ' :: ' + str(split)
 # have to compute and apply all heights one after another otherwise Vim will
 # yank the heights around and undo our work. This means sorting by y-axis
 
@@ -2267,7 +2271,7 @@ splitlen = int(totspc) - tot
 # height ratios, and use greedy assignment to be fuzzy with divisions while
 # ensuring total height count adds up.
 
-# print 'before: ' + str(splitlen) + ', ' + str(fits_unsorted)
+print 'before: ' + str(splitlen) + ', ' + str(fits_unsorted)
 
 if len(split) > 0:
 	split.insert(0, 0)
@@ -2284,14 +2288,14 @@ else:
 		if (e[2] == '0'):
 			e[1] = int(e[1]) + splitlen
 			break
-# print 'after: ' + str(fits_unsorted)
+print 'after: ' + str(fits_unsorted)
 
 # sort by position
 fits = sorted(fits_unsorted + split, key=lambda x: int(x[2]))
 for w, l, o, b in fits:
 	# last value is flag whether fits or not. only if fits do we scroll them up
 	vim.command('call add(final, [' + w + ', ' + str(l) + ', "' + ('fit' if b else 'no') + '"])')
-# print 'after sortin: ' + str(fits)
+print 'after sortin: ' + str(fits)
 EOF
 
 	" echo 'totspc: '. totspace
