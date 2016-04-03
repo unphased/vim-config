@@ -2205,23 +2205,27 @@ for win in vim.windows:
 	# 		print '    ' + method + ': ' + str(attr)
 	# Compute real height of each window using its buffer and window width
 
-	print 'bufnum! ' + str(win.buffer.number)
+	# print 'bufnum! ' + str(win.buffer.number)
 	tabstop = win.buffer.options['tabstop']
-	print 'tabstop! ' + str(tabstop)
+	# print 'tabstop! ' + str(tabstop)
 	vim.command('redir => signlist')
 	vim.command('silent sign place buffer=' + str(win.buffer.number))
 	vim.command('redir END')
 	signlist = vim.eval('signlist')
 	signcolpresent = (signlist.count('line=') > 0)
+	signcolamount = 2 if signcolpresent else 0
+	linenrdigits = len(str(len(win.buffer)))
+	print 'vals! ' + str(linenrdigits) + ' ' + str(signcolamount)
+	# not accounting for numberwidth or number options right now
 	height = 0
 	i = 0
 	for line in win.buffer:
 		i = i + 1
 		tabcount = line.count('\t')
 		actual = len(line) + (tabstop - 1) * tabcount
-		lineheight = actual / win.width + 1
-		if (lineheight > 1):
-			print str(i) + ' # ' + str(lineheight)
+		lineheight = actual / (win.width - signcolpresent - linenrdigits) + 1
+		# if (lineheight > 1):
+		# print str(i) + ' # ' + str(lineheight)
 
 lens = vim.eval('wins')
 start = vim.eval('start')
