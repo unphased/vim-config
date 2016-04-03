@@ -2186,12 +2186,17 @@ function! HeightSpread()
 		let totspace += hei
 		wincmd j
 	endwhile
+	" TODO eliminate the wincmd j/k shit for deriving it all via vim.windows 
+	" from python as below. We already need to use the python datas to get true 
+	" proper window height content requirements.
 
 	let final = []
 
 	" sort (vimscript algorithms are insane so i am pythoning)
 	python << EOF
 # import operator
+windowData = [None] * len(vim.windows)
+# print 'wins' + str(len(vim.windows))
 for win in vim.windows:
 	print ", ".join([str(x) for x in [win.col, win.row, win.width, win.height]]);
 	windir = dir(win)
@@ -2212,19 +2217,25 @@ for win in vim.windows:
 	vim.command('silent sign place buffer=' + str(win.buffer.number))
 	vim.command('redir END')
 	signlist = vim.eval('signlist')
+	wrapping = win.options['wrap']
 	signcols = 2 if (signlist.count('line=') > 0) else 0
 	linenrcols = len(str(len(win.buffer))) + 1
-	print 'vals! ' + str(linenrcols) + ' ' + str(signcols)
+	print 'vals! ' + str(linenrcols) + ' ' + str(signcols) + ' wrap ' + str(wrapping)
 	# not accounting for numberwidth or number options right now
-	height = 0
+	height = len(win.buffer)
 	i = 0
-	for line in win.buffer:
-		i = i + 1
-		tabcount = line.count('\t')
-		actual = len(line) + (tabstop - 1) * tabcount
-		lineheight = actual / (win.width - signcols - linenrcols) + 1
-		if (lineheight > 1):
-			print str(i) + ' # ' + str(lineheight) + ' $ ' + str(win.width) + ' ' + str(win.width - signcols - linenrcols) + ' % ' + str(actual)
+	if wrapping:
+		for line in win.buffer:
+			i = i + 1
+			tabcount = line.count('\t')
+			actual = len(line) + (tabstop - 1) * tabcount
+			lineheight = actual / (win.width - signcols - linenrcols) + 1
+			height += lineheight
+			# if (lineheight > 1):
+				# print str(i) + ' # ' + str(lineheight) + ' $ ' + str(win.width) + ' ' + str(win.width - signcols - linenrcols) + ' % ' + str(actual)
+	windowData[int(win.number) - 1] = {'height': height}
+
+print str(windowData)
 
 lens = vim.eval('wins')
 start = vim.eval('start')
