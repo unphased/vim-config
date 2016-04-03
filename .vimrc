@@ -2213,9 +2213,9 @@ for win in vim.windows:
 	wrapping = win.options['wrap']
 	signcols = 2 if (signlist.count('line=') > 0) else 0
 	linenrcols = len(str(len(win.buffer))) + 1
-	print 'vals! ' + str(linenrcols) + ' ' + str(signcols) + ' wrap ' + str(wrapping)
 	# not accounting for numberwidth or number options right now
 	height = len(win.buffer)
+	print 'vals! ' + str(linenrcols) + ' ' + str(signcols) + ' hei ' + str(height)
 	i = 0
 	if wrapping:
 		height = 0
@@ -2223,9 +2223,11 @@ for win in vim.windows:
 			i = i + 1
 			tabcount = line.count('\t')
 			actual = len(line) + (tabstop - 1) * tabcount
-			lineheight = actual / (win.width - signcols - linenrcols) + 1
+			lineheight = (actual - 1) / (win.width - signcols - linenrcols) + 1
+			if (lineheight == 0):
+				lineheight = 1
 			height += lineheight
-			if (lineheight > 1):
+			if lineheight != 1:
 				print str(i) + ' # ' + str(lineheight) + ' $ ' + str(win.width) + ' ' + str(win.width - signcols - linenrcols) + ' % ' + str(actual)
 	windowData[int(win.number)] = {'height': height}
 
@@ -2322,7 +2324,6 @@ autocmd VimEnter * let w:created=1
 
 " Example of how to use w:created in an autocmd to initialize a window-local option
 autocmd WinEnter * if !exists('w:created') | noautocmd call HeightSpread() | endif
-
 
 " Not sure if this one here is overkill or not, but on terminal resizing it 
 " will be useful to call the routine
