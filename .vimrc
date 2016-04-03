@@ -66,8 +66,8 @@ Plugin 'majutsushi/tagbar'
 Plugin 'tpope/vim-unimpaired'
 
 Plugin 'vim-scripts/camelcasemotion'
-Plugin 'vim-scripts/EnhancedJumps'
 Plugin 'vim-scripts/ingo-library' " needed for EnhancedJumps
+Plugin 'vim-scripts/EnhancedJumps'
 
 Plugin 't9md/vim-textmanip'
 " Plugin 'vim-scripts/hexman.vim'
@@ -1283,11 +1283,9 @@ endif
 " hard to reach anyway, I abandoned this map for a while
 " Hmmm, I've been actually typing [n]@@ a lot lately to run my macros, i dunno.
 if has('nvim')
-	" nnoremap <m-,> @q
-	nnoremap <m-,> :<C-u>call MyAmazingEnhancedDot()<CR>
+	nnoremap <m-,> n@q
 else
-	" nnoremap <F19> @q
-	nnoremap <F19> :<C-u>call MyAmazingEnhancedDot()<CR>
+	nnoremap <F19> n@q
 endif
 
 " more ctrlp settings
@@ -1849,6 +1847,7 @@ highlight ColorColumn ctermbg=235 term=NONE
 " used for the dot make this workable.
 if has('nvim')
 	" shit neovim has issues with binding keys...
+	nnoremap <m->> :<C-u>call MyAmazingEnhancedDot('')<CR>
 	nnoremap <m-.> :<C-u>call MyAmazingEnhancedDot(v:count1)<CR>
 else
 	nnoremap <F20> :<C-u>call MyAmazingEnhancedDot(v:count1)<CR>
@@ -1859,8 +1858,15 @@ endif
 function! MyAmazingEnhancedDot(count)
 	" when no count, run it as many times as the match remains. That's done 
 	" with fancy redir technique
-	if exists(a:count)
-		let c = a:count
+	let c = a:count
+	" echom 'c is '.c
+	if (c == '' && v:hlsearch == 1)
+		redir => searchcount
+		silent %s///n " this is not gn because i use g reversal (its called gdefault!)
+		redir END
+		let cc = split(searchcount, '\D\+')
+		let c = cc[0]
+		echom 'running . '.c.' times...'
 	endif
 	let lastpos = getpos('.')
 	while c > 0
@@ -2396,3 +2402,5 @@ endfunction
 nnoremap <silent> g: :set opfunc=SourceVimscript<cr>g@
 vnoremap <silent> g: :<c-U>call SourceVimscript("visual")<cr>
 nnoremap <silent> g:: :call SourceVimscript("currentline")<cr>
+
+autocmd FileType help wincmd L
