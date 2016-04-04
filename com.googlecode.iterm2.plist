@@ -1666,6 +1666,20 @@
 					<key>Text</key>
 					<string>Oy</string>
 				</dict>
+				<key>0x3e-0x120000</key>
+				<dict>
+					<key>Action</key>
+					<integer>10</integer>
+					<key>Text</key>
+					<string>&gt;</string>
+				</dict>
+				<key>0x3e-0xa0000</key>
+				<dict>
+					<key>Action</key>
+					<integer>10</integer>
+					<key>Text</key>
+					<string>&gt;</string>
+				</dict>
 				<key>0x48-0x120000</key>
 				<dict>
 					<key>Action</key>
@@ -1707,6 +1721,13 @@
 					<integer>10</integer>
 					<key>Text</key>
 					<string>b</string>
+				</dict>
+				<key>0x64-0x100000</key>
+				<dict>
+					<key>Action</key>
+					<integer>10</integer>
+					<key>Text</key>
+					<string>d</string>
 				</dict>
 				<key>0x68-0x100000</key>
 				<dict>
@@ -5636,7 +5657,7 @@
 	<key>NoSyncHaveShownPromoWithId_4</key>
 	<true/>
 	<key>NoSyncLastTipTime</key>
-	<real>481233085.12770599</real>
+	<real>481407387.96753401</real>
 	<key>NoSyncNeverRemindPrefsChangesCopy</key>
 	<true/>
 	<key>NoSyncPermissionToShowTip</key>
@@ -5684,6 +5705,8 @@
 		<string>0029</string>
 		<string>0030</string>
 		<string>0031</string>
+		<string>0032</string>
+		<string>0033</string>
 	</array>
 	<key>OnlyWhenMoreTabs</key>
 	<true/>
@@ -5745,7 +5768,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2016-04-01T18:16:06Z</date>
+	<date>2016-04-04T02:32:56Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>Secure Input</key>

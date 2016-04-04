@@ -1255,6 +1255,7 @@ if !has('nvim')
 
 	set <F20>=.
 	set <F19>=,
+	set <F16>=>
 endif
 
 " set the numpad key codes -- Mark helpfully already implements the stuff that
@@ -1845,6 +1846,7 @@ if has('nvim')
 	nnoremap <m->> :<C-u>call MyAmazingEnhancedDot('')<CR>
 	nnoremap <m-.> :<C-u>call MyAmazingEnhancedDot(v:count1)<CR>
 else
+	nnoremap <F16> :<C-u>call MyAmazingEnhancedDot('')<CR>
 	nnoremap <F20> :<C-u>call MyAmazingEnhancedDot(v:count1)<CR>
 endif
 
@@ -1862,16 +1864,14 @@ function! MyAmazingEnhancedDot(count)
 		let cc = split(searchcount, '\D\+')
 		let c = cc[0]
 		echom 'running . '.c.' times...'
+	else
+		echom 'need a search to run dot on all matches'
+		return
 	endif
-	let lastpos = getpos('.')
 	while c > 0
 		if v:hlsearch == 1
 			normal .
 			silent! normal n
-			let nowpos = getpos('.')
-			if nowpos[1] == lastpos[1] && nowpos[2] == lastpos[2]
-				return
-			endif
 		else
 			normal .j
 		endif
@@ -1954,12 +1954,14 @@ endif
 " bind Alt+V to do the same as alt+B but do less work whereby visual mode is 
 " temporarily engaged (and we return to insert mode afterwards), and also the 
 " movement to end of word is not auto performed
-if has('nvim')
-	inoremap <m-v> <c-o>v
-else
-	set <F16>=v
-	inoremap <F16> <c-o>v
-endif
+" if has('nvim')
+" 	inoremap <m-v> <c-o>v
+" else
+" 	set <F16>=v
+" 	inoremap <F16> <c-o>v
+" endif
+" Commented that thing out because I did not once use this capability so I am 
+" allocating F16 for vim for something more useful for now
 
 " Override the default which uses m-p which conflicts with my paste mode 
 " binding
