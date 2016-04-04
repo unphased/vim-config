@@ -2127,7 +2127,7 @@ function! LongEnough( timer, delay, ... )
 endfunction
 
 " thanks to ZyX
-function WinTextWidth()
+function! WinTextWidth()
 	let winwidth = winwidth(0)
 	let winwidth -= (max([len(line('$')), &numberwidth]) * (&number || &relativenumber))
 	let winwidth -= &foldcolumn
@@ -2140,7 +2140,7 @@ function WinTextWidth()
 	" echo "wtw ".winnr().": ".winwidth
 	return winwidth
 endfunction
-function LineCount(...)
+function! LineCount(...)
 	let startlnr = get(a:000, 0, 1)
 	let endlnr = get(a:000, 1, line('$'))
 	let numlines = 0
@@ -2313,7 +2313,7 @@ tot = 0
 fits_unsorted = []
 split = []
 for i, l, hei, name, yaxis in sortedk:
-	if (int(l)*2 <= (totspc - tot)):
+	if (int(l)*2 <= (int(totspc) - tot)):
 		# space allocation logic goes as such: as we consider placing the next
 		# increasingly large item, abort it if insertion would result in
 		# more than 50% (or g:spreadratio (TODO impl this)) of total remaining
