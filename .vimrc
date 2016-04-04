@@ -2151,6 +2151,12 @@ function LineCount(...)
 		" if height != 1
 		" 	echo lnr.' # '.lwidth.' % '.height." ^ ".getline(lnr)
 		" endif
+
+		" need to take into account folded lines
+		let foldnr = foldclosed(lnr)
+		if foldnr != -1 && foldnr != lnr
+			continue
+		endif
 		let numlines += max([(lwidth - 1) / winwidth + 1, 1])
 	endfor
 	" echo "lc: ".numlines
