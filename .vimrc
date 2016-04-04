@@ -2224,8 +2224,8 @@ function! HeightSpread()
 	" sort (vimscript algorithms are insane so i am pythoning)
 	python << EOF
 # import operator
-import time
-timestart = time.time()
+# import time
+# timestart = time.time()
 ## windowData = [None] * (len(vim.windows) + 1)
 # print 'wins' + str(len(vim.windows))
 ## for wini, win in enumerate(vim.windows):
@@ -2331,7 +2331,7 @@ for w, l, o, b in fits:
 	# last value is flag whether fits or not. only if fits do we scroll them up
 	vim.command('call add(final, [' + w + ', ' + str(l) + ', "' + ('fit' if b else 'no') + '"])')
 # print 'after sortin: ' + str(fits)
-print 'taken ' + str(time.time() - timestart)
+# print 'taken ' + str(time.time() - timestart)
 EOF
 
 	" echo 'totspc: '. totspace
@@ -2365,7 +2365,7 @@ endfun
 " autocmd VimEnter * let w:created=1
 
 " Example of how to use w:created in an autocmd to initialize a window-local option
-autocmd WinEnter,BufWinEnter * noautocmd call HeightSpread()
+autocmd WinEnter,BufWinEnter,VimResized * noautocmd call HeightSpread()
 
 " Not sure if this one here is overkill or not, but on terminal resizing it 
 " will be useful to call the routine
