@@ -2313,7 +2313,15 @@ tot = 0
 fits_unsorted = []
 split = []
 for i, l, hei, name, yaxis in sortedk:
-	if ((tot + int(l)) <= int(totspc)):
+	if (int(l)*2 <= (totspc - tot)):
+		# space allocation logic goes as such: as we consider placing the next
+		# increasingly large item, abort it if insertion would result in
+		# more than 50% (or g:spreadratio (TODO impl this)) of total remaining
+		# space consumed.
+
+		# The reasoning behind this is that it will allow for a large amount of
+		# small splits while guaranteeing a reasonable amount of remaining space
+		# for the rest in a proportionate way.
 		tot = tot + int(l)
 		fits_unsorted.append([i, l, yaxis, True])
 	else:
