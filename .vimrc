@@ -580,7 +580,7 @@ cnoremap <F10> <c-c>
 
 " this checks tmux to figure out if it should swap panes or trigger Tab
 " instead
-function! F10OverloadedFunctionalityCheckTmux(direction)
+function! EfTen(direction)
 	let tmux_panes_count = system('tmux display -p "#{window_panes}"')
 	if tmux_panes_count == 1 || tmux_panes_count == "failed to connect to server\n"
 		if (a:direction == '+')
@@ -592,7 +592,7 @@ function! F10OverloadedFunctionalityCheckTmux(direction)
 		call system('tmux select-pane -t :.'.a:direction)
 	endif
 endfunc
-nnoremap <F10> :call F10OverloadedFunctionalityCheckTmux('+')<CR>
+nnoremap <F10> :call EfTen('+')<CR>
 
 " I am not really sure what happened here but, tmux 2 seems to just have its 
 " own idea about how to send Shift F10 if TERM is screen-*. (before this used 
@@ -601,7 +601,7 @@ nnoremap <F10> :call F10OverloadedFunctionalityCheckTmux('+')<CR>
 set <S-F10>=[21;2~
 noremap <S-F10> <ESC>
 noremap! <S-F10> <ESC>
-nnoremap <S-F10> :call F10OverloadedFunctionalityCheckTmux('-')<CR>
+nnoremap <S-F10> :call EfTen('-')<CR>
 
 noremap <F12> <Help>
 function! SwitchTabNext()
@@ -1843,35 +1843,45 @@ highlight ColorColumn ctermbg=235 term=NONE
 " used for the dot make this workable.
 if has('nvim')
 	" shit neovim has issues with binding keys...
-	nnoremap <m->> :<C-u>call MyAmazingEnhancedDot('')<CR>
-	nnoremap <m-.> :<C-u>call MyAmazingEnhancedDot(v:count1)<CR>
+	nnoremap <m->> :<C-u>call EnhancedDot('')<CR>
+	nnoremap <m-.> :<C-u>call EnhancedDot(v:count1)<CR>
 else
-	nnoremap <F16> :<C-u>call MyAmazingEnhancedDot('')<CR>
-	nnoremap <F20> :<C-u>call MyAmazingEnhancedDot(v:count1)<CR>
+	nnoremap <F16> :<C-u>call EnhancedDot('')<CR>
+	nnoremap <F20> :<C-u>call EnhancedDot(v:count1)<CR>
 endif
 
 " this will intelligently abort and undo at such time that it realizes 'n' did 
 " not move the cursor.
-function! MyAmazingEnhancedDot(count)
+function! EnhancedDot(count)
 	" when no count, run it as many times as the match remains. That's done 
 	" with fancy redir technique
 	let c = a:count
-	" echom 'c is '.c
+	redir => searchcount
+	silent! %s///n " this is not gn because i use g reversal (its called gdefault!)
+	redir END
+	let cc = split(searchcount, '\D\+')
+	let ct = cc[0]
+	if searchcount =~ 'Error'
+		" this is the way to catch the zero matches case
+		let ct = 0
+	endif
+	" echom 'searchcount =~ '.(searchcount =~ 'Error')
 	if (c == '' && v:hlsearch == 1)
-		redir => searchcount
-		silent %s///n " this is not gn because i use g reversal (its called gdefault!)
-		redir END
-		let cc = split(searchcount, '\D\+')
-		let c = cc[0]
-		echom 'running . '.c.' times...'
-	else
-		echom 'need a search to run dot on all matches'
+		let c = ct
+		echom 'running dot '.c.' times (all matches)...'
+	elseif c == ''
+		echom 'put search on to run dot on all matches'
 		return
+	endif
+	" echom ct.' ## '.c
+	if ct < c
+		echom 'found fewer matches than requested ('.c.'), running only '.ct.' times'
+		let c = ct
 	endif
 	while c > 0
 		if v:hlsearch == 1
-			normal .
 			silent! normal n
+			normal .
 		else
 			normal .j
 		endif
