@@ -831,7 +831,9 @@ noremap gj j
 " a teeny bit of performance anyhow.
 set linebreak
 let &showbreak="→ "
-set breakindent
+if exists('&breakindent')
+	set breakindent
+endif
 
 " These are old mappings for line based home/end, I needed to change these to
 " prevent vim from hanging on escape
