@@ -2074,6 +2074,8 @@ function! s:RunShellCommand(cmdline)
 	1
 endfunction
 
+cnoreabbrev h <C-r>=(&columns >= 160 && getcmdtype() ==# ':' && getcmdpos() == 1 ? 'vertical botright help' : 'h')<CR>
+
 " Returns true if at least delay seconds have elapsed since the last time this 
 " function was called, based on the time
 " contained in the variable "timer". The first time it is called, the variable is defined and the function returns
@@ -2140,9 +2142,17 @@ function! WinTextWidth()
 	" echo "wtw ".winnr().": ".winwidth
 	return winwidth
 endfunction
-function! LineCount(...)
-	let startlnr = get(a:000, 0, 1)
-	let endlnr = get(a:000, 1, line('$'))
+
+let g:spreadratio = 0.5
+" Terminate iteration at 'abort' lines for perf.
+" for the purposes of HeightSpread, any file taller than the g:spreadratio 
+" * (Vim height - 3) should be considered too large.
+function! LineCount(abort)
+	let startlnr = 1
+	let endlnr = line('$')
+	if endlnr > a:abort
+		return endlnr
+	endif
 	let numlines = 0
 	let winwidth = WinTextWidth()
 	for lnr in range(startlnr, endlnr)
@@ -2158,6 +2168,9 @@ function! LineCount(...)
 			continue
 		endif
 		let numlines += max([(lwidth - 1) / winwidth + 1, 1])
+		if numlines > a:abort
+			return numlines
+		endif
 	endfor
 	" echo "lc: ".numlines
 	return numlines
@@ -2208,7 +2221,7 @@ function! HeightSpread()
 	" possibility of arbitrary window arrangement)
 	let lastwin = startwin
 	let yaxis = 0
-	let start = [lastwin, LineCount(), winheight(lastwin), @%, yaxis]
+	let start = [lastwin, LineCount((&lines - 3) * g:spreadratio), winheight(lastwin), @%, yaxis]
 	let wins = []
 	let totspace = winheight(lastwin)
 	wincmd k
@@ -2217,7 +2230,7 @@ function! HeightSpread()
 		" echo 'a'.lastwin.'-'.winnr()
 		let lastwin = winnr()
 		let hei = winheight(lastwin)
-		call insert(wins, [lastwin, LineCount(), hei, @%, yaxis])
+		call insert(wins, [lastwin, LineCount((&lines - 3) * g:spreadratio), hei, @%, yaxis])
 		let totspace += hei
 		wincmd k
 	endwhile
@@ -2230,7 +2243,7 @@ function! HeightSpread()
 		" echo 'b'.lastwin.'-'.winnr()
 		let lastwin = winnr()
 		let hei = winheight(lastwin)
-		call add(wins, [lastwin, LineCount(), hei, @%, yaxis])
+		call add(wins, [lastwin, LineCount((&lines - 3) * g:spreadratio), hei, @%, yaxis])
 		let totspace += hei
 		wincmd j
 	endwhile
@@ -2312,8 +2325,9 @@ else:
 tot = 0
 fits_unsorted = []
 split = []
+spreadratio = float(vim.eval('g:spreadratio'))
 for i, l, hei, name, yaxis in sortedk:
-	if (int(l)*2 <= (int(totspc) - tot)):
+	if (float(l) < (spreadratio * float(int(totspc) - tot))):
 		# space allocation logic goes as such: as we consider placing the next
 		# increasingly large item, abort it if insertion would result in
 		# more than 50% (or g:spreadratio (TODO impl this)) of total remaining
@@ -2461,5 +2475,3 @@ endfunction
 nnoremap <silent> g: :set opfunc=SourceVimscript<cr>g@
 vnoremap <silent> g: :<c-U>call SourceVimscript("visual")<cr>
 nnoremap <silent> g:: :call SourceVimscript("currentline")<cr>
-
-autocmd FileType help wincmd L
