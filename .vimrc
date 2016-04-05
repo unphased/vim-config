@@ -2167,6 +2167,11 @@ function! LineCount(abort)
 		if foldnr != -1 && foldnr != lnr
 			continue
 		endif
+		if foldnr == lnr
+			" a folded fold is always adding one height
+			let numlines += 1
+			continue
+		endif
 		let numlines += max([(lwidth - 1) / winwidth + 1, 1])
 		if numlines > a:abort
 			return numlines
