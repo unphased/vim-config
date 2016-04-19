@@ -2274,7 +2274,8 @@ function! HeightSpread()
 	" proper window height content requirements.
 
 	let final = []
-	" echo 'wins '.string(wins)
+	" echom 'wins '.string(wins)
+	" echom 'start '.string(start)
 
 	" sort (vimscript algorithms are insane so i am pythoning)
 	python << EOF
@@ -2429,7 +2430,7 @@ endfun
 " autocmd VimEnter * let w:created=1
 
 " Example of how to use w:created in an autocmd to initialize a window-local option
-autocmd WinEnter,BufWinEnter,VimResized * noautocmd call HeightSpread()
+autocmd WinEnter,VimResized * noautocmd call HeightSpread()
 
 " Not sure if this one here is overkill or not, but on terminal resizing it 
 " will be useful to call the routine
