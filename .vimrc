@@ -798,6 +798,22 @@ if !hasmapto("<Plug>VLToggle")
 endif
 let &cpo = s:save_cpo | unlet s:save_cpo
 
+function! Del_word_delims()
+	let reg = getreg('/')
+	" After *                i^r/ will give me pattern instead of \<pattern\>
+	let res = substitute(reg, '^\\<\(.*\)\\>$', '\1', '' )
+	if res != reg
+		return res
+	endif
+	" After * on a selection i^r/ will give me pattern instead of \Vpattern
+	let res = substitute(reg, '^\\V'          , ''  , '' )
+	let res = substitute(res, '\\\\'          , '\\', 'g')
+	let res = substitute(res, '\\n'           , '\n', 'g')
+	return res
+endfunction
+inoremap <silent> <C-R>/ <C-R>=Del_word_delims()<CR>
+cnoremap          <C-R>/ <C-R>=Del_word_delims()<CR>
+
 " map Q to :q
 nnoremap Q :q<CR>
 
