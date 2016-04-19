@@ -276,7 +276,7 @@ hi LineNr ctermfg=242
 set listchars=tab:\ \ ,extends:»,precedes:«,trail:·,nbsp:◆
 set list
 
-hi NonText ctermbg=234 ctermfg=254
+hi NonText ctermbg=235 ctermfg=241
 hi SpecialKey ctermfg=239
 
 " Enhancements which override colorscheme
@@ -811,6 +811,7 @@ function! Del_word_delims()
 	let res = substitute(res, '\\n'           , '\n', 'g')
 	return res
 endfunction
+
 inoremap <silent> <C-R>/ <C-R>=Del_word_delims()<CR>
 cnoremap          <C-R>/ <C-R>=Del_word_delims()<CR>
 
