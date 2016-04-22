@@ -276,7 +276,7 @@ hi LineNr ctermfg=242
 set listchars=tab:\ \ ,extends:»,precedes:«,trail:·,nbsp:◆
 set list
 
-hi NonText ctermbg=234 ctermfg=254
+hi NonText ctermbg=235 ctermfg=241
 hi SpecialKey ctermfg=239
 
 " Enhancements which override colorscheme
@@ -797,6 +797,23 @@ if !hasmapto("<Plug>VLToggle")
   nmap <unique> <Leader>vl <Plug>VLToggle
 endif
 let &cpo = s:save_cpo | unlet s:save_cpo
+
+function! Del_word_delims()
+	let reg = getreg('/')
+	" After *                i^r/ will give me pattern instead of \<pattern\>
+	let res = substitute(reg, '^\\<\(.*\)\\>$', '\1', '' )
+	if res != reg
+		return res
+	endif
+	" After * on a selection i^r/ will give me pattern instead of \Vpattern
+	let res = substitute(reg, '^\\V'          , ''  , '' )
+	let res = substitute(res, '\\\\'          , '\\', 'g')
+	let res = substitute(res, '\\n'           , '\n', 'g')
+	return res
+endfunction
+
+inoremap <silent> <C-R>/ <C-R>=Del_word_delims()<CR>
+cnoremap          <C-R>/ <C-R>=Del_word_delims()<CR>
 
 " map Q to :q
 nnoremap Q :q<CR>
@@ -2257,7 +2274,8 @@ function! HeightSpread()
 	" proper window height content requirements.
 
 	let final = []
-	" echo 'wins '.string(wins)
+	" echom 'wins '.string(wins)
+	" echom 'start '.string(start)
 
 	" sort (vimscript algorithms are insane so i am pythoning)
 	python << EOF
@@ -2412,7 +2430,7 @@ endfun
 " autocmd VimEnter * let w:created=1
 
 " Example of how to use w:created in an autocmd to initialize a window-local option
-autocmd WinEnter,BufWinEnter,VimResized * noautocmd call HeightSpread()
+autocmd WinEnter,VimResized * noautocmd call HeightSpread()
 
 " Not sure if this one here is overkill or not, but on terminal resizing it 
 " will be useful to call the routine
