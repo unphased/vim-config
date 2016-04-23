@@ -69,7 +69,7 @@ Plugin 'junegunn/vim-easy-align'
 Plugin 'blueyed/argtextobj.vim'
 Plugin 'octol/vim-cpp-enhanced-highlight'
 Plugin 'unphased/Cpp11-Syntax-Support'
-Plugin 'unphased/vim-html-escape'
+Plugin 'unphased/vim-html-escape' " my master has gdefault detecting tweak
 
 Plugin 'vim-scripts/showmultibase'
 Plugin 'rking/ag.vim'
