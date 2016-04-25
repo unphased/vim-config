@@ -4,10 +4,10 @@ set showcmd
 
 filetype off " Vundle needs this
 
-set rtp+=~/.vim/bundle/vundle/
+set rtp+=~/.vim/bundle/Vundle.vim/
 call vundle#rc()
 
-Plugin 'gmarik/vundle'
+Plugin 'VundleVim/Vundle.vim'
 Plugin 'Valloric/YouCompleteMe'
 " Plugin 'simnalamburt/vim-mundo'
 Plugin 'mbbill/undotree'
