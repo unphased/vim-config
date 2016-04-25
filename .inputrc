@@ -49,3 +49,4 @@ set output-meta on
 
 set completion-ignore-case on
 #tab completion ignore case
+set show-all-if-ambiguous on
