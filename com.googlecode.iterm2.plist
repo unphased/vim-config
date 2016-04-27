@@ -1224,22 +1224,10 @@
 	<true/>
 	<key>MaxVertically</key>
 	<true/>
-	<key>NSColorPanelMode</key>
-	<string>6</string>
-	<key>NSColorPickerSlidersDefaults</key>
-	<string>1</string>
-	<key>NSFontPanelAttributes</key>
-	<string>1, 4</string>
-	<key>NSFontPanelPreviewHeight</key>
-	<real>80</real>
 	<key>NSNavLastRootDirectory</key>
 	<string>~</string>
 	<key>NSNavPanelExpandedSizeForOpenMode</key>
-	<string>{821, 459}</string>
-	<key>NSNavPanelExpandedSizeForSaveMode</key>
-	<string>{712, 448}</string>
-	<key>NSNavPanelExpandedStateForSaveMode</key>
-	<false/>
+	<string>{712, 459}</string>
 	<key>NSQuotedKeystrokeBinding</key>
 	<string></string>
 	<key>NSRepeatCountBinding</key>
@@ -1254,51 +1242,28 @@
 		BAtzdHJlYW10eXBlZIHoA4QBQISEhAhOU1N0cmluZwGEhAhOU09iamVjdACF
 		hAErATCG
 		</data>
-		<string>160</string>
+		<string>198</string>
 		<data>
 		BAtzdHJlYW10eXBlZIHoA4QBQISEhAhOU1N0cmluZwGEhAhOU09iamVjdACF
 		hAErATGG
 		</data>
-		<string>360</string>
+		<string>322</string>
 	</array>
 	<key>NSTableView Hidden Columns KeyBingingTable</key>
 	<array/>
 	<key>NSTableView Sort Ordering KeyBingingTable</key>
 	<array/>
-	<key>NSToolbar Configuration Terminal Toolbar</key>
-	<dict>
-		<key>TB Display Mode</key>
-		<integer>1</integer>
-		<key>TB Icon Size Mode</key>
-		<integer>1</integer>
-		<key>TB Is Shown</key>
-		<integer>0</integer>
-		<key>TB Size Mode</key>
-		<integer>1</integer>
-	</dict>
 	<key>NSToolbar Configuration com.apple.NSColorPanel</key>
 	<dict>
 		<key>TB Is Shown</key>
 		<integer>1</integer>
 	</dict>
-	<key>NSWindow Frame NSColorPanel</key>
-	<string>276 270 231 329 0 0 1680 1027 </string>
-	<key>NSWindow Frame NSFontPanel</key>
-	<string>78 155 575 255 0 0 1440 877 </string>
 	<key>NSWindow Frame Preferences</key>
-	<string>171 716 606 456 0 0 1920 1200 </string>
-	<key>NSWindow Frame SUAutomaticUpdateAlert</key>
-	<string>530 640 616 174 0 0 1680 1028 </string>
-	<key>NSWindow Frame SUStatusFrame</key>
-	<string>646 673 384 129 0 0 1680 1027 </string>
-	<key>NSWindow Frame UKCrashReporter</key>
-	<string>423 185 592 584 0 0 1440 878 </string>
-	<key>NSWindow Frame com.apple.typography_panel_Menlo-Regular</key>
-	<string>341 780 260 68 0 0 1440 878 </string>
+	<string>2262 888 606 456 1680 329 2560 1417 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>509 211 435 797 0 0 1920 1177 </string>
+	<string>1680 329 2560 1440 1680 329 2560 1417 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
-	<string>10 360 570 376 0 0 1680 1028 </string>
+	<string>212 101 570 452 0 0 1680 1027 </string>
 	<key>NeverWarnAboutShortLivedSessions_BABC3C6F-E892-4635-AD49-85E57CE1D5AF</key>
 	<true/>
 	<key>New Bookmarks</key>
@@ -2136,6 +2101,8 @@
 			<true/>
 			<key>Normal Font</key>
 			<string>MenloForPowerline-Regular 9</string>
+			<key>Only The Default BG Color Uses Transparency</key>
+			<true/>
 			<key>Option Key Sends</key>
 			<integer>2</integer>
 			<key>Prompt Before Closing 2</key>
@@ -2289,7 +2256,7 @@
 			<key>Thin Strokes</key>
 			<integer>0</integer>
 			<key>Transparency</key>
-			<real>0.1997041434931332</real>
+			<real>0.16325813609467454</real>
 			<key>Triggers</key>
 			<array/>
 			<key>Unlimited Scrollback</key>
@@ -5650,64 +5617,14 @@
 			<string>/Users/lust</string>
 		</dict>
 	</array>
-	<key>NoSyncDoNotWarnBeforeMultilinePaste</key>
-	<true/>
-	<key>NoSyncDoNotWarnBeforeMultilinePaste_selection</key>
-	<integer>0</integer>
-	<key>NoSyncHaveShownPromoWithId_4</key>
-	<true/>
-	<key>NoSyncLastTipTime</key>
-	<real>481407387.96753401</real>
-	<key>NoSyncNeverRemindPrefsChangesCopy</key>
-	<true/>
+	<key>NoSyncInstallationId</key>
+	<string>F4AFAC60-D4BA-4309-ACF8-D27B9D04A0E4</string>
 	<key>NoSyncPermissionToShowTip</key>
-	<true/>
+	<false/>
 	<key>NoSyncSuppressAnnyoingBellOffer</key>
 	<true/>
 	<key>NoSyncTimeOfFirstLaunchOfVersionWithTip</key>
-	<real>477787490.01310903</real>
-	<key>NoSyncTimeOfLastPromo</key>
-	<real>477787383.39428699</real>
-	<key>NoSyncTimeOfLastPromoDownload</key>
-	<real>478075394.481094</real>
-	<key>NoSyncTipsToNotShow</key>
-	<array>
-		<string>000</string>
-		<string>0000</string>
-		<string>0001</string>
-		<string>0002</string>
-		<string>0003</string>
-		<string>0004</string>
-		<string>0005</string>
-		<string>0006</string>
-		<string>0007</string>
-		<string>0008</string>
-		<string>0009</string>
-		<string>0010</string>
-		<string>0011</string>
-		<string>0012</string>
-		<string>0013</string>
-		<string>0014</string>
-		<string>0015</string>
-		<string>0016</string>
-		<string>0017</string>
-		<string>0018</string>
-		<string>0019</string>
-		<string>0020</string>
-		<string>0021</string>
-		<string>0022</string>
-		<string>0023</string>
-		<string>0024</string>
-		<string>0025</string>
-		<string>0026</string>
-		<string>0027</string>
-		<string>0028</string>
-		<string>0029</string>
-		<string>0030</string>
-		<string>0031</string>
-		<string>0032</string>
-		<string>0033</string>
-	</array>
+	<real>483285216.05601001</real>
 	<key>OnlyWhenMoreTabs</key>
 	<true/>
 	<key>OpenArrangementAtStartup</key>
@@ -5746,7 +5663,7 @@
 		</dict>
 	</dict>
 	<key>PrefsCustomFolder</key>
-	<string>/Users/lust/.vim</string>
+	<string>~/.vim/</string>
 	<key>PromptOnClose</key>
 	<true/>
 	<key>PromptOnQuit</key>
@@ -5757,8 +5674,6 @@
 	<integer>8</integer>
 	<key>RightOption</key>
 	<integer>1</integer>
-	<key>SUAutomaticallyUpdate</key>
-	<true/>
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
 	<key>SUFeedAlternateAppNameKey</key>
@@ -5768,7 +5683,9 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2016-04-04T02:32:56Z</date>
+	<date>2016-04-26T19:28:16Z</date>
+	<key>SUSendProfileInfo</key>
+	<false/>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>Secure Input</key>
@@ -5801,8 +5718,6 @@
 	</array>
 	<key>TripleClickSelectsFullWrappedLines</key>
 	<true/>
-	<key>UKCrashReporterLastCrashReportDate</key>
-	<real>1398655104</real>
 	<key>URLHandlersByGuid</key>
 	<dict/>
 	<key>UseBorder</key>
@@ -5826,7 +5741,7 @@
 	<key>findRegex_iTerm</key>
 	<true/>
 	<key>iTerm Version</key>
-	<string>2.9.20160313</string>
+	<string>2.9.git.38c38f7e8d</string>
 	<key>kCPKSelectionViewPreferredModeKey</key>
 	<integer>6</integer>
 	<key>kCPKSelectionViewShowHSBTextFieldsKey</key>
