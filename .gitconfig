@@ -1,5 +1,4 @@
 [user]
-	email = "stevenlu443@gmail.com"
 [core]
 	editor = vim
 	whitespace = cr-at-eol
