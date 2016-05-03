@@ -846,10 +846,6 @@ noremap gk k
 noremap gj j
 
 " for wrapping based on words
-" I'm temporarily disabling this because it gives an ever-so-slight efficiency 
-" in screen real estate, and also because it makes my python linewrap counter 
-" code for HeightSpread easier to implement. I reckon it will also restore 
-" a teeny bit of performance anyhow.
 set linebreak
 let &showbreak="→ "
 if exists('&breakindent')
@@ -2377,6 +2373,7 @@ splitlen = int(totspc) - tot
 
 # print 'before: ' + str(splitlen) + ', ' + str(fits_unsorted)
 
+abort=False
 if len(split) > 0:
 	split.insert(0, 0)
 	sum = reduce(lambda x,y: x + int(y[1]), split)
@@ -2388,17 +2385,19 @@ else:
 	# if everything fits we have to be careful and pad out the one which is
 	# focused with the remainder of space which is splitlen, to still consume
 	# the space (otherwise the command line becomes enormous)
-	for e in fits_unsorted:
-		if (e[2] == '0'):
-			e[1] = int(e[1]) + splitlen
-			break
+	abort = True
+	# for e in fits_unsorted:
+	# 	if (e[2] == '0'):
+	# 		e[1] = int(e[1]) + splitlen
+	# 		break
 # print 'after: ' + str(fits_unsorted)
 
 # sort by position
-fits = sorted(fits_unsorted + split, key=lambda x: int(x[2]))
-for w, l, o, b in fits:
-	# last value is flag whether fits or not. only if fits do we scroll them up
-	vim.command('call add(final, [' + w + ', ' + str(l) + ', "' + ('fit' if b else 'no') + '"])')
+if not abort: # if aborting just effectively skip the rest
+	fits = sorted(fits_unsorted + split, key=lambda x: int(x[2]))
+	for w, l, o, b in fits:
+		# last value is flag whether fits or not. only if fits do we scroll them up
+		vim.command('call add(final, [' + w + ', ' + str(l) + ', "' + ('fit' if b else 'no') + '"])')
 # print 'after sortin: ' + str(fits)
 # print 'taken ' + str(time.time() - timestart)
 EOF
