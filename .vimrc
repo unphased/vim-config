@@ -918,8 +918,6 @@ let g:ycm_server_keep_logfiles = 1
 highlight YcmErrorLine guibg=#3f0000
 highlight YcmWarningLine guibg=#282800
 
-let g:ycm_filetype_specific_completion_to_disable = { 'php': 1 }
-
 " sadly, this doesn't work on the fly for some reason. It's supposed to!
 " nnoremap <F7> :call YCMSignToggle()<CR>
 " function! YCMSignToggle()
