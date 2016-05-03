@@ -2342,7 +2342,7 @@ else:
 # print 'sortedk b: ' + str(sortedk)
 ## for e in sortedk:
 	## e.insert(1, windowData[int(e[0])]['height'])
-print 'sortedk: ' + str(sortedk)
+# print 'sortedk: ' + str(sortedk)
 # print sortedk
 tot = 0
 fits_unsorted = []
@@ -2370,7 +2370,7 @@ splitlen = int(totspc) - tot
 # height ratios, and use greedy assignment to be fuzzy with divisions while
 # ensuring total height count adds up.
 
-print 'before: ' + str(splitlen) + ', ' + str(fits_unsorted)
+# print 'before: ' + str(splitlen) + ', ' + str(fits_unsorted)
 
 abort=False
 if len(split) > 0:
@@ -2389,7 +2389,7 @@ else:
 	# 	if (e[2] == '0'):
 	# 		e[1] = int(e[1]) + splitlen
 	# 		break
-print 'after: ' + str(fits_unsorted)
+# print 'after: ' + str(fits_unsorted)
 
 # sort by position
 if not abort: # if aborting just effectively skip the rest
