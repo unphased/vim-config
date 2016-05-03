@@ -77,6 +77,7 @@ Plugin 'AndrewRadev/sideways.vim'
 Plugin 'kana/vim-textobj-user'
 
 Plugin 'Ron89/thesaurus_query.vim'
+Plugin 'AndrewRadev/switch.vim'
 
 " Bundle 'Decho'
 
