@@ -836,6 +836,9 @@ let g:ctrlp_max_files = 200000
 let g:ctrlp_clear_cache_on_exit = 0
 let g:ctrlp_root_markers = ['.ctrlp_root'] " insert this sentinel file anywhere that you'd like ctrlp to index from
 
+" If cwd is deep then it goes up to repo root. Else stays there!
+let g:ctrlp_working_path_mode = 'w'
+
 noremap k gk
 noremap j gj
 noremap gk k
