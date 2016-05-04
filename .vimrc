@@ -2433,7 +2433,7 @@ endfun
 " autocmd VimEnter * let w:created=1
 
 " Example of how to use w:created in an autocmd to initialize a window-local option
-autocmd WinEnter,VimResized * noautocmd call HeightSpread()
+autocmd WinEnter,VimResized,InsertLeave * noautocmd call HeightSpread()
 
 " Not sure if this one here is overkill or not, but on terminal resizing it 
 " will be useful to call the routine
