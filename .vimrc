@@ -2415,7 +2415,7 @@ EOF
 		" echo i[0].' set to '.i[1]
 		if i[2] == 'fit'
 			" echo 'going to top for window '.i[0]
-			normal gg
+			normal! 
 		endif
 	endfor
 
