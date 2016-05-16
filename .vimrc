@@ -1016,8 +1016,8 @@ onoremap ' `
 " BUT, what happens is that matchit loads and overrides this. I need to not 
 " really touch the matchit script since it'd be overkill, and.. well, the only 
 " way then is to use a map
-nnoremap % '
-vnoremap % '
+
+runtime macros/matchit.vim
 
 " These maps are calling the stuff that matchit.vim sets.
 " overloads %, so we try not to mess that up.
@@ -1365,7 +1365,6 @@ nnoremap y<F2> :call MoveToPrevTab()<CR>
 nnoremap y<F3> :call MoveToNextTab()<CR>
 
 set scrolloff=2
-runtime macros/matchit.vim
 
 " bind the ctrl arrow left and right in insert mode to WORD hop also
 inoremap <C-Left> <ESC>bi
