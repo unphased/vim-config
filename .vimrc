@@ -1510,8 +1510,11 @@ set ve=block
 onoremap <silent> x :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr2char(getchar())<CR>
 vnoremap <silent> x :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr2char(getchar())<CR>
 
-" scrollbinding to view a file in columns
-:noremap <silent> <Leader>c :<C-u>let @z=&so<CR>:set so=0 noscb<CR>:bo vs<CR>Ljzt:setl scb<CR><C-w>p:setl scb<CR>:let &so=@z<CR>
+" scrollbinding to view a file in columns -- taking it out because it has 
+" quirks and isnt perfect
+
+" noremap <silent> <Leader>c :<C-u>let @z=&so<CR>:set so=0 noscb<CR>:bo 
+" vs<CR>Ljzt:setl scb<CR><C-w>p:setl scb<CR>:let &so=@z<CR>
 
 " auto enable rainbow on c/cpp files
 " Nope! too slow on preprocessor output
@@ -2088,6 +2091,7 @@ function! s:RunShellCommand(cmdline)
 	1
 endfunction
 
+" magical command line bind triggered by h space
 cnoreabbrev h <C-r>=(&columns >= 160 && getcmdtype() ==# ':' && getcmdpos() == 1 ? 'vertical botright help' : 'h')<CR>
 
 " Returns true if at least delay seconds have elapsed since the last time this 
@@ -2498,3 +2502,29 @@ endfunction
 nnoremap <silent> g: :set opfunc=SourceVimscript<cr>g@
 vnoremap <silent> g: :<c-U>call SourceVimscript("visual")<cr>
 nnoremap <silent> g:: :call SourceVimscript("currentline")<cr>
+
+" this should maybe evenutally get integrated into airline. For the time being 
+" we can manually enable this mode (and lose all of statusline) when we want 
+" this capability...
+let s:prevcountcache=[[], 0]
+function! ShowCount()
+    let key=[@/, b:changedtick]
+    if s:prevcountcache[0]==#key
+        return s:prevcountcache[1]
+    endif
+    let s:prevcountcache[0]=key
+    let s:prevcountcache[1]=0
+    let pos=getpos('.')
+    try
+        redir => subscount
+        silent %s///gne
+        redir END
+        let result=matchstr(subscount, '\d\+')
+        let s:prevcountcache[1]=result
+        return result
+    finally
+        call setpos('.', pos)
+    endtry
+endfunction
+set ruler
+nnoremap <Leader>c :let &statusline='%{ShowCount()} %<%f %h%m%r%=%-14.(%l,%c%V%) %P' "THIS WILL BLOW AWAY STATUS LINE FOR SEARCH COUNTING. Ctrl+C to cancel
