@@ -1885,7 +1885,7 @@ function! EnhancedDot(count)
 		let ct = 0
 	endif
 	" echom 'searchcount =~ '.(searchcount =~ 'Error')
-	if (c == '' && v:hlsearch == 1)
+	if (c == '' && v:hlsearch)
 		let c = ct
 		echom 'running dot '.c.' times (all matches)...'
 	elseif c == ''
@@ -1898,10 +1898,13 @@ function! EnhancedDot(count)
 		let c = ct
 	endif
 	while c > 0
-		if v:hlsearch == 1
+		echom 'count is '.c
+		if (v:hlsearch)
+			echom 'seeking next mat'
 			silent! normal n
 			normal .
 		else
+			echom 'advancing line because no hlsearch'
 			normal .j
 		endif
 		let c -= 1
