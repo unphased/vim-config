@@ -1862,11 +1862,11 @@ highlight ColorColumn ctermbg=235 term=NONE
 " used for the dot make this workable.
 if has('nvim')
 	" shit neovim has issues with binding keys...
-	nnoremap <m->> :<C-u>call EnhancedDot('')<CR>
-	nnoremap <m-.> :<C-u>call EnhancedDot(v:count1)<CR>
+	nnoremap <m->> :<c-u>call TestFunc('')<CR>
+	nnoremap <m-.> :<c-u>call TestFunc(v:count1)<CR>
 else
-	nnoremap <F16> :<C-u>call EnhancedDot('')<CR>
-	nnoremap <F20> :<C-u>call EnhancedDot(v:count1)<CR>
+	nnoremap <F16> :<c-u>call TestFunc('')<CR>
+	nnoremap <F20> :<c-u>call TestFunc(v:count1)<CR>
 endif
 
 " this will intelligently abort and undo at such time that it realizes 'n' did 
@@ -1875,15 +1875,6 @@ function! EnhancedDot(count)
 	" when no count, run it as many times as the match remains. That's done 
 	" with fancy redir technique
 	let c = a:count
-	redir => searchcount
-	silent! %s///n " this is not gn because i use g reversal (its called gdefault!)
-	redir END
-	let cc = split(searchcount, '\D\+')
-	let ct = cc[0]
-	if searchcount =~ 'Error'
-		" this is the way to catch the zero matches case
-		let ct = 0
-	endif
 	" echom 'searchcount =~ '.(searchcount =~ 'Error')
 	if (c == '' && v:hlsearch)
 		let c = ct
@@ -1910,6 +1901,30 @@ function! EnhancedDot(count)
 		let c -= 1
 	endwhile
 endfunction
+
+function! TestFunc(c)
+	redir => searchcount
+	silent! %s///n " this is not gn because i use g reversal (its called gdefault!)
+	redir END
+	let cc = split(searchcount, '\D\+')
+	let ct = cc[0]
+	if searchcount =~ 'Error'
+		" this is the way to catch the zero matches case
+		let ct = 0
+	endif
+
+	if (v:hlsearch)
+		echom 'on'
+		if a:c == ''
+		else
+		endif
+	else
+		echom 'off'
+		if a:c == ''
+		else
+		endif
+	endif
+endfunc
 
 " keymap definitions for textmanip
 xmap <C-D> <Plug>(textmanip-duplicate-down)
