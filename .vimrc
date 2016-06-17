@@ -1913,6 +1913,8 @@ function! TestFunc(c)
 		let ct = 0
 	endif
 
+	echom 'ct '.ct
+
 	if (v:hlsearch)
 		echom 'on'
 		if a:c == ''
