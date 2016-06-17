@@ -1874,6 +1874,7 @@ endif
 function! EnhancedDot(count)
 	" when no count, run it as many times as the match remains. That's done 
 	" with fancy redir technique
+	let hlsearchCurrent = v:hlsearch
 	let c = a:count
 	redir => searchcount
 	silent! %s///n " this is not gn because i use g reversal (its called gdefault!)
@@ -1885,7 +1886,7 @@ function! EnhancedDot(count)
 		let ct = 0
 	endif
 	" echom 'searchcount =~ '.(searchcount =~ 'Error')
-	if (c == '' && v:hlsearch)
+	if (c == '' && hlsearchCurrent)
 		let c = ct
 		echom 'running dot '.c.' times (all matches)...'
 	elseif c == ''
@@ -1898,8 +1899,8 @@ function! EnhancedDot(count)
 		let c = ct
 	endif
 	while c > 0
-		echom 'count is '.c
-		if (v:hlsearch)
+		" echom 'count is '.c
+		if (hlsearchCurrent)
 			echom 'seeking next mat'
 			silent! normal n
 			normal .
