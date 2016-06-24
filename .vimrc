@@ -571,7 +571,7 @@ function! TmuxWindow(dir)
 	if newnr == nr
 		let cmd = 'tmux select-pane -' . tr(a:dir, 'hjkl', 'LDUR')
 		call system(cmd)
-		echo 'Executed ' . cmd
+		" echo 'Executed ' . cmd
 	endif
 endfun
 
