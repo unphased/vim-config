@@ -42,6 +42,7 @@ Plugin 'pangloss/vim-javascript'
 Plugin 'beyondmarc/glsl.vim'
 "Bundle 'kana/vim-smartinput'
 Plugin 'SirVer/ultisnips'
+Plugin 'honza/vim-snippets'
 " Bundle 'oblitum/rainbow'
 " Plugin 'marijnh/tern_for_vim'
 Plugin 'unphased/vim-airline'
@@ -109,6 +110,20 @@ nnoremap <Leader>g :call TimeLapse()<CR>
 " nnoremap <Leader>e :silent !p4 edit %:p<CR>:redraw!<CR>
 nnoremap <Leader>R :silent redraw!<CR>
 
+" These are apparently the defacto terminal codes for Ctrl+Tab and Ctrl+Shift+Tab
+" but Vim has no knowledge of it. so here i am adding it to the fastkey 
+" repertoire, but skipping F24 and F25 because the actual vitality plugin uses 
+" this method specifically on F24 and F25
+if !has('nvim')
+	set <F23>=[27;5;9~
+	set <F22>=[27;6;9~
+	set <F21>=n
+
+	set <F20>=.
+	set <F19>=,
+	set <F16>=>
+endif
+
 " Ultisnips settings (to have it work together with YCM)
 if has('nvim')
 	let g:UltiSnipsExpandTrigger="<C-TAB>"
@@ -132,6 +147,8 @@ endif
 " pretty much near perfect for snippets since too much overloading is confusing
 " anyway.
 let g:UltiSnipsEditSplit="vertical"
+
+" let g:UltiSnipsSnippetDirectories = ["UltiSnips"]
 
 " indent guides plugin
 let g:indent_guides_enable_on_vim_startup = 1
@@ -1259,20 +1276,6 @@ else
 	" The old bind (Ctrl+D) is confusing, so i am commenting it out.
 	" the real shame is that there is no way to pass in Ctrl+Shift+letter.
 	nmap <A-S-D> <Plug>yankstack_substitute_newer_paste
-endif
-
-" These are apparently the defacto terminal codes for Ctrl+Tab and Ctrl+Shift+Tab
-" but Vim has no knowledge of it. so here i am adding it to the fastkey 
-" repertoire, but skipping F24 and F25 because the actual vitality plugin uses 
-" this method specifically on F24 and F25
-if !has('nvim')
-	set <F23>=[27;5;9~
-	set <F22>=[27;6;9~
-	set <F21>=n
-
-	set <F20>=.
-	set <F19>=,
-	set <F16>=>
 endif
 
 " set the numpad key codes -- Mark helpfully already implements the stuff that
