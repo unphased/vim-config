@@ -575,15 +575,15 @@ function! TmuxWindow(dir)
 	endif
 endfun
 
-noremap <C-H> :call TmuxWindow('h')<CR>
-noremap <C-J> :call TmuxWindow('j')<CR>
-noremap <C-K> :call TmuxWindow('k')<CR>
-noremap <C-L> :call TmuxWindow('l')<CR>
+noremap <silent> <C-H> :call TmuxWindow('h')<CR>
+noremap <silent> <C-J> :call TmuxWindow('j')<CR>
+noremap <silent> <C-K> :call TmuxWindow('k')<CR>
+noremap <silent> <C-L> :call TmuxWindow('l')<CR>
 
-noremap! <C-H> <ESC>:call TmuxWindow('h')<CR>
-noremap! <C-J> <ESC>:call TmuxWindow('j')<CR>
-noremap! <C-K> <ESC>:call TmuxWindow('k')<CR>
-noremap! <C-L> <ESC>:call TmuxWindow('l')<CR>
+noremap! <silent> <C-H> <ESC>:call TmuxWindow('h')<CR>
+noremap! <silent> <C-J> <ESC>:call TmuxWindow('j')<CR>
+noremap! <silent> <C-K> <ESC>:call TmuxWindow('k')<CR>
+noremap! <silent> <C-L> <ESC>:call TmuxWindow('l')<CR>
 
 " bind the F10 switcher key to also exit insert mode if sent to Vim, this
 " should help its behavior become consistent outside of tmux as it won't then
