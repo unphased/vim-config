@@ -610,7 +610,7 @@ function! EfTen(direction)
 		call system('tmux select-pane -t :.'.a:direction)
 	endif
 endfunc
-nnoremap <F10> :call EfTen('+')<CR>
+nnoremap <silent> <F10> :call EfTen('+')<CR>
 
 " I am not really sure what happened here but, tmux 2 seems to just have its 
 " own idea about how to send Shift F10 if TERM is screen-*. (before this used 
@@ -619,7 +619,7 @@ nnoremap <F10> :call EfTen('+')<CR>
 set <S-F10>=[21;2~
 noremap <S-F10> <ESC>
 noremap! <S-F10> <ESC>
-nnoremap <S-F10> :call EfTen('-')<CR>
+nnoremap <silent> <S-F10> :call EfTen('-')<CR>
 
 noremap <F12> <Help>
 function! SwitchTabNext()
