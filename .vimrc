@@ -1146,8 +1146,8 @@ endfunc
 "nnoremap <S-Tab> :wincmd W<CR>
 
 " Nevermind, I actually really need this on a small screen...
-nnoremap <Tab> :call NextWindowOrTabOrBuffer()<CR>
-nnoremap <S-Tab> :call PrevWindowOrTabOrBuffer()<CR>
+nnoremap <silent> <Tab> :call NextWindowOrTabOrBuffer()<CR>
+nnoremap <silent> <S-Tab> :call PrevWindowOrTabOrBuffer()<CR>
 
 " This makes it restore the last position
 autocmd! BufReadPost * silent! normal! g`"zv
