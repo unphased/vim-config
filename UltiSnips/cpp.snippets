@@ -1,0 +1,126 @@
+# Casts
+snippet cast "Static Cast"
+static_cast<${1}>(${2})${0}
+endsnippet
+
+snippet cast "Reinterpret Cast"
+reinterpret_cast<${1}>(${2})${0}
+endsnippet
+
+snippet cast "Dynamic Cast"
+dynamic_cast<${1}>(${2})${0}
+endsnippet
+
+snippet cast "Const Cast"
+const_cast<${1}>(${2})${0}
+endsnippet
+
+snippet ifhack "Run-time debug option"
+static bool hack = false;
+if (hack)
+{
+	${1}
+}${0}
+endsnippet
+
+# Pragmas for MSVC
+snippet opt "Unoptimize region start"
+#pragma optimize( "", off )${0}
+endsnippet
+
+snippet opt "Unoptimize region end"
+#pragma optimize( "", on )${0}
+endsnippet
+
+snippet readfile "read file into vector"
+std::vector<char> v;
+if (FILE *${2:fp} = fopen(${1:"filename"}, "r")) {
+	char buf[1024];
+	while (size_t len = fread(buf, 1, sizeof(buf), $2))
+		v.insert(v.end(), buf, buf + len);
+	fclose($2);
+}${0}
+endsnippet
+
+snippet map "std::map"
+std::map<${1:key}, ${2:value}> ${3};${0}
+endsnippet
+
+snippet vector "std::vector"
+std::vector<${1:char}> ${2};${0}
+endsnippet
+
+snippet ns "Namespace"
+namespace ${1:`!p snip.rv = snip.basename`} {
+	${0}
+} /* namespace $1 */
+endsnippet
+
+snippet class "class"
+class ${1:`!p snip.rv = snip.basename`} 
+{
+public:
+	$1(${2});
+	${3:virtual }~$1();
+private:
+	${4:/* data */}
+};${0}
+endsnippet
+
+snippet dtor "destructor" b
+`!p
+if fn.endswith('.cpp'):
+	snip.rv = t[2] +'::'
+else:
+	snip.rv = 'virtual '
+`~${2:`!p snip.rv = snip.basename`}()`!p
+if fn.endswith('.cpp'):
+	# TODO: How can I end the snippet with the cursor between these braces?
+	snip.rv = '\n{'+ t[0] +'\n}'
+else:
+	snip.rv = ';'+ t[0]
+`
+endsnippet
+
+snippet ruleof3 "Copy ctor and copy assignment for Rule of three"
+private:
+	// Private and unimplemented to forbid use.
+	${1:`!p snip.rv = snip.basename`}(const $1&);${2: // = delete;}$0
+	$1& operator=(const $1&);$2
+endsnippet
+
+snippet for "std::iterator for-each loop"
+for (${1:vector<T>}::iterator i = ${2:items.}begin(); i != ${2}end(); ++i) ${0}
+endsnippet
+
+snippet itera "C++-11 auto iterator"
+for (auto ${1:i} = $1.begin(); $1 != $1.end(); ++$1) {
+	${2:std::cout << *$1 << std::endl;}${0}
+}
+endsnippet
+
+snippet iter "iterator"
+for (${1:std::vector}<${2:type}>::${3:const_iterator} ${4:i} = ${5:container}.begin(); $4 != $5.end(); ++$4) {
+	${0}
+}
+endsnippet
+
+snippet mfun "member function implementations"
+${4:void} ${1:`!p snip.rv = snip.basename`}::${2:memberFunction}(${3}) {
+	${5:return};${0}
+}
+endsnippet
+
+snippet cout "cout"
+${1:std::}cout << ${1} << $1endl;${0}
+endsnippet
+
+snippet e "cerr"
+${1:std::}cerr << ${1} << $1endl;${0}
+endsnippet
+
+snippet scin "scin"
+${1:std::}cin >> ${1};${0}
+endsnippet
+
+
