@@ -97,10 +97,9 @@ filetype plugin indent on "more Vundle setup
 au! BufRead,BufNewFile *.esp set ft=perl
 au! BufRead,BufNewFile *.mm set ft=objcpp
 au! BufRead,BufNewFile *.mlp set ft=xml
-
-autocmd BufNewFile,BufRead *.vsh,*.fsh,*.vp,*.fp,*.gp,*.vs,*.fs,*.gs,*.tcs,*.tes,*.cs,*.vert,*.frag,*.geom,*.tess,*.shd,*.gls,*.glsl set ft=glsl440
-
-autocmd BufNewFile,BufReadPost *.md set filetype=markdown
+au! BufNewFile,BufRead *.vsh,*.fsh,*.vp,*.fp,*.gp,*.vs,*.fs,*.gs,*.tcs,*.tes,*.cs,*.vert,*.frag,*.geom,*.tess,*.shd,*.gls,*.glsl set ft=glsl440
+au! BufNewFile,BufReadPost *.md set filetype=markdown
+au! BufRead,BufNewFile CUDA*.in,*.cuda,*.cu set ft=cuda
 
 " customize it for my usual workflow
 autocmd FileType gitcommit set nosmartindent | set formatoptions-=t
