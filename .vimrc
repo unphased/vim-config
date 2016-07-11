@@ -1168,8 +1168,8 @@ if !has('nvim')
 	set <F33>=p
 	set <F32>=w
 	" keybinding for toggling word-wrap
-	nnoremap <F32> :set wrap!<CR>
-	inoremap <F32> :set wrap!<CR>
+	" nnoremap <F32> :set wrap!<CR>
+	" inoremap <F32> :set wrap!<CR>
 
 	set <F31>=s
 
@@ -1183,8 +1183,8 @@ if !has('nvim')
 	nnoremap <silent> <F33> :set invpaste<CR>:set number!<CR>:set list!<CR>
 	set pastetoggle=<F33>
 else
-	nnoremap <m-w> :set wrap!<CR>
-	inoremap <m-w> :set wrap!<CR>
+	" nnoremap <m-w> :set wrap!<CR>
+	" inoremap <m-w> :set wrap!<CR>
 	noremap <m-s> :update<CR>
 	vnoremap <m-s> <ESC>:update<CR>
 	cnoremap <m-s> <C-C>:update<CR>
@@ -1198,6 +1198,8 @@ else
 	" au! BufRead * set pastetoggle=<m-p>
 endif
 set showmode
+
+nnoremap <Leader>w :set wrap!<CR>
 
 " A slightly perilous set of binds:
 " the terminal in this case sends an escape, followed by a Ctrl char,
