@@ -2451,6 +2451,7 @@ autocmd WinEnter,BufEnter,BufWritePost,VimResized,InsertLeave * noautocmd call H
 nnoremap <Leader>H :noautocmd call HeightSpread()<CR>
 
 " changing these to not switch window because its too damn slow
+" TODO make this into a function which uses v:count1.
 nnoremap = :vertical res +8<CR>
 nnoremap - :vertical res -8<CR>
 nnoremap + :res +8<CR>:noautocmd call HeightSpread()<CR>

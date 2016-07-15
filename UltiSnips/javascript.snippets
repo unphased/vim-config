@@ -58,7 +58,7 @@ if (err) return cb(err);
 endsnippet
 
 snippet l "console.log()" !b
-console.log("$1", $1);
+console.log("$1"${2:, $1});
 endsnippet
 
 snippet i "console.info()" !b
@@ -70,7 +70,7 @@ console.warn(${1});
 endsnippet
 
 snippet e "console.error()" !b
-console.error(${1});
+console.error("$1"${2:, $1});
 endsnippet
 
 snippet a "console.assert()" !b
