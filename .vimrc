@@ -637,9 +637,9 @@ function! SwitchTabPrev()
 endfunc
 
 " Need a proper bind for this. gah
-set <S-F1>=[1;2P
-noremap! <S-F1> <ESC>:tabclose<CR>
-noremap <S-F1> :tabclose<CR>
+" set <S-F1>=[1;2P
+" noremap! <S-F1> <ESC>:tabclose<CR>
+" noremap <S-F1> :tabclose<CR>
 " noremap! <F1> <ESC>:tabnew<CR>
 " noremap <F1> :tabnew<CR>
 " inoremap <F1> <ESC>:tabnew<CR>
