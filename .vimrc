@@ -1953,6 +1953,15 @@ vmap A <Plug>(LiveEasyAlign)
 " use ga such as gaip to align paragraph
 nmap ga <Plug>(LiveEasyAlign)
 
+" add easy-align delims that curiously were not included out of the box.
+let g:easy_align_delimiters = {
+  \ ';': { 'pattern': ';', 'left_margin': 0, 'stick_to_left': 1 },
+  \ '+': { 'pattern': '[+-]'},
+  \ '-': { 'pattern': '[+-]'},
+  \ '*': { 'pattern': '[*/]'},
+  \ '/': { 'pattern': '[*/]'}
+  \ }
+
 " for the octol/vim-cpp-enhanced-highlight plugin
 let g:cpp_experimental_template_highlight=1
 let g:cpp_class_scope_highlight=1
