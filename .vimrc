@@ -1957,9 +1957,11 @@ nmap ga <Plug>(LiveEasyAlign)
 let g:easy_align_delimiters = {
   \ ';': { 'pattern': ';', 'left_margin': 0, 'stick_to_left': 1 },
   \ '+': { 'pattern': '[+-]'},
-  \ '-': { 'pattern': '[+-]'},
   \ '*': { 'pattern': '[*/]'},
-  \ '/': { 'pattern': '[*/]'}
+  \ '/': {
+  \     'pattern':         '//\+\|/\*\|\*/',
+  \     'delimiter_align': 'l',
+  \     'ignore_groups':   ['!Comment'] }
   \ }
 
 " for the octol/vim-cpp-enhanced-highlight plugin
