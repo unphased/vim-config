@@ -766,15 +766,28 @@ inoremap <C-Q> <C-O>:call MyConfirmQuitAllNoSave()<CR>
 " this bit controls search and highlighting by using the Enter key in normal mode
 let g:highlighting = 1
 function! Highlighting()
-  if g:highlighting == 1 && @/ =~ '^\\<'.expand('<cword>').'\\>$'
+  let l:word = expand('<cword>')
+  if g:highlighting == 1 && @/ =~ '^\\<'.l:word.'\\>$'
     let g:highlighting = 0
     return ":silent nohlsearch\<CR>"
   endif
-  let @/ = '\<'.expand('<cword>').'\>'
+  let @/ = '\<'.l:word.'\>'
   " add to history -- can clutter, but def helps
   " NOTE! the item is added without /v so backspace first, then hunt
-  call histadd('search', '\v<' . expand('<cword>') . '>')
+  call histadd('search', '\v<' . l:word . '>')
   let g:highlighting = 1
+  " save this to file system (!) for fast workflow -- disabled now because its 
+  " visually distracting and i need an async way to deal with this...
+  " silent exe "!echo " . l:word . " > $HOME/.vim/.search"
+  " redraw!
+  python << EOF
+from os.path import expanduser
+f = open(expanduser('~') + '/.vim/.search', 'w')
+print f
+w = vim.eval("l:word")
+f.write(w)
+f.close()
+EOF
   return ":silent set hlsearch\<CR>"
 endfunction
 nnoremap <silent> <expr> <CR> Highlighting()
