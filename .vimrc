@@ -1078,7 +1078,9 @@ function! NextWindowOrTabOrBuffer()
 	" Rest of logic is just as sound (and simple) as it ever was
 	if (winnr() == winnr('$'))
 		tabnext
-		1wincmd w "first window
+		" 1wincmd w "first window
+		" not doing this anymore because it works more conveniently to retain 
+		" tab's existing focus state.
 	else
 		wincmd w "next window
 	endif
@@ -1103,7 +1105,7 @@ function! NextWindowOrTabOrBuffer()
 			bnext
 		elseif (winnr() == winnr('$'))
 			tabnext
-			1wincmd w "first window
+			" 1wincmd w "first window
 		else
 			wincmd w "next window
 		endif
@@ -1119,7 +1121,7 @@ function! PrevWindowOrTabOrBuffer()
 	endif
 	if (winnr() == 1)
 		tabprev
-		exec winnr('$').'wincmd w'
+		" exec winnr('$').'wincmd w'
 	else
 		wincmd W
 	endif
@@ -1146,7 +1148,7 @@ function! PrevWindowOrTabOrBuffer()
 			bprev
 		elseif (winnr() == 1)
 			tabprev
-			exec winnr('$').'wincmd w'
+			" exec winnr('$').'wincmd w'
 		else
 			wincmd W
 		endif
