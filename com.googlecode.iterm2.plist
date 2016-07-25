@@ -2023,6 +2023,20 @@
 					<key>Text</key>
 					<string>0x1b 0x1b 0x5b 0x33 0x34 0x7e</string>
 				</dict>
+				<key>0xf70d-0x140000</key>
+				<dict>
+					<key>Action</key>
+					<integer>11</integer>
+					<key>Text</key>
+					<string>0x1b 0x1b 0x5b 0x34 0x34 0x7e</string>
+				</dict>
+				<key>0xf70d-0x160000</key>
+				<dict>
+					<key>Action</key>
+					<integer>11</integer>
+					<key>Text</key>
+					<string>0x1b 0x1b 0x5b 0x35 0x34 0x7e</string>
+				</dict>
 				<key>0xf70d-0x20000</key>
 				<dict>
 					<key>Action</key>
