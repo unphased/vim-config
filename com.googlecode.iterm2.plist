@@ -1108,6 +1108,13 @@
 			<key>Text</key>
 			<string>p</string>
 		</dict>
+		<key>0x72-0x100000</key>
+		<dict>
+			<key>Action</key>
+			<integer>10</integer>
+			<key>Text</key>
+			<string>r</string>
+		</dict>
 		<key>0x73-0x100000</key>
 		<dict>
 			<key>Action</key>
