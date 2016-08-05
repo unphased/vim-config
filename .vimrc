@@ -1081,14 +1081,11 @@ function! NextWindowOrTabOrBuffer()
 		" 1wincmd w "first window
 		" not doing this anymore because it works more conveniently to retain 
 		" tab's existing focus state.
-	else
-		wincmd w "next window
-	endif
 
 	" also provide a user friendly treatment: When this command lands us into 
 	" a non-regular-file window, we will re-evaluate and push to next tab or 
 	" window or buffer as appropriate.
-	if (&bufhidden == 'wipe' || &bufhidden == 'hide')
+	elseif (&bufhidden == 'wipe' || &bufhidden == 'hide')
 		if (tabpagenr('$') == 1)
 			" determine for sure whether we're looking at a single-openfile-tab
 			while winnr() != startWindowIndex
@@ -1109,6 +1106,8 @@ function! NextWindowOrTabOrBuffer()
 		else
 			wincmd w "next window
 		endif
+	else
+		wincmd w "next window
 	endif
 endfunc
 
