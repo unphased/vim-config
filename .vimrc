@@ -1081,11 +1081,15 @@ function! NextWindowOrTabOrBuffer()
 		" 1wincmd w "first window
 		" not doing this anymore because it works more conveniently to retain 
 		" tab's existing focus state.
+	else
+		wincmd w "next window
+	endif
 
 	" also provide a user friendly treatment: When this command lands us into 
 	" a non-regular-file window, we will re-evaluate and push to next tab or 
-	" window or buffer as appropriate.
-	elseif (&bufhidden == 'wipe' || &bufhidden == 'hide')
+	" window or buffer as appropriate. With the new behavior of leaving cursor 
+	" where it lies, it slightly complicates this, but not by much.
+	if (&bufhidden == 'wipe' || &bufhidden == 'hide')
 		if (tabpagenr('$') == 1)
 			" determine for sure whether we're looking at a single-openfile-tab
 			while winnr() != startWindowIndex
@@ -1101,13 +1105,12 @@ function! NextWindowOrTabOrBuffer()
 			endwhile
 			bnext
 		elseif (winnr() == winnr('$'))
+			1wincmd w " reset to first on this tab
 			tabnext
 			" 1wincmd w "first window
 		else
 			wincmd w "next window
 		endif
-	else
-		wincmd w "next window
 	endif
 endfunc
 
@@ -1146,6 +1149,7 @@ function! PrevWindowOrTabOrBuffer()
 			" buffer swap
 			bprev
 		elseif (winnr() == 1)
+			" not likely to land in here given behavior of 'preview' windows
 			tabprev
 			" exec winnr('$').'wincmd w'
 		else
