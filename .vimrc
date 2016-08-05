@@ -1105,7 +1105,7 @@ function! NextWindowOrTabOrBuffer()
 			endwhile
 			bnext
 		elseif (winnr() == winnr('$'))
-			1wincmd w " reset to first on this tab
+			wincmd W " go back to one before
 			tabnext
 			" 1wincmd w "first window
 		else
