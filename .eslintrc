@@ -29,7 +29,10 @@
         "no-trailing-spaces": [0, { "skipBlankLines": true  }],
         "semi": [2, "always"],
         "no-underscore-dangle": 0,
-        "no-unused-vars": [1, {"vars": "all", "args": "after-used"}],
+        "no-unused-vars": [1, {
+            "args": "after-used",
+            "argsIgnorePattern": "^_"
+        }],
         "no-use-before-define": 0,
         "no-loop-func": 0,
         "no-multi-spaces": 1,
