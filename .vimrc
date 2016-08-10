@@ -2435,7 +2435,7 @@ if not abort: # if aborting just effectively skip the rest
 	fits = sorted(fits_unsorted + split, key=lambda x: int(x[2]))
 	for w, l, o, b in fits:
 		# last value is flag whether fits or not. only if fits do we scroll them up
-		vim.command('call add(final, [' + w + ', ' + str(l) + ', "' + ('fit' if b else 'no') + '"])')
+		vim.command('call add(final, [' + str(w) + ', ' + str(l) + ', "' + ('fit' if b else 'no') + '"])')
 # print 'after sortin: ' + str(fits)
 # print 'taken ' + str(time.time() - timestart)
 EOF
