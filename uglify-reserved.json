@@ -1,0 +1,4 @@
+{
+  "vars": [ "define", "require" ],
+  "props": [ "length", "prototype", "transparent", "material" ]
+}
