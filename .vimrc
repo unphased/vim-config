@@ -345,6 +345,7 @@ nmap <silent> <F5> :FSSplitBelow<CR>
 " additional fswitch definitions are implemented not through any friendly 
 " variables but through defining variables via file autocommands -- i think it's
 " admissible as its fairly straightforward reasoning, at least
+au BufEnter *.cu let b:fswitchdst = 'h'
 au BufEnter *.vsh let b:fswitchdst = 'fsh'
 au BufEnter *.fsh let b:fswitchdst = 'vsh'
 au BufEnter *.mm  let b:fswitchdst = 'h' | let b:fswitchlocs = 'reg:/src/include/,reg:|src|include/**|,ifrel:|/src/|../include|'
