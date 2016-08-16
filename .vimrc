@@ -784,7 +784,7 @@ function! Highlighting()
   python << EOF
 from os.path import expanduser
 f = open(expanduser('~') + '/.vim/.search', 'w')
-print f
+# print f
 w = vim.eval("l:word")
 f.write(w)
 f.close()
