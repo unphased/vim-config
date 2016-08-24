@@ -1074,15 +1074,12 @@ function! NextWindowOrTabOrBuffer()
 	if (winnr('$') == 1 && tabpagenr('$') == 1)
 		" only situation where we cycle to next buffer
 		bnext
-		return
-	endif
-	" if only one tab but multiple windows still do cycle the windows at end
-	if (tabpagenr('$') == 1)
+		" if only one tab but multiple windows still do cycle the windows at 
+		" end
+	elseif (tabpagenr('$') == 1)
 		wincmd w
-		return
-	endif
-	" Rest of logic is just as sound (and simple) as it ever was
-	if (winnr() == winnr('$'))
+		" Rest of logic is just as sound (and simple) as it ever was
+	elseif (winnr() == winnr('$'))
 		tabnext
 		" 1wincmd w "first window
 		" not doing this anymore because it works more conveniently to retain 
@@ -1110,6 +1107,8 @@ function! NextWindowOrTabOrBuffer()
 				endif
 			endwhile
 			bnext
+		elseif (tabpagenr('$') == 1)
+			wincmd w
 		elseif (winnr() == winnr('$'))
 			wincmd W " go back to one before
 			tabnext
@@ -1125,13 +1124,9 @@ function! PrevWindowOrTabOrBuffer()
 	if (winnr('$') == 1 && tabpagenr('$') == 1)
 		" only situation where we cycle to next buffer
 		bprev
-		return
-	endif
-	if (tabpagenr('$') == 1)
+	elseif (tabpagenr('$') == 1)
 		wincmd W
-		return
-	endif
-	if (winnr() == 1)
+	elseif (winnr() == 1)
 		tabprev
 		" exec winnr('$').'wincmd w'
 	else
@@ -1158,6 +1153,8 @@ function! PrevWindowOrTabOrBuffer()
 			" to the main buffer so it means that it is necessary to go do the 
 			" buffer swap
 			bprev
+		elseif (tabpagenr('$') == 1)
+			wincmd W
 		elseif (winnr() == 1)
 			" not likely to land in here given behavior of 'preview' windows
 			tabprev
