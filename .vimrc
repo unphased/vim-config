@@ -1076,6 +1076,11 @@ function! NextWindowOrTabOrBuffer()
 		bnext
 		return
 	endif
+	" if only one tab but multiple windows still do cycle the windows at end
+	if (tabpagenr('$') == 1)
+		wincmd w
+		return
+	endif
 	" Rest of logic is just as sound (and simple) as it ever was
 	if (winnr() == winnr('$'))
 		tabnext
@@ -1120,6 +1125,10 @@ function! PrevWindowOrTabOrBuffer()
 	if (winnr('$') == 1 && tabpagenr('$') == 1)
 		" only situation where we cycle to next buffer
 		bprev
+		return
+	endif
+	if (tabpagenr('$') == 1)
+		wincmd W
 		return
 	endif
 	if (winnr() == 1)
