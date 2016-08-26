@@ -3,6 +3,6 @@
 " to open up the files (itd be real cool if it worked, but still not worth
 " making the searches fail to match on those very calls since they become
 " huge words)
-set iskeyword-=:
-set iskeyword-=$
+setlocal iskeyword-=:
+setlocal iskeyword-=$
 
