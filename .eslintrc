@@ -12,7 +12,6 @@
         "jsx": true
     },
     "plugins": [
-        "react"
     ],
     "globals": {
         "app": true,
