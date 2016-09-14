@@ -1930,11 +1930,11 @@ function! EnhancedDot(count)
 	while c > 0
 		" echom 'count is '.c
 		if (hlsearchCurrent)
-			echom 'seeking next mat'
+			" echom 'seeking next mat'
 			silent! normal n
 			normal .
 		else
-			echom 'advancing line because no hlsearch'
+			" echom 'advancing line because no hlsearch'
 			normal .j
 		endif
 		let c -= 1
