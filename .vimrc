@@ -1671,6 +1671,11 @@ nmap Y y$
 
 set switchbuf=usetab,split
 
+" This clears the bgcolor set by the colorscheme, and inherits term background 
+" color provided helpfully by tmux. Quite nice and useful for bgcolor visual 
+" focus and it's free and performant.
+highlight Normal ctermbg=NONE
+
 " now that focuslost works with iterm and tmux maybe this is just generally 
 " improved behavior. Do have to be careful, but it speeds shit up when rapidly 
 " working
