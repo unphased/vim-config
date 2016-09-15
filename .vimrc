@@ -79,6 +79,7 @@ Plugin 'kana/vim-textobj-user'
 
 Plugin 'Ron89/thesaurus_query.vim'
 Plugin 'AndrewRadev/switch.vim'
+Plugin 'vim-scripts/ZoomWin'
 
 " Bundle 'Decho'
 
@@ -1682,7 +1683,8 @@ set switchbuf=usetab,split
 " au FocusLost * silent! wa
 
 " just also exit insert mode when swapping out via click or whatever
-au FocusLost * stopinsert 
+" au FocusLost * stopinsert
+" FocusLost seems to not work at all
 
 " for tagbar
 " add a definition for Objective-C to tagbar
