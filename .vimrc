@@ -79,6 +79,7 @@ Plugin 'kana/vim-textobj-user'
 
 Plugin 'Ron89/thesaurus_query.vim'
 Plugin 'AndrewRadev/switch.vim'
+Plugin 'vim-scripts/ZoomWin'
 
 " Bundle 'Decho'
 
@@ -99,7 +100,7 @@ au! BufRead,BufNewFile *.mm set ft=objcpp
 au! BufRead,BufNewFile *.mlp set ft=xml
 au! BufNewFile,BufRead *.vsh,*.fsh,*.vp,*.fp,*.gp,*.vs,*.fs,*.gs,*.tcs,*.tes,*.cs,*.vert,*.frag,*.geom,*.tess,*.shd,*.gls,*.glsl set ft=glsl440
 au! BufNewFile,BufReadPost *.md set filetype=markdown
-au! BufRead,BufNewFile CUDA*.in,*.cuda,*.cu set ft=cuda
+au! BufRead,BufNewFile CUDA*.in,*.cuda,*.cu,*.cuh set ft=cuda
 
 " customize it for my usual workflow
 autocmd FileType gitcommit set nosmartindent | set formatoptions-=t
@@ -1670,6 +1671,11 @@ nmap Y y$
 
 set switchbuf=usetab,split
 
+" This clears the bgcolor set by the colorscheme, and inherits term background 
+" color provided helpfully by tmux. Quite nice and useful for bgcolor visual 
+" focus and it's free and performant.
+highlight Normal ctermbg=NONE
+
 " now that focuslost works with iterm and tmux maybe this is just generally 
 " improved behavior. Do have to be careful, but it speeds shit up when rapidly 
 " working
@@ -1682,7 +1688,8 @@ set switchbuf=usetab,split
 " au FocusLost * silent! wa
 
 " just also exit insert mode when swapping out via click or whatever
-au FocusLost * stopinsert 
+" au FocusLost * stopinsert
+" FocusLost seems to not work at all
 
 " for tagbar
 " add a definition for Objective-C to tagbar
@@ -1930,11 +1937,11 @@ function! EnhancedDot(count)
 	while c > 0
 		" echom 'count is '.c
 		if (hlsearchCurrent)
-			echom 'seeking next mat'
+			" echom 'seeking next mat'
 			silent! normal n
 			normal .
 		else
-			echom 'advancing line because no hlsearch'
+			" echom 'advancing line because no hlsearch'
 			normal .j
 		endif
 		let c -= 1
