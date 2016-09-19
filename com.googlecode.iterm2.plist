@@ -1096,7 +1096,7 @@
 	<key>EnableRendezvous</key>
 	<false/>
 	<key>FocusFollowsMouse</key>
-	<true/>
+	<false/>
 	<key>FsTabDelay</key>
 	<real>10</real>
 	<key>GlobalKeyMap</key>
@@ -1268,15 +1268,15 @@
 	<key>NSWindow Frame Preferences</key>
 	<string>270 580 606 456 0 0 1680 1050 </string>
 	<key>NSWindow Frame SUAutomaticUpdateAlert</key>
-	<string>972 932 616 174 0 0 2560 1417 </string>
+	<string>972 1832 616 174 0 900 2560 1417 </string>
 	<key>NSWindow Frame SUStatusFrame</key>
 	<string>640 674 400 129 0 0 1680 1050 </string>
 	<key>NSWindow Frame SUUpdateAlert</key>
 	<string>2410 965 620 392 1440 179 2560 1440 </string>
 	<key>NSWindow Frame SharedPreferences</key>
-	<string>537 268 796 473 0 0 2560 1417 </string>
+	<string>537 1186 796 473 0 900 2560 1440 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>0 230 435 797 0 0 1680 1027 </string>
+	<string>0 900 2560 1440 0 900 2560 1417 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
 	<string>212 101 570 452 0 0 1680 1027 </string>
 	<key>NeverWarnAboutShortLivedSessions_BABC3C6F-E892-4635-AD49-85E57CE1D5AF</key>
@@ -5714,7 +5714,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2016-09-06T20:51:55Z</date>
+	<date>2016-09-19T14:02:27Z</date>
 	<key>SUSendProfileInfo</key>
 	<false/>
 	<key>SavePasteHistory</key>
@@ -5776,7 +5776,7 @@
 	<key>findRegex_iTerm</key>
 	<true/>
 	<key>iTerm Version</key>
-	<string>3.0.5</string>
+	<string>3.0.8</string>
 	<key>kCPKSelectionViewPreferredModeKey</key>
 	<integer>6</integer>
 	<key>kCPKSelectionViewShowHSBTextFieldsKey</key>
