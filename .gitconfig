@@ -18,8 +18,8 @@
 	diff-with-ignored = "!f() { git diff --no-ext-diff; ignored=$(git ignored | cut -d ' ' -f 2); [ -n \"$ignored\" ] && echo \"git skip-worktree (ignored):\" && for var in $ignored; do echo [31m$var[m; git show HEAD:$var | diff -u - $var; done };f"
 	diff-with-ignored-ext = "!f() { git diff --ext-diff | cat; ignored=$(git ignored | cut -d ' ' -f 2); [ -n \"$ignored\" ] && echo \"git skip-worktree (ignored):\" && for var in $ignored; do echo [31m$var[m; git show HEAD:$var | sift - $var; done };f"
 
-	commit-push = "!f() { git commit -am \"$*\" && git push; };f"
-	commit-message = "!f() { git commit -am \"$*\"; };f"
+	commit-push = "!f() { git commit-message \"$*\" && git push; };f"
+	commit-message = "!f() { [ -z \"$*\" ] && git commit -am \"- old bugs fixed\n- new bugs added\" || git commit -am \"$*\"; };f"
 [difftool]
 	prompt = false
 [diff]
