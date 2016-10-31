@@ -31,7 +31,6 @@ alias mk="make"
 alias gcp="git commit-push"
 
 #Dupes of useful ones from omz
-alias gl="git pull"
 alias gp="git push"
 alias gst="git status-with-ignored"
 alias ga="git add"
@@ -83,6 +82,7 @@ export LESS_TERMCAP_us=$'\E[04;38;5;146m' # begin underline
 # start to use (these may come back later when #4585 completes)
 alias gdc='git diff --cached'
 alias gap='git add --patch'
+alias gsl='git stash list -p --ext-diff'
 
 alias grepc='grep --color=always --exclude=\*{.,-}min.\*'
 alias cack='ack --color'
