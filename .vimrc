@@ -1108,12 +1108,17 @@ function! NextWindowOrTabOrBuffer()
 				endif
 			endwhile
 			bnext
-		elseif (winnr() == winnr('$'))
-			wincmd W " go back to one before
-			tabnext
-			" 1wincmd w "first window
 		else
-			wincmd w "next window
+			" step forward while bufhidden, if end, scan back and then tabnext.
+			while (winnr() != startWindowIndex && (&bufhidden == 'wipe' || &bufhidden == 'hide'))
+				if (winnr() == winnr('$'))
+					while (winnr() != startWindowIndex && (&bufhidden == 'wipe' || &bufhidden == 'hide'))
+						wincmd W
+					endwhile
+					tabnext
+				endif
+				wincmd w
+			endwhile
 		endif
 	endif
 endfunc
@@ -1152,13 +1157,16 @@ function! PrevWindowOrTabOrBuffer()
 			" to the main buffer so it means that it is necessary to go do the 
 			" buffer swap
 			bprev
-		elseif (winnr() == 1)
-			" not likely to land in here given behavior of 'preview' windows
-			wincmd w " go back to one after
-			tabprev
-			" exec winnr('$').'wincmd w'
-		else
-			wincmd W
+		else 
+			while (winnr() != startWindowIndex && (&bufhidden == 'wipe' || &bufhidden == 'hide'))
+				if (winnr() == 1)
+					while (winnr() != startWindowIndex && (&bufhidden == 'wipe' || &bufhidden == 'hide'))
+						wincmd w
+					endwhile
+					tabprev
+				endif
+				wincmd W
+			endwhile
 		endif
 	endif
 endfunc
