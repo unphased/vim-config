@@ -1108,8 +1108,6 @@ function! NextWindowOrTabOrBuffer()
 				endif
 			endwhile
 			bnext
-		elseif (tabpagenr('$') == 1)
-			wincmd w
 		elseif (winnr() == winnr('$'))
 			wincmd W " go back to one before
 			tabnext
@@ -1154,10 +1152,9 @@ function! PrevWindowOrTabOrBuffer()
 			" to the main buffer so it means that it is necessary to go do the 
 			" buffer swap
 			bprev
-		elseif (tabpagenr('$') == 1)
-			wincmd W
 		elseif (winnr() == 1)
 			" not likely to land in here given behavior of 'preview' windows
+			wincmd w " go back to one after
 			tabprev
 			" exec winnr('$').'wincmd w'
 		else
