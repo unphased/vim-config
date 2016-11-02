@@ -20,6 +20,7 @@ alias gdi="git diff-with-ignored"
 alias di="git diff-with-ignored-ext"
 # alias gde="git diff --ext-diff"
 alias gdc="gd --cached"
+unalias gg # some git gui thing from ohmyzsh
 # alias gg="git lg --all"
 alias gca="git commit -av"
 alias gcm="git commit-message"
