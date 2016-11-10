@@ -68,8 +68,16 @@ Plugin 't9md/vim-textmanip'
 Plugin 'tpope/vim-afterimage'
 Plugin 'junegunn/vim-easy-align'
 Plugin 'blueyed/argtextobj.vim'
-Plugin 'octol/vim-cpp-enhanced-highlight'
+
+" Plugin 'octol/vim-cpp-enhanced-highlight' " this broke way too often on 
+" modern c++ files. Really problematic angle bracket handling.
+
 Plugin 'unphased/Cpp11-Syntax-Support'
+" apparently a somewhat-working extension from base cpp stuff. At least it isnt
+" a breaking one.
+
+Plugin 'Mizuchi/STL-Syntax'
+
 Plugin 'unphased/vim-html-escape' " my master has gdefault detecting tweak
 
 Plugin 'vim-scripts/showmultibase'
