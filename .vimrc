@@ -1947,7 +1947,7 @@ function! EnhancedDot(count)
 			normal .
 		else
 			" echom 'advancing line because no hlsearch'
-			normal .j
+			normal! .j
 		endif
 		let c -= 1
 	endwhile
