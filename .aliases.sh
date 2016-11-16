@@ -21,7 +21,7 @@ alias di="git diff-with-ignored-ext"
 # alias gde="git diff --ext-diff"
 alias gdc="gd --cached"
 unalias gg # some git gui thing from ohmyzsh
-# alias gg="git lg --all"
+alias gg="git lg --all"
 alias gca="git commit -av"
 alias gcm="git commit-message"
 unalias gcp # I rarely cherry pick (if not using ohmyzsh, this will cause bash to emit a warning)
@@ -83,7 +83,7 @@ export LESS_TERMCAP_us=$'\E[04;38;5;146m' # begin underline
 # start to use (these may come back later when #4585 completes)
 alias gdc='git diff --cached'
 alias gap='git add --patch'
-# alias gsl='git stash list -p --ext-diff'
+alias gsl='git stash list -p --ext-diff'
 
 alias grepc='grep --color=always --exclude=\*{.,-}min.\*'
 alias cack='ack --color'
