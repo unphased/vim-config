@@ -10,15 +10,15 @@ alias la="ll -a"
 alias g="git"
 alias gs="git s" # short status 
 alias gco="git checkout"
-# alias glp="git log -p --no-ext-diff"
+alias glp="git log -p --no-ext-diff"
 alias glpf="git log -p --no-ext-diff --follow"
-# alias glpe="git log -p --ext-diff"
+alias glpe="git log -p --ext-diff"
 alias glpef="git log -p --ext-diff --follow"
 alias gd="git diff --no-ext-diff"
 alias gds="git diff --stat"
 alias gdi="git diff-with-ignored"
 alias di="git diff-with-ignored-ext"
-# alias gde="git diff --ext-diff"
+alias gde="git diff --ext-diff"
 alias gdc="gd --cached"
 unalias gg # some git gui thing from ohmyzsh
 alias gg="git lg --all"
@@ -29,10 +29,10 @@ alias gp="git push"
 alias k='l' # this is a bit tongue in cheek
 
 alias mk="make"
-# alias gcp="git commit-push"
+alias gcp="git commit-push"
 
 #Dupes of useful ones from omz
-# alias gp="git push"
+alias gp="git push"
 alias gst="git status-with-ignored"
 alias ga="git add"
 
