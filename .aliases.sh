@@ -28,6 +28,8 @@ unalias gcp # I rarely cherry pick (if not using ohmyzsh, this will cause bash t
 alias gp="git push"
 alias k='l' # this is a bit tongue in cheek
 
+alias gl="git pull"
+
 alias mk="make"
 alias gcp="git commit-push"
 
