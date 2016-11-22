@@ -1961,12 +1961,12 @@ function! EnhancedDot(count)
 	endwhile
 endfunction
 
-" keymap definitions for textmanip
-xmap <C-D> <Plug>(textmanip-duplicate-down)
-nmap <C-D> <Plug>(textmanip-duplicate-down)
-" Not sure if i need to consume ctrl+u for this. May not ever use it...
-xmap <C-U> <Plug>(textmanip-duplicate-up)
-nmap <C-U> <Plug>(textmanip-duplicate-up)
+" " keymap definitions for textmanip
+" xmap <C-D> <Plug>(textmanip-duplicate-down)
+" nmap <C-D> <Plug>(textmanip-duplicate-down)
+" " Not sure if i need to consume ctrl+u for this. May not ever use it...
+" xmap <C-U> <Plug>(textmanip-duplicate-up)
+" nmap <C-U> <Plug>(textmanip-duplicate-up)
 
 xmap <Down> <Plug>(textmanip-move-down)
 xmap <Up> <Plug>(textmanip-move-up)
