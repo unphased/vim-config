@@ -9,7 +9,8 @@
         "jsx": true
     },
     "ecmaFeatures": {
-        "jsx": true
+        "jsx": true,
+        "templateStrings": true
     },
     "plugins": [
     ],
@@ -36,6 +37,7 @@
         "no-loop-func": 0,
         "no-multi-spaces": 1,
         "no-empty": 1,
+        "space-infix-ops": 0,
         "new-cap": 0,
         "no-shadow": 1,
         "comma-dangle": 1,
