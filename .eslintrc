@@ -2,15 +2,15 @@
     "env": {
         "browser": true,
         "node": true,
-        "jquery": true
+        "jquery": true,
+        "es6": true
     },
     "settings": {
         "ecmascript": 6,
         "jsx": true
     },
     "ecmaFeatures": {
-        "jsx": true,
-        "templateStrings": true
+        "jsx": true
     },
     "plugins": [
     ],
