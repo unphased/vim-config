@@ -89,7 +89,6 @@ Plugin 'Ron89/thesaurus_query.vim'
 Plugin 'AndrewRadev/switch.vim'
 Plugin 'vim-scripts/ZoomWin'
 
-Plugin 'flowtype/vim-flow'
 
 " Bundle 'Decho'
 
