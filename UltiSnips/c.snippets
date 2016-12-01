@@ -9,3 +9,7 @@ snippet #ifd "#ifdef #else #endif" b
 ${VISUAL}$0#else
 #endif /* $1 */
 endsnippet
+
+snippet p "printf"
+printf("${VISUAL}$1 %d\n"${2:, ${VISUAL}$1});
+endsnippet
