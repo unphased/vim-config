@@ -20,6 +20,7 @@
         "_": true,
         "logger": true,
         "moment": true,
+        "vex": true,
         "path": true,
         "THREE": true
     },
