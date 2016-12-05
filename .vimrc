@@ -825,6 +825,14 @@ function! s:VSetSearch(cmd)
       let pat = substitute(pat, '\_s\+', '\\_s\\+', 'g')
     endif
     let @/ = '\V'.pat
+	python << EOF
+from os.path import expanduser
+f = open(expanduser('~') + '/.vim/.search', 'w')
+# print f
+w = vim.eval("pat")
+f.write(w)
+f.close()
+EOF
   endif
   normal! gV
   call setreg('"', old_reg, old_regtype)
