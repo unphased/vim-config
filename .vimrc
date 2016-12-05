@@ -2569,6 +2569,9 @@ nnoremap <silent> g: :set opfunc=SourceVimscript<cr>g@
 vnoremap <silent> g: :<c-U>call SourceVimscript("visual")<cr>
 nnoremap <silent> g:: :call SourceVimscript("currentline")<cr>
 
+" an interactive statusline that shows the number of search matches in the 
+" buffer. Not really sure what I used this for, but it is quite clunky as it is
+" now.
 " this should maybe evenutally get integrated into airline. For the time being 
 " we can manually enable this mode (and lose all of statusline) when we want 
 " this capability...
