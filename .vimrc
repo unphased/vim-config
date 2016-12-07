@@ -2,97 +2,96 @@ set nocompatible
 set encoding=utf-8
 set showcmd
 
-filetype off " Vundle needs this
+set autoindent
 
-set rtp+=~/.vim/bundle/Vundle.vim/
-call vundle#rc()
+filetype plugin indent on
 
-Plugin 'VundleVim/Vundle.vim'
-Plugin 'Valloric/YouCompleteMe'
-" Plugin 'simnalamburt/vim-mundo'
-Plugin 'mbbill/undotree'
-Plugin 'rhysd/clever-f.vim'
+call plug#begin('~/.vim/plugged')
 
-Plugin 'scrooloose/nerdtree'
-Plugin 'scrooloose/syntastic'
-Plugin 'ctrlpvim/ctrlp.vim'
-Plugin 'diffchanges.vim'
-Plugin 'tpope/vim-repeat'
-Plugin 'tpope/vim-surround'
-Plugin 'tpope/vim-speeddating'
-Plugin 'tpope/vim-commentary'
-Plugin 'tpope/vim-obsession'
-Plugin 'tpope/vim-fugitive'
-Plugin 'tpope/vim-abolish'
-Plugin 'vim-perl/vim-perl'
+Plug 'Valloric/YouCompleteMe'
+" Plug 'simnalamburt/vim-mundo'
+Plug 'mbbill/undotree'
+Plug 'rhysd/clever-f.vim'
+
+Plug 'scrooloose/nerdtree'
+Plug 'scrooloose/syntastic'
+Plug 'ctrlpvim/ctrlp.vim'
+Plug 'diffchanges.vim'
+Plug 'tpope/vim-repeat'
+Plug 'tpope/vim-surround'
+Plug 'tpope/vim-speeddating'
+Plug 'tpope/vim-commentary'
+Plug 'tpope/vim-obsession'
+Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-abolish'
+Plug 'vim-perl/vim-perl'
 "Bundle 'Raimondi/delimitMate'
-Plugin 'mattn/emmet-vim'
-Plugin 'unphased/git-time-lapse'
-Plugin 'maxbrunsfeld/vim-yankstack'
-Plugin 'ldx/vim-indentfinder'
-Plugin 'nathanaelkane/vim-indent-guides'
-Plugin 'unphased/HiCursorWords'
-Plugin 'dimasg/vim-mark'
+Plug 'mattn/emmet-vim'
+Plug 'unphased/git-time-lapse'
+Plug 'maxbrunsfeld/vim-yankstack'
+Plug 'ldx/vim-indentfinder'
+Plug 'nathanaelkane/vim-indent-guides'
+Plug 'unphased/HiCursorWords'
+Plug 'dimasg/vim-mark'
 " Bundle 'kien/rainbow_parentheses.vim'
 "Bundle 'airblade/vim-gitgutter'
 "Bundle 'akiomik/git-gutter-vim'
-Plugin 'mhinz/vim-signify'
-Plugin 'pangloss/vim-javascript'
-" Plugin 'jelera/vim-javascript-syntax'
-Plugin 'beyondmarc/glsl.vim'
+Plug 'mhinz/vim-signify'
+Plug 'pangloss/vim-javascript'
+" Plug 'jelera/vim-javascript-syntax'
+Plug 'beyondmarc/glsl.vim'
 "Bundle 'kana/vim-smartinput'
-Plugin 'SirVer/ultisnips'
-Plugin 'honza/vim-snippets'
+Plug 'SirVer/ultisnips'
+Plug 'honza/vim-snippets'
 " Bundle 'oblitum/rainbow'
-" Plugin 'marijnh/tern_for_vim'
-Plugin 'unphased/vim-airline'
-Plugin 'derekwyatt/vim-fswitch'
-Plugin 'wakatime/vim-wakatime'
-Plugin 'panozzaj/vim-autocorrect'
-Plugin 'kshenoy/vim-signature'
-Plugin 'jiangmiao/auto-pairs'
-"Plugin 'mxw/vim-jsx'
+" Plug 'marijnh/tern_for_vim'
+Plug 'unphased/vim-airline'
+Plug 'derekwyatt/vim-fswitch'
+Plug 'wakatime/vim-wakatime'
+Plug 'panozzaj/vim-autocorrect'
+Plug 'kshenoy/vim-signature'
+Plug 'jiangmiao/auto-pairs'
+"Plug 'mxw/vim-jsx'
 
-Plugin 'tmux-plugins/vim-tmux'
+Plug 'tmux-plugins/vim-tmux'
 
-Plugin 'majutsushi/tagbar'
+Plug 'majutsushi/tagbar'
 
-Plugin 'tpope/vim-unimpaired'
+Plug 'tpope/vim-unimpaired'
 
-Plugin 'vim-scripts/camelcasemotion'
-Plugin 'vim-scripts/ingo-library' " needed for EnhancedJumps
-Plugin 'vim-scripts/EnhancedJumps'
+Plug 'vim-scripts/camelcasemotion'
+Plug 'vim-scripts/ingo-library' " needed for EnhancedJumps
+Plug 'vim-scripts/EnhancedJumps'
 
-Plugin 't9md/vim-textmanip'
-" Plugin 'vim-scripts/hexman.vim'
-Plugin 'tpope/vim-afterimage'
-Plugin 'junegunn/vim-easy-align'
-Plugin 'blueyed/argtextobj.vim'
+Plug 't9md/vim-textmanip'
+" Plug 'vim-scripts/hexman.vim'
+Plug 'tpope/vim-afterimage'
+Plug 'junegunn/vim-easy-align'
+Plug 'blueyed/argtextobj.vim'
 
-" Plugin 'octol/vim-cpp-enhanced-highlight' " this broke way too often on 
+" Plug 'octol/vim-cpp-enhanced-highlight' " this broke way too often on 
 " modern c++ files. Really problematic angle bracket handling.
 
-Plugin 'unphased/Cpp11-Syntax-Support'
+Plug 'unphased/Cpp11-Syntax-Support'
 " apparently a somewhat-working extension from base cpp stuff. At least it isnt
 " a breaking one.
 
-Plugin 'Mizuchi/STL-Syntax'
+Plug 'Mizuchi/STL-Syntax'
 
-Plugin 'unphased/vim-html-escape' " my master has gdefault detecting tweak
+Plug 'unphased/vim-html-escape' " my master has gdefault detecting tweak
 
-Plugin 'vim-scripts/showmultibase'
-Plugin 'rking/ag.vim'
-Plugin 'AndrewRadev/sideways.vim'
-Plugin 'kana/vim-textobj-user'
+Plug 'vim-scripts/showmultibase'
+Plug 'rking/ag.vim'
+Plug 'AndrewRadev/sideways.vim'
+Plug 'kana/vim-textobj-user'
 
-Plugin 'Ron89/thesaurus_query.vim'
-Plugin 'AndrewRadev/switch.vim'
-Plugin 'vim-scripts/ZoomWin'
+Plug 'Ron89/thesaurus_query.vim'
+Plug 'AndrewRadev/switch.vim'
+Plug 'vim-scripts/ZoomWin'
 
+call plug#end()
 
 " Bundle 'Decho'
-
-filetype plugin indent on "more Vundle setup
 
 "
 " Brief help
