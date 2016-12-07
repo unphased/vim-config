@@ -812,6 +812,14 @@ function! s:VSetSearch(cmd)
   let old_reg = getreg('"')
   let old_regtype = getregtype('"')
   normal! gvy
+  python << EOF
+from os.path import expanduser
+f = open(expanduser('~') + '/.vim/.search', 'w')
+# print f
+w = vim.eval("@@")
+f.write(w)
+f.close()
+EOF
   if @@ =~? '^[0-9a-z,_]*$' || @@ =~? '^[0-9a-z ,_]*$' && g:VeryLiteral
     let @/ = @@
   else
