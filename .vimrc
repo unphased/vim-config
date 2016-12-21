@@ -130,6 +130,7 @@ if !has('nvim')
 	set <F20>=.
 	set <F19>=,
 	set <F16>=>
+	set <F14>=<
 endif
 
 " Ultisnips settings (to have it work together with YCM)
@@ -1347,10 +1348,53 @@ endif
 " hard to reach anyway, I abandoned this map for a while
 " Hmmm, I've been actually typing [n]@@ a lot lately to run my macros, i dunno.
 if has('nvim')
-	nnoremap <m-,> n@q
+	nnoremap <m-<> :<C-u>call EnhancedComma('')<CR>
+	nnoremap <m-,> :<C-u>call EnhancedComma(v:count1)<CR>
 else
-	nnoremap <F19> n@q
+	nnoremap <F14> :<C-u>call EnhancedComma('')<CR>
+	nnoremap <F19> :<C-u>call EnhancedComma(v:count1)<CR>
 endif
+
+function! EnhancedComma(count)
+	" when no count, run it as many times as the match remains. That's done 
+	" with fancy redir technique
+	let hlsearchCurrent = v:hlsearch
+	let c = a:count
+	redir => searchcount
+	silent! %s///n " this is not gn because i use g reversal (its called gdefault!)
+	redir END
+	let cc = split(searchcount, '\D\+')
+	let ct = cc[0]
+	if searchcount =~ 'Error'
+		" this is the way to catch the zero matches case
+		let ct = 0
+	endif
+	" echom 'searchcount =~ '.(searchcount =~ 'Error')
+	if (c == '' && hlsearchCurrent)
+		let c = ct
+		echom 'running comma '.c.' times (all matches)...'
+	elseif c == ''
+		echom 'put search on to run comma on all matches'
+		return
+	endif
+	" echom ct.' ## '.c
+	if ct < c
+		echom 'found fewer matches than requested ('.c.'), running only '.ct.' times'
+		let c = ct
+	endif
+	while c > 0
+		" echom 'count is '.c
+		if (hlsearchCurrent)
+			" echom 'seeking next mat'
+			silent! normal n
+			normal .
+		else
+			" echom 'advancing line because no hlsearch'
+			normal! .j
+		endif
+		let c -= 1
+	endwhile
+endfunction
 
 " more ctrlp settings
 let g:ctrlp_switch_buffer = 'Et' " Jump to tab AND buffer if already open

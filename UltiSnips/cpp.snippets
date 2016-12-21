@@ -111,8 +111,8 @@ ${4:void} ${1:`!p snip.rv = snip.basename`}::${2:memberFunction}(${3}) {
 }
 endsnippet
 
-snippet cout "cout"
-${2:std::}cout << $1 << $2endl;${0}
+snippet o "cout"
+${3:std::}cout << "${VISUAL}$1 " ${2:<< ${VISUAL}$1 }<< $3endl;${0}
 endsnippet
 
 snippet e "cerr"
