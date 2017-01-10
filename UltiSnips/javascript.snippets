@@ -6,7 +6,7 @@ endsnippet
 
 snippet f "Basic function" !w
 function ${VISUAL}$1(${2}) {
-${3}
+    ${3}
 }
 endsnippet
 
@@ -18,25 +18,19 @@ snippet s "var self" !w
 var self = this;
 endsnippet
 
-snippet p "Promise" !w
-new Promise(function(resolve, reject){
-${1}
-});
-endsnippet
-
 snippet bp "break point" !w
 debugger;
 endsnippet
 
-snippet f, "Basic function with comma" !w
+snippet f, "Basic (anon) function with comma" !w
 function ${3}(${1}) {
-${2}
+    ${2}
 },
 endsnippet
 
-snippet f; "Basic function with semicolon" !w
+snippet f; "Basic (anon) function with semicolon" !w
 function ${3}(${1}) {
-${2}
+    ${2}
 };
 endsnippet
 
@@ -54,7 +48,7 @@ endsnippet
 
 snippet iferr "if error" !b
 if (err) {
-${1}
+    ${1}
 }
 endsnippet
 
