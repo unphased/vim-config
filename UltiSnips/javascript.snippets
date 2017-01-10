@@ -1,5 +1,7 @@
 snippet ok "Object.keys(object).map(function(){})" !w
-Object.keys(${VISUAL}$1)${2:.map(function (${4:e}){return ${3:$4};})};
+Object.keys(${VISUAL}${1:obj})${2:.map(function (${4:e}){
+    return ${3:$1[$4]};
+})};
 endsnippet
 
 snippet f "Basic function" !w
