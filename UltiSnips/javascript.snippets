@@ -1,3 +1,6 @@
+snippet ok "Object.keys(object).map(function(){})" !w
+Object.keys(${VISUAL}$1)${2:.map(function (${4:e}){return ${3:$4};})};
+endsnippet
 
 snippet f "Basic function" !w
 function ${VISUAL}$1(${2}) {
@@ -57,7 +60,7 @@ snippet rerr "return if error" !b
 if (err) return cb(err);
 endsnippet
 
-snippet l "console.log()" !b
+snippet l "console.log()" !w
 console.log("${VISUAL}$1"${2:, ${VISUAL}$1});
 endsnippet
 
@@ -73,7 +76,7 @@ snippet e "console.error()" !b
 console.error("$1"${2:, $1});
 endsnippet
 
-snippet a "console.assert()" !b
+snippet a "console.assert()" !w
 console.assert(${1}, ${2});
 endsnippet
 
