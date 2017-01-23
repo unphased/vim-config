@@ -6,3 +6,5 @@
 --ignore-dir=mongodumps
 --ignore-dir=ghost
 --ignore-dir=public/css
+--ignore-file=match:.min.js
+--ignore-file=match:source-map.js
