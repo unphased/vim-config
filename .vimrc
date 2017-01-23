@@ -2185,6 +2185,10 @@ xmap <F11> <Plug>MarkSet
 " this is hard to use on the Mac but I am leaving <Leader>m to be usable -- 
 " this is just a shortcut
 
+" make mark case sensitive, this is more useful because i only ever use mark 
+" in 'careful' type situations to correlate variables or looking at logs
+let g:mwIgnoreCase=0
+
 nnoremap d<CR> <Nop>
 
 command! -complete=shellcmd -nargs=+ Shell call s:RunShellCommand(<q-args>)
