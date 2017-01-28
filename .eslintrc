@@ -25,6 +25,7 @@
         "THREE": true
     },
     "rules": {
+        "eqeqeq": 1,
         "quotes": 0,
         "strict": [0, "never"],
         "no-trailing-spaces": [0, { "skipBlankLines": true  }],
