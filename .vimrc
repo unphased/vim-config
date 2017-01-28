@@ -87,7 +87,6 @@ Plug 'kana/vim-textobj-user'
 
 Plug 'Ron89/thesaurus_query.vim'
 Plug 'AndrewRadev/switch.vim'
-Plug 'vim-scripts/ZoomWin'
 
 call plug#end()
 
@@ -2185,6 +2184,10 @@ xmap <F11> <Plug>MarkSet
 " this is hard to use on the Mac but I am leaving <Leader>m to be usable -- 
 " this is just a shortcut
 
+" make mark case sensitive, this is more useful because i only ever use mark 
+" in 'careful' type situations to correlate variables or looking at logs
+let g:mwIgnoreCase=0
+
 nnoremap d<CR> <Nop>
 
 command! -complete=shellcmd -nargs=+ Shell call s:RunShellCommand(<q-args>)
@@ -2651,3 +2654,29 @@ nnoremap <Leader>c :let &statusline='%{ShowCount()} %<%f %h%m%r%=%-14.(%l,%c%V%)
 
 " paste the global search
 nnoremap <Leader>p :.-1read $HOME/.vim/.search
+
+
+" fuck, still doesnt work (i tried twice)
+" function! HiCursorWordsDisable()
+" 	augroup HiCursorWordsUpdate
+" 		autocmd!
+" 	augroup END
+" 	augroup HiCursorWords 
+" 		autocmd!
+" 	augroup END
+" endfun
+
+" Zoom / Restore window.
+function! s:ZoomToggle() abort
+    if exists('t:zoomed') && t:zoomed
+        execute t:zoom_winrestcmd
+        let t:zoomed = 0
+    else
+        let t:zoom_winrestcmd = winrestcmd()
+        resize
+        vertical resize
+        let t:zoomed = 1
+    endif
+endfunction
+command! ZoomToggle call s:ZoomToggle()
+nnoremap <Leader><Leader> :ZoomToggle<CR>

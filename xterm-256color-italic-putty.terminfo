@@ -8,6 +8,6 @@
 #
 #   export TERM=xterm-256color-italic
 #
-xterm-256color-italic|xterm with 256 colors and italic confd for 24bit in tmux,
+xterm-256color-italic-putty|xterm with 256 colors and italic and putty,
 	sitm=\E[3m, ritm=\E[23m, khome=\EOH, kend=\EOF, kbs=\177,
 	use=xterm-256color,
