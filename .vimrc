@@ -378,6 +378,7 @@ function! InsertLeaveActions()
 	" This next line is actually really cool, but I am taking it out for
 	" consistency with other editors whose vim-modes do not allow me to do this
 	" call cursor([getpos('.')[1], getpos('.')[2]+1]) " move cursor forward
+	call SetPaste()
 endfunction
 
 hi CursorLine ctermbg=NONE
@@ -1226,7 +1227,29 @@ if !has('nvim')
 	cnoremap <F31> <C-C>:update<CR>
 	inoremap <F31> <ESC>:update<CR>
 
-	nnoremap <silent> <F33> :set invpaste<CR>:set number!<CR>:set list!<CR>:let &showbreak=''<CR>
+	nnoremap <silent> <F33> :set invpaste<CR>:call SetPaste()<CR>
+
+	" This function makes it so that the setting of number, list, showbreak are
+	" cued on the current state of paste. Previously this was done with toggles
+	" all around so the desynchronization was real whenever the pastetoggle was
+	" used an odd number of times from insert mode. Now, this state is 
+	" self-repairing, and also I can run SetPaste from an exit-insert 
+	" autocommand, and there will be no healing necessary. Aside from signs.
+	function! SetPaste()
+		if (&paste)
+			set nonumber
+			set nolist
+			let &showbreak=''
+			sign unplace *
+			" Not going to use elaborate way to track signs in order to toggle 
+			" sign column. can just :e to bring them back...
+		else
+			set number
+			set list
+			let &showbreak="→ "
+		endif
+	endf
+	
 	set pastetoggle=<F33>
 else
 	" nnoremap <m-w> :set wrap!<CR>
