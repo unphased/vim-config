@@ -1226,7 +1226,7 @@ if !has('nvim')
 	cnoremap <F31> <C-C>:update<CR>
 	inoremap <F31> <ESC>:update<CR>
 
-	nnoremap <silent> <F33> :set invpaste<CR>:set number!<CR>:set list!<CR>
+	nnoremap <silent> <F33> :set invpaste<CR>:set number!<CR>:set list!<CR>:let &showbreak=''<CR>
 	set pastetoggle=<F33>
 else
 	" nnoremap <m-w> :set wrap!<CR>
