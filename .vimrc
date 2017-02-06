@@ -1211,6 +1211,29 @@ endif
 " force bash mode for sh syntax
 let g:is_bash=1
 
+
+" This function makes it so that the setting of number, list, showbreak are
+" cued on the current state of paste. Previously this was done with toggles
+" all around so the desynchronization was real whenever the pastetoggle was
+" used an odd number of times from insert mode. Now, this state is 
+" self-repairing, and also I can run SetPaste from an exit-insert 
+" autocommand, and there will be no healing necessary. Aside from signs.
+function! SetPaste()
+	echo "Paste: ".&paste
+	if (&paste)
+		set nonumber
+		set nolist
+		let &showbreak=''
+		sign unplace *
+		" Not going to use elaborate way to track signs in order to toggle 
+		" sign column. can just :e to bring them back...
+	else
+		set number
+		set list
+		let &showbreak="→ "
+	endif
+endf
+
 if !has('nvim')
 	set <F33>=p
 	set <F32>=w
@@ -1228,27 +1251,7 @@ if !has('nvim')
 	inoremap <F31> <ESC>:update<CR>
 
 	nnoremap <silent> <F33> :set invpaste<CR>:call SetPaste()<CR>
-
-	" This function makes it so that the setting of number, list, showbreak are
-	" cued on the current state of paste. Previously this was done with toggles
-	" all around so the desynchronization was real whenever the pastetoggle was
-	" used an odd number of times from insert mode. Now, this state is 
-	" self-repairing, and also I can run SetPaste from an exit-insert 
-	" autocommand, and there will be no healing necessary. Aside from signs.
-	function! SetPaste()
-		if (&paste)
-			set nonumber
-			set nolist
-			let &showbreak=''
-			sign unplace *
-			" Not going to use elaborate way to track signs in order to toggle 
-			" sign column. can just :e to bring them back...
-		else
-			set number
-			set list
-			let &showbreak="→ "
-		endif
-	endf
+	" imap <silent> <F33> <C-O>:call SetPaste()<CR>
 	
 	set pastetoggle=<F33>
 else
@@ -1259,11 +1262,11 @@ else
 	cnoremap <m-s> <C-C>:update<CR>
 	inoremap <m-s> <ESC>:update<CR>
 
-	nnoremap <silent> <m-p> :set invpaste<CR>:set number!<CR>:set list!<CR>
-	imap <m-p> <C-O>:set paste<CR><C-O>:set nonumber<CR><C-O>:set nolist<CR>
+	nnoremap <silent> <m-p> :set invpaste<CR>:call SetPaste()<CR>
+	" imap <m-p> <C-O>:set invpaste|call SetPaste()<CR>
 	" if nvim and osx and iterm, then leave pastetoggle as-is for well-behaved 
 	" bracketed paste mode default (slightly hokey) implementation.
-	" set pastetoggle=<m-p>
+	set pastetoggle=<m-p>
 	" au! BufRead * set pastetoggle=<m-p>
 endif
 set showmode
