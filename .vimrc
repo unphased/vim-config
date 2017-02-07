@@ -90,6 +90,8 @@ Plug 'AndrewRadev/switch.vim'
 
 call plug#end()
 
+set title
+
 " Bundle 'Decho'
 
 "
