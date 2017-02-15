@@ -326,7 +326,7 @@ highlight SignifySignChangeDelete cterm=bold ctermbg=none ctermfg=203 guifg=#f99
 " mostly for syntastic
 highlight SyntasticError ctermbg=91 guibg=#7C22A6
 highlight SyntasticErrorSign guibg=#fc67bc guifg=#303030
-highlight SyntasticWarning ctermbg=24 guibg=#353512
+highlight SyntasticWarning ctermbg=24 guibg=#454512
 highlight SyntasticWarningSign guibg=#f1af51 guifg=#303030
 highlight SyntasticErrorLine guibg=#3f0000
 highlight SyntasticWarningLine guibg=#282800
@@ -999,7 +999,7 @@ inoremap <C-P> <C-O>p<CR>
 " set highlight for search to be less blinding
 " highlight Search ctermbg=33 ctermfg=16
 " highlight Search ctermbg=none ctermfg=none cterm=reverse
-highlight Search ctermbg=124 ctermfg=none guibg=#f9776a
+highlight Search ctermbg=124 ctermfg=NONE guibg=#f9776a guifg=NONE
 highlight Error term=reverse ctermfg=8 ctermbg=9
 
 " set t_ZH=[3m
