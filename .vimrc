@@ -323,6 +323,13 @@ highlight SignifySignDelete cterm=bold ctermbg=none ctermfg=167 guifg=#f2555a
 highlight SignifySignChange cterm=bold ctermbg=none ctermfg=227 guifg=#99eeee
 highlight SignifySignChangeDelete cterm=bold ctermbg=none ctermfg=203 guifg=#f99157
 
+highlight SignifyLineAdd    ctermfg=none ctermbg=119 guibg=#204320
+highlight SignifyLineDelete ctermfg=none ctermbg=167 guibg=#521520
+highlight SignifyLineChange ctermfg=none ctermbg=227 guibg=#0e3535
+highlight SignifyLineChangeDelete ctermfg=none ctermbg=203 guibg=#433007
+
+nnoremap <Leader>d :call sy#highlight#line_toggle()<CR>
+
 " mostly for syntastic
 highlight SyntasticError ctermbg=91 guibg=#7C22A6
 highlight SyntasticErrorSign guibg=#fc67bc guifg=#303030
