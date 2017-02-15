@@ -13,6 +13,7 @@ Plug 'Valloric/YouCompleteMe'
 Plug 'mbbill/undotree'
 Plug 'rhysd/clever-f.vim'
 
+Plug 'leafgarland/typescript-vim'
 Plug 'scrooloose/nerdtree'
 Plug 'scrooloose/syntastic'
 Plug 'ctrlpvim/ctrlp.vim'
