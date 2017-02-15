@@ -2715,6 +2715,9 @@ function! s:ZoomToggle() abort
 endfunction
 command! ZoomToggle call s:ZoomToggle()
 nnoremap <Leader><Leader> :ZoomToggle<CR>
+
 if has('termguicolors')
   set termguicolors
 endif
+
+hi Todo guibg=#484848
