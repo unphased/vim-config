@@ -1696,7 +1696,7 @@ let g:airline#extensions#default#section_truncate_width = {
 
 "   http://css-tricks.com/words-avoid-educational-writing/
 
-highlight TechWordsToAvoid ctermbg=52
+highlight TechWordsToAvoid ctermbg=52 guibg=#602020
 " 52 is the darkest red and it is a handy non-painful color
 
 function! MatchTechWordsToAvoid()
@@ -1962,7 +1962,7 @@ highlight SpellRare ctermbg=NONE ctermfg=NONE cterm=underline
 " so I am going to leave it like this for now since the match is per buffer not 
 " per vim session.
 
-autocmd BufEnter * highlight OverLength ctermbg=52
+autocmd BufEnter * highlight OverLength ctermbg=52 guibg=#602020
 
 fu! LongLineHighlightToggle()
 	highlight OverLength ctermbg=52
@@ -1979,7 +1979,7 @@ endfunction
 map <Leader>l :call LongLineHighlightToggle()<CR>
 
 set colorcolumn=80
-highlight ColorColumn ctermbg=235 term=NONE
+highlight ColorColumn ctermbg=235 term=NONE guibg=#252525
 
 " This one is insane. In the membraaaane...
 " So I originally wanted to bind this behavior to period since itd be sick 
