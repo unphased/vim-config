@@ -324,8 +324,12 @@ highlight SignifySignChange cterm=bold ctermbg=none ctermfg=227 guifg=#99eeee
 highlight SignifySignChangeDelete cterm=bold ctermbg=none ctermfg=203 guifg=#f99157
 
 " mostly for syntastic
-highlight SyntasticError ctermbg=91 guibg=#fc67bc
-highlight SyntasticWarning ctermbg=24 guibg=#f1af51
+highlight SyntasticError ctermbg=91 guibg=#7C22A6
+highlight SyntasticErrorSign guibg=#fc67bc guifg=#303030
+highlight SyntasticWarning ctermbg=24 guibg=#353512
+highlight SyntasticWarningSign guibg=#f1af51 guifg=#303030
+highlight SyntasticErrorLine guibg=#3f0000
+highlight SyntasticWarningLine guibg=#282800
 
 hi clear SignColumn
 
@@ -972,8 +976,6 @@ let g:ycm_max_diagnostics_to_display = 300
 let g:ycm_enable_diagnostic_signs = 1
 let g:ycm_enable_diagnostic_highlighting = 1
 let g:ycm_server_keep_logfiles = 1
-highlight YcmErrorLine guibg=#3f0000
-highlight YcmWarningLine guibg=#282800
 
 " sadly, this doesn't work on the fly for some reason. It's supposed to!
 " nnoremap <F7> :call YCMSignToggle()<CR>
