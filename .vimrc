@@ -324,8 +324,8 @@ highlight SignifySignChange cterm=bold ctermbg=none ctermfg=227 guifg=#99eeee
 highlight SignifySignChangeDelete cterm=bold ctermbg=none ctermfg=203 guifg=#f99157
 
 " mostly for syntastic
-highlight SyntasticError ctermbg=91
-highlight SyntasticWarning ctermbg=24
+highlight SyntasticError ctermbg=91 guibg=#fc67bc
+highlight SyntasticWarning ctermbg=24 guibg=#f1af51
 
 hi clear SignColumn
 
