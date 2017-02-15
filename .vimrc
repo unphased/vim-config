@@ -318,6 +318,11 @@ highlight DiffChange term=reverse ctermbg=33 ctermfg=black
 highlight DiffText term=reverse ctermbg=blue ctermfg=16
 highlight DiffDelete term=reverse ctermbg=red ctermfg=white
 
+highlight SignifySignAdd    cterm=bold ctermbg=none ctermfg=119 guifg=#99ee99
+highlight SignifySignDelete cterm=bold ctermbg=none ctermfg=167 guifg=#f2555a
+highlight SignifySignChange cterm=bold ctermbg=none ctermfg=227 guifg=#99eeee
+highlight SignifySignChangeDelete cterm=bold ctermbg=none ctermfg=203 guifg=#f99157
+
 " mostly for syntastic
 highlight SyntasticError ctermbg=91
 highlight SyntasticWarning ctermbg=24
