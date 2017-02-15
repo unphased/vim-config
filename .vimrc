@@ -992,7 +992,7 @@ inoremap <C-P> <C-O>p<CR>
 " set highlight for search to be less blinding
 " highlight Search ctermbg=33 ctermfg=16
 " highlight Search ctermbg=none ctermfg=none cterm=reverse
-highlight Search ctermbg=124 ctermfg=none
+highlight Search ctermbg=124 ctermfg=none guibg=#f9776a
 highlight Error term=reverse ctermfg=8 ctermbg=9
 
 " set t_ZH=[3m
