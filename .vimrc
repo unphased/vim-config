@@ -2710,3 +2710,4 @@ function! s:ZoomToggle() abort
 endfunction
 command! ZoomToggle call s:ZoomToggle()
 nnoremap <Leader><Leader> :ZoomToggle<CR>
+ set termguicolors
