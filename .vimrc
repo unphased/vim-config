@@ -8,14 +8,30 @@ filetype plugin indent on
 
 call plug#begin('~/.vim/plugged')
 
-Plug 'Valloric/YouCompleteMe'
-" Plug 'simnalamburt/vim-mundo'
-Plug 'mbbill/undotree'
+" Load on nothing
+Plug 'SirVer/ultisnips', { 'on': [] }
+Plug 'Valloric/YouCompleteMe', { 'on': [] }
+Plug 'scrooloose/syntastic', { 'on': [] }
+
+augroup load_expensive
+	autocmd!
+	autocmd InsertEnter * call plug#load('ultisnips', 'YouCompleteMe', 'syntastic')
+				\| autocmd! load_expensive
+augroup END
+
+Plug 'maxbrunsfeld/vim-yankstack' 
+
+" Yankstack actually not expensive... this way to lazyload isnt good. (lose 
+" first yanks)
+", { 'on':  ['<Plug>yankstack_substitute_older_paste', 
+"'<Plug>yankstack_substitute_newer_paste'] }
+" autocmd! User vim-yankstack call InitYankStack()
+
+Plug 'mbbill/undotree', { 'on': 'UndotreeToggle' }
 Plug 'rhysd/clever-f.vim'
 
 Plug 'leafgarland/typescript-vim'
-Plug 'scrooloose/nerdtree'
-Plug 'scrooloose/syntastic'
+Plug 'scrooloose/nerdtree', { 'on': ['NERDTreeFind', 'NERDTreeToggle'] }
 Plug 'ctrlpvim/ctrlp.vim'
 Plug 'diffchanges.vim'
 Plug 'tpope/vim-repeat'
@@ -29,7 +45,6 @@ Plug 'vim-perl/vim-perl'
 "Bundle 'Raimondi/delimitMate'
 Plug 'mattn/emmet-vim'
 Plug 'unphased/git-time-lapse'
-Plug 'maxbrunsfeld/vim-yankstack'
 Plug 'ldx/vim-indentfinder'
 Plug 'nathanaelkane/vim-indent-guides'
 Plug 'unphased/HiCursorWords'
@@ -42,14 +57,12 @@ Plug 'pangloss/vim-javascript'
 " Plug 'jelera/vim-javascript-syntax'
 Plug 'beyondmarc/glsl.vim'
 "Bundle 'kana/vim-smartinput'
-Plug 'SirVer/ultisnips'
 Plug 'honza/vim-snippets'
 " Bundle 'oblitum/rainbow'
 " Plug 'marijnh/tern_for_vim'
 Plug 'unphased/vim-airline'
 Plug 'derekwyatt/vim-fswitch'
 Plug 'wakatime/vim-wakatime'
-Plug 'panozzaj/vim-autocorrect'
 Plug 'kshenoy/vim-signature'
 Plug 'jiangmiao/auto-pairs'
 "Plug 'mxw/vim-jsx'
@@ -64,7 +77,8 @@ Plug 'vim-scripts/camelcasemotion'
 Plug 'vim-scripts/ingo-library' " needed for EnhancedJumps
 Plug 'vim-scripts/EnhancedJumps'
 
-Plug 't9md/vim-textmanip'
+Plug 't9md/vim-textmanip', { 'on': [ '<Plug>(textmanip-move-down)', '<Plug>(textmanip-move-up)', '<Plug>(textmanip-move-left)', '<Plug>(textmanip-move-right)', '<Plug>(textmanip-toggle-mode)', '<Plug>(textmanip-toggle-mode)', ] }
+
 " Plug 'vim-scripts/hexman.vim'
 Plug 'tpope/vim-afterimage'
 Plug 'junegunn/vim-easy-align'
@@ -91,6 +105,9 @@ Plug 'AndrewRadev/switch.vim'
 Plug 'ap/vim-css-color'
 
 call plug#end()
+
+call yankstack#setup()
+nmap Y y$
 
 set title
 
@@ -1354,9 +1371,6 @@ endif
 " have it not bind anything
 let g:yankstack_map_keys = 0
 
-" the yankstack plugin requires loading prior to my binds (wonder what other
-" plugins have this sort of behavior)
-call yankstack#setup()
 if has('nvim')
 	nmap <m-d> <Plug>yankstack_substitute_older_paste
 	nmap <M-S-D> <Plug>yankstack_substitute_newer_paste
@@ -1773,10 +1787,6 @@ vnoremap b <C-U>
 " affects e.g. JavaScript -- except it stopped working, lets try l
 set cinoptions=J1
 
-" this just makes more sense (there is potential quirkiness with yankstack, but 
-" with minimal testing, this appears to now work well)
-nmap Y y$
-
 set switchbuf=usetab,split
 
 " This clears the bgcolor set by the colorscheme, and inherits term background 
@@ -2063,14 +2073,14 @@ endfunction
 " xmap <C-U> <Plug>(textmanip-duplicate-up)
 " nmap <C-U> <Plug>(textmanip-duplicate-up)
 
-xmap <Down> <Plug>(textmanip-move-down)
-xmap <Up> <Plug>(textmanip-move-up)
-xmap <Left> <Plug>(textmanip-move-left)
+xmap <Down>  <Plug>(textmanip-move-down)
+xmap <Up>    <Plug>(textmanip-move-up)
+xmap <Left>  <Plug>(textmanip-move-left)
 xmap <Right> <Plug>(textmanip-move-right)
 
 " toggle insert/replace for textmanip with Ctrl+E
-nmap <C-E> <Plug>(textmanip-toggle-mode)
-xmap <C-E> <Plug>(textmanip-toggle-mode)
+nmap <C-E>   <Plug>(textmanip-toggle-mode)
+xmap <C-E>   <Plug>(textmanip-toggle-mode)
 
 " save states for php. This affects too many variables for comfort, but I do 
 " want it to work so I can maintain folding state. It's a sad compromise for 
