@@ -48,7 +48,7 @@ Plug 'unphased/git-time-lapse'
 Plug 'ldx/vim-indentfinder'
 Plug 'nathanaelkane/vim-indent-guides'
 Plug 'unphased/HiCursorWords'
-Plug 'dimasg/vim-mark'
+Plug 'dimasg/vim-mark', { 'on': '<Plug>MarkSet' }
 " Bundle 'kien/rainbow_parentheses.vim'
 "Bundle 'airblade/vim-gitgutter'
 "Bundle 'akiomik/git-gutter-vim'
