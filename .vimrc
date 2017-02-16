@@ -359,7 +359,7 @@ nnoremap <Leader>d :call sy#highlight#line_toggle()<CR>
 " mostly for syntastic
 highlight SyntasticError ctermbg=91 guibg=#7C22A6
 highlight SyntasticErrorSign guibg=#fc67bc guifg=#303030
-highlight SyntasticWarning ctermbg=24 guibg=#454512
+highlight SyntasticWarning ctermbg=24 guibg=#686832
 highlight SyntasticWarningSign guibg=#f1af51 guifg=#303030
 highlight SyntasticErrorLine guibg=#3f0000
 highlight SyntasticWarningLine guibg=#383800
