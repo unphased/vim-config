@@ -62,8 +62,6 @@ Plug 'nathanaelkane/vim-indent-guides'
 Plug 'unphased/HiCursorWords'
 Plug 'dimasg/vim-mark', { 'on': '<Plug>MarkSet' }
 " Bundle 'kien/rainbow_parentheses.vim'
-"Bundle 'airblade/vim-gitgutter'
-"Bundle 'akiomik/git-gutter-vim'
 Plug 'mhinz/vim-signify'
 Plug 'pangloss/vim-javascript'
 " Plug 'jelera/vim-javascript-syntax'
@@ -1892,9 +1890,10 @@ nmap <leader>s :set spell!<CR>
 
 nmap <leader>S :sav %%
 
-highlight SpellBad ctermbg=NONE ctermfg=NONE cterm=underline
-highlight SpellCap ctermbg=NONE ctermfg=NONE cterm=underline,bold
-highlight SpellRare ctermbg=NONE ctermfg=NONE cterm=underline
+highlight SpellBad ctermbg=NONE ctermfg=NONE cterm=underline guifg=NONE guibg=NONE gui=underline term=NONE
+highlight SpellCap ctermbg=NONE ctermfg=NONE cterm=underline,bold guifg=NONE guibg=NONE gui=underline term=NONE
+highlight SpellRare ctermbg=NONE ctermfg=NONE cterm=underline guifg=NONE guibg=NONE gui=underline term=NONE
+highlight SpellLocal ctermbg=NONE ctermfg=NONE cterm=underline guifg=NONE guibg=NONE gui=underline term=NONE
 " There exist some other spelling related highlight styles but i'll just deal 
 " with them when i see them show up as I see fit. the capitalization one is 
 " pretty acceptable for now also.
@@ -2219,24 +2218,24 @@ endif
 
 let g:mwPalettes = {
 	\	'original': [
-	\   { 'ctermbg':'25',       'ctermfg':'7'},
-	\   { 'ctermbg':'22',      'ctermfg':'7'},
-	\   { 'ctermbg':'125',        'ctermfg':'7'},
-	\   { 'ctermbg':'57',    'ctermfg':'7'},
-	\   { 'ctermbg':'21',       'ctermfg':'7'},
-	\   { 'ctermbg':'58',     'ctermfg':'7'},
-	\   { 'ctermbg':'30',     'ctermfg':'7'},
-	\   { 'ctermbg':'89',     'ctermfg':'7'},
-	\   { 'ctermbg':'28',     'ctermfg':'7'},
-	\   { 'ctermbg':'54',     'ctermfg':'7'},
-	\   { 'ctermbg':'27',     'ctermfg':'7'},
-	\   { 'ctermbg':'166',     'ctermfg':'7'},
-	\   { 'ctermbg':'24',     'ctermfg':'7'},
-	\   { 'ctermbg':'162',     'ctermfg':'7'},
-	\   { 'ctermbg':'90',     'ctermfg':'7'},
-	\   { 'ctermbg':'63',     'ctermfg':'7'},
-	\   { 'ctermbg':'132',     'ctermfg':'7'},
-	\   { 'ctermbg':'202',     'ctermfg':'7'},
+	\   { 'ctermbg': '25', 'ctermfg': '7', 'guibg': '#123456'},
+	\   { 'ctermbg': '22', 'ctermfg': '7', 'guibg': '#654321'},
+	\   { 'ctermbg': '125', 'ctermfg': '7', 'guibg': '#456123'},
+	\   { 'ctermbg': '57', 'ctermfg': '7', 'guibg': '#341256'},
+	\   { 'ctermbg': '21', 'ctermfg': '7'},
+	\   { 'ctermbg': '58', 'ctermfg': '7'},
+	\   { 'ctermbg': '30', 'ctermfg': '7'},
+	\   { 'ctermbg': '89', 'ctermfg': '7'},
+	\   { 'ctermbg': '28', 'ctermfg': '7'},
+	\   { 'ctermbg': '54', 'ctermfg': '7'},
+	\   { 'ctermbg': '27', 'ctermfg': '7'},
+	\   { 'ctermbg': '166', 'ctermfg': '7'},
+	\   { 'ctermbg': '24', 'ctermfg': '7'},
+	\   { 'ctermbg': '162', 'ctermfg': '7'},
+	\   { 'ctermbg': '90', 'ctermfg': '7'},
+	\   { 'ctermbg': '63', 'ctermfg': '7'},
+	\   { 'ctermbg': '132', 'ctermfg': '7'},
+	\   { 'ctermbg': '202', 'ctermfg': '7'},
 	\],
 	\	'extended': function('mark#palettes#Extended'),
 	\	'maximum': function('mark#palettes#Maximum')
