@@ -13,10 +13,19 @@ Plug 'SirVer/ultisnips', { 'on': [] }
 Plug 'Valloric/YouCompleteMe', { 'on': [] }
 Plug 'scrooloose/syntastic', { 'on': [] }
 
+let s:LoadExpensivePluginsHasBeenRun = 0
+function! LoadExpensive()
+	if !(s:LoadExpensivePluginsHasBeenRun)
+		echom 'loadexpensive'
+		call plug#load('ultisnips', 'YouCompleteMe', 'syntastic')
+		autocmd! load_expensive
+		let s:LoadExpensivePluginsHasBeenRun = 1
+	endif
+endfun
+
 augroup load_expensive
 	autocmd!
-	autocmd InsertEnter * call plug#load('ultisnips', 'YouCompleteMe', 'syntastic')
-				\| autocmd! load_expensive
+	autocmd InsertEnter * call LoadExpensive()
 augroup END
 
 Plug 'maxbrunsfeld/vim-yankstack' 
@@ -1012,7 +1021,7 @@ let g:ycm_server_keep_logfiles = 1
 " endfunc
 
 " setting F7 to ycmdiags
-nnoremap <F7> :YcmDiags<CR>
+nnoremap <F7> :call LoadExpensive()<CR>:YcmDiags<CR>
 nnoremap <S-F7> :YcmCompleter GoToDefinition<CR>
 
 " This insert mapping is for pasting; it appears that YCM only takes over the
