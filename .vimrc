@@ -8,6 +8,9 @@ filetype plugin indent on
 
 call plug#begin('~/.vim/plugged')
 
+Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+Plug 'junegunn/fzf.vim'
+
 " Load on nothing
 Plug 'SirVer/ultisnips', { 'on': [] }
 Plug 'Valloric/YouCompleteMe', { 'on': [] }
@@ -2740,3 +2743,6 @@ if has('termguicolors')
 endif
 
 hi Todo guibg=#484848
+
+command! -bang -nargs=* FLines call fzf#vim#grep('grep -vnITr --color=always --exclude-dir={".git,".svn"} --exclude=tags --exclude={*\.pyc,*\.exe,*\.dll,*\.zip,*\.gz} "^$"', 0)
+
