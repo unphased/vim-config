@@ -2747,6 +2747,9 @@ endfunction
 command! ZoomToggle call s:ZoomToggle()
 nnoremap <Leader><Leader> :ZoomToggle<CR>
 
+nnoremap [[ :SidewaysLeft<CR>
+nnoremap ]] :SidewaysRight<CR>
+
 if has('termguicolors')
   set termguicolors
 endif
