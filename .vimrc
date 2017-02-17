@@ -8,13 +8,42 @@ filetype plugin indent on
 
 call plug#begin('~/.vim/plugged')
 
-Plug 'Valloric/YouCompleteMe'
-" Plug 'simnalamburt/vim-mundo'
-Plug 'mbbill/undotree'
+Plug 'junegunn/fzf'
+Plug 'junegunn/fzf.vim'
+
+" Load on nothing
+Plug 'SirVer/ultisnips', { 'on': [] }
+Plug 'Valloric/YouCompleteMe', { 'on': [] }
+Plug 'scrooloose/syntastic', { 'on': [] }
+
+let s:LoadExpensivePluginsHasBeenRun = 0
+function! LoadExpensive()
+	if !(s:LoadExpensivePluginsHasBeenRun)
+		echom 'loadexpensive'
+		call plug#load('ultisnips', 'YouCompleteMe', 'syntastic')
+		autocmd! load_expensive
+		let s:LoadExpensivePluginsHasBeenRun = 1
+	endif
+endfun
+
+augroup load_expensive
+	autocmd!
+	autocmd InsertEnter * call LoadExpensive()
+augroup END
+
+Plug 'maxbrunsfeld/vim-yankstack' 
+
+" Yankstack actually not expensive... this way to lazyload isnt good. (lose 
+" first yanks)
+", { 'on':  ['<Plug>yankstack_substitute_older_paste', 
+"'<Plug>yankstack_substitute_newer_paste'] }
+" autocmd! User vim-yankstack call InitYankStack()
+
+Plug 'mbbill/undotree', { 'on': 'UndotreeToggle' }
 Plug 'rhysd/clever-f.vim'
 
-Plug 'scrooloose/nerdtree'
-Plug 'scrooloose/syntastic'
+Plug 'leafgarland/typescript-vim'
+Plug 'scrooloose/nerdtree', { 'on': ['NERDTreeFind', 'NERDTreeToggle'] }
 Plug 'ctrlpvim/ctrlp.vim'
 Plug 'diffchanges.vim'
 Plug 'tpope/vim-repeat'
@@ -28,27 +57,22 @@ Plug 'vim-perl/vim-perl'
 "Bundle 'Raimondi/delimitMate'
 Plug 'mattn/emmet-vim'
 Plug 'unphased/git-time-lapse'
-Plug 'maxbrunsfeld/vim-yankstack'
 Plug 'ldx/vim-indentfinder'
 Plug 'nathanaelkane/vim-indent-guides'
 Plug 'unphased/HiCursorWords'
-Plug 'dimasg/vim-mark'
+Plug 'dimasg/vim-mark', { 'on': '<Plug>MarkSet' }
 " Bundle 'kien/rainbow_parentheses.vim'
-"Bundle 'airblade/vim-gitgutter'
-"Bundle 'akiomik/git-gutter-vim'
 Plug 'mhinz/vim-signify'
 Plug 'pangloss/vim-javascript'
 " Plug 'jelera/vim-javascript-syntax'
 Plug 'beyondmarc/glsl.vim'
 "Bundle 'kana/vim-smartinput'
-Plug 'SirVer/ultisnips'
 Plug 'honza/vim-snippets'
 " Bundle 'oblitum/rainbow'
 " Plug 'marijnh/tern_for_vim'
 Plug 'unphased/vim-airline'
 Plug 'derekwyatt/vim-fswitch'
 Plug 'wakatime/vim-wakatime'
-Plug 'panozzaj/vim-autocorrect'
 Plug 'kshenoy/vim-signature'
 Plug 'jiangmiao/auto-pairs'
 "Plug 'mxw/vim-jsx'
@@ -63,7 +87,8 @@ Plug 'vim-scripts/camelcasemotion'
 Plug 'vim-scripts/ingo-library' " needed for EnhancedJumps
 Plug 'vim-scripts/EnhancedJumps'
 
-Plug 't9md/vim-textmanip'
+Plug 't9md/vim-textmanip', { 'on': [ '<Plug>(textmanip-move-down)', '<Plug>(textmanip-move-up)', '<Plug>(textmanip-move-left)', '<Plug>(textmanip-move-right)', '<Plug>(textmanip-toggle-mode)', '<Plug>(textmanip-toggle-mode)', ] }
+
 " Plug 'vim-scripts/hexman.vim'
 Plug 'tpope/vim-afterimage'
 Plug 'junegunn/vim-easy-align'
@@ -87,8 +112,12 @@ Plug 'kana/vim-textobj-user'
 
 Plug 'Ron89/thesaurus_query.vim'
 Plug 'AndrewRadev/switch.vim'
+Plug 'ap/vim-css-color'
 
 call plug#end()
+
+call yankstack#setup()
+nmap Y y$
 
 set title
 
@@ -165,7 +194,6 @@ let g:indent_guides_enable_on_vim_startup = 1
 let g:indent_guides_auto_colors = 0
 let g:indent_guides_start_level = 1
 let g:indent_guides_guide_size = 1
-au! VimEnter,Colorscheme * :hi IndentGuidesOdd ctermbg=235 ctermfg=16 | hi IndentGuidesEven ctermbg=236 ctermfg=234
 
 " signify
 let g:signify_sign_overwrite = 0
@@ -316,9 +344,26 @@ highlight DiffChange term=reverse ctermbg=33 ctermfg=black
 highlight DiffText term=reverse ctermbg=blue ctermfg=16
 highlight DiffDelete term=reverse ctermbg=red ctermfg=white
 
+highlight SignifySignAdd    cterm=bold ctermbg=none ctermfg=119 guifg=#99ee99
+highlight SignifySignDelete cterm=bold ctermbg=none ctermfg=167 guifg=#f2555a
+highlight SignifySignChange cterm=bold ctermbg=none ctermfg=227 guifg=#99eeee
+highlight SignifySignChangeDelete cterm=bold ctermbg=none ctermfg=203 guifg=#f99157
+
+highlight SignifyLineAdd    ctermfg=none ctermbg=119 guibg=#204320
+highlight SignifyLineDelete ctermfg=none ctermbg=167 guibg=#521520
+highlight SignifyLineChange ctermfg=none ctermbg=227 guibg=#0e3535
+highlight SignifyLineChangeDelete ctermfg=none ctermbg=203 guibg=#433007
+
+nnoremap <Leader>d :call sy#highlight#line_toggle()<CR>
+let g:signify_line_highlight = 1
+
 " mostly for syntastic
-highlight SyntasticError ctermbg=91
-highlight SyntasticWarning ctermbg=24
+highlight SyntasticError ctermbg=91 guibg=#7C22A6
+highlight SyntasticErrorSign guibg=#fc67bc guifg=#303030
+highlight SyntasticWarning ctermbg=24 guibg=#686832
+highlight SyntasticWarningSign guibg=#f1af51 guifg=#303030
+highlight SyntasticErrorLine guibg=#3f0000
+highlight SyntasticWarningLine guibg=#383800
 
 hi clear SignColumn
 
@@ -965,8 +1010,6 @@ let g:ycm_max_diagnostics_to_display = 300
 let g:ycm_enable_diagnostic_signs = 1
 let g:ycm_enable_diagnostic_highlighting = 1
 let g:ycm_server_keep_logfiles = 1
-highlight YcmErrorLine guibg=#3f0000
-highlight YcmWarningLine guibg=#282800
 
 " sadly, this doesn't work on the fly for some reason. It's supposed to!
 " nnoremap <F7> :call YCMSignToggle()<CR>
@@ -979,7 +1022,7 @@ highlight YcmWarningLine guibg=#282800
 " endfunc
 
 " setting F7 to ycmdiags
-nnoremap <F7> :YcmDiags<CR>
+nnoremap <F7> :call LoadExpensive()<CR>:YcmDiags<CR>
 nnoremap <S-F7> :YcmCompleter GoToDefinition<CR>
 
 " This insert mapping is for pasting; it appears that YCM only takes over the
@@ -990,7 +1033,7 @@ inoremap <C-P> <C-O>p<CR>
 " set highlight for search to be less blinding
 " highlight Search ctermbg=33 ctermfg=16
 " highlight Search ctermbg=none ctermfg=none cterm=reverse
-highlight Search ctermbg=124 ctermfg=none
+highlight Search ctermbg=124 ctermfg=NONE guibg=#a9291a guifg=NONE
 highlight Error term=reverse ctermfg=8 ctermbg=9
 
 " set t_ZH=[3m
@@ -1338,9 +1381,6 @@ endif
 " have it not bind anything
 let g:yankstack_map_keys = 0
 
-" the yankstack plugin requires loading prior to my binds (wonder what other
-" plugins have this sort of behavior)
-call yankstack#setup()
 if has('nvim')
 	nmap <m-d> <Plug>yankstack_substitute_older_paste
 	nmap <M-S-D> <Plug>yankstack_substitute_newer_paste
@@ -1689,7 +1729,7 @@ let g:airline#extensions#default#section_truncate_width = {
 
 "   http://css-tricks.com/words-avoid-educational-writing/
 
-highlight TechWordsToAvoid ctermbg=52
+highlight TechWordsToAvoid ctermbg=52 guibg=#602020
 " 52 is the darkest red and it is a handy non-painful color
 
 function! MatchTechWordsToAvoid()
@@ -1756,10 +1796,6 @@ vnoremap b <C-U>
 " fixes aggravating default indentation for switch case statements, which also 
 " affects e.g. JavaScript -- except it stopped working, lets try l
 set cinoptions=J1
-
-" this just makes more sense (there is potential quirkiness with yankstack, but 
-" with minimal testing, this appears to now work well)
-nmap Y y$
 
 set switchbuf=usetab,split
 
@@ -1849,14 +1885,16 @@ map <leader>et :tabe %%
 " sufficiently subtle so that it does not become annoying. The default of red 
 " background is problematic. I am a little undecided on if underline is 
 " sufficient.
-set spell
+
+" set spell
 nmap <leader>s :set spell!<CR>
 
 nmap <leader>S :sav %%
 
-highlight SpellBad ctermbg=NONE ctermfg=NONE cterm=underline
-highlight SpellCap ctermbg=NONE ctermfg=NONE cterm=underline,bold
-highlight SpellRare ctermbg=NONE ctermfg=NONE cterm=underline
+highlight SpellBad ctermbg=NONE ctermfg=NONE cterm=underline guifg=NONE guibg=NONE gui=underline term=NONE
+highlight SpellCap ctermbg=NONE ctermfg=NONE cterm=underline,bold guifg=NONE guibg=NONE gui=underline term=NONE
+highlight SpellRare ctermbg=NONE ctermfg=NONE cterm=underline guifg=NONE guibg=NONE gui=underline term=NONE
+highlight SpellLocal ctermbg=NONE ctermfg=NONE cterm=underline guifg=NONE guibg=NONE gui=underline term=NONE
 " There exist some other spelling related highlight styles but i'll just deal 
 " with them when i see them show up as I see fit. the capitalization one is 
 " pretty acceptable for now also.
@@ -1955,7 +1993,7 @@ highlight SpellRare ctermbg=NONE ctermfg=NONE cterm=underline
 " so I am going to leave it like this for now since the match is per buffer not 
 " per vim session.
 
-autocmd BufEnter * highlight OverLength ctermbg=52
+autocmd BufEnter * highlight OverLength ctermbg=52 guibg=#602020
 
 fu! LongLineHighlightToggle()
 	highlight OverLength ctermbg=52
@@ -1972,7 +2010,7 @@ endfunction
 map <Leader>l :call LongLineHighlightToggle()<CR>
 
 set colorcolumn=80
-highlight ColorColumn ctermbg=235 term=NONE
+highlight ColorColumn ctermbg=235 term=NONE guibg=#252525
 
 " This one is insane. In the membraaaane...
 " So I originally wanted to bind this behavior to period since itd be sick 
@@ -2047,14 +2085,14 @@ endfunction
 " xmap <C-U> <Plug>(textmanip-duplicate-up)
 " nmap <C-U> <Plug>(textmanip-duplicate-up)
 
-xmap <Down> <Plug>(textmanip-move-down)
-xmap <Up> <Plug>(textmanip-move-up)
-xmap <Left> <Plug>(textmanip-move-left)
+xmap <Down>  <Plug>(textmanip-move-down)
+xmap <Up>    <Plug>(textmanip-move-up)
+xmap <Left>  <Plug>(textmanip-move-left)
 xmap <Right> <Plug>(textmanip-move-right)
 
 " toggle insert/replace for textmanip with Ctrl+E
-nmap <C-E> <Plug>(textmanip-toggle-mode)
-xmap <C-E> <Plug>(textmanip-toggle-mode)
+nmap <C-E>   <Plug>(textmanip-toggle-mode)
+xmap <C-E>   <Plug>(textmanip-toggle-mode)
 
 " save states for php. This affects too many variables for comfort, but I do 
 " want it to work so I can maintain folding state. It's a sad compromise for 
@@ -2181,24 +2219,24 @@ endif
 
 let g:mwPalettes = {
 	\	'original': [
-	\   { 'ctermbg':'25',       'ctermfg':'7'},
-	\   { 'ctermbg':'22',      'ctermfg':'7'},
-	\   { 'ctermbg':'125',        'ctermfg':'7'},
-	\   { 'ctermbg':'57',    'ctermfg':'7'},
-	\   { 'ctermbg':'21',       'ctermfg':'7'},
-	\   { 'ctermbg':'58',     'ctermfg':'7'},
-	\   { 'ctermbg':'30',     'ctermfg':'7'},
-	\   { 'ctermbg':'89',     'ctermfg':'7'},
-	\   { 'ctermbg':'28',     'ctermfg':'7'},
-	\   { 'ctermbg':'54',     'ctermfg':'7'},
-	\   { 'ctermbg':'27',     'ctermfg':'7'},
-	\   { 'ctermbg':'166',     'ctermfg':'7'},
-	\   { 'ctermbg':'24',     'ctermfg':'7'},
-	\   { 'ctermbg':'162',     'ctermfg':'7'},
-	\   { 'ctermbg':'90',     'ctermfg':'7'},
-	\   { 'ctermbg':'63',     'ctermfg':'7'},
-	\   { 'ctermbg':'132',     'ctermfg':'7'},
-	\   { 'ctermbg':'202',     'ctermfg':'7'},
+	\   { 'ctermbg': '25', 'ctermfg': '7', 'guibg': '#123456'},
+	\   { 'ctermbg': '22', 'ctermfg': '7', 'guibg': '#654321'},
+	\   { 'ctermbg': '125', 'ctermfg': '7', 'guibg': '#456123'},
+	\   { 'ctermbg': '57', 'ctermfg': '7', 'guibg': '#341256'},
+	\   { 'ctermbg': '21', 'ctermfg': '7'},
+	\   { 'ctermbg': '58', 'ctermfg': '7'},
+	\   { 'ctermbg': '30', 'ctermfg': '7'},
+	\   { 'ctermbg': '89', 'ctermfg': '7'},
+	\   { 'ctermbg': '28', 'ctermfg': '7'},
+	\   { 'ctermbg': '54', 'ctermfg': '7'},
+	\   { 'ctermbg': '27', 'ctermfg': '7'},
+	\   { 'ctermbg': '166', 'ctermfg': '7'},
+	\   { 'ctermbg': '24', 'ctermfg': '7'},
+	\   { 'ctermbg': '162', 'ctermfg': '7'},
+	\   { 'ctermbg': '90', 'ctermfg': '7'},
+	\   { 'ctermbg': '63', 'ctermfg': '7'},
+	\   { 'ctermbg': '132', 'ctermfg': '7'},
+	\   { 'ctermbg': '202', 'ctermfg': '7'},
 	\],
 	\	'extended': function('mark#palettes#Extended'),
 	\	'maximum': function('mark#palettes#Maximum')
@@ -2608,7 +2646,7 @@ let g:javascript_conceal_undefined  = "¿"
 let g:javascript_conceal_NaN        = "ℕ"
 let g:javascript_conceal_prototype  = "¶"
 
-hi Conceal ctermbg=238 ctermfg=NONE cterm=NONE
+hi Conceal ctermbg=238 ctermfg=NONE cterm=NONE guibg=#404040
 
 " TODO free up the [] maps from the pause (there is overloading done by vim 
 " impaired which is causing the craziness) (But i mean there isnt actually an 
@@ -2711,3 +2749,16 @@ nnoremap <Leader><Leader> :ZoomToggle<CR>
 
 nnoremap [[ :SidewaysLeft<CR>
 nnoremap ]] :SidewaysRight<CR>
+
+if has('termguicolors')
+  set termguicolors
+endif
+
+hi Todo guibg=#484848
+
+command! -bang FLines call fzf#vim#grep(
+     \ 'grep -vnITr --color=always --exclude-dir=".svn" --exclude-dir=".git" --exclude=tags --exclude=*\.pyc --exclude=*\.exe --exclude=*\.dll --exclude=*\.zip --exclude=*\.gz "^$"', 
+     \ 0,  
+     \ {'options': '--reverse --prompt "FLines> "'})
+
+nnoremap <silent> <leader>e :FLines<cr>
