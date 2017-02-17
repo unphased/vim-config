@@ -1001,9 +1001,11 @@ let g:ycm_confirm_extra_conf = 0
 let g:ycm_complete_in_comments = 1
 let g:ycm_seed_identifiers_with_syntax = 1
 let g:ycm_collect_identifiers_from_comments_and_strings = 1
-"let g:ycm_server_use_vim_stdout = 1
+let g:ycm_collect_identifiers_from_tags_files = 1
 let g:ycm_server_log_level = 'info'
-let g:ycm_max_diagnostics_to_display = 300
+let g:ycm_max_diagnostics_to_display = 100
+let g:ycm_key_list_select_completion = ['<TAB>', '<Down>']
+let g:ycm_key_list_previous_completion = ['<S-TAB>', '<Up>']
 
 " semantic on OSX works again! hooray -- now this has to be bound to a key 
 " because of limitations. see issue 887 at YCM's github
