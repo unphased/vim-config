@@ -1885,7 +1885,8 @@ map <leader>et :tabe %%
 " sufficiently subtle so that it does not become annoying. The default of red 
 " background is problematic. I am a little undecided on if underline is 
 " sufficient.
-set spell
+
+" set spell
 nmap <leader>s :set spell!<CR>
 
 nmap <leader>S :sav %%
@@ -2752,6 +2753,9 @@ endif
 
 hi Todo guibg=#484848
 
-command! -bang FLines call fzf#vim#grep('grep -vnIr --color=always --exclude-dir={".git",".svn"} --exclude=tags --exclude={*\.pyc,*\.exe,*\.dll,*\.zip,*\.gz} "^$"', 0)
+command! -bang FLines call fzf#vim#grep(
+     \ 'grep -vnITr --color=always --exclude-dir=".svn" --exclude-dir=".git" --exclude=tags --exclude=*\.pyc --exclude=*\.exe --exclude=*\.dll --exclude=*\.zip --exclude=*\.gz "^$"', 
+     \ 0,  
+     \ {'options': '--reverse --prompt "FLines> "'})
 
-command! -bang FLinesTest call fzf#vim#grep('echo ==={a,b,c,d}----"\n"', 0);
+nnoremap <silent> <leader>e :FLines<cr>
