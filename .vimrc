@@ -2752,6 +2752,6 @@ endif
 
 hi Todo guibg=#484848
 
-command! -bang FLines call fzf#vim#grep('grep -vnITr --color=always --exclude-dir={".git,".svn"} --exclude=tags --exclude={*\.pyc,*\.exe,*\.dll,*\.zip,*\.gz} "^$"', 0)
+command! -bang FLines call fzf#vim#grep('grep -vnITr --color=always --exclude-dir={".git",".svn"} --exclude=tags --exclude={*\.pyc,*\.exe,*\.dll,*\.zip,*\.gz} "^$"', 0)
 
 command! -bang FLinesTest call fzf#vim#grep('echo ==={a,b,c,d}----"\n"', 0);
