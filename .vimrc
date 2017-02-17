@@ -349,8 +349,8 @@ highlight SignifySignDelete cterm=bold ctermbg=none ctermfg=167 guifg=#f2555a
 highlight SignifySignChange cterm=bold ctermbg=none ctermfg=227 guifg=#99eeee
 highlight SignifySignChangeDelete cterm=bold ctermbg=none ctermfg=203 guifg=#f99157
 
-highlight SignifyLineAdd    ctermfg=none ctermbg=119 guibg=#204320
-highlight SignifyLineDelete ctermfg=none ctermbg=167 guibg=#521520
+highlight SignifyLineAdd    ctermfg=none ctermbg=119 guibg=#203a20
+highlight SignifyLineDelete ctermfg=none ctermbg=167 guibg=#4a1520
 highlight SignifyLineChange ctermfg=none ctermbg=227 guibg=#0e3535
 highlight SignifyLineChangeDelete ctermfg=none ctermbg=203 guibg=#433007
 
