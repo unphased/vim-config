@@ -3,7 +3,7 @@
     "browser",
     "jquery",
     "underscore",
-    "ecma5"
+    "node"
   ],
   "loadEagerly": [
   ],
