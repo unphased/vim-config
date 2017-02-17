@@ -2757,11 +2757,11 @@ endif
 hi Todo guibg=#484848
 
 command! -bang FLines call fzf#vim#grep(
-     \ 'grep -vnITr --color=always --exclude-dir=".svn" --exclude-dir=".git" --exclude=tags --exclude=*\.pyc --exclude=*\.exe --exclude=*\.dll --exclude=*\.zip --exclude=*\.gz "^$"', 
-     \ 0,  
+     \ 'grep -vnIr --color=always --exclude-dir=".svn" --exclude-dir=".git" --exclude=tags --exclude=*\.pyc --exclude=*\.exe --exclude=*\.dll --exclude=*\.zip --exclude=*\.gz "^$"',
+     \ 0,
      \ {'options': '--reverse --prompt "FLines> "'})
 
-nnoremap <silent> <leader>e :FLines<cr>
+nnoremap <silent> <Leader>e :FLines<CR>
 
 let &t_8f = "\x1b[38;2;%lu;%lu;%lum"
 let &t_8b = "\x1b[48;2;%lu;%lu;%lum"
