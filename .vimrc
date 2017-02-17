@@ -2762,3 +2762,6 @@ command! -bang FLines call fzf#vim#grep(
      \ {'options': '--reverse --prompt "FLines> "'})
 
 nnoremap <silent> <leader>e :FLines<cr>
+
+let &t_8f = "\x1b[38;2;%lu;%lu;%lum"
+let &t_8b = "\x1b[48;2;%lu;%lu;%lum"
