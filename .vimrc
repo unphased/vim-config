@@ -194,7 +194,6 @@ let g:indent_guides_enable_on_vim_startup = 1
 let g:indent_guides_auto_colors = 0
 let g:indent_guides_start_level = 1
 let g:indent_guides_guide_size = 1
-au! VimEnter,Colorscheme * :hi IndentGuidesOdd guibg=#252525 guifg=#000000 ctermbg=235 ctermfg=16 | hi IndentGuidesEven guibg=#2e2e2e guifg=#030303 ctermbg=236 ctermfg=234
 
 " signify
 let g:signify_sign_overwrite = 0
