@@ -1688,6 +1688,13 @@
 					<key>Text</key>
 					<string>L</string>
 				</dict>
+				<key>0x4d-0x120000</key>
+				<dict>
+					<key>Action</key>
+					<integer>10</integer>
+					<key>Text</key>
+					<string>M</string>
+				</dict>
 				<key>0x5a-0x120000</key>
 				<dict>
 					<key>Action</key>
