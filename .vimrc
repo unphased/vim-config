@@ -105,7 +105,6 @@ Plug 'Mizuchi/STL-Syntax'
 
 Plug 'unphased/vim-html-escape' " my master has gdefault detecting tweak
 
-Plug 'vim-scripts/showmultibase'
 Plug 'rking/ag.vim'
 Plug 'AndrewRadev/sideways.vim'
 Plug 'kana/vim-textobj-user'
@@ -234,7 +233,7 @@ inoremap <F4> <ESC>:UndotreeToggle<CR>
 " The new way to do copypaste is with + register -- I already have it set up to 
 " have visual mode y yank to OS X pasteboard.
 
-nnoremap <Leader>L :so $MYVIMRC<CR>:runtime! after/plugin/*.vim<CR>
+nnoremap <Leader>L :so $MYVIMRC<CR>:runtime! after/plugin/*.vim<CR>:runtime! after/ftplugin/*.vim<CR>
 
 " for camelcasemotion, bringing back the original , by triggering it with ,,
 " the comma repeats last t/f/T/F, which is *still* completely useless... Here's
@@ -1266,7 +1265,7 @@ let g:is_bash=1
 " self-repairing, and also I can run SetPaste from an exit-insert 
 " autocommand, and there will be no healing necessary. Aside from signs.
 function! SetPaste()
-	echo "Paste: ".&paste
+	" echo "Paste: ".&paste
 	if (&paste)
 		set nonumber
 		set nolist
@@ -1998,8 +1997,8 @@ highlight SpellLocal ctermbg=NONE ctermfg=NONE cterm=underline guifg=NONE guibg=
 autocmd BufEnter * highlight OverLength ctermbg=52 guibg=#602020
 
 fu! LongLineHighlightToggle()
-	highlight OverLength ctermbg=52
-	if exists('w:long_line_match') 
+	highlight OverLength ctermbg=52 guibg=#602020
+	if exists('w:long_line_match')
 		match OverLength //
 		unlet w:long_line_match
 		" set colorcolumn=""
