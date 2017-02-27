@@ -338,6 +338,9 @@ hi SpecialKey ctermfg=239
 hi Statement cterm=bold
 hi Exception ctermfg=211
 
+hi FoldColumn guibg=black
+hi Folded guibg=#151515
+
 highlight DiffAdd term=reverse ctermbg=156 ctermfg=black
 highlight DiffChange term=reverse ctermbg=33 ctermfg=black
 highlight DiffText term=reverse ctermbg=blue ctermfg=16
