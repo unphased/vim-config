@@ -360,8 +360,8 @@ nnoremap <Leader>d :call sy#highlight#line_toggle()<CR>
 let g:signify_line_highlight = 1
 
 " mostly for syntastic
-highlight SyntasticError ctermbg=91 guibg=#FC6586
-highlight SyntasticErrorSign guibg=#FC678C guifg=#303030
+highlight SyntasticError ctermbg=91 guibg=#d05516
+highlight SyntasticErrorSign guibg=#DC571C guifg=#303030
 highlight SyntasticWarning ctermbg=24 guibg=#686832
 highlight SyntasticWarningSign guibg=#f1af51 guifg=#303030
 highlight SyntasticErrorLine guibg=#480000
