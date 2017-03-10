@@ -652,6 +652,7 @@ noremap! <silent> <C-L> <ESC>:call TmuxWindow('l')<CR>
 " generally a good idea to exit insert mode anyway once switching away from
 " Vim.
 noremap <F10> <ESC>
+snoremap <F10> <ESC>
 noremap! <F10> <ESC>
 cnoremap <F10> <c-c>
 
