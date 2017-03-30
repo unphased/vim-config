@@ -15,7 +15,7 @@ Plug 'junegunn/fzf.vim'
 Plug 'SirVer/ultisnips', { 'on': [] }
 Plug 'Valloric/YouCompleteMe', { 'on': [] }
 " Plug 'scrooloose/syntastic', { 'on': [] }
-Plug 'w0rp/ale'
+Plug 'unphased/ale'
 
 let s:LoadExpensivePluginsHasBeenRun = 0
 function! LoadExpensive()
@@ -360,15 +360,25 @@ highlight SignifyLineChangeDelete ctermfg=none ctermbg=203 guibg=#433007
 nnoremap <Leader>d :call sy#highlight#line_toggle()<CR>
 let g:signify_line_highlight = 1
 
-" mostly for syntastic
+" syntastic / ALE
+
 highlight SyntasticError ctermbg=91 guibg=#d05516
+highlight ALEError ctermbg=91 guibg=#d05516
 highlight SyntasticErrorSign guibg=#DC571C guifg=#FFFFFF
+highlight ALEErrorSign guibg=#DC571C guifg=#FFFFFF
 highlight SyntasticWarning ctermbg=24 guibg=#686832
+highlight ALEWarning ctermbg=24 guibg=#686832
 highlight SyntasticWarningSign guibg=#f1af51 guifg=#303030
+highlight ALEWarningSign guibg=#f1af51 guifg=#303030
 highlight SyntasticErrorLine guibg=#480000
+highlight ALEErrorLine guibg=#480000
 highlight SyntasticWarningLine guibg=#383800
+highlight ALEWarningLine guibg=#383800
 
 hi clear SignColumn
+
+let g:ale_sign_warning = '->'
+let g:ale_sign_error = '>>'
 
 " HiCursorWords
 let g:HiCursorWords_delay = 50
