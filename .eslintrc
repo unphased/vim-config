@@ -16,7 +16,6 @@
     ],
     "globals": {
         "mapboxgl": true,
-        "app": true,
         "define": true,
         "_": true,
         "logger": true,
