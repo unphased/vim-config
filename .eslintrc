@@ -18,7 +18,6 @@
         "mapboxgl": true,
         "define": true,
         "_": true,
-        "logger": true,
         "moment": true,
         "vex": true,
         "path": true,
