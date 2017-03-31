@@ -1470,10 +1470,10 @@ function! EnhancedComma(count)
 		if (hlsearchCurrent)
 			" echom 'seeking next mat'
 			silent! normal n
-			normal .
+			normal! @q
 		else
 			" echom 'advancing line because no hlsearch'
-			normal! .j
+			normal! @qj
 		endif
 		let c -= 1
 	endwhile
