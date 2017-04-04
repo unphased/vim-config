@@ -15,7 +15,7 @@ Plug 'junegunn/fzf.vim'
 Plug 'SirVer/ultisnips', { 'on': [] }
 Plug 'Valloric/YouCompleteMe', { 'on': [] }
 " Plug 'scrooloose/syntastic', { 'on': [] }
-Plug 'unphased/ale'
+Plug 'w0rp/ale'
 
 let s:LoadExpensivePluginsHasBeenRun = 0
 function! LoadExpensive()
@@ -90,7 +90,6 @@ Plug 'vim-scripts/EnhancedJumps'
 
 Plug 't9md/vim-textmanip', { 'on': [ '<Plug>(textmanip-move-down)', '<Plug>(textmanip-move-up)', '<Plug>(textmanip-move-left)', '<Plug>(textmanip-move-right)', '<Plug>(textmanip-toggle-mode)', '<Plug>(textmanip-toggle-mode)', ] }
 
-" Plug 'vim-scripts/hexman.vim'
 Plug 'tpope/vim-afterimage'
 Plug 'junegunn/vim-easy-align'
 Plug 'blueyed/argtextobj.vim'
