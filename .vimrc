@@ -1489,7 +1489,7 @@ let g:ctrlp_follow_symlinks = 1
 " Do note that you have to manually rescan with F5 to see this applied!
 let g:ctrlp_custom_ignore = { 
 			\ 'dir':  '\v[\/]node_modules|(public\/js\/app\/views)|(\.(git|hg|svn))',
-			\ 'file': '\v\.(exe|so|dll|DS_Store|un\~)$',
+			\ 'file': '\v\.(exe|so|dll|DS_Store|un\~|min\.js|es5\.js)$',
 			\ }
 
 " pulled from http://vim.wikia.com/wiki/Move_current_window_between_tabs
