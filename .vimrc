@@ -1740,15 +1740,16 @@ let g:airline#extensions#default#section_truncate_width = {
 " =======================================
 "
 "   obviously, basically, simply, of course, clearly,
-"   just, everyone knows, However, So, easy
+"   just, everyone knows, However, so, easy
 
 "   http://css-tricks.com/words-avoid-educational-writing/
 
 highlight TechWordsToAvoid ctermbg=52 guibg=#602020
 " 52 is the darkest red and it is a handy non-painful color
 
+" also highlight swears for +3 professionalism
 function! MatchTechWordsToAvoid()
-	match TechWordsToAvoid /\c\<\(obviously\|basically\|simply\|of\scourse\|clearly\|everyone\sknows\|so,\)\>/
+	match TechWordsToAvoid /\c\<\(shit\|fuck\|crap\|ass\|obviously\|basically\|simply\|of\scourse\|clearly\|everyone\sknows\)\>/
 endfunction
 autocmd FileType vim,markdown,javascript,cpp,bash,zsh,sh call MatchTechWordsToAvoid()
 " autocmd BufWinEnter *.md call MatchTechWordsToAvoid()
