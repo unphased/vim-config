@@ -2362,7 +2362,7 @@ function! WinTextWidth()
 	return winwidth
 endfunction
 
-let g:spreadratio = 0.7
+let g:spreadratio = 0.5
 " Terminate iteration at 'abort' lines for perf.
 " for the purposes of HeightSpread, any file taller than the g:spreadratio 
 " * (Vim height - 3) should be considered too large.
