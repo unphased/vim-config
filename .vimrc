@@ -43,6 +43,8 @@ Plug 'maxbrunsfeld/vim-yankstack'
 Plug 'mbbill/undotree', { 'on': 'UndotreeToggle' }
 Plug 'rhysd/clever-f.vim'
 
+Plug 'editorconfig/editorconfig-vim'
+
 Plug 'leafgarland/typescript-vim'
 Plug 'scrooloose/nerdtree', { 'on': ['NERDTreeFind', 'NERDTreeToggle'] }
 Plug 'ctrlpvim/ctrlp.vim'
