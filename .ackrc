@@ -9,3 +9,4 @@
 --ignore-file=match:.min.js
 --ignore-file=match:.es5.js
 --ignore-file=match:source-map.js
+--ignore-file=match:.js.map
