@@ -1777,6 +1777,7 @@ function! SmartInsertStartOfLine()
 		normal! ^w
 		startinsert
 	else
+		" why do i need to use feedkeys? who knows?
 		call feedkeys('I', 'n')
 	endif
 endfun
