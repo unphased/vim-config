@@ -114,6 +114,7 @@ Plug 'kana/vim-textobj-user'
 Plug 'Ron89/thesaurus_query.vim'
 Plug 'AndrewRadev/switch.vim'
 Plug 'ap/vim-css-color'
+Plug 'Xuyuanp/nerdtree-git-plugin'
 
 call plug#end()
 
