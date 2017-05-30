@@ -1802,7 +1802,7 @@ endfun
 " Overriding the key that normally moves to the end of a big-word. I never use 
 " that... However, it may be smart to eventually remap some other combo to that 
 " functionality
-nnoremap <Leader>E :call SmartInsertEndOfLine()<CR>
+nnoremap <Leader>A :call SmartInsertEndOfLine()<CR>
 
 " I decided i wanted the b for page up again. i already got used to backspace to 
 " go back a word; i don't have a problem with it. The reach for the Z key is not 
@@ -2785,3 +2785,5 @@ nnoremap <silent> <Leader>e :FLines<CR>
 
 let &t_8f = "\x1b[38;2;%lu;%lu;%lum"
 let &t_8b = "\x1b[48;2;%lu;%lu;%lum"
+
+set synmaxcol=120
