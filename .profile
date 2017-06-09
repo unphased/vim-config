@@ -15,3 +15,5 @@ source $HOME/.aliases.sh
 # than .bashrc)
 
 echo 'Hi from ~/.profile'
+
+export PS1="\e[0;31m[\u@\h \W]\$ \e[m"

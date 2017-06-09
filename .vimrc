@@ -2786,4 +2786,4 @@ nnoremap <silent> <Leader>e :FLines<CR>
 let &t_8f = "\x1b[38;2;%lu;%lu;%lum"
 let &t_8b = "\x1b[48;2;%lu;%lu;%lum"
 
-set synmaxcol=120
+set synmaxcol=1000
