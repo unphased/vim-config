@@ -1448,12 +1448,16 @@
 			<false/>
 			<key>Background Color</key>
 			<dict>
+				<key>Alpha Component</key>
+				<real>1</real>
 				<key>Blue Component</key>
-				<real>0.0</real>
+				<real>0.081192046403884888</real>
+				<key>Color Space</key>
+				<string>Calibrated</string>
 				<key>Green Component</key>
-				<real>0.0</real>
+				<real>0.08119066059589386</real>
 				<key>Red Component</key>
-				<real>0.0</real>
+				<real>0.081193089485168457</real>
 			</dict>
 			<key>Background Image Is Tiled</key>
 			<false/>
@@ -2300,7 +2304,7 @@
 			<key>Thin Strokes</key>
 			<integer>0</integer>
 			<key>Transparency</key>
-			<real>0.15237842085798817</real>
+			<real>0.12042575813609467</real>
 			<key>Triggers</key>
 			<array/>
 			<key>Unlimited Scrollback</key>
