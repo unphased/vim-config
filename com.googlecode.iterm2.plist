@@ -1280,11 +1280,11 @@
 	<key>NSWindow Frame SUUpdateAlert</key>
 	<string>2410 965 620 392 1440 179 2560 1440 </string>
 	<key>NSWindow Frame SharedPreferences</key>
-	<string>-1186 261 918 512 -1200 172 1200 1897 </string>
+	<string>61 1015 796 473 0 900 2560 1440 </string>
 	<key>NSWindow Frame UKCrashReporter</key>
 	<string>99 293 592 584 0 0 1440 877 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>0 0 1440 900 0 0 1440 877 </string>
+	<string>1105 904 1424 1413 0 900 2560 1417 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
 	<string>212 101 570 452 0 0 1680 1027 </string>
 	<key>NeverWarnAboutShortLivedSessions_BABC3C6F-E892-4635-AD49-85E57CE1D5AF</key>
@@ -1295,7 +1295,7 @@
 			<key>ASCII Anti Aliased</key>
 			<true/>
 			<key>Allow Title Reporting</key>
-			<true/>
+			<false/>
 			<key>Ambiguous Double Width</key>
 			<false/>
 			<key>Ansi 0 Color</key>
@@ -2208,6 +2208,8 @@
 			<true/>
 			<key>Shortcut</key>
 			<string></string>
+			<key>Show Mark Indicators</key>
+			<false/>
 			<key>Silence Bell</key>
 			<false/>
 			<key>Smart Cursor Color</key>
