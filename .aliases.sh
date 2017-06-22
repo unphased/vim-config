@@ -30,6 +30,8 @@ alias k='l' # this is a bit tongue in cheek
 
 alias gl="git pull"
 
+which colormake > /dev/null && alias make="colormake"
+
 alias mk="make"
 alias gcp="git commit-push"
 
