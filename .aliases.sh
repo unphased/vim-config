@@ -35,6 +35,8 @@ which colormake > /dev/null && alias make="colormake"
 alias mk="make"
 alias gcp="git commit-push"
 
+alias gcb='git checkout -b'
+
 #Dupes of useful ones from omz
 alias gp="git push"
 alias gst="git status-with-ignored"
