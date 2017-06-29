@@ -30,6 +30,8 @@ alias k='l' # this is a bit tongue in cheek
 
 alias gl="git pull"
 
+# actually zsh with prezto won't need this since it has its own fallback 
+# mechanism for make. But, this is useful in e.g. bash.
 which colormake > /dev/null && alias make="colormake"
 
 alias mk="make"
