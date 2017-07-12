@@ -57,15 +57,15 @@ if [[ $(uname) == Linux ]]; then
 	# need to use a non custom term to not confuse nano. Also enabling the 
 	# experimental undo functionality for nano
 	alias nano="TERM=xterm-256color nano -u"
-	# this is a trick seen here http://superuser.com/a/479816/98199
-	# it is slightly horrifying and basically turns sudo into a function now. It 
-	# will quickly be seen whether this is a sane approach
-	function sudo() {
-		case $* in
-			nano* ) shift 1; TERM=xterm-256color command sudo nano -u "$@" ;;
-			* ) command sudo "$@" ;;
-		esac
-	}
+	# # this is a trick seen here http://superuser.com/a/479816/98199
+	# # it is slightly horrifying and basically turns sudo into a function now. It 
+	# # will quickly be seen whether this is a sane approach
+	# function sudo() {
+	# 	case $* in
+	# 		nano* ) shift 1; TERM=xterm-256color command sudo nano -u "$@" ;;
+	# 		* ) command sudo "$@" ;;
+	# 	esac
+	# }
 
 	# We can compile and install a newer nano on OSX but there is DEFINITELY no 
 	# reason to use it over vim on a machine running OSX. None at all.
