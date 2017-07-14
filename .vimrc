@@ -2787,3 +2787,6 @@ let &t_8f = "\x1b[38;2;%lu;%lu;%lum"
 let &t_8b = "\x1b[48;2;%lu;%lu;%lum"
 
 set synmaxcol=1000
+
+" useful magic for making files executable if they look like they should be
+au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent execute "!chmod a+x <afile>" | endif | endif
