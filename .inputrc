@@ -13,31 +13,13 @@ set output-meta on
 "[1;5C": forward-word
 "[1;5D": backward-word
 
-# I had these in here but it looks like Ubuntu (11.10) 
-# is starting to handle arrows, home, end, ctrl+arrows, well. Even in vim.
-
-#"\e[1~": beginning-of-line
-#"\e[4~": end-of-line
-
-# history search with pgup/pgdn remains very very very handy however.
-# Theres an entry in default inputrc but it's commented. 
-# "\e[5~": history-search-backward
-# "\e[6~": history-search-forward
-
-#"\e[3~": delete-char
-#"\e[2~": quoted-insert
-#"\e[5C": forward-word
-#"\e[5D": backward-word
-#"\e\e[C": forward-word
-#"\e\e[D": backward-word
-# I now have no idea what these two are for.
-#"OC": forward-word
-#"OD": backward-word
-
 # Ctrl+Del to killword
 # ^[ is equivalent to \e, but somehow the "^[[3;5~" version 
 # doesn't seem to work for me. 
-"": kill-word
+
+"": backward-kill-word
+
+# "": backward-delete-char
 
 # Very sad to say that Ctrl+Backspace is a special case and can't be done 
 # with inputrc alone :(

@@ -1269,9 +1269,9 @@
 	<key>NSTableView Supports v2 KeyBingingTable</key>
 	<true/>
 	<key>NSWindow Frame SharedPreferences</key>
-	<string>269 275 918 381 0 0 1440 878 </string>
+	<string>369 348 796 473 0 0 1680 1028 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>683 81 435 797 0 0 1440 878 </string>
+	<string>559 3 460 830 0 0 1440 878 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
 	<string>176 71 570 452 0 0 1440 878 </string>
 	<key>NSWindow Frame iTerm Window 2</key>
@@ -1819,6 +1819,13 @@
 					<integer>11</integer>
 					<key>Text</key>
 					<string>0x18 0x7f</string>
+				</dict>
+				<key>0x7f-0x80000</key>
+				<dict>
+					<key>Action</key>
+					<integer>11</integer>
+					<key>Text</key>
+					<string>0x1b 0x7f</string>
 				</dict>
 				<key>0x9-0x40000</key>
 				<dict>
@@ -5674,8 +5681,17 @@
 	<true/>
 	<key>NoSyncInstallationId</key>
 	<string>4FDB3DF1-CB07-4BD3-A37A-12578A3A79A6</string>
+	<key>NoSyncLastTipTime</key>
+	<real>521691231.89424902</real>
+	<key>NoSyncPermissionToShowTip</key>
+	<true/>
 	<key>NoSyncTimeOfFirstLaunchOfVersionWithTip</key>
 	<real>521341127.84422803</real>
+	<key>NoSyncTipsToNotShow</key>
+	<array>
+		<string>000</string>
+		<string>0000</string>
+	</array>
 	<key>OnlyWhenMoreTabs</key>
 	<true/>
 	<key>OpenArrangementAtStartup</key>
@@ -5734,7 +5750,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2017-07-10T01:29:47Z</date>
+	<date>2017-07-13T01:28:58Z</date>
 	<key>SUSendProfileInfo</key>
 	<false/>
 	<key>SavePasteHistory</key>
