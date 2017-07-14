@@ -8,13 +8,8 @@ set input-meta on
 set convert-meta off
 set output-meta on
 
-#These next ones were made using PuTTY and may not work always
-"OH": beginning-of-line
-"OF": end-of-line
-# "[5~": history-search-backward
-# "[6~": history-search-forward
-"[3~": delete-char
-"[2~": quoted-insert
+"[1~": beginning-of-line
+"[4~": end-of-line
 "[1;5C": forward-word
 "[1;5D": backward-word
 
@@ -42,7 +37,7 @@ set output-meta on
 # Ctrl+Del to killword
 # ^[ is equivalent to \e, but somehow the "^[[3;5~" version 
 # doesn't seem to work for me. 
-"\e[3;5~": kill-word
+"": kill-word
 
 # Very sad to say that Ctrl+Backspace is a special case and can't be done 
 # with inputrc alone :(

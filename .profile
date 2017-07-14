@@ -16,6 +16,38 @@ source $HOME/.aliases.sh
 
 echo 'Hi from ~/.profile'
 
+# The following thanks to @Jonathan M Davis from SO
+pushd()
+{
+  if [ $# -eq 0 ]; then
+    DIR="${HOME}"
+  else
+    DIR="$1"
+  fi
+
+  builtin pushd "${DIR}" > /dev/null
+  echo -n "DIRSTACK: "
+  dirs
+}
+
+pushd_builtin()
+{
+  builtin pushd > /dev/null
+  echo -n "DIRSTACK: "
+  dirs
+}
+
+popd()
+{
+  builtin popd > /dev/null
+  echo -n "DIRSTACK: "
+  dirs
+}
+
+alias cd='pushd'
+alias back='popd'
+alias flip='pushd_builtin'
+
 # The following thanks to @Nicolas Thery from SO
 
 function timer_now {
