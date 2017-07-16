@@ -24,6 +24,5 @@ set output-meta on
 # Very sad to say that Ctrl+Backspace is a special case and can't be done 
 # with inputrc alone :(
 
-set completion-ignore-case on
-#tab completion ignore case
 set show-all-if-ambiguous on
+set completion-ignore-case on

@@ -1269,7 +1269,7 @@
 	<key>NSTableView Supports v2 KeyBingingTable</key>
 	<true/>
 	<key>NSWindow Frame SharedPreferences</key>
-	<string>369 348 796 473 0 0 1680 1028 </string>
+	<string>530 121 796 473 0 0 1680 1050 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
 	<string>559 3 460 830 0 0 1440 878 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
@@ -5682,7 +5682,7 @@
 	<key>NoSyncInstallationId</key>
 	<string>4FDB3DF1-CB07-4BD3-A37A-12578A3A79A6</string>
 	<key>NoSyncLastTipTime</key>
-	<real>521691231.89424902</real>
+	<real>521879025.120121</real>
 	<key>NoSyncPermissionToShowTip</key>
 	<true/>
 	<key>NoSyncTimeOfFirstLaunchOfVersionWithTip</key>
@@ -5691,6 +5691,8 @@
 	<array>
 		<string>000</string>
 		<string>0000</string>
+		<string>0001</string>
+		<string>0002</string>
 	</array>
 	<key>OnlyWhenMoreTabs</key>
 	<true/>
