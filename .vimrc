@@ -15,6 +15,7 @@ Plug 'junegunn/fzf.vim'
 Plug 'SirVer/ultisnips', { 'on': [] }
 " Plug 'Valloric/YouCompleteMe', { 'on': [] }
 " Plug 'scrooloose/syntastic', { 'on': [] }
+Plug 'Shougo/neocomplete.vim'
 Plug 'w0rp/ale'
 
 let s:LoadExpensivePluginsHasBeenRun = 0
@@ -149,6 +150,8 @@ nnoremap <Leader>g :call TimeLapse()<CR>
 
 " nnoremap <Leader>e :silent !p4 edit %:p<CR>:redraw!<CR>
 nnoremap <Leader>R :silent redraw!<CR>
+
+let g:neocomplete#enable_at_startup = 1
 
 " These are apparently the defacto terminal codes for Ctrl+Tab and Ctrl+Shift+Tab
 " but Vim has no knowledge of it. so here i am adding it to the fastkey 
