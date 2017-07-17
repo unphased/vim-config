@@ -1569,6 +1569,10 @@ vmap ] S]
 vmap < S<
 vmap > S>
 
+" Set up c-style surround using * key. Useful in C/C++/JS
+let g:surround_{char2nr("*")} = "/* \r */"
+vmap * S*
+
 " shortcut for visual mode space wrapping makes it more reasonable than using 
 " default vim surround space maps which require hitting space twice or 
 " modifying wrap actions by prepending space to their triggers -- i am guiding 
