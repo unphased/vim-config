@@ -48,7 +48,7 @@ Plug 'editorconfig/editorconfig-vim'
 Plug 'leafgarland/typescript-vim'
 Plug 'scrooloose/nerdtree', { 'on': ['NERDTreeFind', 'NERDTreeToggle'] }
 Plug 'ctrlpvim/ctrlp.vim'
-Plug 'diffchanges.vim'
+Plug 'vim-scripts/diffchanges.vim'
 Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-speeddating'
