@@ -607,6 +607,7 @@ set formatoptions=caq1njw
 " override $VIMRUNTIME/ftplugin/*.vim messing up my formatoptions by forcing the 
 " options that i really care about at this point
 au FileType * setlocal fo-=r
+au FileType * setlocal fo+=b
 
 " Helpful warning message
 au FileChangedShell * echo "Warning: File changed on disk!!"
