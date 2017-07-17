@@ -13,7 +13,7 @@ Plug 'junegunn/fzf.vim'
 
 " Load on nothing
 Plug 'SirVer/ultisnips', { 'on': [] }
-Plug 'Valloric/YouCompleteMe', { 'on': [] }
+" Plug 'Valloric/YouCompleteMe', { 'on': [] }
 " Plug 'scrooloose/syntastic', { 'on': [] }
 Plug 'w0rp/ale'
 
@@ -21,7 +21,7 @@ let s:LoadExpensivePluginsHasBeenRun = 0
 function! LoadExpensive()
 	if !(s:LoadExpensivePluginsHasBeenRun)
 		echom 'loadexpensive'
-		call plug#load('ultisnips', 'YouCompleteMe')
+		call plug#load('ultisnips')
 		autocmd! load_expensive
 		let s:LoadExpensivePluginsHasBeenRun = 1
 	endif
