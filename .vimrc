@@ -152,6 +152,7 @@ nnoremap <Leader>g :call TimeLapse()<CR>
 nnoremap <Leader>R :silent redraw!<CR>
 
 let g:neocomplete#enable_at_startup = 1
+let g:neocomplete#min_keyword_length = 3
 
 " neocomplete: bind tab for similar behavior to YCM
 inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
