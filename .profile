@@ -10,6 +10,8 @@ shopt -s histappend
 
 export PATH=$HOME/util:$PATH
 
+export LESS='-g -i -M -R -z-4'
+
 source $HOME/.aliases.sh
 # Remember to link this to ~/.bash_profile if it doesn't exist. (more robust 
 # than .bashrc)
