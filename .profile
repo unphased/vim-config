@@ -133,5 +133,9 @@ set_prompt () {
     PS1+="$Blue\\w \\\$$Reset "
 }
 
-trap 'timer_start' DEBUG
-PROMPT_COMMAND='set_prompt'
+if [[ "$TERM_PROGRAM" == "iTerm.app" ]]; then
+    source ~/.vim/.iterm2_shell_integration.bash
+else
+    trap 'timer_start' DEBUG
+    PROMPT_COMMAND='set_prompt'
+fi
