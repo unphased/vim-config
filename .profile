@@ -16,6 +16,14 @@ source $HOME/.aliases.sh
 # Remember to link this to ~/.bash_profile if it doesn't exist. (more robust 
 # than .bashrc)
 
+if [ -f `brew --prefix`/etc/bash_completion ]; then
+    . `brew --prefix`/etc/bash_completion
+fi
+
+# a few helpers that have to match aliases
+__git_complete gco _git_checkout
+__git_complete g __git_main
+
 echo 'Hi from ~/.profile'
 
 # The following thanks to @Jonathan M Davis from SO
