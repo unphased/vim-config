@@ -391,6 +391,11 @@ highlight ALEErrorLine guibg=#480000
 highlight SyntasticWarningLine guibg=#383800
 highlight ALEWarningLine guibg=#383800
 
+" TODO detect if gcc is old, adjust to c++11 instead of 14
+" But, I'm not doing that because forking gcc sounds like a horrible idea on 
+" vim startup. So, I'm blanket-conf'ing gcc for c++11 for now
+let g:ale_cpp_gcc_options = '-std=c++11 -Wextra'
+
 hi clear SignColumn
 
 let g:ale_sign_warning = '->'
@@ -1054,9 +1059,8 @@ let g:ycm_server_keep_logfiles = 1
 " 	endif
 " endfunc
 
-" setting F7 to ycmdiags
-nnoremap <F7> :call LoadExpensive()<CR>:YcmDiags<CR>
-nnoremap <S-F7> :YcmCompleter GoToDefinition<CR>
+nnoremap <F7> :ALEDetail<CR>
+" nnoremap <S-F7> :YcmCompleter GoToDefinition<CR>
 
 " This insert mapping is for pasting; it appears that YCM only takes over the
 " <C-P> when it has the complete box open (this may be a Vim
