@@ -8,10 +8,21 @@ set input-meta on
 set convert-meta off
 set output-meta on
 
+# home/end
 "[1~": beginning-of-line
 "[4~": end-of-line
+
+# ctrl arrow word hop
 "[1;5C": forward-word
 "[1;5D": backward-word
+
+# alt arrow word hop
+"[1;3C": forward-word
+"[1;3D": backward-word
+
+# searches!
+"\e[A":history-search-backward
+"\e[B":history-search-forward
 
 # Ctrl+Del to killword
 # ^[ is equivalent to \e, but somehow the "^[[3;5~" version 
