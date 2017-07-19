@@ -1269,9 +1269,9 @@
 	<key>NSTableView Supports v2 KeyBingingTable</key>
 	<true/>
 	<key>NSWindow Frame SharedPreferences</key>
-	<string>548 102 796 473 0 0 1680 1028 </string>
+	<string>671 401 796 473 0 0 1680 1028 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>207 95 630 830 0 0 1680 1028 </string>
+	<string>991 19 640 863 0 0 1680 1028 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
 	<string>176 71 570 452 0 0 1440 878 </string>
 	<key>NSWindow Frame iTerm Window 2</key>
@@ -1473,7 +1473,7 @@
 			<key>Blur</key>
 			<false/>
 			<key>Blur Radius</key>
-			<real>2.3482248783111572</real>
+			<real>0.10000000000000001</real>
 			<key>Bold Color</key>
 			<dict>
 				<key>Blue Component</key>
@@ -6764,7 +6764,7 @@
 	<key>NoSyncInstallationId</key>
 	<string>4FDB3DF1-CB07-4BD3-A37A-12578A3A79A6</string>
 	<key>NoSyncLastTipTime</key>
-	<real>521879025.120121</real>
+	<real>522119063.58924901</real>
 	<key>NoSyncPermissionToShowTip</key>
 	<true/>
 	<key>NoSyncTimeOfFirstLaunchOfVersionWithTip</key>
@@ -6775,6 +6775,7 @@
 		<string>0000</string>
 		<string>0001</string>
 		<string>0002</string>
+		<string>0003</string>
 	</array>
 	<key>OnlyWhenMoreTabs</key>
 	<true/>
@@ -6834,11 +6835,13 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2017-07-16T21:22:43Z</date>
+	<date>2017-07-19T01:12:45Z</date>
 	<key>SUSendProfileInfo</key>
 	<false/>
 	<key>SavePasteHistory</key>
 	<false/>
+	<key>Selection Respects Soft Boundaries</key>
+	<true/>
 	<key>Show Toolbelt</key>
 	<false/>
 	<key>ShowBookmarkName</key>
@@ -6859,6 +6862,8 @@
 	<integer>1</integer>
 	<key>TabViewType</key>
 	<integer>0</integer>
+	<key>TerminalMargin</key>
+	<integer>2</integer>
 	<key>ThreeFingerEmulates</key>
 	<false/>
 	<key>TimeBetweenBlinks</key>
@@ -6891,6 +6896,8 @@
 	<string>/-+\~_.$</string>
 	<key>findIgnoreCase_iTerm</key>
 	<true/>
+	<key>findMode_iTerm</key>
+	<integer>4</integer>
 	<key>findRegex_iTerm</key>
 	<true/>
 	<key>iTerm Version</key>

@@ -48,6 +48,24 @@ alias cd='pushd'
 alias back='popd'
 alias flip='pushd_builtin'
 
+# implement the helpers for changing dirs
+alias 1='cd ~1'
+alias 2='cd ~2'
+alias 3='cd ~3'
+alias 4='cd ~4'
+alias 5='cd ~5'
+alias 6='cd ~6'
+alias 7='cd ~7'
+alias 8='cd ~8'
+alias 9='cd ~9'
+alias 10='cd ~10'
+alias 11='cd ~11'
+alias 12='cd ~12'
+alias 13='cd ~13'
+alias 14='cd ~14'
+alias 15='cd ~15'
+alias 16='cd ~16'
+
 # The following thanks to @Nicolas Thery from SO
 
 function timer_now {
@@ -115,5 +133,9 @@ set_prompt () {
     PS1+="$Blue\\w \\\$$Reset "
 }
 
-trap 'timer_start' DEBUG
-PROMPT_COMMAND='set_prompt'
+# if [[ "$TERM_PROGRAM" == "iTerm.app" ]]; then
+#     source ~/.vim/.iterm2_shell_integration.bash
+# else
+    trap 'timer_start' DEBUG
+    PROMPT_COMMAND='set_prompt'
+# fi
