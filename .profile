@@ -23,6 +23,8 @@ fi
 # a few helpers that have to match aliases
 __git_complete gco _git_checkout
 __git_complete g __git_main
+__git_complete gd _git_diff
+__git_complete d _git_diff
 
 echo 'Hi from ~/.profile'
 
