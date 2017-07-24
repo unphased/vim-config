@@ -22,6 +22,7 @@ alias gde="git diff --ext-diff"
 alias gdc="gd --cached"
 unalias gg # some git gui thing from ohmyzsh
 alias gg="git lg --all"
+alias ggs="git lg --all --stat"
 alias gca="git commit -av"
 alias gcm="git commit-message"
 unalias gcp # I rarely cherry pick (if not using ohmyzsh, this will cause bash to emit a warning)
@@ -29,6 +30,8 @@ alias gp="git push"
 alias k='l' # this is a bit tongue in cheek
 
 alias gl="git pull"
+
+alias gr="git remote"
 
 # actually zsh with prezto won't need this since it has its own fallback 
 # mechanism for make. But, this is useful in e.g. bash.
