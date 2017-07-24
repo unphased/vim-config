@@ -2762,8 +2762,7 @@ set ruler
 nnoremap <Leader>c :let &statusline='%{ShowCount()} %<%f %h%m%r%=%-14.(%l,%c%V%) %P' "THIS WILL BLOW AWAY STATUS LINE FOR SEARCH COUNTING. Ctrl+C to cancel
 
 " paste the global search
-nnoremap <Leader>p :.-1read $HOME/.vim/.search
-
+nnoremap <Leader>p :.-1read $HOME/.vim/.search<CR>
 
 " fuck, still doesnt work (i tried twice)
 " function! HiCursorWordsDisable()
