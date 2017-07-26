@@ -394,6 +394,9 @@ highlight ALEWarningLine guibg=#383800
 " TODO detect if gcc is old, adjust to c++11 instead of 14
 " But, I'm not doing that because forking gcc sounds like a horrible idea on 
 " vim startup. So, I'm blanket-conf'ing gcc for c++11 for now
+
+" This is the variable that is also to get extended with exrc vimscripts. works 
+" okay for now.
 let g:ale_cpp_gcc_options = '-std=c++11 -Wextra'
 
 hi clear SignColumn
@@ -2812,3 +2815,8 @@ set synmaxcol=1000
 
 " useful magic for making files executable if they look like they should be
 au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent execute "!chmod a+x <afile>" | endif | endif
+
+set exrc
+
+" keep at end. For exrc.
+set secure
