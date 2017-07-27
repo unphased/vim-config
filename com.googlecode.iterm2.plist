@@ -16,6 +16,8 @@
 	<integer>0</integer>
 	<key>AppleSmoothFixedFontsSizeThreshold</key>
 	<integer>1</integer>
+	<key>AutoCommandHistory</key>
+	<false/>
 	<key>AutoHideTmuxClientSession</key>
 	<false/>
 	<key>CheckTestRelease</key>
@@ -1231,6 +1233,8 @@
 	<integer>2</integer>
 	<key>LoadPrefsFromCustomFolder</key>
 	<true/>
+	<key>Mark Alert Action</key>
+	<string>Modal Alert</string>
 	<key>MaxVertically</key>
 	<true/>
 	<key>NSNavLastRootDirectory</key>
@@ -1268,10 +1272,12 @@
 	</data>
 	<key>NSTableView Supports v2 KeyBingingTable</key>
 	<true/>
+	<key>NSWindow Frame SUUpdateAlert</key>
+	<string>528 493 620 392 0 0 1680 1050 </string>
 	<key>NSWindow Frame SharedPreferences</key>
-	<string>671 401 796 473 0 0 1680 1028 </string>
+	<string>737 315 796 473 0 0 1680 1050 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>991 19 640 863 0 0 1680 1028 </string>
+	<string>85 49 579 885 0 0 1680 1028 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
 	<string>176 71 570 452 0 0 1440 878 </string>
 	<key>NSWindow Frame iTerm Window 2</key>
@@ -6757,6 +6763,8 @@
 			<string>/Users/lust</string>
 		</dict>
 	</array>
+	<key>NoSyncCommandHistoryHasEverBeenUsed</key>
+	<true/>
 	<key>NoSyncHaveWarnedAboutIncompatibleSoftware</key>
 	<true/>
 	<key>NoSyncHaveWarnedAboutPasteConfirmationChange</key>
@@ -6764,7 +6772,7 @@
 	<key>NoSyncInstallationId</key>
 	<string>4FDB3DF1-CB07-4BD3-A37A-12578A3A79A6</string>
 	<key>NoSyncLastTipTime</key>
-	<real>522119063.58924901</real>
+	<real>522737477.28202802</real>
 	<key>NoSyncPermissionToShowTip</key>
 	<true/>
 	<key>NoSyncTimeOfFirstLaunchOfVersionWithTip</key>
@@ -6776,6 +6784,11 @@
 		<string>0001</string>
 		<string>0002</string>
 		<string>0003</string>
+		<string>0004</string>
+		<string>0005</string>
+		<string>0006</string>
+		<string>0007</string>
+		<string>0008</string>
 	</array>
 	<key>OnlyWhenMoreTabs</key>
 	<true/>
@@ -6785,6 +6798,8 @@
 	<false/>
 	<key>OpenTmuxWindowsIn</key>
 	<integer>0</integer>
+	<key>OptionClickMovesCursor</key>
+	<false/>
 	<key>PMPrintingExpandedStateForPrint2</key>
 	<false/>
 	<key>PassOnControlClick</key>
@@ -6835,7 +6850,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2017-07-19T01:12:45Z</date>
+	<date>2017-07-26T05:55:10Z</date>
 	<key>SUSendProfileInfo</key>
 	<false/>
 	<key>SavePasteHistory</key>
@@ -6872,7 +6887,7 @@
 	<integer>10</integer>
 	<key>ToolbeltTools</key>
 	<array>
-		<string>Profiles</string>
+		<string>Command History</string>
 	</array>
 	<key>TripleClickSelectsFullWrappedLines</key>
 	<true/>
