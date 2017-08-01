@@ -2810,7 +2810,7 @@ nnoremap <silent> <Leader>e :FLines<CR>
 
 " override vim local search with global vim search (which is implicitly set in 
 " filesystem by searching in any vim)
-" nnoremap <silent> <Leader>n
+nnoremap <silent> <Leader>n :let @/ = join(readfile(glob("~/.vim/.search")), "\n")<CR>
 " TODO FINISH ME
 
 let &t_8f = "\x1b[38;2;%lu;%lu;%lum"
