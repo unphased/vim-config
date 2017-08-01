@@ -2808,6 +2808,11 @@ command! -bang FLines call fzf#vim#grep(
 
 nnoremap <silent> <Leader>e :FLines<CR>
 
+" override vim local search with global vim search (which is implicitly set in 
+" filesystem by searching in any vim)
+nnoremap <silent> <Leader>n
+" TODO FINISH ME
+
 let &t_8f = "\x1b[38;2;%lu;%lu;%lum"
 let &t_8b = "\x1b[48;2;%lu;%lu;%lum"
 

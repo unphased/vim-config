@@ -19,6 +19,7 @@ alias gf="git fetch"
 alias gds="git diff --stat"
 alias gdi="git diff-with-ignored"
 alias di="git diff-with-ignored-ext"
+alias gc!="git commit --amend"
 alias gde="git diff --ext-diff"
 alias gdc="gd --cached"
 unalias gg # some git gui thing from ohmyzsh
@@ -27,6 +28,7 @@ alias ggs="git lg --all --stat"
 alias gca="git commit -av"
 alias gcm="git commit-message"
 unalias gcp # I rarely cherry pick (if not using ohmyzsh, this will cause bash to emit a warning)
+
 alias gp="git push"
 alias k='l' # this is a bit tongue in cheek
 
