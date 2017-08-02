@@ -117,6 +117,10 @@ Plug 'AndrewRadev/switch.vim'
 Plug 'ap/vim-css-color'
 Plug 'Xuyuanp/nerdtree-git-plugin'
 
+Plug 'chrisbra/NrrwRgn'
+Plug 'https://github.com/wesQ3/vim-windowswap'
+Plug 'sbdchd/neoformat'
+
 call plug#end()
 
 call yankstack#setup()
@@ -159,6 +163,8 @@ if !exists('g:neocomplete#keyword_patterns')
 endif
 let g:neocomplete#keyword_patterns['javascript'] = '[@#.]\?[[:alpha:]_:-][[:alnum:]_:-]*'
 
+" autocmd FileType javascript set formatprg=prettier\ --stdin
+" this is unsafe (syntax errors and bad line wrapping)
 
 " neocomplete: bind tab for similar behavior to YCM
 inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
@@ -412,13 +418,13 @@ let g:HiCursorWords_delay = 50
 " noremap ]l :lnext<CR>
 " noremap [l :lprev<CR>
 
-let g:syntastic_javascript_checkers = ['eslint']
+" let g:syntastic_javascript_checkers = ['eslint']
 
-let g:syntastic_always_populate_loc_list = 1
+" let g:syntastic_always_populate_loc_list = 1
 
-let g:syntastic_ignore_files = [
-			\ '\vpublic/js/app/utils/global.js$'
-			\ ]
+" let g:syntastic_ignore_files = [
+" 			\ '\vpublic/js/app/utils/global.js$'
+" 			\ ]
 
 " for debugging syntax
 " (http://vim.wikia.com/wiki/Identify_the_syntax_highlighting_group_used_at_the_cursor)
