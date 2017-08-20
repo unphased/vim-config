@@ -669,7 +669,7 @@ function! TmuxWindow(dir)
 	let nr=winnr()
 	silent! exe 'wincmd ' . a:dir
 	let newnr=winnr()
-	if newnr == nr
+	if newnr == nr && !has("gui_macvim")
 		let cmd = 'tmux select-pane -' . tr(a:dir, 'hjkl', 'LDUR')
 		call system(cmd)
 		" echo 'Executed ' . cmd
@@ -2805,6 +2805,10 @@ if has('termguicolors')
   set termguicolors
 endif
 
+if has("gui_macvim")
+    " set macvim specific stuff
+endif
+
 hi Todo guibg=#484848
 
 command! -bang FLines call fzf#vim#grep(
@@ -2831,3 +2835,4 @@ set exrc
 
 " keep at end. For exrc.
 set secure
+
