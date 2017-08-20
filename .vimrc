@@ -117,7 +117,7 @@ Plug 'AndrewRadev/switch.vim'
 Plug 'ap/vim-css-color'
 Plug 'Xuyuanp/nerdtree-git-plugin'
 
-Plug 'chrisbra/NrrwRgn'
+" Plug 'chrisbra/NrrwRgn'
 Plug 'https://github.com/wesQ3/vim-windowswap'
 Plug 'sbdchd/neoformat'
 
