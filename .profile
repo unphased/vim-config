@@ -17,6 +17,7 @@ source $HOME/.aliases.sh
 # than .bashrc)
 
 if [ -f `brew --prefix`/etc/bash_completion ]; then
+    # TODO: make this check better...
     . `brew --prefix`/etc/bash_completion
 fi
 
