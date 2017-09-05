@@ -124,7 +124,7 @@ Plug 'sbdchd/neoformat'
 call plug#end()
 
 if exists('*yankstack#setup')
-	silent echom "Yankstack not installed! Might want to plug install."
+	echom "Yankstack not installed! Might want to plug install."
 	call yankstack#setup()
 endif
 
