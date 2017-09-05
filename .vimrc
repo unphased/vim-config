@@ -2832,8 +2832,11 @@ nnoremap <silent> <Leader>e :FLines<CR>
 nnoremap <silent> <Leader>n :let @/ = join(readfile(glob("~/.vim/.search")), "\n")<CR>
 " TODO FINISH ME
 
-let &t_8f = "\x1b[38;2;%lu;%lu;%lum"
-let &t_8b = "\x1b[48;2;%lu;%lu;%lum"
+
+if exists('&t_8f')
+	let &t_8f = "\x1b[38;2;%lu;%lu;%lum"
+	let &t_8b = "\x1b[48;2;%lu;%lu;%lum"
+endif
 
 
 set nostartofline
