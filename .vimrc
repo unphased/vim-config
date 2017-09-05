@@ -2822,6 +2822,11 @@ nnoremap <silent> <Leader>n :let @/ = join(readfile(glob("~/.vim/.search")), "\n
 let &t_8f = "\x1b[38;2;%lu;%lu;%lum"
 let &t_8b = "\x1b[48;2;%lu;%lu;%lum"
 
+
+set nostartofline
+
+" prevent epic slowdowns in certain poorly formatted (often minified or 
+" partially-minified) files
 set synmaxcol=1000
 
 " useful magic for making files executable if they look like they should be
