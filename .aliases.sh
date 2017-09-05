@@ -54,7 +54,10 @@ alias ds="dirs -v | head -10"
 alias d="gde"
 
 alias iack="ack -i"
-alias vim="TERM=xterm-256color-italic vim"
+
+if [ "$(uname)" != "MSYS_NT-10.0" ]; then
+	alias vim="TERM=xterm-256color-italic vim"
+fi
 
 alias c="cd"
 

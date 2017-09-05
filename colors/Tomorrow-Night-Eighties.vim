@@ -5,7 +5,10 @@
 
 " Default GUI Colours
 let s:foreground = "cccccc"
-let s:background = ""
+let s:background=""
+if has("gui_macvim")
+	let s:background="222222"
+endif
 let s:selection = "505050"
 let s:line = "393939"
 let s:comment = "999999"
