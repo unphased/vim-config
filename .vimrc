@@ -869,21 +869,22 @@ inoremap <C-Q> <C-O>:call MyConfirmQuitAllNoSave()<CR>
 " this bit controls search and highlighting by using the Enter key in normal mode
 let g:highlighting = 1
 function! Highlighting()
-  let l:word = expand('<cword>')
-  if g:highlighting == 1 && @/ =~ '^\\<'.l:word.'\\>$'
-    let g:highlighting = 0
-    return ":silent nohlsearch\<CR>"
-  endif
-  let @/ = '\<'.l:word.'\>'
-  " add to history -- can clutter, but def helps
-  " NOTE! the item is added without /v so backspace first, then hunt
-  call histadd('search', '\v<' . l:word . '>')
-  let g:highlighting = 1
-  " save this to file system (!) for fast workflow -- disabled now because its 
-  " visually distracting and i need an async way to deal with this...
-  " silent exe "!echo " . l:word . " > $HOME/.vim/.search"
-  " redraw!
-  python << EOF
+	let l:word = expand('<cword>')
+	if g:highlighting == 1 && @/ =~ '^\\<'.l:word.'\\>$'
+		let g:highlighting = 0
+		return ":silent nohlsearch\<CR>"
+	endif
+	let @/ = '\<'.l:word.'\>'
+	" add to history -- can clutter, but def helps
+	" NOTE! the item is added without /v so backspace first, then hunt
+	call histadd('search', '\v<' . l:word . '>')
+	let g:highlighting = 1
+	" save this to file system (!) for fast workflow -- disabled now because its 
+	" visually distracting and i need an async way to deal with this...
+	" silent exe "!echo " . l:word . " > $HOME/.vim/.search"
+	" redraw!
+	if has('python')
+		python << EOF
 from os.path import expanduser
 f = open(expanduser('~') + '/.vim/.search', 'w')
 # print f
@@ -891,7 +892,8 @@ w = vim.eval("l:word")
 f.write(w)
 f.close()
 EOF
-  return ":silent set hlsearch\<CR>"
+	endif
+	return ":silent set hlsearch\<CR>"
 endfunction
 nnoremap <silent> <expr> <CR> Highlighting()
 
@@ -905,7 +907,8 @@ function! s:VSetSearch(cmd)
   let old_reg = getreg('"')
   let old_regtype = getregtype('"')
   normal! gvy
-  python << EOF
+  if has('python')
+    python << EOF
 from os.path import expanduser
 f = open(expanduser('~') + '/.vim/.search', 'w')
 # print f
@@ -913,6 +916,7 @@ w = vim.eval("@@")
 f.write(w)
 f.close()
 EOF
+  endif
   if @@ =~? '^[0-9a-z,_]*$' || @@ =~? '^[0-9a-z ,_]*$' && g:VeryLiteral
     let @/ = @@
   else
@@ -2439,6 +2443,11 @@ endfunction
 " a function to distribute vertical space based on file lengths (I intend to 
 " maybe call this on new window/bufload)
 function! HeightSpread()
+	" short circuit me if do not have python
+	if !has('python')
+		return;
+	endif
+
 	" if !LongEnough('g:heightspread', 1.5)
 	" 	return
 	" 	" This is not ideal because it does not guarantee it will run after the
