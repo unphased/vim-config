@@ -2445,7 +2445,7 @@ endfunction
 function! HeightSpread()
 	" short circuit me if do not have python
 	if !has('python')
-		return;
+		return
 	endif
 
 	" if !LongEnough('g:heightspread', 1.5)
