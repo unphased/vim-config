@@ -47,7 +47,7 @@ Plug 'rhysd/clever-f.vim'
 Plug 'editorconfig/editorconfig-vim'
 
 Plug 'leafgarland/typescript-vim'
-" Plug 'scrooloose/nerdtree', { 'on': ['NERDTreeFind', 'NERDTreeToggle'] }
+Plug 'scrooloose/nerdtree', { 'on': ['NERDTreeFind', 'NERDTreeToggle'] }
 Plug 'ctrlpvim/ctrlp.vim'
 Plug 'vim-scripts/diffchanges.vim'
 Plug 'tpope/vim-repeat'
@@ -975,7 +975,7 @@ inoremap <F6> <ESC>:CtrlPMRUFiles<CR>
 nnoremap <S-F6> :CtrlPLine<CR>
 
 " opens the current buffer in nerdtree
-" nnoremap <Leader>f :NERDTreeFind<CR>
+nnoremap <Leader>f :NERDTreeFind<CR>
 
 " I definitely do not use this -- F7 is now YCM sign toggle.
 " nnoremap <F7> :NERDTreeToggle<CR>
