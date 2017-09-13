@@ -1450,14 +1450,18 @@ endif
 
 nmap Y y$
 
-" this attempts to perform even more extra processing with the yank operation, 
-" to place it into a config global fetchable state just like my implicit search
-function! YankOverloadVisual(key)
-	call writefile(split(@", "\n", 1), '~/.vim/.yank', 'b')
-	return a:key
-endfun
+" " this attempts to perform even more extra processing with the yank operation, 
+" " to place it into a config global fetchable state just like my implicit search
+" function! YankOverloadVisual(key)
+" 	" So the problem with this here is that the @" only has the *last* 
+" 	" selection's contents, the current selection is not available to us here. 
+" 	" Unfortunately there is no way to get a function to run AFTER dispatching 
+" 	" a potentially recursive map.
+" 	call writefile(split(getreg("\""), "\n", 1), glob('~/.vim/.yank'), 'b')
+" 	return a:key
+" endfun
 
-vmap <expr> y YankOverloadVisual('y')
+" vmap <expr> y YankOverloadVisual('y')
 
 " set the numpad key codes -- Mark helpfully already implements the stuff that
 " calls <k0>, etc
