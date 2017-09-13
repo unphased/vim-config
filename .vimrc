@@ -123,25 +123,6 @@ Plug 'sbdchd/neoformat'
 
 call plug#end()
 
-if exists('*yankstack#setup')
-	echom "Yankstack not installed! Might want to plug install."
-	call yankstack#setup()
-endif
-
-nmap Y y$
-
-" this attempts to perform even more extra processing with the yank operation, 
-" to place it into a config global fetchable state just like my implicit search
-function! YankOverloadVisual(key)
-	echom 'ok'
-	echom split(@", "\n", 1)
-	call writefile(split(@", "\n", 1), '.yank', 'b')
-	return a:key
-endfun
-
-vmap <expr> y YankOverloadVisual('y')
-
-
 set title
 
 " Bundle 'Decho'
@@ -1460,6 +1441,23 @@ else
 	" the real shame is that there is no way to pass in Ctrl+Shift+letter.
 	nmap <A-S-D> <Plug>yankstack_substitute_newer_paste
 endif
+
+if !empty(glob("~/.vim/plugged/vim-yankstack/autoload/yankstack.vim"))
+	call yankstack#setup()
+else
+	echom "Yankstack not installed! Might want to plug install."
+endif
+
+nmap Y y$
+
+" this attempts to perform even more extra processing with the yank operation, 
+" to place it into a config global fetchable state just like my implicit search
+function! YankOverloadVisual(key)
+	call writefile(split(@", "\n", 1), '~/.vim/.yank', 'b')
+	return a:key
+endfun
+
+vmap <expr> y YankOverloadVisual('y')
 
 " set the numpad key codes -- Mark helpfully already implements the stuff that
 " calls <k0>, etc
