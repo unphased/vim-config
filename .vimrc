@@ -130,6 +130,18 @@ endif
 
 nmap Y y$
 
+" " this attempts to perform even more extra processing with the yank operation, 
+" " to place it into a config global fetchable state just like my implicit search
+" function! YankOverloadVisual(key)
+" 	echom 'ok'
+" 	echom split(@", "\n", 1)
+" 	call writefile(split(@", "\n", 1), '.yank', 'b')
+" 	return a:key
+" endfun
+
+" vmap <silent> <expr> y YankOverloadVisual('y')
+
+
 set title
 
 " Bundle 'Decho'
