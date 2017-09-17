@@ -28,7 +28,7 @@ __git_complete gd _git_diff
 __git_complete d _git_diff
 
 if [[ $MSYSTEM == MSYS ]]; then
-	export PATH=/c/Python27/:/mingw64/bin/:$PATH
+	export PATH=/c/Program\ Files/nodejs/:/c/Python27/:/mingw64/bin/:$PATH
 fi
 
 echo 'Hi from ~/.profile'
