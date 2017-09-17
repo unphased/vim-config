@@ -591,6 +591,7 @@ vnoremap <C-Right> E
 
 " I just want to make visual mode yank also spit into system clipboard. Will 
 " only really work on OSX. I use a clipboard stack so clobbering is alright
+set clipboard=unnamed
 
 " Using these is sort of questionable as it does pollute undo history :( TODO: 
 " maybe not now with c-u g?
