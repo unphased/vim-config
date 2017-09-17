@@ -2867,7 +2867,8 @@ set synmaxcol=1000
 " useful magic for making files executable if they look like they should be
 au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent execute "!chmod a+x <afile>" | endif | endif
 
-" set exrc
-" keep at end. For exrc.
-" set secure
-
+let g:ale_pattern_options = {
+			\   'util/x.*\.js$': {
+			\       'ale_linters': {'javascript': ['eslint']},
+			\   },
+			\}
