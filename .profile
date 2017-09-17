@@ -67,6 +67,7 @@ popd()
 alias cd='pushd'
 alias back='popd'
 alias flip='pushd_builtin'
+alias ..='cd ..'
 
 # implement the helpers for changing dirs
 alias 1='cd ~1'
