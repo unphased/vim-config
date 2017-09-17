@@ -27,6 +27,10 @@ __git_complete g __git_main
 __git_complete gd _git_diff
 __git_complete d _git_diff
 
+if [[ $MSYSTEM == MSYS ]]; then
+	export PATH=/mingw64/bin/:$PATH
+fi
+
 echo 'Hi from ~/.profile'
 
 # The following thanks to @Jonathan M Davis from SO
