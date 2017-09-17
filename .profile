@@ -1,12 +1,14 @@
 stty -ixon
 stty -ixoff
 
+export HISTTIMEFORMAT='%c: '
 export HISTSIZE=20000
 
 # avoid duplicates.. 
 export HISTCONTROL=ignoredups
 # append history entries.. 
 shopt -s histappend
+shopt -s lithist
 
 export PATH=$HOME/util:$PATH
 
@@ -124,6 +126,7 @@ set_prompt () {
     FancyX='\342\234\227'
     Checkmark='\342\234\223'
 
+    history -a
 
     # Add a bright white exit status for the last command
     PS1="$White\$? "
