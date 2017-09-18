@@ -2867,7 +2867,19 @@ set synmaxcol=1000
 au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent execute "!chmod a+x <afile>" | endif | endif
 
 let g:ale_pattern_options = {
-			\   'util/x.*\.js$': {
-			\       'ale_linters': {'javascript': ['eslint']},
+			\	'.*/lps-service/web/js/lps\.js$': {'ale_enabled': 0},
+			\   '/jibo/': {
+			\   	'ale_cpp_gcc_options': ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Foundation/include'
+			\ 		. ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Util/include'
+			\ 		. ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Net/include'
+			\ 		. ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/JSON/include'
+			\ 		. ' -I /home/slu/buildroot.jibo/output/build/zbar-0.10/include'
+			\ 		. ' -I /home/slu/buildroot.jibo/output/build/dlib-*'
+			\ 		. ' -I /home/slu/buildroot.jibo/output/build/cereal-*/include'
+			\ 		. ' -I /home/slu/buildroot.jibo/output/build/host-nvidia-cuda-6.5/targets/x86_64-linux/include'
+			\ 		. ' -Icapture-device/include'
+			\ 		. ' -Iutility/include'
+			\ 		. ' -Iserviceframework/include'
+			\ 		. ' -Iperception-framework/include'
 			\   },
 			\}
