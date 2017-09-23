@@ -2866,20 +2866,31 @@ set synmaxcol=1000
 " useful magic for making files executable if they look like they should be
 au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent execute "!chmod a+x <afile>" | endif | endif
 
+let g:_ale_cpp_options = ' -std=c++11'
+let g:_ale_cpp_options_jibo = g:_ale_cpp_options . ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Foundation/include'
+				\ 		. ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Util/include'
+				\ 		. ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Net/include'
+				\ 		. ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/JSON/include'
+				\ 		. ' -I /home/slu/buildroot.jibo/output/build/zbar-0.10/include'
+				\ 		. ' -I /home/slu/buildroot.jibo/output/build/dlib-*'
+				\ 		. ' -I /home/slu/buildroot.jibo/output/build/cereal-*/include'
+				\ 		. ' -I /home/slu/buildroot.jibo/output/build/host-nvidia-cuda-6.5/targets/x86_64-linux/include'
+				\ 		. ' -Icapture-device/include'
+				\ 		. ' -Iutility/include'
+				\ 		. ' -Iserviceframework/include'
+				\ 		. ' -Iperception-framework/include'
+
 let g:ale_pattern_options = {
 			\	'.*/lps-service/web/js/lps\.js$': {'ale_enabled': 0},
 			\   '/jibo/': {
-			\   	'ale_cpp_gcc_options': ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Foundation/include'
-			\ 		. ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Util/include'
-			\ 		. ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Net/include'
-			\ 		. ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/JSON/include'
-			\ 		. ' -I /home/slu/buildroot.jibo/output/build/zbar-0.10/include'
-			\ 		. ' -I /home/slu/buildroot.jibo/output/build/dlib-*'
-			\ 		. ' -I /home/slu/buildroot.jibo/output/build/cereal-*/include'
-			\ 		. ' -I /home/slu/buildroot.jibo/output/build/host-nvidia-cuda-6.5/targets/x86_64-linux/include'
-			\ 		. ' -Icapture-device/include'
-			\ 		. ' -Iutility/include'
-			\ 		. ' -Iserviceframework/include'
-			\ 		. ' -Iperception-framework/include'
+			\   	'ale_cpp_gcc_options': g:_ale_cpp_options_jibo,
+			\   	'ale_cpp_clang_options': g:_ale_cpp_options_jibo,
+			\   	'ale_cpp_clangtidy_options': g:_ale_cpp_options_jibo
 			\   },
+			\   '/.*/': {
+			\		'ale_linters': { 'cpp': ['clang', 'clangtidy', 'g++']},
+			\   	'ale_cpp_gcc_options': g:_ale_cpp_options,
+			\   	'ale_cpp_clang_options': g:_ale_cpp_options,
+			\   	'ale_cpp_clangtidy_options': g:_ale_cpp_options
+			\   }
 			\}
