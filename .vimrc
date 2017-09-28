@@ -2867,18 +2867,25 @@ set synmaxcol=1000
 au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent execute "!chmod a+x <afile>" | endif | endif
 
 let g:_ale_cpp_options = ' -std=c++11'
-let g:_ale_cpp_options_jibo = g:_ale_cpp_options . ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Foundation/include'
-				\ 		. ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Util/include'
-				\ 		. ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Net/include'
-				\ 		. ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/JSON/include'
-				\ 		. ' -I /home/slu/buildroot.jibo/output/build/zbar-0.10/include'
-				\ 		. ' -I /home/slu/buildroot.jibo/output/build/dlib-*'
-				\ 		. ' -I /home/slu/buildroot.jibo/output/build/cereal-*/include'
-				\ 		. ' -I /home/slu/buildroot.jibo/output/build/host-nvidia-cuda-6.5/targets/x86_64-linux/include'
-				\ 		. ' -Icapture-device/include'
-				\ 		. ' -Iutility/include'
-				\ 		. ' -Iserviceframework/include'
-				\ 		. ' -Iperception-framework/include'
+let g:_ale_cpp_options_jibo = g:_ale_cpp_options .
+			\ ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Foundation/include'
+			\               . ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Util/include'
+			\               . ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Net/include'
+			\               . ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/JSON/include'
+			\               . ' -I /home/slu/buildroot.jibo/output/build/zbar-0.10/include'
+			\               . ' -I /home/slu/buildroot.jibo/output/build/dlib-*'
+			\               . ' -I /home/slu/buildroot.jibo/output/build/cereal-*/include'
+			\               . ' -I /home/slu/buildroot.jibo/output/build/host-nvidia-cuda-6.5/targets/x86_64-linux/include'
+			\               . ' -I /home/slu/buildroot.jibo/output/build/gstreamer1-1.8.2'
+			\               . ' -I /home/slu/buildroot.jibo/output/build/libglib2-2.46.1/glib'
+			\               . ' -I /home/slu/buildroot.jibo/output/build/libglib2-2.46.1'
+			\               . ' -I /home/slu/buildroot.jibo/output/build/xlib_libX11-1.6.3/include'
+			\               . ' -I /home/slu/buildroot.jibo/output/host/usr/include'
+			\               . ' -I /home/slu/jibo/capture-device/include'
+			\               . ' -I /home/slu/jibo/utility/include'
+			\               . ' -I /home/slu/jibo/serviceframework/include'
+			\               . ' -I /home/slu/jibo/perception-framework/include'
+			\               . ' -I /home/slu/jibo/media-service/include'
 
 let g:ale_pattern_options = {
 			\	'.*/lps-service/web/js/lps\.js$': {'ale_enabled': 0},
