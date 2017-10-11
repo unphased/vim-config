@@ -2863,8 +2863,15 @@ set synmaxcol=1000
 au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent execute "!chmod a+x <afile>" | endif | endif
 
 let g:_ale_cpp_options = ' -std=c++11'
-let g:_ale_cpp_options_jibo = g:_ale_cpp_options .
-			\ ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Foundation/include'
+
+let g:ale_linters =	{ 'cpp': ['clang', 'clangtidy', 'g++'] }
+
+let g:ale_cpp_gcc_options = g:_ale_cpp_options
+let g:ale_cpp_clang_options = g:_ale_cpp_options
+let g:ale_cpp_clangtidy_options = g:_ale_cpp_options
+
+let g:_ale_cpp_options_jibo = g:_ale_cpp_options
+			\               . ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Foundation/include'
 			\               . ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Util/include'
 			\               . ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Net/include'
 			\               . ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/JSON/include'
@@ -2885,15 +2892,9 @@ let g:_ale_cpp_options_jibo = g:_ale_cpp_options .
 
 let g:ale_pattern_options = {
 			\	'.*/lps-service/web/js/lps\.js$': {'ale_enabled': 0},
-			\   '/jibo/': {
+			\   'jibo/': {
 			\   	'ale_cpp_gcc_options': g:_ale_cpp_options_jibo,
 			\   	'ale_cpp_clang_options': g:_ale_cpp_options_jibo,
 			\   	'ale_cpp_clangtidy_options': g:_ale_cpp_options_jibo
-			\   },
-			\   '/.*/': {
-			\		'ale_linters': { 'cpp': ['clang', 'clangtidy', 'g++']},
-			\   	'ale_cpp_gcc_options': g:_ale_cpp_options,
-			\   	'ale_cpp_clang_options': g:_ale_cpp_options,
-			\   	'ale_cpp_clangtidy_options': g:_ale_cpp_options
 			\   }
 			\}
