@@ -152,7 +152,7 @@ set_prompt () {
     fi
     # Print the working directory and prompt marker in blue, and reset
     # the text color to the default.
-    PS1+="$Blue\\w \\\$$Reset "
+    PS1+="$Blue\\w\n\\\$$Reset "
 }
 
 # if [[ "$TERM_PROGRAM" == "iTerm.app" ]]; then
