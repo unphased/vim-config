@@ -29,6 +29,8 @@ alias gca="git commit -av"
 alias gcm="git commit-message"
 unalias gcp # I rarely cherry pick (if not using ohmyzsh, this will cause bash to emit a warning)
 
+alias gc="git commit -v"
+
 alias gp="git push"
 alias k='l' # this is a bit tongue in cheek
 

@@ -41,7 +41,7 @@
         "no-shadow": ["warn", { "builtinGlobals": true, "hoist": "functions", "allow": [] }],
         "comma-dangle": 1,
         "comma-spacing": 0,
-        "curly": 1,
+        "curly": ["warn", "multi-line"],
         "camelcase": 0,
         "consistent-return": 1,
         "no-mixed-spaces-and-tabs": 1,
