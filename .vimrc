@@ -2870,6 +2870,7 @@ let g:_ale_cpp_options_jibo = g:_ale_cpp_options
 			\               . ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/JSON/include'
 			\               . ' -I /home/slu/buildroot.jibo/output/build/zbar-0.10/include'
 			\               . ' -I /home/slu/buildroot.jibo/output/build/dlib-*'
+			\               . ' -I /home/slu/buildroot.jibo/output/build/jpeg-turbo-1.4.1'
 			\               . ' -I /home/slu/buildroot.jibo/output/build/cereal-*/include'
 			\               . ' -I /home/slu/buildroot.jibo/output/build/host-nvidia-cuda-6.5/targets/x86_64-linux/include'
 			\               . ' -I /home/slu/buildroot.jibo/output/build/gstreamer1-1.8.2'
