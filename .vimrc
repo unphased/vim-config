@@ -167,8 +167,9 @@ let g:neocomplete#keyword_patterns['javascript'] = '[@#.]\?[[:alpha:]_:-][[:alnu
 inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
 inoremap <expr><S-TAB>  pumvisible() ? "\<C-p>" : "\<S-TAB>"
 
-" this is for vim-clang?
-let g:neocomplete#force_overwrite_completefunc=1
+" this is for vim-clang? Seems to finally work.
+let g:clang_c_completeopt = 'menuone,preview,noinsert'
+let g:clang_cpp_completeopt = 'menuone,preview,noinsert'
 
 " These are apparently the defacto terminal codes for Ctrl+Tab and Ctrl+Shift+Tab
 " but Vim has no knowledge of it. so here i am adding it to the fastkey 
