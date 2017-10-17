@@ -97,14 +97,13 @@ Plug 'tpope/vim-afterimage'
 Plug 'junegunn/vim-easy-align'
 Plug 'blueyed/argtextobj.vim'
 
-" Plug 'octol/vim-cpp-enhanced-highlight' " this broke way too often on 
-" modern c++ files. Really problematic angle bracket handling.
+Plug 'octol/vim-cpp-enhanced-highlight' " this broke way too often on modern c++ files. Really problematic angle bracket handling. Trying it again.
 
-Plug 'unphased/Cpp11-Syntax-Support'
+" Plug 'unphased/Cpp11-Syntax-Support'
 " apparently a somewhat-working extension from base cpp stuff. At least it isnt
 " a breaking one.
 
-Plug 'Mizuchi/STL-Syntax'
+" Plug 'Mizuchi/STL-Syntax'
 
 Plug 'unphased/vim-html-escape' " my master has gdefault detecting tweak
 
@@ -120,6 +119,7 @@ Plug 'ap/vim-css-color'
 " Plug 'chrisbra/NrrwRgn'
 Plug 'https://github.com/wesQ3/vim-windowswap'
 Plug 'sbdchd/neoformat'
+Plug 'justmao945/vim-clang'
 
 call plug#end()
 
@@ -166,6 +166,9 @@ let g:neocomplete#keyword_patterns['javascript'] = '[@#.]\?[[:alpha:]_:-][[:alnu
 " neocomplete: bind tab for similar behavior to YCM
 inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
 inoremap <expr><S-TAB>  pumvisible() ? "\<C-p>" : "\<S-TAB>"
+
+" this is for vim-clang?
+let g:neocomplete#force_overwrite_completefunc=1
 
 " These are apparently the defacto terminal codes for Ctrl+Tab and Ctrl+Shift+Tab
 " but Vim has no knowledge of it. so here i am adding it to the fastkey 
@@ -2197,8 +2200,8 @@ let g:easy_align_delimiters = {
   \ }
 
 " for the octol/vim-cpp-enhanced-highlight plugin
-let g:cpp_experimental_template_highlight=1
-let g:cpp_class_scope_highlight=1
+" let g:cpp_experimental_template_highlight=1
+" let g:cpp_class_scope_highlight=1
 
 " " neat bracketed paste handling (not sure if i need special tmux shit but lets 
 " " try this minimal version first)
