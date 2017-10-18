@@ -1493,6 +1493,7 @@ endif
 function! EnhancedComma(count)
 	" when no count, run it as many times as the match remains. That's done 
 	" with fancy redir technique
+	let poscursor=getpos('.')
 	let hlsearchCurrent = v:hlsearch
 	let c = a:count
 	redir => searchcount
@@ -1504,6 +1505,7 @@ function! EnhancedComma(count)
 		" this is the way to catch the zero matches case
 		let ct = 0
 	endif
+	call setpos('.', poscursor)
 	" echom 'searchcount =~ '.(searchcount =~ 'Error')
 	if (c == '' && hlsearchCurrent)
 		let c = ct
@@ -2114,6 +2116,7 @@ endif
 function! EnhancedDot(count)
 	" when no count, run it as many times as the match remains. That's done 
 	" with fancy redir technique
+	let poscursor=getpos('.')
 	let hlsearchCurrent = v:hlsearch
 	let c = a:count
 	redir => searchcount
@@ -2125,6 +2128,7 @@ function! EnhancedDot(count)
 		" this is the way to catch the zero matches case
 		let ct = 0
 	endif
+	call setpos('.', poscursor)
 	" echom 'searchcount =~ '.(searchcount =~ 'Error')
 	if (c == '' && hlsearchCurrent)
 		let c = ct
@@ -2146,6 +2150,7 @@ function! EnhancedDot(count)
 			normal .
 		else
 			" echom 'advancing line because no hlsearch'
+			" need the normal! for j because j has been mapped to gj
 			normal! .j
 		endif
 		let c -= 1
