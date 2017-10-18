@@ -2116,6 +2116,9 @@ endif
 function! EnhancedDot(count)
 	" when no count, run it as many times as the match remains. That's done 
 	" with fancy redir technique
+
+	" need to store the position in order to restore it because the search 
+	" count thing moves the cursor!
 	let poscursor=getpos('.')
 	let hlsearchCurrent = v:hlsearch
 	let c = a:count
