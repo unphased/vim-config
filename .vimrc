@@ -119,7 +119,7 @@ Plug 'ap/vim-css-color'
 " Plug 'chrisbra/NrrwRgn'
 Plug 'https://github.com/wesQ3/vim-windowswap'
 Plug 'sbdchd/neoformat'
-Plug 'justmao945/vim-clang'
+Plug 'Rip-Rip/clang_complete'
 
 call plug#end()
 
@@ -166,10 +166,6 @@ let g:neocomplete#keyword_patterns['javascript'] = '[@#.]\?[[:alpha:]_:-][[:alnu
 " neocomplete: bind tab for similar behavior to YCM
 inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
 inoremap <expr><S-TAB>  pumvisible() ? "\<C-p>" : "\<S-TAB>"
-
-" this is for vim-clang? Seems to finally work.
-let g:clang_c_completeopt = 'menuone,preview,noinsert'
-let g:clang_cpp_completeopt = 'menuone,preview,noinsert'
 
 " These are apparently the defacto terminal codes for Ctrl+Tab and Ctrl+Shift+Tab
 " but Vim has no knowledge of it. so here i am adding it to the fastkey 
@@ -2911,3 +2907,5 @@ let g:ale_pattern_options = {
 			\   	'ale_cpp_clangtidy_options': g:_ale_cpp_options_jibo
 			\   }
 			\}
+
+let g:clang_library_path=glob('/usr/lib/llvm-*/lib/libclang-*.so*')
