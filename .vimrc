@@ -2912,7 +2912,8 @@ let g:ale_pattern_options = {
 			\}
 
 let g:clang_library_path=glob('/usr/lib/llvm-*/lib/libclang-*.so*')
-if (! g:clang_library_path)
+if (!strlen(g:clang_library_path))
+	echom "no clang found in /usr/lib/llvm-*, attempting /Library/Developer/..."
 	let g:clang_library_path=glob('/Library/Developer/CommandLineTools/usr/lib/libclang.dylib')
 endif
 
