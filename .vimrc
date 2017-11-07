@@ -57,7 +57,7 @@ Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-obsession'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-abolish'
-Plug 'vim-perl/vim-perl'
+" Plug 'vim-perl/vim-perl'
 "Bundle 'Raimondi/delimitMate'
 Plug 'mattn/emmet-vim'
 Plug 'unphased/git-time-lapse'
@@ -97,14 +97,13 @@ Plug 'tpope/vim-afterimage'
 Plug 'junegunn/vim-easy-align'
 Plug 'blueyed/argtextobj.vim'
 
-" Plug 'octol/vim-cpp-enhanced-highlight' " this broke way too often on 
-" modern c++ files. Really problematic angle bracket handling.
+Plug 'octol/vim-cpp-enhanced-highlight' " this broke way too often on modern c++ files. Really problematic angle bracket handling. Trying it again.
 
-Plug 'unphased/Cpp11-Syntax-Support'
+" Plug 'unphased/Cpp11-Syntax-Support'
 " apparently a somewhat-working extension from base cpp stuff. At least it isnt
 " a breaking one.
 
-Plug 'Mizuchi/STL-Syntax'
+" Plug 'Mizuchi/STL-Syntax'
 
 Plug 'unphased/vim-html-escape' " my master has gdefault detecting tweak
 
@@ -120,6 +119,7 @@ Plug 'ap/vim-css-color'
 " Plug 'chrisbra/NrrwRgn'
 Plug 'https://github.com/wesQ3/vim-windowswap'
 Plug 'sbdchd/neoformat'
+Plug 'Rip-Rip/clang_complete'
 
 call plug#end()
 
@@ -587,7 +587,7 @@ vnoremap <C-Right> E
 
 " I just want to make visual mode yank also spit into system clipboard. Will 
 " only really work on OSX. I use a clipboard stack so clobbering is alright
-set clipboard=unnamed
+" set clipboard=unnamed
 
 " Using these is sort of questionable as it does pollute undo history :( TODO: 
 " maybe not now with c-u g?
@@ -1489,6 +1489,7 @@ endif
 function! EnhancedComma(count)
 	" when no count, run it as many times as the match remains. That's done 
 	" with fancy redir technique
+	let poscursor=getpos('.')
 	let hlsearchCurrent = v:hlsearch
 	let c = a:count
 	redir => searchcount
@@ -1500,6 +1501,7 @@ function! EnhancedComma(count)
 		" this is the way to catch the zero matches case
 		let ct = 0
 	endif
+	call setpos('.', poscursor)
 	" echom 'searchcount =~ '.(searchcount =~ 'Error')
 	if (c == '' && hlsearchCurrent)
 		let c = ct
@@ -2110,6 +2112,10 @@ endif
 function! EnhancedDot(count)
 	" when no count, run it as many times as the match remains. That's done 
 	" with fancy redir technique
+
+	" need to store the position in order to restore it because the search 
+	" count thing moves the cursor!
+	let poscursor=getpos('.')
 	let hlsearchCurrent = v:hlsearch
 	let c = a:count
 	redir => searchcount
@@ -2121,6 +2127,7 @@ function! EnhancedDot(count)
 		" this is the way to catch the zero matches case
 		let ct = 0
 	endif
+	call setpos('.', poscursor)
 	" echom 'searchcount =~ '.(searchcount =~ 'Error')
 	if (c == '' && hlsearchCurrent)
 		let c = ct
@@ -2142,6 +2149,7 @@ function! EnhancedDot(count)
 			normal .
 		else
 			" echom 'advancing line because no hlsearch'
+			" need the normal! for j because j has been mapped to gj
 			normal! .j
 		endif
 		let c -= 1
@@ -2197,8 +2205,8 @@ let g:easy_align_delimiters = {
   \ }
 
 " for the octol/vim-cpp-enhanced-highlight plugin
-let g:cpp_experimental_template_highlight=1
-let g:cpp_class_scope_highlight=1
+" let g:cpp_experimental_template_highlight=1
+" let g:cpp_class_scope_highlight=1
 
 " " neat bracketed paste handling (not sure if i need special tmux shit but lets 
 " " try this minimal version first)
@@ -2253,6 +2261,9 @@ let g:AutoPairsOnlyWhitespace = 1
 
 " make html files pair up brackets
 au Filetype html let b:AutoPairs = {'`': '`', '"': '"', '{': '}', '''': '''', '(': ')', '[': ']', '<':'>'}
+
+let g:AutoPairsMapCR=0
+imap <silent><CR> <CR><Plug>AutoPairsReturn
 
 " bind Alt+P in insert mode to paste (for nvim)..
 " this actually conflicts with internal vim binding, see i_CTRL_P, but 
@@ -2863,13 +2874,21 @@ set synmaxcol=1000
 au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent execute "!chmod a+x <afile>" | endif | endif
 
 let g:_ale_cpp_options = ' -std=c++11'
-let g:_ale_cpp_options_jibo = g:_ale_cpp_options .
-			\ ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Foundation/include'
+
+let g:ale_linters =	{ 'cpp': ['clang', 'clangtidy', 'g++'] }
+
+let g:ale_cpp_gcc_options = g:_ale_cpp_options
+let g:ale_cpp_clang_options = g:_ale_cpp_options
+let g:ale_cpp_clangtidy_options = g:_ale_cpp_options
+
+let g:_ale_cpp_options_jibo = g:_ale_cpp_options
+			\               . ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Foundation/include'
 			\               . ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Util/include'
 			\               . ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Net/include'
 			\               . ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/JSON/include'
 			\               . ' -I /home/slu/buildroot.jibo/output/build/zbar-0.10/include'
 			\               . ' -I /home/slu/buildroot.jibo/output/build/dlib-*'
+			\               . ' -I /home/slu/buildroot.jibo/output/build/jpeg-turbo-1.4.1'
 			\               . ' -I /home/slu/buildroot.jibo/output/build/cereal-*/include'
 			\               . ' -I /home/slu/buildroot.jibo/output/build/host-nvidia-cuda-6.5/targets/x86_64-linux/include'
 			\               . ' -I /home/slu/buildroot.jibo/output/build/gstreamer1-1.8.2'
@@ -2885,15 +2904,26 @@ let g:_ale_cpp_options_jibo = g:_ale_cpp_options .
 
 let g:ale_pattern_options = {
 			\	'.*/lps-service/web/js/lps\.js$': {'ale_enabled': 0},
-			\   '/jibo/': {
+			\   'jibo/': {
 			\   	'ale_cpp_gcc_options': g:_ale_cpp_options_jibo,
 			\   	'ale_cpp_clang_options': g:_ale_cpp_options_jibo,
 			\   	'ale_cpp_clangtidy_options': g:_ale_cpp_options_jibo
-			\   },
-			\   '.*': {
-			\		'ale_linters': { 'cpp': ['clang', 'clangtidy', 'g++']},
-			\   	'ale_cpp_gcc_options': g:_ale_cpp_options,
-			\   	'ale_cpp_clang_options': g:_ale_cpp_options,
-			\   	'ale_cpp_clangtidy_options': g:_ale_cpp_options
 			\   }
 			\}
+
+let g:clang_library_path=glob('/usr/lib/llvm-*/lib/libclang-*.so*')
+if (!strlen(g:clang_library_path))
+	" echom 'no clang found in /usr/lib/llvm-*, attempting /Library/Developer/...'
+	let g:clang_library_path=glob('/Library/Developer/CommandLineTools/usr/lib/libclang.dylib')
+	if (!strlen(g:clang_library_path))
+		echom "clang still couldn't be found. hmm!"
+	endif
+endif
+
+" write some dates fast, from 
+" http://blog.erw.dk/2016/04/19/entering-dates-and-times-in-vim/
+
+noremap! <expr> ,t strftime("%H:%M")
+noremap! <expr> ,T strftime("%H:%M:%S")
+noremap! <expr> ,d strftime("%Y-%m-%d")
+noremap! <expr> ,l strftime("%Y-%m-%d %H:%M")
