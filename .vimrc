@@ -2890,7 +2890,7 @@ let g:ale_pattern_options = {
 			\   	'ale_cpp_clang_options': g:_ale_cpp_options_jibo,
 			\   	'ale_cpp_clangtidy_options': g:_ale_cpp_options_jibo
 			\   },
-			\   '/.*/': {
+			\   '.*': {
 			\		'ale_linters': { 'cpp': ['clang', 'clangtidy', 'g++']},
 			\   	'ale_cpp_gcc_options': g:_ale_cpp_options,
 			\   	'ale_cpp_clang_options': g:_ale_cpp_options,
