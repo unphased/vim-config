@@ -2911,12 +2911,18 @@ let g:ale_pattern_options = {
 			\   }
 			\}
 
-let g:clang_library_path=glob('/usr/lib/llvm-*/lib/libclang-*.so*')
+" this is for centos
+let g:clang_library_path=glob('/usr/local/lib/libclang.so')
 if (!strlen(g:clang_library_path))
-	" echom 'no clang found in /usr/lib/llvm-*, attempting /Library/Developer/...'
-	let g:clang_library_path=glob('/Library/Developer/CommandLineTools/usr/lib/libclang.dylib')
+	" this is for ubuntu
+	let g:clang_library_path=glob('/usr/lib/llvm-*/lib/libclang*.so*')
 	if (!strlen(g:clang_library_path))
-		echom "clang still couldn't be found. hmm!"
+		" echom 'no clang found in /usr/lib/llvm-*, attempting /Library/Developer/...'
+		" this is for macOS
+		let g:clang_library_path=glob('/Library/Developer/CommandLineTools/usr/lib/libclang.dylib')
+		if (!strlen(g:clang_library_path))
+			echom "clang still couldn't be found. hmm!"
+		endif
 	endif
 endif
 
