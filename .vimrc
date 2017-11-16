@@ -2921,7 +2921,10 @@ if (!strlen(g:clang_library_path))
 		" this is for macOS
 		let g:clang_library_path=glob('/Library/Developer/CommandLineTools/usr/lib/libclang.dylib')
 		if (!strlen(g:clang_library_path))
-			echom "clang still couldn't be found. hmm!"
+			let g:clang_library_path=glob('/Applications/Xcode.app/Contents/Frameworks/libclang.dylib')
+			if (!strlen(g:clang_library_path))
+				echom "clang still couldn't be found. hmm!"
+			endif
 		endif
 	endif
 endif
