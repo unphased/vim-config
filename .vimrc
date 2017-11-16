@@ -2873,6 +2873,8 @@ set synmaxcol=1000
 " useful magic for making files executable if they look like they should be
 au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent execute "!chmod a+x <afile>" | endif | endif
 
+let g:ale_lint_on_text_changed = 'never'
+let g:ale_max_signs = 8
 let g:_ale_cpp_options = ' -std=c++11'
 
 let g:ale_linters =	{ 'cpp': ['clang', 'clangtidy', 'g++'] }
