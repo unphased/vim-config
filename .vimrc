@@ -469,6 +469,8 @@ hi CursorLine ctermbg=NONE
 au! InsertEnter * call InsertEnterActions(v:insertmode)
 au! InsertLeave * call InsertLeaveActions()
 
+au! FileType tagbar setlocal cursorline
+
 " default the statusline to green when entering Vim
 " hi statusline guibg=DarkGrey ctermfg=237 guifg=Green ctermbg=250
 
