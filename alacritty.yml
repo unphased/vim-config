@@ -121,7 +121,7 @@ colors:
     blue:    '0x78aad6'
     magenta: '0xd7acd6'
     cyan:    '0x76d4d6'
-    white:   '0x373b41'
+    white:   '0xeeeeee'
 
   # Bright colors
   bright:
@@ -132,7 +132,7 @@ colors:
     blue:    '0x81a2be'
     magenta: '0xb77ee0'
     cyan:    '0x54ced6'
-    white:   '0x282a2e'
+    white:   '0xffffff'
 
 # Visual Bell
 #
