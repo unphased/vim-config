@@ -250,6 +250,18 @@ key_bindings:
   - { key: I,        mods: Command, chars: "\x1bi"                       }
   - { key: U,        mods: Alt,     chars: "\x1bu"                       }
   - { key: I,        mods: Alt,     chars: "\x1bi"                       }
+  - { key: H,        mods: Command, chars: "\x1bh"                       }
+  - { key: H,        mods: Alt,     chars: "\x1bh"                       }
+  - { key: J,        mods: Command, chars: "\x1bj"                       }
+  - { key: J,        mods: Alt,     chars: "\x1bj"                       }
+  - { key: K,        mods: Command, chars: "\x1bk"                       }
+  - { key: K,        mods: Alt,     chars: "\x1bk"                       }
+  - { key: L,        mods: Command, chars: "\x1bl"                       }
+  - { key: L,        mods: Alt,     chars: "\x1bl"                       }
+  - { key: Y,        mods: Command, chars: "\x1by"                       }
+  - { key: Y,        mods: Alt,     chars: "\x1by"                       }
+  - { key: O,        mods: Command, chars: "\x1bo"                       }
+  - { key: O,        mods: Alt,     chars: "\x1bo"                       }
   - { key: Home,                    chars: "\x1bOH",   mode: AppCursor   }
   - { key: Home,                    chars: "\x1b[H",   mode: ~AppCursor  }
   - { key: End,                     chars: "\x1bOF",   mode: AppCursor   }
