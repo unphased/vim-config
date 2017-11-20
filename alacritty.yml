@@ -245,7 +245,8 @@ key_bindings:
   - { key: Insert,   mods: Shift,   action: PasteSelection               }
   - { key: Key0,     mods: Command, action: ResetFontSize                }
   - { key: Equals,   mods: Command, action: IncreaseFontSize             }
-  - { key: Minus, mods: Command, action: DecreaseFontSize                }
+  - { key: Minus,    mods: Command, action: DecreaseFontSize             }
+  - { key: Subtract, mods: Command, action: DecreaseFontSize             }
   - { key: U,        mods: Command, chars: "\x1bu"                       }
   - { key: I,        mods: Command, chars: "\x1bi"                       }
   - { key: U,        mods: Alt,     chars: "\x1bu"                       }
