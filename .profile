@@ -161,3 +161,5 @@ set_prompt () {
     trap 'timer_start' DEBUG
     PROMPT_COMMAND='set_prompt'
 # fi
+
+export PATH="$HOME/.cargo/bin:$PATH"
