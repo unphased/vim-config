@@ -72,6 +72,8 @@ font:
     # Style can be specified to pick a specific face.
     # style: Italic
 
+  antialias: true
+
   # Point size of the font
   size: 11.0
 
