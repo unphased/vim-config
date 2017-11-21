@@ -55,7 +55,7 @@ alias ga="git add"
 alias ds="dirs -v | head -10"
 alias d="gde"
 
-alias iack="ack -i"
+# alias iack="ack -i"
 
 if [ "$(uname)" != "MSYS_NT-10.0" ]; then
 	alias vim="TERM=xterm-256color-italic vim"
@@ -104,7 +104,9 @@ alias gap='git add --patch'
 alias gsl='git stash list -p --ext-diff'
 
 alias grepc='grep --color=always --exclude=\*{.,-}min.\*'
-alias cack='ack --color'
-alias ackc='ack --color'
-alias agc='ag --color'
+# alias cack='ack --color'
+# alias ackc='ack --color'
+# alias agc='ag --color'
 alias mkae='make'
+
+alias rg='rg -g "!*.min.js"'
