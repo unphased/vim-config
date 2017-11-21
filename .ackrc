@@ -11,3 +11,4 @@
 --ignore-file=match:source-map.js
 --ignore-file=match:.js.map
 --ignore-file=match:tags
+--ignore-file=match:tt\{2\}y\.recording
