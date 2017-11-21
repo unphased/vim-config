@@ -3,6 +3,9 @@
 # too)
 alias ls 2>/dev/null >/dev/null || alias ls="ls --color=always"
 
+# some versions of htop kill high sierra without being run as root
+alias htop="sudo htop"
+
 alias l="ls"
 alias sl="ls"
 alias ll="l -l"

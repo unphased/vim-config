@@ -249,6 +249,8 @@ key_bindings:
   - { key: Equals,   mods: Command, action: IncreaseFontSize             }
   - { key: Minus,    mods: Command, action: DecreaseFontSize             }
   - { key: Subtract, mods: Command, action: DecreaseFontSize             }
+  - { key: S,        mods: Command, chars: "\x1bs"                       }
+  - { key: S,        mods: Alt,     chars: "\x1bs"                       }
   - { key: U,        mods: Command, chars: "\x1bu"                       }
   - { key: I,        mods: Command, chars: "\x1bi"                       }
   - { key: U,        mods: Alt,     chars: "\x1bu"                       }
