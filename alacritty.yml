@@ -56,19 +56,19 @@ draw_bold_text_with_bright_colors: true
 font:
   # The normal (roman) font face to use.
   normal:
-    family: Menlo for Powerline # should be "Menlo" or something on macOS.
+    family: "Menlo for Powerline" # should be "Menlo" or something on macOS.
     # Style can be specified to pick a specific face.
     # style: Regular
 
   # The bold font face
   bold:
-    family: Menlo for Powerline # should be "Menlo" or something on macOS.
+    family: "Menlo for Powerline" # should be "Menlo" or something on macOS.
     # Style can be specified to pick a specific face.
     # style: Bold
 
   # The italic font face
   italic:
-    family: Menlo for Powerline # should be "Menlo" or something on macOS.
+    family: "Menlo for Powerline" # should be "Menlo" or something on macOS.
     # Style can be specified to pick a specific face.
     # style: Italic
 
@@ -249,6 +249,10 @@ key_bindings:
   - { key: Equals,   mods: Command, action: IncreaseFontSize             }
   - { key: Minus,    mods: Command, action: DecreaseFontSize             }
   - { key: Subtract, mods: Command, action: DecreaseFontSize             }
+  - { key: R,        mods: Command, chars: "\x1br"                       }
+  - { key: R,        mods: Alt,     chars: "\x1br"                       }
+  - { key: F,        mods: Command, chars: "\x1bf"                       }
+  - { key: F,        mods: Alt,     chars: "\x1bf"                       }
   - { key: S,        mods: Command, chars: "\x1bs"                       }
   - { key: S,        mods: Alt,     chars: "\x1bs"                       }
   - { key: U,        mods: Command, chars: "\x1bu"                       }
