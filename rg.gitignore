@@ -1,6 +1,6 @@
-*/*.min.js
-*/*.es5.js
-*/*source-map.js
-*/*.js.map
-*/tags
-*/alacritty.recording
+**/*.min.js
+**/*.es5.js
+**/*source-map.js
+**/*.js.map
+**/tags
+**/alacritty.recording
