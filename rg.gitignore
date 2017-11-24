@@ -1,3 +1,4 @@
+**/node_modules
 **/*.min.js
 **/*.es5.js
 **/*source-map.js
