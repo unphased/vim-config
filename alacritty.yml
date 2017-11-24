@@ -248,6 +248,10 @@ key_bindings:
   - { key: Equals,   mods: Command, action: IncreaseFontSize             }
   - { key: Minus,    mods: Command, action: DecreaseFontSize             }
   - { key: Subtract, mods: Command, action: DecreaseFontSize             }
+  - { key: Period, mods: Alt, chars: "\x1b."              }
+  - { key: Period, mods: Command, chars: "\x1b."             }
+  - { key: D,        mods: Command, chars: "\x1bd"                       }
+  - { key: D,        mods: Alt,     chars: "\x1bd"                       }
   - { key: R,        mods: Command, chars: "\x1br"                       }
   - { key: R,        mods: Alt,     chars: "\x1br"                       }
   - { key: F,        mods: Command, chars: "\x1bf"                       }
