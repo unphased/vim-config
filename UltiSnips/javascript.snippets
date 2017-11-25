@@ -2,8 +2,8 @@ snippet m "map" !w
 map(function (${1:e}) { return ${2:$1}; })
 endsnippet
 
-snippet ok "Object.keys(object).map(function(){})" !w
-Object.keys(${VISUAL}${1:obj})${2:.map(function (${4:k}){
+snippet ok "Object.keys(object).map" !w
+Object.keys(${VISUAL}${1:obj})${2:.map(${4:k} => {
     var v = ${3:$1[$4]};
 	return v;
 })};

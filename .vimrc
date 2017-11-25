@@ -964,6 +964,8 @@ nnoremap Q :q<CR>
 nnoremap <F6> :CtrlPMRUFiles<CR>
 inoremap <F6> <ESC>:CtrlPMRUFiles<CR>
 nnoremap <S-F6> :CtrlPLine<CR>
+let g:ctrlp_map = '<Leader><c-p>'
+nnoremap <c-p> :FZF<CR>
 
 " opens the current buffer in nerdtree
 nnoremap <Leader>f :NERDTreeFind<CR>
@@ -2807,6 +2809,7 @@ set ruler
 nnoremap <Leader>c :let &statusline='%{ShowCount()} %<%f %h%m%r%=%-14.(%l,%c%V%) %P' "THIS WILL BLOW AWAY STATUS LINE FOR SEARCH COUNTING. Ctrl+C to cancel
 
 " paste the global search
+" this is made latent by the deprecated windowswap bind, which is lame.
 nnoremap <Leader>p :.-1read $HOME/.vim/.search<CR>
 
 " fuck, still doesnt work (i tried twice)
