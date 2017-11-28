@@ -2850,6 +2850,12 @@ endif
 
 hi Todo guibg=#484848
 
+let g:fzf_action = {
+	\ 'ctrl-s': 'split',
+	\ 'ctrl-t': 'tab split',
+	\ 'ctrl-v': 'vsplit',
+	\ }
+
 command! -bang FLines call fzf#vim#grep(
      \ 'grep -vnIr --color=always --exclude-dir=".svn" --exclude-dir=".git" --exclude=tags --exclude=*\.pyc --exclude=*\.exe --exclude=*\.dll --exclude=*\.zip --exclude=*\.gz "^$"',
      \ 0,
