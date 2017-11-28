@@ -60,7 +60,7 @@ Plug 'tpope/vim-abolish'
 " Plug 'vim-perl/vim-perl'
 "Bundle 'Raimondi/delimitMate'
 Plug 'mattn/emmet-vim'
-Plug 'unphased/git-time-lapse'
+" Plug 'unphased/git-time-lapse'
 Plug 'ldx/vim-indentfinder'
 Plug 'nathanaelkane/vim-indent-guides'
 Plug 'unphased/HiCursorWords'
@@ -147,7 +147,8 @@ au! BufRead,BufNewFile CUDA*.in,*.cuda,*.cu,*.cuh set ft=cuda
 " customize it for my usual workflow
 autocmd FileType gitcommit set nosmartindent | set formatoptions-=t
 
-nnoremap <Leader>g :call TimeLapse()<CR>
+" this thing needs work
+" nnoremap <Leader>g :call TimeLapse()<CR>
 
 " nnoremap <Leader>e :silent !p4 edit %:p<CR>:redraw!<CR>
 nnoremap <Leader>R :silent redraw!<CR>
@@ -2861,7 +2862,12 @@ command! -bang FLines call fzf#vim#grep(
      \ 0,
      \ {'options': '--reverse --prompt "FLines> "'})
 
-nnoremap <silent> <Leader>e :FLines<CR>
+command! -bang -nargs=* FLineSearch call fzf#vim#grep("rg --column --line-number --no-heading --fixed-strings --hidden --ignore-file ".glob("~/.vim/rg.gitignore")." --color always ".shellescape(<q-args>), 0, <bang>0)
+
+nnoremap <silent> <Leader>F :FLines<CR>
+
+" G just because it is close to F
+nnoremap <silent> <Leader>G :FLineSearch<CR>
 
 " override vim local search with global vim search (which is implicitly set in 
 " filesystem by searching in any vim)
