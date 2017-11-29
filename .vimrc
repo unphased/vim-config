@@ -893,6 +893,29 @@ EOF
 endfunction
 nnoremap <silent> <expr> <CR> Highlighting()
 
+function! ChompCtrlM(string)
+    return substitute(a:string, '$', '', '')
+endfunction
+
+" proof of concept that i can chain something to occur after an eval-string 
+" providing function. dont think i achieved this before
+function! SearchWithHighlighting()
+	let string = ChompCtrlM(Highlighting())
+	" echom 'A: '.string
+	let string .= " | echom 'test'\<CR>"
+	echom 'B: '.string
+	return string
+endfun
+
+" does not interfere with main search intentionally to facilitate following 
+" things around on a whim
+function! SearchForToken()
+	let l:word = expand('<cword>')
+	" TODO finishme
+endfun
+
+nnoremap <Leader><CR> :call SearchForToken()<CR>
+
 " Search for selected text.
 " http://vim.wikia.com/wiki/VimTip171
 let s:save_cpo = &cpo | set cpo&vim
