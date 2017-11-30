@@ -250,8 +250,10 @@ key_bindings:
   - { key: Subtract, mods: Command, action: DecreaseFontSize             }
   - { key: Period, mods: Alt, chars: "\x1b."              }
   - { key: Period, mods: Command, chars: "\x1b."             }
+  - { key: P,        mods: Command, chars: "\x1bp"                       }
+  - { key: P,        mods: Alt,     chars: "\x1bp"                       }
   - { key: B,        mods: Command, chars: "\x1bb"                       }
-  - { key: B,        mods: Alt, chars: "\x1bb"                       }
+  - { key: B,        mods: Alt,     chars: "\x1bb"                       }
   - { key: D,        mods: Command, chars: "\x1bd"                       }
   - { key: D,        mods: Alt,     chars: "\x1bd"                       }
   - { key: R,        mods: Command, chars: "\x1br"                       }
