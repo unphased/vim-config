@@ -907,15 +907,6 @@ function! SearchWithHighlighting()
 	return string
 endfun
 
-" does not interfere with main search intentionally to facilitate following 
-" things around on a whim
-function! SearchForToken()
-	let l:word = expand('<cword>')
-	" TODO finishme
-endfun
-
-nnoremap <Leader><CR> :call SearchForToken()<CR>
-
 " Search for selected text.
 " http://vim.wikia.com/wiki/VimTip171
 let s:save_cpo = &cpo | set cpo&vim
@@ -2895,6 +2886,16 @@ command! -bang FLines call fzf#vim#grep(
 nnoremap <silent> <Leader>g :FLines<CR>
 
 nnoremap <silent> <Leader>G :FLineSearch <c-r>/
+
+" does not interfere with main search intentionally to facilitate following 
+" things around on a whim
+function! SearchForToken()
+	let l:word = expand('<cword>')
+	echom 'search is '.l:word
+	exec 'FLineSearch '.l:word
+endfun
+
+nnoremap <Leader><CR> :call SearchForToken()<CR>
 
 " override vim local search with global vim search (which is implicitly set in 
 " filesystem by searching in any vim)
