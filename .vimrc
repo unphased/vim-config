@@ -2880,17 +2880,25 @@ let g:fzf_action = {
 	\ 'ctrl-v': 'vsplit',
 	\ }
 
-command! -bang FLines call fzf#vim#grep(
-     \ 'grep -vnIr --color=always --exclude-dir=".svn" --exclude-dir=".git" --exclude=tags --exclude=*\.pyc --exclude=*\.exe --exclude=*\.dll --exclude=*\.zip --exclude=*\.gz "^$"',
+
+command! -bang FLinesGrep call fzf#vim#grep(
+     \ 'GREP_COLORS="fn=34:mc=01;30:ms=33:sl=21:cx=31" grep -vnIr --exclude-dir=".git" --color=always "^$" .',
      \ 0,
      \ {'options': '--reverse --prompt "FLines> "'})
 
-command! -bang -nargs=* FLineSearch call fzf#vim#grep("rg --column --line-number --no-heading --fixed-strings --hidden --ignore-file ".glob("~/.vim/rg.gitignore")." --color always ".shellescape(<q-args>), 0, <bang>0)
+" command! -bang -nargs=* FLineSearch call fzf#vim#grep("rg --column --line-number --no-heading --fixed-strings --hidden --ignore-file ".glob("~/.vim/rg.gitignore")." --color always ".shellescape(<q-args>), 0, <bang>0)
+
+
+command! -bang FLines call fzf#vim#grep(
+     \ 'rg --line-number --no-heading --fixed-strings --ignore-case --hidden ""',
+     \ 0,
+     \ {'options': '--reverse --prompt "FLines> "'})
 
 nnoremap <silent> <Leader>F :FLines<CR>
+nnoremap <silent> <Leader>G :FLinesGrep<CR>
 
 " G just because it is close to F
-nnoremap <silent> <Leader>G :FLineSearch<CR>
+" nnoremap <silent> <Leader>G :FLineSearch<CR>
 
 " override vim local search with global vim search (which is implicitly set in 
 " filesystem by searching in any vim)

@@ -27,8 +27,8 @@
         "no-trailing-spaces": [0, { "skipBlankLines": true  }],
         "semi": [1, "always"],
         "no-underscore-dangle": 0,
-        "no-unused-vars": [1, {
-            "vars": all,
+        "no-unused-vars": ["error", {
+            "vars": local,
             "args": "after-used",
             "argsIgnorePattern": "^_"
         }],
@@ -38,7 +38,11 @@
         "no-empty": 1,
         "space-infix-ops": 0,
         "new-cap": 0,
-        "no-shadow": ["warn", { "builtinGlobals": true, "hoist": "functions", "allow": [] }],
+        "no-shadow": ["warn", {
+            "builtinGlobals": true,
+            "hoist": "functions",
+            "allow": ["top"]
+        }],
         "comma-dangle": 1,
         "comma-spacing": 0,
         "curly": ["warn", "multi-line"],
