@@ -2880,37 +2880,31 @@ let g:fzf_action = {
 	\ 'ctrl-v': 'vsplit',
 	\ }
 
+" command! -bang FLinesGrep call fzf#vim#grep(
+"      \ 'GREP_COLORS="fn=34:mc=01;30:ms=33:sl=21:cx=31" grep -vnIr --exclude-dir=".git" --color=always "^$" .',
+"      \ 0,
+"      \ {'options': '--reverse --prompt "FLines> "'})
 
-command! -bang FLinesGrep call fzf#vim#grep(
-     \ 'GREP_COLORS="fn=34:mc=01;30:ms=33:sl=21:cx=31" grep -vnIr --exclude-dir=".git" --color=always "^$" .',
-     \ 0,
-     \ {'options': '--reverse --prompt "FLines> "'})
-
-" command! -bang -nargs=* FLineSearch call fzf#vim#grep("rg --column --line-number --no-heading --fixed-strings --hidden --ignore-file ".glob("~/.vim/rg.gitignore")." --color always ".shellescape(<q-args>), 0, <bang>0)
-
+command! -bang -nargs=* FLineSearch call fzf#vim#grep("rg --line-number --no-heading --fixed-strings --hidden --ignore-file ".glob("~/.vim/rg.gitignore")." ".shellescape(<q-args>), 0, <bang>0)
 
 command! -bang FLines call fzf#vim#grep(
-     \ 'rg --line-number --no-heading --fixed-strings --ignore-case --hidden ""',
+     \ "rg --line-number --no-heading --ignore-case --hidden --ignore-file ".glob("~/.vim/rg.gitignore")." -v '^$'",
      \ 0,
      \ {'options': '--reverse --prompt "FLines> "'})
 
-nnoremap <silent> <Leader>F :FLines<CR>
-nnoremap <silent> <Leader>G :FLinesGrep<CR>
+nnoremap <silent> <Leader>g :FLines<CR>
 
-" G just because it is close to F
-" nnoremap <silent> <Leader>G :FLineSearch<CR>
+nnoremap <silent> <Leader>G :FLineSearch <c-r>/
 
 " override vim local search with global vim search (which is implicitly set in 
 " filesystem by searching in any vim)
 nnoremap <silent> <Leader>n :let @/ = join(readfile(glob("~/.vim/.search")), "\n")<CR>
 " TODO FINISH ME
 
-
 if exists('&t_8f')
 	let &t_8f = "\x1b[38;2;%lu;%lu;%lum"
 	let &t_8b = "\x1b[48;2;%lu;%lu;%lum"
 endif
-
 
 set nostartofline
 
