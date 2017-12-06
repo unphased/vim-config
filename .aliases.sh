@@ -112,4 +112,4 @@ alias grepc='grep --color=always --exclude=\*{.,-}min.\*'
 # alias agc='ag --color'
 alias mkae='make'
 
-alias rg="rg --ignore-file $HOME/.vim/rg.gitignore"
+alias rg="rg --hidden --ignore-file $HOME/.vim/rg.gitignore"
