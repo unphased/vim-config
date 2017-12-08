@@ -1282,11 +1282,11 @@
 	<key>NSWindow Frame SUUpdateAlert</key>
 	<string>425 493 620 392 0 0 1680 1028 </string>
 	<key>NSWindow Frame SharedPreferences</key>
-	<string>697 262 918 381 0 0 1680 1028 </string>
+	<string>78 88 937 512 0 0 1680 1028 </string>
 	<key>NSWindow Frame UKCrashReporter</key>
 	<string>127 444 592 584 0 0 1680 1028 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>446 0 1033 1028 0 0 1680 1028 </string>
+	<string>35 13 599 1007 0 0 1680 1028 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
 	<string>35 27 640 996 0 0 1680 1028 </string>
 	<key>NSWindow Frame iTerm Window 2</key>
@@ -6840,7 +6840,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2017-11-20T14:54:48Z</date>
+	<date>2017-12-03T21:38:20Z</date>
 	<key>SUSendProfileInfo</key>
 	<false/>
 	<key>SavePasteHistory</key>
@@ -6885,6 +6885,8 @@
 	<real>1509587456</real>
 	<key>URLHandlersByGuid</key>
 	<dict/>
+	<key>UseAdaptiveFrameRate</key>
+	<false/>
 	<key>UseBorder</key>
 	<false/>
 	<key>UseCompactLabel</key>
