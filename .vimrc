@@ -2885,7 +2885,8 @@ command! -bang FLines call fzf#vim#grep(
 
 nnoremap <silent> <Leader>g :FLines<CR>
 
-nnoremap <silent> <Leader>G :FLineSearch <c-r>/
+" need to make this strip the stuff
+nnoremap <Leader>G :FLineSearch <c-r>/<CR>
 
 " does not interfere with main search intentionally to facilitate following 
 " things around on a whim
