@@ -102,6 +102,8 @@ render_timer: false
 # and cursor.background colors, otherwise invert the colors of the cursor.
 custom_cursor_colors: true
 
+cursor_style: Block
+
 # Colors (Tomorrow Night)
 colors:
   # Default colors

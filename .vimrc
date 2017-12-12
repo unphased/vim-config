@@ -2981,3 +2981,14 @@ noremap! <expr> ,t strftime("%H:%M")
 noremap! <expr> ,T strftime("%H:%M:%S")
 noremap! <expr> ,d strftime("%Y-%m-%d")
 noremap! <expr> ,l strftime("%Y-%m-%d %H:%M")
+
+" for cursor fanciness
+if exists('$TMUX')
+  let &t_SI = "\<Esc>Ptmux;\<Esc>\<Esc>[5 q\<Esc>\\"
+  let &t_EI = "\<Esc>Ptmux;\<Esc>\<Esc>[1 q\<Esc>\\"
+else
+  " let &t_SI = "\<Esc>]50;CursorShape=1\x7"
+  " let &t_EI = "\<Esc>]50;CursorShape=0\x7"
+  let &t_SI = "\e[5 q"
+  let &t_EI = "\e[1 q"
+endif
