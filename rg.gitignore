@@ -5,3 +5,4 @@
 **/*.js.map
 **/tags
 **/alacritty.recording
+**/.git
