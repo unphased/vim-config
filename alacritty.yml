@@ -253,6 +253,13 @@ key_bindings:
   - { key: Subtract, mods: Command, action: DecreaseFontSize             }
   - { key: Period, mods: Alt, chars: "\x1b."              }
   - { key: Period, mods: Command, chars: "\x1b."             }
+  - { key: Key1,        mods: Alt,     chars: "\x1b1"                       }
+  - { key: Key2,        mods: Alt,     chars: "\x1b2"                       }
+  - { key: Key3,        mods: Alt,     chars: "\x1b3"                       }
+  - { key: Key4,        mods: Alt,     chars: "\x1b4"                       }
+  - { key: Key5,        mods: Alt,     chars: "\x1b5"                       }
+  - { key: Key6,        mods: Alt,     chars: "\x1b6"                       }
+  - { key: Key7,        mods: Alt,     chars: "\x1b7"                       }
   - { key: P,        mods: Command, chars: "\x1bp"                       }
   - { key: P,        mods: Alt,     chars: "\x1bp"                       }
   - { key: B,        mods: Command, chars: "\x1bb"                       }
