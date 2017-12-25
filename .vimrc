@@ -85,7 +85,7 @@ Plug 'tmux-plugins/vim-tmux'
 
 Plug 'majutsushi/tagbar'
 
-Plug 'tpope/vim-unimpaired'
+Plug 'unphased/vim-unimpaired'
 
 Plug 'vim-scripts/camelcasemotion'
 Plug 'vim-scripts/ingo-library' " needed for EnhancedJumps
