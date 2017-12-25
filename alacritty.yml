@@ -261,6 +261,9 @@ key_bindings:
   - { key: Key5,        mods: Alt,     chars: "\x1b5"                       }
   - { key: Key6,        mods: Alt,     chars: "\x1b6"                       }
   - { key: Key7,        mods: Alt,     chars: "\x1b7"                       }
+  - { key: Key8,        mods: Alt,     chars: "\x1b8"                       }
+  - { key: Key9,        mods: Alt,     chars: "\x1b9"                       }
+  - { key: Key0,        mods: Alt,     chars: "\x1b0"                       }
   - { key: P,        mods: Command, chars: "\x1bp"                       }
   - { key: P,        mods: Alt,     chars: "\x1bp"                       }
   - { key: B,        mods: Command, chars: "\x1bb"                       }
