@@ -640,9 +640,6 @@ au FileChangedShell * echo "Warning: File changed on disk!!"
 
 nnoremap P P`[
 
-" Snippets
-nnoremap <Leader>dump ause DumperHarness;<CR>DumperHarness::Examine(, 'green');<ESC>7h
-
 " I'm not sure what the semicolon is bound to but it
 " will never be as useful as this binding
 map ; :
