@@ -1282,11 +1282,11 @@
 	<key>NSWindow Frame SUUpdateAlert</key>
 	<string>425 493 620 392 0 0 1680 1028 </string>
 	<key>NSWindow Frame SharedPreferences</key>
-	<string>78 88 937 512 0 0 1680 1028 </string>
+	<string>78 204 918 401 0 0 1680 1028 </string>
 	<key>NSWindow Frame UKCrashReporter</key>
 	<string>127 444 592 584 0 0 1680 1028 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>35 13 599 1007 0 0 1680 1028 </string>
+	<string>70 0 599 1007 0 0 1680 1028 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
 	<string>35 27 640 996 0 0 1680 1028 </string>
 	<key>NSWindow Frame iTerm Window 2</key>
@@ -2171,7 +2171,7 @@
 			<key>Non-ASCII Anti Aliased</key>
 			<true/>
 			<key>Normal Font</key>
-			<string>MenloForPowerline-Regular 12</string>
+			<string>MesloLGSDZForPowerline-Regular 11</string>
 			<key>Only The Default BG Color Uses Transparency</key>
 			<true/>
 			<key>Option Key Sends</key>
@@ -2344,6 +2344,8 @@
 			<true/>
 			<key>Use Italic Font</key>
 			<true/>
+			<key>Use Non-ASCII Font</key>
+			<false/>
 			<key>Vertical Spacing</key>
 			<real>1</real>
 			<key>Visual Bell</key>
@@ -6840,7 +6842,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2017-12-03T21:38:20Z</date>
+	<date>2017-12-29T05:36:39Z</date>
 	<key>SUSendProfileInfo</key>
 	<false/>
 	<key>SavePasteHistory</key>
