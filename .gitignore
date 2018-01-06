@@ -3,3 +3,7 @@ bundle/
 .search
 .netrwhist
 spell
+.discrim.log
+.search-*
+.DS_Store
+plugged/
