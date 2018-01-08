@@ -3,8 +3,10 @@
 # too)
 alias ls 2>/dev/null >/dev/null || alias ls="ls --color=always"
 
-# some versions of htop kill high sierra without being run as root
-alias htop="sudo htop"
+# some versions of htop kill high sierra without being run as root.
+if [[ "$OSTYPE" == darwin* ]]; then
+	alias htop="sudo htop"
+fi
 
 alias l="ls"
 alias sl="ls"
