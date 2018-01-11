@@ -254,6 +254,8 @@ key_bindings:
   - { key: Equals,   mods: Command, action: IncreaseFontSize             }
   - { key: Minus,    mods: Command, action: DecreaseFontSize             }
   - { key: Subtract, mods: Command, action: DecreaseFontSize             }
+  - { key: Comma, mods: Alt, chars: "\x1b,"              }
+  - { key: Comma, mods: Command, chars: "\x1b,"             }
   - { key: Period, mods: Alt, chars: "\x1b."              }
   - { key: Period, mods: Command, chars: "\x1b."             }
   - { key: Key1,        mods: Alt,     chars: "\x1b1"                       }
