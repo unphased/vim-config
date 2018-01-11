@@ -6,3 +6,4 @@
 **/tags
 **/alacritty.recording
 **/.git
+.cache/neocomplete
