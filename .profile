@@ -1,8 +1,8 @@
 stty -ixon
 stty -ixoff
 
-export HISTTIMEFORMAT='%c: '
 export HISTSIZE=20000
+export HISTTIMEFORMAT="%d/%m/%y %T "
 
 # avoid duplicates.. 
 export HISTCONTROL=ignoredups
