@@ -2826,7 +2826,11 @@ nnoremap <Leader>p :.-1read $HOME/.vim/.search<CR>
 " windowswap disable binds, reducing latency on two of my existing binds now, 
 " and allow me to bind just the one thing that i use with it.
 let g:windowswap_map_keys = 0
-nnoremap <m-w> :call WindowSwap#EasyWindowSwap()<CR>
+if !has('nvim')
+	nnoremap <F32> :call WindowSwap#EasyWindowSwap()<CR>
+else
+	nnoremap <m-w> :call WindowSwap#EasyWindowSwap()<CR>
+endif
 
 " fuck, still doesnt work (i tried twice)
 " function! HiCursorWordsDisable()
