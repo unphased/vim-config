@@ -2821,8 +2821,12 @@ set ruler
 nnoremap <Leader>c :let &statusline='%{ShowCount()} %<%f %h%m%r%=%-14.(%l,%c%V%) %P' "THIS WILL BLOW AWAY STATUS LINE FOR SEARCH COUNTING. Ctrl+C to cancel
 
 " paste the global search
-" this is made latent by the deprecated windowswap bind, which is lame.
 nnoremap <Leader>p :.-1read $HOME/.vim/.search<CR>
+
+" windowswap disable binds, reducing latency on two of my existing binds now, 
+" and allow me to bind just the one thing that i use with it.
+let g:windowswap_map_keys = 0
+nnoremap <m-w> :call WindowSwap#EasyWindowSwap()<CR>
 
 " fuck, still doesnt work (i tried twice)
 " function! HiCursorWordsDisable()
