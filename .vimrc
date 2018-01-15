@@ -2881,20 +2881,27 @@ let g:fzf_action = {
 "      \ 0,
 "      \ {'options': '--reverse --prompt "FLines> "'})
 
-command! -bang -nargs=* FLineSearch call fzf#vim#grep("rg --color=never --line-number --column --no-heading --fixed-strings --hidden --ignore-file ".glob("~/.vim/rg.gitignore")." ".shellescape(<q-args>), 1, <bang>0)
+command! -bang -nargs=* FLineSearch call fzf#vim#grep("rg --color=never --line-number --column --no-heading --fixed-strings --hidden --ignore-file ".glob("~/.vim/rg.gitignore")." ".shellescape(<q-args>), 1, {'options': '--reverse --prompt "FLineSearch '.shellescape(<q-args>).'> "'})
 
 command! -bang FLines call fzf#vim#grep(
      \ "rg --color=never --line-number --no-heading --ignore-case --hidden --ignore-file ".glob("~/.vim/rg.gitignore")." -v '^$'",
      \ 1,
      \ {'options': '--reverse --prompt "FLines> "'})
 
+" sets color style via fzf. kind of insane and seems to screw with the sign 
+" styles :\
+command! -bang Colors
+  \ call fzf#vim#colors({'left': '15%', 'options': '--reverse --margin 30%,0'}, <bang>0)
+
 nnoremap <silent> <Leader>g :FLines<CR>
 
-" need to make this strip the stuff
-nnoremap <Leader>G :FLineSearch <c-r>/<CR>
+" This is intended to work by searching for the current search term without 
+" modifying the search term.
 
-" does not interfere with main search intentionally to facilitate following 
-" things around on a whim
+" need to figure out how to munge the search buffer upon use here.
+nnoremap <Leader>G :exec "FLineSearch <c-r>/"<CR>
+
+" does not interfere with main search
 function! SearchForToken()
 	let l:word = expand('<cword>')
 	echom 'search is '.l:word
