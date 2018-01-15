@@ -303,6 +303,7 @@ key_bindings:
   - { key: M,        mods: Command, chars: "\x1bm"                       }
   - { key: M,        mods: Alt,     chars: "\x1bm"                       }
   - { key: M,        mods: Command|Shift,     chars: "\x1bM"                       }
+  - { key: W,        mods: Alt,     chars: "\x1bw"                       }
   - { key: Home,                    chars: "\x1bOH",   mode: AppCursor   }
   - { key: Home,                    chars: "\x1b[H",   mode: ~AppCursor  }
   - { key: End,                     chars: "\x1bOF",   mode: AppCursor   }
