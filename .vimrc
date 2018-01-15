@@ -2885,7 +2885,7 @@ command! -bang -nargs=* FLineSearch call fzf#vim#grep("rg --color=never --line-n
 
 command! -bang FLines call fzf#vim#grep(
      \ "rg --color=never --line-number --no-heading --ignore-case --hidden --ignore-file ".glob("~/.vim/rg.gitignore")." -v '^$'",
-     \ 0,
+     \ 1,
      \ {'options': '--reverse --prompt "FLines> "'})
 
 nnoremap <silent> <Leader>g :FLines<CR>
