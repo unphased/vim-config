@@ -117,8 +117,8 @@ alias mkae='make'
 
 alias rg="rg --hidden --ignore-file $HOME/.vim/rg.gitignore"
 
-# to make fzf (mainly using vim but should work for non-vim) work like 
-# i want, which is let me comb through all the files ever. Except for git 
-# repoes.
+# to make fzf's file finding usage (mainly when using vim but should work for 
+# non-vim) work like i want, which is let me comb through all the files ever. 
+# Except for git repoes.
 export FZF_DEFAULT_COMMAND="rg --color=never --files --hidden -g '*' -g '!.git/'"
 export PATH=~/Documents/personal-utility/scripts:$PATH
