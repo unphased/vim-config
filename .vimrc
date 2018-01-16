@@ -2941,6 +2941,15 @@ let g:ale_cpp_clang_options = g:_ale_cpp_options
 let g:ale_cpp_clangtidy_options = g:_ale_cpp_options
 
 let g:_ale_cpp_options_jibo = g:_ale_cpp_options
+			\				. ' -I /home/slu/buildroot.jibo/output/build/glog-v0.3.4/src'
+			\				. ' -I /home/slu/buildroot.jibo/output/build/gflags-v2.1.2/include'
+			\				. ' -I /home/slu/buildroot.jibo/output/build/boost-1.58.0'
+			\				. ' -I /home/slu/buildroot.jibo/output/build/caffe-*/include'
+			\				. ' -I /home/slu/buildroot.jibo/output/build/caffe-*/.build_release/src'
+			\				. ' -I /home/slu/buildroot.jibo/output/build/openblas-*'
+			\				. ' -I /home/slu/buildroot.jibo/output/build/opencv3-3.1.0/modules/core/include'
+			\				. ' -I /home/slu/buildroot.jibo/output/build/opencv3-3.1.0/modules/imgproc/include'
+			\
 			\               . ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Foundation/include'
 			\               . ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Util/include'
 			\               . ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Net/include'
@@ -2955,6 +2964,7 @@ let g:_ale_cpp_options_jibo = g:_ale_cpp_options
 			\               . ' -I /home/slu/buildroot.jibo/output/build/libglib2-2.46.1'
 			\               . ' -I /home/slu/buildroot.jibo/output/build/xlib_libX11-1.6.3/include'
 			\               . ' -I /home/slu/buildroot.jibo/output/host/usr/include'
+			\
 			\               . ' -I /home/slu/jibo/capture-device/include'
 			\               . ' -I /home/slu/jibo/utility/include'
 			\               . ' -I /home/slu/jibo/serviceframework/include'
