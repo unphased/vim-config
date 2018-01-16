@@ -2764,7 +2764,8 @@ inoremap C-x <C-G>u<Esc>ms[s1z=:let g:correct_index = 1<CR>`sa
 nnoremap <Leader>X :let g:correct_index += 1<CR>u:exec "normal! " . correct_index . "z=`s"<CR>
 inoremap C-X <C-G>u<Esc>:let g:correct_index += 1<CR>u:exec "normal! " . correct_index . "z=`s"<CR>a
 
-nnoremap <Leader>t :ThesaurusQueryReplaceCurrentWord<CR>
+nnoremap <Leader>T :ThesaurusQueryReplaceCurrentWord<CR>
+nnoremap <Leader>t :TagBar
 
 " because g: is easier to remember than :@* and also this is more full featured
 " i believe.
