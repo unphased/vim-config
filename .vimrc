@@ -2980,6 +2980,16 @@ let g:ale_pattern_options = {
 			\   }
 			\}
 
+if !exists("g:os")
+    if has("win64") || has("win32") || has("win16")
+        let g:os = "Windows"
+    else
+		" as a builtin (??), seems to require me to export OSTYPE in shell 
+		" config.
+        let g:os=$OSTYPE
+    endif
+endif
+
 " this is for centos
 let g:clang_library_path=glob('/usr/local/lib/libclang.so')
 if (!strlen(g:clang_library_path))
@@ -2992,6 +3002,7 @@ if (!strlen(g:clang_library_path))
 		if (!strlen(g:clang_library_path))
 			let g:clang_library_path=glob('/Applications/Xcode.app/Contents/Frameworks/libclang.dylib')
 			if (!strlen(g:clang_library_path))
+
 				echom "clang still couldn't be found. hmm!"
 			endif
 		endif
