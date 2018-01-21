@@ -123,4 +123,7 @@ alias rg="rg --hidden --ignore-file $HOME/.vim/rg.gitignore"
 # non-vim) work like i want, which is let me comb through all the files ever. 
 # Except for git repoes.
 export FZF_DEFAULT_COMMAND="rg --color=never --files --hidden -g '*' -g '!.git/'"
-export PATH=~/Documents/personal-utility/scripts:$PATH
+
+# do not export PATH in aliases. it gets run a bit too much for my comfort. 
+# bloats it.
+# export PATH=~/Documents/personal-utility/scripts:$PATH
