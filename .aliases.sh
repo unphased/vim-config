@@ -1,3 +1,4 @@
+echo Hello from aliases.sh
 # todo: make me a function
 # idempotent alias check (or prints existing alias -- might wanna suppress that 
 # too)
