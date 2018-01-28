@@ -571,10 +571,10 @@ nnoremap <Down> <C-E>g<Down>
 
 " Mapping left and right arrows to help scroll the view as well. I think I want 
 " to overdo the effect as well.
-vnoremap <Left> 2zhh
-vnoremap <Right> 2zll
-nnoremap <Left> 3zhh
-nnoremap <Right> 3zll
+" vnoremap <Left> 2zhh
+" vnoremap <Right> 2zll
+nnoremap <Left> 3zhhh
+nnoremap <Right> 3zlll
 
 " Have to override the shift and ctrl + arrow keys in insert and normal mode, 
 " these do aggravating things by default
