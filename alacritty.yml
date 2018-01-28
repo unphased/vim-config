@@ -272,6 +272,8 @@ key_bindings:
   - { key: P,        mods: Alt,     chars: "\x1bp"                       }
   - { key: B,        mods: Command, chars: "\x1bb"                       }
   - { key: B,        mods: Alt,     chars: "\x1bb"                       }
+  - { key: D,        mods: Shift|Command, chars: "\x1bD"                       }
+  - { key: D,        mods: Shift|Alt,     chars: "\x1bD"                       }
   - { key: D,        mods: Command, chars: "\x1bd"                       }
   - { key: D,        mods: Alt,     chars: "\x1bd"                       }
   - { key: R,        mods: Command, chars: "\x1br"                       }
