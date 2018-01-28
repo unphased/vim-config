@@ -3000,10 +3000,13 @@ if (!strlen(g:clang_library_path))
 		" this is for macOS
 		let g:clang_library_path=glob('/Library/Developer/CommandLineTools/usr/lib/libclang.dylib')
 		if (!strlen(g:clang_library_path))
-			let g:clang_library_path=glob('/Applications/Xcode.app/Contents/Frameworks/libclang.dylib')
-			if (!strlen(g:clang_library_path) && g:os != 'linux-gnueabihf')
-				" do not surface this error on ARM linux systems such as raspi
-				echom "clang still couldn't be found. hmm!"
+			let g:clang_library_path=glob('/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libclang.dylib')
+			if (!strlen(g:clang_library_path))
+				let g:clang_library_path=glob('/Applications/Xcode.app/Contents/Frameworks/libclang.dylib')
+				if (!strlen(g:clang_library_path) && g:os != 'linux-gnueabihf')
+					" do not surface this error on ARM linux systems such as raspi
+					echom "clang still couldn't be found. hmm!"
+				endif
 			endif
 		endif
 	endif
