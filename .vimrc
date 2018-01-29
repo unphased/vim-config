@@ -2894,6 +2894,8 @@ command! -bang FLines call fzf#vim#grep(
 command! -bang Colors
   \ call fzf#vim#colors({'left': '15%', 'options': '--reverse --margin 30%,0'}, <bang>0)
 
+let g:fzf_buffers_jump = 1
+
 nnoremap <silent> <Leader>g :FLines<CR>
 
 " This is intended to work by searching for the current search term without 
