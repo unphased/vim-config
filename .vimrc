@@ -571,10 +571,10 @@ nnoremap <Down> <C-E>g<Down>
 
 " Mapping left and right arrows to help scroll the view as well. I think I want 
 " to overdo the effect as well.
-vnoremap <Left> 2zhh
-vnoremap <Right> 2zll
-nnoremap <Left> 3zhh
-nnoremap <Right> 3zll
+" vnoremap <Left> 2zhh
+" vnoremap <Right> 2zll
+nnoremap <Left> 3zhhh
+nnoremap <Right> 3zlll
 
 " Have to override the shift and ctrl + arrow keys in insert and normal mode, 
 " these do aggravating things by default
@@ -2936,6 +2936,21 @@ let g:ale_lint_on_text_changed = 'never'
 let g:ale_max_signs = 8
 let g:_ale_cpp_options = ' -std=c++11'
 
+let g:_ale_cpp_options = g:_ale_cpp_options
+			\ . ' -I /home/slu/onboard-sdk/osdk-core/api/inc'
+			\ . ' -I /home/slu/onboard-sdk/osdk-core/protocol/inc'
+			\ . ' -I /home/slu/onboard-sdk/osdk-core/hal/inc'
+			\ . ' -I /home/slu/onboard-sdk/osdk-core/utility/inc'
+			\ . ' -I /home/slu/onboard-sdk/osdk-core/platform/linux/inc'
+			\ . ' -I /home/slu/onboard-sdk/sample/linux/common'
+			\
+			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/api/inc'
+			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/protocol/inc'
+			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/hal/inc'
+			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/utility/inc'
+			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/platform/linux/inc'
+			\ . ' -I /Users/slu/Documents/onboard-sdk/sample/linux/common'
+
 let g:ale_linters =	{ 'cpp': ['clang', 'clangtidy', 'g++'] }
 
 let g:ale_cpp_gcc_options = g:_ale_cpp_options
@@ -3002,10 +3017,13 @@ if (!strlen(g:clang_library_path))
 		" this is for macOS
 		let g:clang_library_path=glob('/Library/Developer/CommandLineTools/usr/lib/libclang.dylib')
 		if (!strlen(g:clang_library_path))
-			let g:clang_library_path=glob('/Applications/Xcode.app/Contents/Frameworks/libclang.dylib')
-			if (!strlen(g:clang_library_path) && g:os != 'linux-gnueabihf')
-				" do not surface this error on ARM linux systems such as raspi
-				echom "clang still couldn't be found. hmm!"
+			let g:clang_library_path=glob('/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libclang.dylib')
+			if (!strlen(g:clang_library_path))
+				let g:clang_library_path=glob('/Applications/Xcode.app/Contents/Frameworks/libclang.dylib')
+				if (!strlen(g:clang_library_path) && g:os != 'linux-gnueabihf')
+					" do not surface this error on ARM linux systems such as raspi
+					echom "clang still couldn't be found. hmm!"
+				endif
 			endif
 		endif
 	endif
