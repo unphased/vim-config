@@ -2934,6 +2934,14 @@ let g:ale_lint_on_text_changed = 'never'
 let g:ale_max_signs = 8
 let g:_ale_cpp_options = ' -std=c++11'
 
+let g:_ale_cpp_options = g:_ale_cpp_options
+			\ . ' -I /home/slu/onboard-sdk/osdk-core/api/inc'
+			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/api/inc'
+			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/protocol/inc'
+			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/hal/inc'
+			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/utility/inc'
+			\ . ' -I /Users/slu/Documents/onboard-sdk/sample/linux/common'
+
 let g:ale_linters =	{ 'cpp': ['clang', 'clangtidy', 'g++'] }
 
 let g:ale_cpp_gcc_options = g:_ale_cpp_options
