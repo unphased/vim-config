@@ -2936,10 +2936,17 @@ let g:_ale_cpp_options = ' -std=c++11'
 
 let g:_ale_cpp_options = g:_ale_cpp_options
 			\ . ' -I /home/slu/onboard-sdk/osdk-core/api/inc'
+			\ . ' -I /home/slu/onboard-sdk/osdk-core/protocol/inc'
+			\ . ' -I /home/slu/onboard-sdk/osdk-core/hal/inc'
+			\ . ' -I /home/slu/onboard-sdk/osdk-core/utility/inc'
+			\ . ' -I /home/slu/onboard-sdk/osdk-core/platform/linux/inc'
+			\ . ' -I /home/slu/onboard-sdk/sample/linux/common'
+			\
 			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/api/inc'
 			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/protocol/inc'
 			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/hal/inc'
 			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/utility/inc'
+			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/platform/linux/inc'
 			\ . ' -I /Users/slu/Documents/onboard-sdk/sample/linux/common'
 
 let g:ale_linters =	{ 'cpp': ['clang', 'clangtidy', 'g++'] }
