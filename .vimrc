@@ -120,6 +120,7 @@ Plug 'ap/vim-css-color'
 Plug 'https://github.com/wesQ3/vim-windowswap'
 Plug 'sbdchd/neoformat'
 Plug 'Rip-Rip/clang_complete'
+Plug 'rhysd/conflict-marker.vim'
 
 call plug#end()
 
