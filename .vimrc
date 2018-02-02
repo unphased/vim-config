@@ -15,8 +15,6 @@ Plug 'junegunn/fzf.vim'
 Plug 'SirVer/ultisnips', { 'on': [] }
 " Plug 'Valloric/YouCompleteMe', { 'on': [] }
 " Plug 'scrooloose/syntastic', { 'on': [] }
-Plug 'Shougo/neocomplete.vim'
-Plug 'w0rp/ale'
 
 let s:LoadExpensivePluginsHasBeenRun = 0
 function! LoadExpensive()
@@ -119,7 +117,6 @@ Plug 'ap/vim-css-color'
 " Plug 'chrisbra/NrrwRgn'
 Plug 'https://github.com/wesQ3/vim-windowswap'
 Plug 'sbdchd/neoformat'
-Plug 'Rip-Rip/clang_complete'
 Plug 'rhysd/conflict-marker.vim'
 
 call plug#end()
@@ -381,29 +378,11 @@ highlight SignifyLineChangeDelete ctermfg=none ctermbg=203 guibg=#433007
 nnoremap <Leader>d :call sy#highlight#line_toggle()<CR>
 let g:signify_line_highlight = 1
 
-" syntastic / ALE
-
-highlight SyntasticError ctermbg=91 guibg=#d05516
-highlight ALEError ctermbg=91 guibg=#d05516
-highlight SyntasticErrorSign guibg=#DC571C guifg=#FFFFFF
-highlight ALEErrorSign guibg=#DC571C guifg=#FFFFFF
-highlight SyntasticWarning ctermbg=24 guibg=#686832
-highlight ALEWarning ctermbg=24 guibg=#686832
-highlight SyntasticWarningSign guibg=#f1af51 guifg=#303030
-highlight ALEWarningSign guibg=#f1af51 guifg=#303030
-highlight SyntasticErrorLine guibg=#480000
-highlight ALEErrorLine guibg=#480000
-highlight SyntasticWarningLine guibg=#383800
-highlight ALEWarningLine guibg=#383800
-
 " TODO detect if gcc is old, adjust to c++11 instead of 14
 " But, I'm not doing that because forking gcc sounds like a horrible idea on 
 " vim startup. So, I'm blanket-conf'ing gcc for c++11 for now
 
 hi clear SignColumn
-
-let g:ale_sign_warning = '->'
-let g:ale_sign_error = '>>'
 
 " HiCursorWords
 let g:HiCursorWords_delay = 50
@@ -1081,9 +1060,6 @@ let g:ycm_server_keep_logfiles = 1
 " 		let g:ycm_enable_diagnostic_signs = 1
 " 	endif
 " endfunc
-
-nnoremap <F7> :ALEDetail<CR>
-" nnoremap <S-F7> :YcmCompleter GoToDefinition<CR>
 
 " This insert mapping is for pasting; it appears that YCM only takes over the
 " <C-P> when it has the complete box open (this may be a Vim
@@ -2293,28 +2269,6 @@ endif
 " a special case for surrounding with newlines
 vmap S<CR> S<C-J>V2j=
 
-if has('python')
-	python << EOF
-# print 'hi from python'
-EOF
-	function! MungeArgListPython()
-		python << EOF
-import string
-# check we are inside parens
-curcol = vim.current.window.cursor[1];
-parensstart = string.rfind(vim.current.line, '(', 0, curcol);
-parensend = string.find(vim.current.line, ')', curcol);
-print 'curcol ' + str(curcol)+ ' idxs are ' + str(parensstart) + ', ' + str(parensend) + ' line inside parens is >>' + vim.current.line[parensstart:parensend+1] + '<<'
-EOF
-	endfun
-	" X does something rather kind of useful but i never use it --- I am 
-	" binding to a custom python line munger whose purpose is to clean the 
-	" inside of the parens we are inside of -- e.g. useful with argtextobj 
-	" operations, just litter with extra commas at the beginning or whatever 
-	" and we mop them up.
-	nnoremap X :call MungeArgListPython()<CR>
-endif
-
 let g:mwPalettes = {
 	\	'original': [
 	\   { 'ctermbg': '25', 'ctermfg': '7', 'guibg': '#123456'},
@@ -2482,260 +2436,12 @@ function! LineCount(abort)
 	return numlines
 endfunction
 
-" a function to distribute vertical space based on file lengths (I intend to 
-" maybe call this on new window/bufload)
-function! HeightSpread()
-	" short circuit me if do not have python
-	if !has('python')
-		return
-	endif
-
-	" if !LongEnough('g:heightspread', 1.5)
-	" 	return
-	" 	" This is not ideal because it does not guarantee it will run after the
-	" 	" last thing that triggers me. But rate limiting to ensure performance 
-	" 	" is more paramount than correct async cleanup so this will have to do 
-	" 	" for now until I can dig into vim/nvim code to try to integrate this 
-	" 	" shit.
-	"   " Since then though, we found noautocmd and things have gotten faster.
-	" endif
-	" echom 'running HeightSpread '.localtime()
-
-	" This has to do some clever shit because the problem is that shrinking 
-	" a window will generally expand the one underneath it. This means that 
-	" multiple short files not at the top (i.e. top having a large file) will 
-	" result in the large file failing to get expanded out.
-
-	" So, what I will do is do a scan to query the height of each file, then 
-	" sort them and figure out how many of the shortest files can all fit on 
-	" screen at once. Then, I distribute the height of the rest of the files 
-	" evenly and assign all of these values in a second pass.
-
-	" Now the problem is that using wincmd j/k to obtain and set the heights 
-	" does not work well because of awful performance. So I want to adjust the 
-	" algorithm to just scan all the windows at this point. But, since there is
-	" no way to get the missing data about the x/y positioning of each window 
-	" without switching to it (here, so far, i implicitly pick out the ones 
-	" I care about by scanning up and down from the starting window) that 
-	" approach is doomed for now.
-
-	" Update: found out about python ability to get window parameters including
-	" widths and heights so now i can definitely eliminate this walking up and 
-	" down stuff; it's still impossible to find the places that the cursors 
-	" are, but that's totally a non-issue...
-
-	" Note: since then I have realized that noautocmd makes the traditional 
-	" vimL way performant enough again. Even though I spent yesterday writing 
-	" the python height calculator routine and polishing it up, the 
-	let startwin = winnr()
-	" loop all the way to top (but we have to store the winnrs due to 
-	" possibility of arbitrary window arrangement)
-	let lastwin = startwin
-	let yaxis = 0
-	let start = [lastwin, LineCount((&lines - 3) * g:spreadratio), winheight(lastwin), @%, yaxis]
-	let wins = []
-	let totspace = winheight(lastwin)
-	wincmd k
-	while (winnr() != lastwin)
-		let yaxis = yaxis - 1
-		" echo 'a'.lastwin.'-'.winnr()
-		let lastwin = winnr()
-		let hei = winheight(lastwin)
-		call insert(wins, [lastwin, LineCount((&lines - 3) * g:spreadratio), hei, @%, yaxis])
-		let totspace += hei
-		wincmd k
-	endwhile
-	exe startwin.'wincmd w'
-	let lastwin = startwin
-	let yaxis = 0
-	wincmd j
-	while (winnr() != lastwin)
-		let yaxis = yaxis + 1
-		" echo 'b'.lastwin.'-'.winnr()
-		let lastwin = winnr()
-		let hei = winheight(lastwin)
-		call add(wins, [lastwin, LineCount((&lines - 3) * g:spreadratio), hei, @%, yaxis])
-		let totspace += hei
-		wincmd j
-	endwhile
-	" TODO eliminate the wincmd j/k shit for deriving it all via vim.windows 
-	" from python as below. We already need to use the python datas to get true 
-	" proper window height content requirements.
-
-	let final = []
-	" echom 'wins '.string(wins)
-	" echom 'start '.string(start)
-
-	" sort (vimscript algorithms are insane so i am pythoning)
-	python << EOF
-# import operator
-# import time
-# timestart = time.time()
-## windowData = [None] * (len(vim.windows) + 1)
-# print 'wins' + str(len(vim.windows))
-## for wini, win in enumerate(vim.windows):
-## 	# print ", ".join([str(x) for x in [win.col, win.row, win.width, win.height]]);
-## 	# windir = dir(win)
-## 	# print 'dir: ' + str(windir)
-## 	# for method in windir:
-## 	# 	attr = getattr(win, method)
-## 	# 	if method == 'buffer':
-## 	# 		print '    buffer: length ' + str(len(attr))
-## 	# 		print '    buffer[0]: ' + str(attr[0])
-## 	# 	elif method[0] != '_':
-## 	# 		print '    ' + method + ': ' + str(attr)
-## 	# Compute real height of each window using its buffer and window width
-## 
-## 	# print 'bufnum! ' + str(win.buffer.number)
-## 	tabstop = win.buffer.options['tabstop']
-## 	# print 'tabstop! ' + str(tabstop)
-## 	vim.command('redir => signlist')
-## 	vim.command('silent sign place buffer=' + str(win.buffer.number))
-## 	vim.command('redir END')
-## 	signlist = vim.eval('signlist')
-## 	wrapping = win.options['wrap']
-## 	signcols = 2 if (signlist.count('line=') > 0) else 0
-## 	linenrcols = len(str(len(win.buffer))) + 1
-## 	# not accounting for numberwidth or number options right now
-## 	height = len(win.buffer)
-## 	width = win.width
-## 	# print 'vals! ' + str(linenrcols) + ' ' + str(signcols) + ' hei ' + str(height)
-## 	i = 0
-## 	if wrapping:
-## 		height = 0
-## 		for line in win.buffer:
-## 			l8 = line.decode('utf-8')
-## 			i = i + 1
-## 			tabcount = l8.count('\t')
-## 			actual = len(l8) + (tabstop - 1) * tabcount
-## 			lineheight = (actual - 1) / (width - signcols - linenrcols) + 1
-## 			if (lineheight == 0):
-## 				lineheight = 1
-## 			height += lineheight
-## 			# if lineheight != 1:
-## 				# print str(i) + ' # ' + str(lineheight) + ' $ ' + str(win.width) + ' ' + str(win.width - signcols - linenrcols) + ' % ' + str(actual)
-## 	windowData[wini + 1] = {'height': height}
-	# print str(win.number) + ' <> ' + str(wini + 1)
-
-# print str(windowData)
-
-lens = vim.eval('wins')
-start = vim.eval('start')
-totspc = vim.eval('totspace')
-sortedk = sorted(lens, key=lambda x: int(x[1]))
-if ((int(start[1]) + 10) < int(totspc)):
-	# prioritize if current one "fits"
-	sortedk.insert(0, start)
-else:
-	# dont care
-	sortedk.append(start)
-# print 'sortedk b: ' + str(sortedk)
-## for e in sortedk:
-	## e.insert(1, windowData[int(e[0])]['height'])
-# print 'sortedk: ' + str(sortedk)
-# print sortedk
-tot = 0
-fits_unsorted = []
-split = []
-spreadratio = float(vim.eval('g:spreadratio'))
-for i, l, hei, name, yaxis in sortedk:
-	if (float(l) < (spreadratio * float(int(totspc) - tot))):
-		# space allocation logic goes as such: as we consider placing the next
-		# increasingly large item, abort it if insertion would result in
-		# more than 50% (or g:spreadratio (TODO impl this)) of total remaining
-		# space consumed.
-
-		# The reasoning behind this is that it will allow for a large amount of
-		# small splits while guaranteeing a reasonable amount of remaining space
-		# for the rest in a proportionate way.
-		tot = tot + int(l)
-		fits_unsorted.append([i, l, yaxis, True])
-	else:
-		split.append([i, hei, yaxis])
-splitlen = int(totspc) - tot
-# have to compute and apply all heights one after another otherwise Vim will
-# yank the heights around and undo our work. This means sorting by y-axis
-
-# we redistribute the heights of the remaining split items using their current
-# height ratios, and use greedy assignment to be fuzzy with divisions while
-# ensuring total height count adds up.
-
-# print 'before: ' + str(splitlen) + ', ' + str(fits_unsorted)
-
-abort=False
-if len(split) > 0:
-	split.insert(0, 0)
-	sum = reduce(lambda x,y: x + int(y[1]), split)
-	ratio = float(splitlen) / sum
-	# print 'ratio: ' + str(ratio)
-	# print 'split: ' + str(split)
-	split = [[x[0], round(ratio*int(x[1])), x[2], False] for x in split[1:]]
-else:
-	# if everything fits we have to be careful and pad out the one which is
-	# focused with the remainder of space which is splitlen, to still consume
-	# the space (otherwise the command line becomes enormous)
-	abort = True
-	# for e in fits_unsorted:
-	# 	if (e[2] == '0'):
-	# 		e[1] = int(e[1]) + splitlen
-	# 		break
-# print 'after: ' + str(fits_unsorted)
-
-# sort by position
-if not abort: # if aborting just effectively skip the rest
-	fits = sorted(fits_unsorted + split, key=lambda x: int(x[2]))
-	for w, l, o, b in fits:
-		# last value is flag whether fits or not. only if fits do we scroll them up
-		vim.command('call add(final, [' + str(w) + ', ' + str(l) + ', "' + ('fit' if b else 'no') + '"])')
-# print 'after sortin: ' + str(fits)
-# print 'taken ' + str(time.time() - timestart)
-EOF
-
-	" echo 'totspc: '. totspace
-	" echo 'fits'
-	" echo fits
-	" echo 'split'
-	" echo split
-	" echo splitlen
-
-	for i in final
-		exe i[0].'wincmd w'
-		exe 'resize' string(i[1])
-		" echo i[0].' set to '.i[1]
-		if i[2] == 'fit'
-			" echo 'going to top for window '.i[0]
-			normal! 
-		endif
-	endfor
-
-	" go back to starting window
-	exe startwin.'wincmd w'
-endfun
-
-" for setting up ability to trigger something once on first creation of window
-" autocmd that will set up the w:created variable
-" autocmd VimEnter * autocmd WinEnter * let w:created=1
-
-" Consider this one, since WinEnter doesn't fire on the first window created when Vim launches.
-" You'll need to set any options for the first window in your vimrc,
-" or in an earlier VimEnter autocmd if you include this
-" autocmd VimEnter * let w:created=1
-
-" Example of how to use w:created in an autocmd to initialize a window-local option
-autocmd WinEnter,BufEnter,BufWritePost,VimResized,InsertLeave * noautocmd call HeightSpread()
-
-" Not sure if this one here is overkill or not, but on terminal resizing it 
-" will be useful to call the routine
-" au BufWinEnter * silent call HeightSpread()
-" I will use \H
-nnoremap <Leader>H :noautocmd call HeightSpread()<CR>
-
 " changing these to not switch window because its too damn slow
 " TODO make this into a function which uses v:count1.
 nnoremap = :vertical res +8<CR>
 nnoremap - :vertical res -8<CR>
-nnoremap + :res +8<CR>:noautocmd call HeightSpread()<CR>
-nnoremap _ :res -8<CR>:noautocmd call HeightSpread()<CR>
+nnoremap + :res +8<CR>
+nnoremap _ :res -8<CR>
 
 " conceal rule for javascript
 au! FileType javascript setl conceallevel=2 concealcursor=c
@@ -2932,71 +2638,6 @@ set synmaxcol=1000
 
 " useful magic for making files executable if they look like they should be
 au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent execute "!chmod a+x <afile>" | endif | endif
-
-let g:ale_lint_on_text_changed = 'never'
-let g:ale_max_signs = 8
-let g:_ale_cpp_options = ' -std=c++11'
-
-let g:_ale_cpp_options = g:_ale_cpp_options
-			\ . ' -I /home/slu/onboard-sdk/osdk-core/api/inc'
-			\ . ' -I /home/slu/onboard-sdk/osdk-core/protocol/inc'
-			\ . ' -I /home/slu/onboard-sdk/osdk-core/hal/inc'
-			\ . ' -I /home/slu/onboard-sdk/osdk-core/utility/inc'
-			\ . ' -I /home/slu/onboard-sdk/osdk-core/platform/linux/inc'
-			\ . ' -I /home/slu/onboard-sdk/sample/linux/common'
-			\
-			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/api/inc'
-			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/protocol/inc'
-			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/hal/inc'
-			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/utility/inc'
-			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/platform/linux/inc'
-			\ . ' -I /Users/slu/Documents/onboard-sdk/sample/linux/common'
-
-let g:ale_linters =	{ 'cpp': ['clang', 'clangtidy', 'g++'] }
-
-let g:ale_cpp_gcc_options = g:_ale_cpp_options
-let g:ale_cpp_clang_options = g:_ale_cpp_options
-let g:ale_cpp_clangtidy_options = g:_ale_cpp_options
-
-let g:_ale_cpp_options_jibo = g:_ale_cpp_options
-			\				. ' -I /home/slu/buildroot.jibo/output/build/glog-v0.3.4/src'
-			\				. ' -I /home/slu/buildroot.jibo/output/build/gflags-v2.1.2/include'
-			\				. ' -I /home/slu/buildroot.jibo/output/build/boost-1.58.0'
-			\				. ' -I /home/slu/buildroot.jibo/output/build/caffe-*/include'
-			\				. ' -I /home/slu/buildroot.jibo/output/build/caffe-*/.build_release/src'
-			\				. ' -I /home/slu/buildroot.jibo/output/build/openblas-*'
-			\				. ' -I /home/slu/buildroot.jibo/output/build/opencv3-3.1.0/modules/core/include'
-			\				. ' -I /home/slu/buildroot.jibo/output/build/opencv3-3.1.0/modules/imgproc/include'
-			\
-			\               . ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Foundation/include'
-			\               . ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Util/include'
-			\               . ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/Net/include'
-			\               . ' -I /home/slu/buildroot.jibo/output/build/poco-poco-*/JSON/include'
-			\               . ' -I /home/slu/buildroot.jibo/output/build/zbar-0.10/include'
-			\               . ' -I /home/slu/buildroot.jibo/output/build/dlib-*'
-			\               . ' -I /home/slu/buildroot.jibo/output/build/jpeg-turbo-1.4.1'
-			\               . ' -I /home/slu/buildroot.jibo/output/build/cereal-*/include'
-			\               . ' -I /home/slu/buildroot.jibo/output/build/host-nvidia-cuda-6.5/targets/x86_64-linux/include'
-			\               . ' -I /home/slu/buildroot.jibo/output/build/gstreamer1-1.8.2'
-			\               . ' -I /home/slu/buildroot.jibo/output/build/libglib2-2.46.1/glib'
-			\               . ' -I /home/slu/buildroot.jibo/output/build/libglib2-2.46.1'
-			\               . ' -I /home/slu/buildroot.jibo/output/build/xlib_libX11-1.6.3/include'
-			\               . ' -I /home/slu/buildroot.jibo/output/host/usr/include'
-			\
-			\               . ' -I /home/slu/jibo/capture-device/include'
-			\               . ' -I /home/slu/jibo/utility/include'
-			\               . ' -I /home/slu/jibo/serviceframework/include'
-			\               . ' -I /home/slu/jibo/perception-framework/include'
-			\               . ' -I /home/slu/jibo/media-service/include'
-
-let g:ale_pattern_options = {
-			\	'.*/lps-service/web/js/lps\.js$': {'ale_enabled': 0},
-			\   'jibo/': {
-			\   	'ale_cpp_gcc_options': g:_ale_cpp_options_jibo,
-			\   	'ale_cpp_clang_options': g:_ale_cpp_options_jibo,
-			\   	'ale_cpp_clangtidy_options': g:_ale_cpp_options_jibo
-			\   }
-			\}
 
 if !exists("g:os")
     if has("win64") || has("win32") || has("win16")
