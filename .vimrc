@@ -121,8 +121,10 @@ Plug 'https://github.com/wesQ3/vim-windowswap'
 Plug 'sbdchd/neoformat'
 Plug 'Rip-Rip/clang_complete'
 Plug 'rhysd/conflict-marker.vim'
-Plug 'vimlab/vim-nodecompl'
+" Plug 'vimlab/vim-json'
+" Plug 'vimlab/vim-nodecompl'
 Plug 'Shougo/echodoc.vim'
+Plug 'myhere/vim-nodejs-complete'
 
 call plug#end()
 
@@ -499,7 +501,7 @@ au! FileType tagbar setlocal cursorline
 "
 " Do I need these omnifuncs?
 " autocmd FileType python set omnifunc=pythoncomplete#Complete
-" autocmd FileType javascript set omnifunc=javascriptcomplete#CompleteJS
+autocmd FileType javascript set omnifunc=javascriptcomplete#CompleteJS
 " autocmd FileType html set omnifunc=htmlcomplete#CompleteTags
 " autocmd FileType css set omnifunc=csscomplete#CompleteCSS
 " autocmd FileType xml set omnifunc=xmlcomplete#CompleteTags
