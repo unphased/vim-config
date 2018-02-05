@@ -121,6 +121,8 @@ Plug 'https://github.com/wesQ3/vim-windowswap'
 Plug 'sbdchd/neoformat'
 Plug 'Rip-Rip/clang_complete'
 Plug 'rhysd/conflict-marker.vim'
+Plug 'vimlab/vim-nodecompl'
+Plug 'Shougo/echodoc.vim'
 
 call plug#end()
 
