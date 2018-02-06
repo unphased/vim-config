@@ -2941,6 +2941,12 @@ let g:ale_lint_on_text_changed = 'never'
 let g:ale_max_signs = 8
 let g:_ale_cpp_options = ' -std=c++11'
 
+" TODO going to use python to walk the cwd up and slurp .clang_complete files 
+" to populate ale_pattern_options with all the necessary flags, mostly header 
+" paths. Bit annoying (and if i have the time i'd contribute it to ale...) but 
+" should work reliably. Then, no project specific header config will exist in 
+" vimrc (phew!!!)
+
 let g:_ale_cpp_options_onboard = g:_ale_cpp_options
 			\ . ' -I /home/slu/onboard-sdk/osdk-core/api/inc'
 			\ . ' -I /home/slu/onboard-sdk/osdk-core/protocol/inc'
@@ -2962,10 +2968,6 @@ let g:ale_linters =	{ 'cpp': ['clang', 'clangtidy', 'g++'] }
 let g:ale_cpp_gcc_options = g:_ale_cpp_options
 let g:ale_cpp_clang_options = g:_ale_cpp_options
 let g:ale_cpp_clangtidy_options = g:_ale_cpp_options
-
-" TODO going to use python to walk the cwd up and slurp .clang_complete files 
-" to populate ale_pattern_options with all the necessary flags, mostly header 
-" paths. Bit annoying but should work reliably.
 
 let g:_ale_cpp_options_jibo = g:_ale_cpp_options
 			\				. ' -I /home/slu/buildroot.jibo/output/build/glog-v0.3.4/src'
