@@ -121,6 +121,10 @@ Plug 'https://github.com/wesQ3/vim-windowswap'
 Plug 'sbdchd/neoformat'
 Plug 'Rip-Rip/clang_complete'
 Plug 'rhysd/conflict-marker.vim'
+" Plug 'vimlab/vim-json'
+" Plug 'vimlab/vim-nodecompl'
+Plug 'Shougo/echodoc.vim'
+Plug 'myhere/vim-nodejs-complete'
 
 call plug#end()
 
@@ -497,7 +501,7 @@ au! FileType tagbar setlocal cursorline
 "
 " Do I need these omnifuncs?
 " autocmd FileType python set omnifunc=pythoncomplete#Complete
-" autocmd FileType javascript set omnifunc=javascriptcomplete#CompleteJS
+autocmd FileType javascript set omnifunc=javascriptcomplete#CompleteJS
 " autocmd FileType html set omnifunc=htmlcomplete#CompleteTags
 " autocmd FileType css set omnifunc=csscomplete#CompleteCSS
 " autocmd FileType xml set omnifunc=xmlcomplete#CompleteTags
@@ -2937,7 +2941,7 @@ let g:ale_lint_on_text_changed = 'never'
 let g:ale_max_signs = 8
 let g:_ale_cpp_options = ' -std=c++11'
 
-let g:_ale_cpp_options = g:_ale_cpp_options
+let g:_ale_cpp_options_onboard = g:_ale_cpp_options
 			\ . ' -I /home/slu/onboard-sdk/osdk-core/api/inc'
 			\ . ' -I /home/slu/onboard-sdk/osdk-core/protocol/inc'
 			\ . ' -I /home/slu/onboard-sdk/osdk-core/hal/inc'
@@ -2951,6 +2955,7 @@ let g:_ale_cpp_options = g:_ale_cpp_options
 			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/utility/inc'
 			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/platform/linux/inc'
 			\ . ' -I /Users/slu/Documents/onboard-sdk/sample/linux/common'
+			\ . ' -I /Users/slu/Documents/pigpio'
 
 let g:ale_linters =	{ 'cpp': ['clang', 'clangtidy', 'g++'] }
 
@@ -3000,7 +3005,12 @@ let g:ale_pattern_options = {
 			\   	'ale_cpp_gcc_options': g:_ale_cpp_options_jibo,
 			\   	'ale_cpp_clang_options': g:_ale_cpp_options_jibo,
 			\   	'ale_cpp_clangtidy_options': g:_ale_cpp_options_jibo
-			\   }
+			\   },
+			\	'onboard-sdk/': {
+			\   	'ale_cpp_gcc_options': g:_ale_cpp_options_onboard,
+			\   	'ale_cpp_clang_options': g:_ale_cpp_options_onboard,
+			\   	'ale_cpp_clangtidy_options': g:_ale_cpp_options_onboard
+			\	}
 			\}
 
 if !exists("g:os")

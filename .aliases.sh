@@ -31,6 +31,7 @@ alias gde="git diff --ext-diff"
 alias gdc="gd --cached"
 unalias gg # some git gui thing from ohmyzsh
 alias gg="git lg --all"
+alias gfp="git push origin +HEAD" # for git force push HEAD
 alias ggs="git lg --all --stat"
 alias gca="git commit -av"
 alias gcm="git commit-message"
