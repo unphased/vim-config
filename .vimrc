@@ -2958,6 +2958,10 @@ let g:ale_cpp_gcc_options = g:_ale_cpp_options
 let g:ale_cpp_clang_options = g:_ale_cpp_options
 let g:ale_cpp_clangtidy_options = g:_ale_cpp_options
 
+" TODO going to use python to walk the cwd up and slurp .clang_complete files 
+" to populate ale_pattern_options with all the necessary flags, mostly header 
+" paths. Bit annoying but should work reliably.
+
 let g:_ale_cpp_options_jibo = g:_ale_cpp_options
 			\				. ' -I /home/slu/buildroot.jibo/output/build/glog-v0.3.4/src'
 			\				. ' -I /home/slu/buildroot.jibo/output/build/gflags-v2.1.2/include'
