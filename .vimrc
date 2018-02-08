@@ -2938,7 +2938,7 @@ set synmaxcol=1000
 au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent execute "!chmod a+x <afile>" | endif | endif
 
 let g:ale_lint_on_text_changed = 'never'
-let g:ale_max_signs = 8
+let g:ale_max_signs = 64
 let g:_ale_cpp_options = ' -std=c++11'
 
 " TODO going to use python to walk the cwd up and slurp .clang_complete files 
@@ -2954,6 +2954,7 @@ let g:_ale_cpp_options_onboard = g:_ale_cpp_options
 			\ . ' -I /home/slu/onboard-sdk/osdk-core/utility/inc'
 			\ . ' -I /home/slu/onboard-sdk/osdk-core/platform/linux/inc'
 			\ . ' -I /home/slu/onboard-sdk/sample/linux/common'
+			\ . ' -I /home/slu/pigpio'
 			\
 			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/api/inc'
 			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/protocol/inc'
