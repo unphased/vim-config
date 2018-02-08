@@ -1,4 +1,6 @@
 --std=c++11
+-I /home/slu/buildroot.jibo/output/target/usr/local/include
+
 -I /home/slu/buildroot.jibo/output/build/glog-v0.3.4/src
 -I /home/slu/buildroot.jibo/output/build/gflags-v2.1.2/include
 -I /home/slu/buildroot.jibo/output/build/boost-1.58.0
