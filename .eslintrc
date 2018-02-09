@@ -17,7 +17,6 @@
         "_": true,
         "moment": true,
         "vex": true,
-        "path": true,
         "THREE": true
     },
     "rules": {
