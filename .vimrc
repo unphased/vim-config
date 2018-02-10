@@ -2887,10 +2887,10 @@ let g:fzf_action = {
 "      \ 0,
 "      \ {'options': '--reverse --prompt "FLines> "'})
 
-command! -bang -nargs=* FLineSearch call fzf#vim#grep("rg --color=never --line-number --column --no-heading --fixed-strings --hidden --ignore-file ".glob("~/.vim/rg.gitignore")." ".shellescape(<q-args>), 1, {'options': '--reverse --prompt "FLineSearch '.shellescape(<q-args>).'> "'})
+command! -bang -nargs=* FLineSearch call fzf#vim#grep("rg --color=always --line-number --column --no-heading --fixed-strings --hidden --ignore-file ".glob("~/.vim/rg.gitignore")." ".shellescape(<q-args>), 1, {'options': '--reverse --prompt "FLineSearch '.shellescape(<q-args>).'> "'})
 
 command! -bang FLines call fzf#vim#grep(
-     \ "rg --color=never --line-number --no-heading --ignore-case --hidden --ignore-file ".glob("~/.vim/rg.gitignore")." -v '^$'",
+     \ "rg --color=always --line-number --no-heading --ignore-case --hidden --ignore-file ".glob("~/.vim/rg.gitignore")." -v '^$'",
      \ 1,
      \ {'options': '--reverse --prompt "FLines> "'})
 
