@@ -3050,11 +3050,10 @@ endif
 
 " write some dates fast, from 
 " http://blog.erw.dk/2016/04/19/entering-dates-and-times-in-vim/
-
-noremap! <expr> ,t strftime("%H:%M")
-noremap! <expr> ,T strftime("%H:%M:%S")
-noremap! <expr> ,d strftime("%Y-%m-%d")
-noremap! <expr> ,l strftime("%Y-%m-%d %H:%M")
+noremap! <expr> <c-d>t strftime("%H:%M")
+noremap! <expr> <c-d>T strftime("%H:%M:%S")
+noremap! <expr> <c-d>d strftime("%Y-%m-%d")
+noremap! <expr> <c-d>l strftime("%Y-%m-%d %H:%M")
 
 " for cursor fanciness
 if exists('$TMUX')
