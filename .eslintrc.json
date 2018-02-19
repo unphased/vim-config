@@ -6,8 +6,7 @@
         "es6": true
     },
     "settings": {
-        "ecmascript": 6,
-        "jsx": true
+        "ecmascript": 6
     },
     "plugins": [
     ],
@@ -27,7 +26,7 @@
         "semi": [1, "always"],
         "no-underscore-dangle": 0,
         "no-unused-vars": ["error", {
-            "vars": local,
+            "vars": "local",
             "args": "after-used",
             "argsIgnorePattern": "^_"
         }],
