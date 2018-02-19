@@ -123,7 +123,7 @@ alias rg="rg --hidden --ignore-file $HOME/.vim/rg.gitignore"
 
 # wires it through so that fzf can be installed through the vim plugin. it is 
 # circuitous, but... damned if it doesn't just work better.
-alias fzf="$HOME/.vim/plugged/fzf/bin/fzf"
+alias fzf='vim -p $($HOME/.vim/plugged/fzf/bin/fzf -m)'
 # to make fzf's file finding usage (mainly when using vim but should work for 
 # non-vim) work like i want, which is let me comb through all the files ever. 
 # Except for git repoes.
