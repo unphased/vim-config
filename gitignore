@@ -7,3 +7,4 @@ Session.vim
 *.pyc
 **/*.o
 **/*.dSYM/
+**/.discrim.log
