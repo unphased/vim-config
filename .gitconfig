@@ -23,6 +23,7 @@
 [difftool]
 	prompt = false
 [diff]
+	mnemonicprefix = true
 	external = sift
 	# tool = pydifflib
 	tool = opendiff
