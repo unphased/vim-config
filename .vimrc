@@ -71,7 +71,7 @@ Plug 'pangloss/vim-javascript'
 " Plug 'jelera/vim-javascript-syntax'
 Plug 'beyondmarc/glsl.vim'
 "Bundle 'kana/vim-smartinput'
-Plug 'honza/vim-snippets'
+" Plug 'honza/vim-snippets'
 " Bundle 'oblitum/rainbow'
 " Plug 'marijnh/tern_for_vim'
 Plug 'unphased/vim-airline'
@@ -87,7 +87,7 @@ Plug 'majutsushi/tagbar'
 
 Plug 'unphased/vim-unimpaired'
 
-Plug 'vim-scripts/camelcasemotion'
+Plug 'bkad/camelcasemotion'
 Plug 'vim-scripts/ingo-library' " needed for EnhancedJumps
 Plug 'vim-scripts/EnhancedJumps'
 
