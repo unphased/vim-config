@@ -44,6 +44,9 @@ Plug 'maxbrunsfeld/vim-yankstack'
 Plug 'mbbill/undotree', { 'on': 'UndotreeToggle' }
 Plug 'rhysd/clever-f.vim'
 
+let g:clever_f_mark_cursor_color = 'DiffChange'
+let g:clever_f_mark_char_color = 'DiffChange'
+
 Plug 'editorconfig/editorconfig-vim'
 
 Plug 'leafgarland/typescript-vim'
