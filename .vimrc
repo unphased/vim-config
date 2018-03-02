@@ -42,6 +42,9 @@ Plug 'maxbrunsfeld/vim-yankstack'
 Plug 'mbbill/undotree', { 'on': 'UndotreeToggle' }
 Plug 'rhysd/clever-f.vim'
 
+let g:clever_f_mark_cursor_color = 'DiffChange'
+let g:clever_f_mark_char_color = 'DiffChange'
+
 Plug 'editorconfig/editorconfig-vim'
 
 Plug 'leafgarland/typescript-vim'
@@ -69,7 +72,7 @@ Plug 'pangloss/vim-javascript'
 " Plug 'jelera/vim-javascript-syntax'
 Plug 'beyondmarc/glsl.vim'
 "Bundle 'kana/vim-smartinput'
-Plug 'honza/vim-snippets'
+" Plug 'honza/vim-snippets'
 " Bundle 'oblitum/rainbow'
 " Plug 'marijnh/tern_for_vim'
 Plug 'unphased/vim-airline'
@@ -85,7 +88,7 @@ Plug 'majutsushi/tagbar'
 
 Plug 'unphased/vim-unimpaired'
 
-Plug 'vim-scripts/camelcasemotion'
+Plug 'bkad/camelcasemotion'
 Plug 'vim-scripts/ingo-library' " needed for EnhancedJumps
 Plug 'vim-scripts/EnhancedJumps'
 
@@ -118,6 +121,10 @@ Plug 'ap/vim-css-color'
 Plug 'https://github.com/wesQ3/vim-windowswap'
 Plug 'sbdchd/neoformat'
 Plug 'rhysd/conflict-marker.vim'
+Plug 'elzr/vim-json'
+Plug 'myhere/vim-nodejs-complete'
+Plug 'Shougo/echodoc.vim'
+" Plug 'myhere/vim-nodejs-complete'
 
 call plug#end()
 
@@ -476,7 +483,7 @@ au! FileType tagbar setlocal cursorline
 "
 " Do I need these omnifuncs?
 " autocmd FileType python set omnifunc=pythoncomplete#Complete
-" autocmd FileType javascript set omnifunc=javascriptcomplete#CompleteJS
+autocmd FileType javascript set omnifunc=javascriptcomplete#CompleteJS
 " autocmd FileType html set omnifunc=htmlcomplete#CompleteTags
 " autocmd FileType css set omnifunc=csscomplete#CompleteCSS
 " autocmd FileType xml set omnifunc=xmlcomplete#CompleteTags
@@ -2271,22 +2278,22 @@ vmap S<CR> S<C-J>V2j=
 
 let g:mwPalettes = {
 	\	'original': [
-	\   { 'ctermbg': '25', 'ctermfg': '7', 'guibg': '#123456'},
-	\   { 'ctermbg': '22', 'ctermfg': '7', 'guibg': '#654321'},
-	\   { 'ctermbg': '125', 'ctermfg': '7', 'guibg': '#456123'},
-	\   { 'ctermbg': '57', 'ctermfg': '7', 'guibg': '#341256'},
-	\   { 'ctermbg': '21', 'ctermfg': '7'},
-	\   { 'ctermbg': '58', 'ctermfg': '7'},
-	\   { 'ctermbg': '30', 'ctermfg': '7'},
-	\   { 'ctermbg': '89', 'ctermfg': '7'},
-	\   { 'ctermbg': '28', 'ctermfg': '7'},
-	\   { 'ctermbg': '54', 'ctermfg': '7'},
-	\   { 'ctermbg': '27', 'ctermfg': '7'},
+	\   { 'ctermbg': '25',  'ctermfg': '7', 'guibg': "#c2474a"},
+	\   { 'ctermbg': '22',  'ctermfg': '7', 'guibg': "#c96127"},
+	\   { 'ctermbg': '125', 'ctermfg': '7', 'guibg': "#cf9c36"},
+	\   { 'ctermbg': '57',  'ctermfg': '7', 'guibg': "#699c69"},
+	\   { 'ctermbg': '21',  'ctermfg': '7', 'guibg': "#006969"},
+	\   { 'ctermbg': '58',  'ctermfg': '7', 'guibg': "#699c9c"},
+	\   { 'ctermbg': '30',  'ctermfg': '7', 'guibg': "#9c699c"},
+	\   { 'ctermbg': '89',  'ctermfg': '7', 'guibg': '#123476'},
+	\   { 'ctermbg': '28',  'ctermfg': '7', 'guibg': '#654321'},
+	\   { 'ctermbg': '54',  'ctermfg': '7', 'guibg': '#456123'},
+	\   { 'ctermbg': '27',  'ctermfg': '7', 'guibg': '#432165'},
 	\   { 'ctermbg': '166', 'ctermfg': '7'},
-	\   { 'ctermbg': '24', 'ctermfg': '7'},
+	\   { 'ctermbg': '24',  'ctermfg': '7'},
 	\   { 'ctermbg': '162', 'ctermfg': '7'},
-	\   { 'ctermbg': '90', 'ctermfg': '7'},
-	\   { 'ctermbg': '63', 'ctermfg': '7'},
+	\   { 'ctermbg': '90',  'ctermfg': '7'},
+	\   { 'ctermbg': '63',  'ctermfg': '7'},
 	\   { 'ctermbg': '132', 'ctermfg': '7'},
 	\   { 'ctermbg': '202', 'ctermfg': '7'},
 	\],
@@ -2589,10 +2596,10 @@ let g:fzf_action = {
 "      \ 0,
 "      \ {'options': '--reverse --prompt "FLines> "'})
 
-command! -bang -nargs=* FLineSearch call fzf#vim#grep("rg --color=never --line-number --column --no-heading --fixed-strings --hidden --ignore-file ".glob("~/.vim/rg.gitignore")." ".shellescape(<q-args>), 1, {'options': '--reverse --prompt "FLineSearch '.shellescape(<q-args>).'> "'})
+command! -bang -nargs=* FLineSearch call fzf#vim#grep("rg --color=always --line-number --column --no-heading --fixed-strings --hidden --ignore-file ".glob("~/.vim/rg.gitignore")." ".shellescape(<q-args>), 1, {'options': '--reverse --prompt "FLineSearch '.shellescape(<q-args>).'> "'})
 
 command! -bang FLines call fzf#vim#grep(
-     \ "rg --color=never --line-number --no-heading --ignore-case --hidden --ignore-file ".glob("~/.vim/rg.gitignore")." -v '^$'",
+     \ "rg --color=always --line-number --no-heading --ignore-case --hidden --ignore-file ".glob("~/.vim/rg.gitignore")." -v '^$'",
      \ 1,
      \ {'options': '--reverse --prompt "FLines> "'})
 
@@ -2673,11 +2680,10 @@ endif
 
 " write some dates fast, from 
 " http://blog.erw.dk/2016/04/19/entering-dates-and-times-in-vim/
-
-noremap! <expr> ,t strftime("%H:%M")
-noremap! <expr> ,T strftime("%H:%M:%S")
-noremap! <expr> ,d strftime("%Y-%m-%d")
-noremap! <expr> ,l strftime("%Y-%m-%d %H:%M")
+noremap! <expr> <c-d>t strftime("%H:%M")
+noremap! <expr> <c-d>T strftime("%H:%M:%S")
+noremap! <expr> <c-d>d strftime("%Y-%m-%d")
+noremap! <expr> <c-d>l strftime("%Y-%m-%d %H:%M")
 
 " for cursor fanciness
 if exists('$TMUX')
