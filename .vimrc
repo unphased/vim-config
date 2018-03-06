@@ -10,6 +10,8 @@ call plug#begin('~/.vim/plugged')
 
 Plug 'junegunn/fzf'
 Plug 'junegunn/fzf.vim'
+Plug 'chrisbra/csv.vim'
+Plug 'jreybert/vimagit'
 
 " Load on nothing
 Plug 'SirVer/ultisnips', { 'on': [] }
@@ -78,6 +80,7 @@ Plug 'beyondmarc/glsl.vim'
 " Bundle 'oblitum/rainbow'
 " Plug 'marijnh/tern_for_vim'
 Plug 'unphased/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
 Plug 'derekwyatt/vim-fswitch'
 Plug 'wakatime/vim-wakatime'
 Plug 'kshenoy/vim-signature'
@@ -2939,6 +2942,12 @@ set synmaxcol=1000
 
 " useful magic for making files executable if they look like they should be
 au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent execute "!chmod a+x <afile>" | endif | endif
+
+augroup YourGroup
+    autocmd!
+    autocmd User ALELintPre :echo 'start lint'
+    autocmd User ALELintPost :echo 'finish lint'
+augroup END
 
 let g:ale_list_window_size_max = 10
 
