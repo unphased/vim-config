@@ -2729,7 +2729,7 @@ endfun
 " autocmd VimEnter * let w:created=1
 
 " Example of how to use w:created in an autocmd to initialize a window-local option
-autocmd WinEnter,BufEnter,BufWritePost,VimResized,InsertLeave * noautocmd call HeightSpread()
+" autocmd WinEnter,BufEnter,BufWritePost,VimResized,InsertLeave * noautocmd call HeightSpread()
 
 " Not sure if this one here is overkill or not, but on terminal resizing it 
 " will be useful to call the routine
@@ -2939,6 +2939,17 @@ set synmaxcol=1000
 
 " useful magic for making files executable if they look like they should be
 au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent execute "!chmod a+x <afile>" | endif | endif
+
+let g:ale_list_window_size_max = 10;
+
+autocmd User ALELintPost call s:ale_loclist_limit()
+function! s:ale_loclist_limit()
+    if exists("b:ale_list_window_size_max")
+        let b:ale_list_window_size = min([len(ale#engine#GetLoclist(bufnr('%'))), b:ale_list_window_size_max])
+    elseif exists("g:ale_list_window_size_max")
+        let b:ale_list_window_size = min([len(ale#engine#GetLoclist(bufnr('%'))), g:ale_list_window_size_max])
+    endif
+endfunction
 
 let g:ale_open_list = 1
 let g:ale_lint_on_text_changed = 'never'

@@ -315,6 +315,7 @@ key_bindings:
   - { key: M,        mods: Alt,           chars: "\x1bm"        }
   - { key: M,        mods: Command|Shift, chars: "\x1bM"        }
   - { key: W,        mods: Alt,           chars: "\x1bw"        }
+  - { key: W,        mods: Command,       chars: "\x1bw"        }
   - { key: Z,        mods: Alt,           chars: "\x1bz"        }
   - { key: Z,        mods: Command,       chars: "\x1bz"        }
   - { key: Home,     chars: "\x1bOH",     mode: AppCursor       }
