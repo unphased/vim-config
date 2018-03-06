@@ -2983,7 +2983,9 @@ let g:ale_linters =	{ 'cpp': ['clang', 'clangtidy', 'g++'] }
 
 let g:ale_cpp_gcc_options = g:_ale_cpp_options
 let g:ale_cpp_clang_options = g:_ale_cpp_options
-let g:ale_cpp_clangtidy_options = g:_ale_cpp_options . ' -cppcoreguidelines-pro-bounds-pointer-arithmetic'
+let g:ale_cpp_clangtidy_options = g:_ale_cpp_options
+
+let g:ale_cpp_clangtidy_checks = ['*', '-cppcoreguidelines-pro-bounds-pointer-arithmetic']
 
 let g:_ale_cpp_options_jibo = g:_ale_cpp_options
 			\				. ' -I /home/slu/buildroot.jibo/output/build/glog-v0.3.4/src'
