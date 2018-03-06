@@ -2940,7 +2940,7 @@ set synmaxcol=1000
 " useful magic for making files executable if they look like they should be
 au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent execute "!chmod a+x <afile>" | endif | endif
 
-let g:ale_list_window_size_max = 10;
+let g:ale_list_window_size_max = 10
 
 autocmd User ALELintPost call s:ale_loclist_limit()
 function! s:ale_loclist_limit()
