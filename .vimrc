@@ -1786,6 +1786,7 @@ vnoremap <silent> x :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr
 " syntax sync minlines=256 " this was an attempt to speed up syntax on raspi.
 " May not be necessary now that i took out line highlight
 
+let g:airline_skip_empty_sections = 1
 let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#tabline#left_sep = ' '
 let g:airline#extensions#tabline#left_alt_sep = ' '
@@ -2947,11 +2948,11 @@ set synmaxcol=1000
 " useful magic for making files executable if they look like they should be
 au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent execute "!chmod a+x <afile>" | endif | endif
 
-augroup YourGroup
+augroup ALEProgress
     autocmd!
-    autocmd User ALELintPre :echo 'start lint'
-    autocmd User ALELintPost :echo 'finish lint'
-augroup END
+    autocmd User ALELintPre hi Statusline guifg=red
+    autocmd User ALELintPost hi Statusline guifg=NONE
+augroup end
 
 let g:ale_list_window_size_max = 10
 
