@@ -86,7 +86,7 @@ Plug 'beyondmarc/glsl.vim'
 " Bundle 'oblitum/rainbow'
 " Plug 'marijnh/tern_for_vim'
 Plug 'unphased/vim-airline'
-Plug 'vim-airline/vim-airline-themes'
+" Plug 'vim-airline/vim-airline-themes'
 Plug 'derekwyatt/vim-fswitch'
 Plug 'wakatime/vim-wakatime'
 Plug 'kshenoy/vim-signature'
@@ -1788,6 +1788,7 @@ vnoremap <silent> x :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr
 
 let g:airline_skip_empty_sections = 1
 let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tagbar#enabled = 0 " disruptive and also wont work anyway, since i've lazied tagbar
 let g:airline#extensions#tabline#left_sep = ' '
 let g:airline#extensions#tabline#left_alt_sep = ' '
 if !exists('g:airline_symbols')
@@ -1800,7 +1801,7 @@ let g:airline_right_alt_sep = ''
 let g:airline_symbols.branch = ''
 let g:airline_symbols.readonly = ''
 let g:airline_symbols.linenr = ''
-let g:airline_theme='bubblegum'
+let g:airline_theme='bubblegumslu'
 
 let g:airline#extensions#hunks#non_zero_only = 1
 let g:airline#extensions#whitespace#mixed_indent_algo = 1
