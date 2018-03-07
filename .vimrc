@@ -12,6 +12,7 @@ Plug 'junegunn/fzf'
 Plug 'junegunn/fzf.vim'
 Plug 'chrisbra/csv.vim'
 
+let g:csv_hiGroup = 'CursorColumn'
 let g:csv_highlight_column = 'y'
 
 Plug 'jreybert/vimagit'
