@@ -1098,7 +1098,7 @@ nnoremap <F7> :ALEDetail<CR>
 " This insert mapping is for pasting; it appears that YCM only takes over the
 " <C-P> when it has the complete box open (this may be a Vim
 " limitation/builtin)
-inoremap <C-P> <C-O>p<CR>
+inoremap <C-P> <C-O>P
 
 " set highlight for search to be less blinding
 " highlight Search ctermbg=33 ctermfg=16
