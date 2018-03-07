@@ -23,12 +23,14 @@ Plug 'SirVer/ultisnips', { 'on': [] }
 " Plug 'scrooloose/syntastic', { 'on': [] }
 Plug 'Shougo/neocomplete.vim'
 Plug 'w0rp/ale'
+Plug 'majutsushi/tagbar', { 'on': ['Tagbar'] }
 
 let s:LoadExpensivePluginsHasBeenRun = 0
 function! LoadExpensive()
 	if !(s:LoadExpensivePluginsHasBeenRun)
 		echom 'loadexpensive'
 		call plug#load('ultisnips')
+		call plug#load('tagbar')
 		autocmd! load_expensive
 		let s:LoadExpensivePluginsHasBeenRun = 1
 	endif
@@ -92,8 +94,6 @@ Plug 'jiangmiao/auto-pairs'
 "Plug 'mxw/vim-jsx'
 
 Plug 'tmux-plugins/vim-tmux'
-
-Plug 'majutsushi/tagbar'
 
 Plug 'unphased/vim-unimpaired'
 
@@ -2780,7 +2780,7 @@ nnoremap <Leader>X :let g:correct_index += 1<CR>u:exec "normal! " . correct_inde
 inoremap C-X <C-G>u<Esc>:let g:correct_index += 1<CR>u:exec "normal! " . correct_index . "z=`s"<CR>a
 
 nnoremap <Leader>T :ThesaurusQueryReplaceCurrentWord<CR>
-nnoremap <Leader>t :TagBar
+nnoremap <Leader>t :Tagbar<CR>
 
 " because g: is easier to remember than :@* and also this is more full featured
 " i believe.
