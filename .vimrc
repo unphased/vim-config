@@ -86,7 +86,7 @@ Plug 'beyondmarc/glsl.vim'
 " Bundle 'oblitum/rainbow'
 " Plug 'marijnh/tern_for_vim'
 Plug 'unphased/vim-airline'
-" Plug 'vim-airline/vim-airline-themes'
+Plug 'vim-airline/vim-airline-themes'
 Plug 'derekwyatt/vim-fswitch'
 Plug 'wakatime/vim-wakatime'
 Plug 'kshenoy/vim-signature'
@@ -1801,7 +1801,7 @@ let g:airline_right_alt_sep = ''
 let g:airline_symbols.branch = ''
 let g:airline_symbols.readonly = ''
 let g:airline_symbols.linenr = ''
-let g:airline_theme='bubblegumslu'
+let g:airline_theme='base16_grayscale'
 
 let g:airline#extensions#hunks#non_zero_only = 1
 let g:airline#extensions#whitespace#mixed_indent_algo = 1
@@ -1821,7 +1821,7 @@ let g:airline#extensions#default#section_truncate_width = {
   \ 'x': 45,
   \ 'y': 115,
   \ 'z': 120,
-  \ 'warning': 40,
+  \ 'warning': 30,
   \ }
 
 " Highlight words to avoid in tech writing
