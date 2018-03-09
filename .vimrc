@@ -1801,7 +1801,7 @@ let g:airline_right_alt_sep = ''
 let g:airline_symbols.branch = ''
 let g:airline_symbols.readonly = ''
 let g:airline_symbols.linenr = ''
-let g:airline_theme='base16_grayscale'
+let g:airline_theme='bubblegumslu'
 
 let g:airline#extensions#hunks#non_zero_only = 1
 let g:airline#extensions#whitespace#mixed_indent_algo = 1
