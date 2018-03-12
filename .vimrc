@@ -2951,6 +2951,7 @@ au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent exe
 
 augroup ALEProgress
     autocmd!
+	" TODO FIX/FINISH THIS THING
     autocmd User ALELintPre hi Statusline guifg=red
     autocmd User ALELintPost hi Statusline guifg=NONE
 augroup end
@@ -2968,6 +2969,7 @@ endfunction
 
 let g:ale_open_list = 1
 let g:ale_lint_on_text_changed = 'never'
+let g:ale_lint_on_enter = 0
 let g:ale_max_signs = 64
 let g:_ale_cpp_options = ' --std=c++11'
 
