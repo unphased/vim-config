@@ -281,6 +281,8 @@ nnoremap <Leader>L :autocmd!<CR>:so $MYVIMRC<CR>:runtime! after/plugin/*.vim<CR>
 " onoremap ,, ;
 " now no longer really needed with cleverf
 
+call camelcasemotion#CreateMotionMappings(',')
+
 " add some cases so that certain common keystrokes when used from visual mode 
 " (which i often land in) will do what i would want it to do
 xmap <C-P> <ESC><C-P>
