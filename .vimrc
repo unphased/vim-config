@@ -97,7 +97,7 @@ Plug 'tmux-plugins/vim-tmux'
 
 Plug 'unphased/vim-unimpaired'
 
-Plug 'bkad/camelcasemotion'
+Plug 'vim-scripts/camelcasemotion'
 Plug 'vim-scripts/ingo-library' " needed for EnhancedJumps
 Plug 'vim-scripts/EnhancedJumps'
 
