@@ -281,7 +281,8 @@ nnoremap <Leader>L :autocmd!<CR>:so $MYVIMRC<CR>:runtime! after/plugin/*.vim<CR>
 " onoremap ,, ;
 " now no longer really needed with cleverf
 
-call camelcasemotion#CreateMotionMappings(',')
+" for use with bkad's cmm. i went back because i found a bug
+" call camelcasemotion#CreateMotionMappings(',')
 
 " add some cases so that certain common keystrokes when used from visual mode 
 " (which i often land in) will do what i would want it to do
