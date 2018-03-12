@@ -393,7 +393,7 @@ highlight SignifyLineChange ctermfg=none ctermbg=227 guibg=#0e3535
 highlight SignifyLineChangeDelete ctermfg=none ctermbg=203 guibg=#433007
 
 nnoremap <Leader>d :call sy#highlight#line_toggle()<CR>
-let g:signify_line_highlight = 1
+let g:signify_line_highlight = 0
 
 " syntastic / ALE
 
