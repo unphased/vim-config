@@ -24,6 +24,7 @@ Plug 'SirVer/ultisnips', { 'on': [] }
 Plug 'Shougo/neocomplete.vim'
 Plug 'w0rp/ale'
 Plug 'majutsushi/tagbar', { 'on': ['Tagbar'] }
+Plug 'Rip-Rip/clang_complete'
 
 let s:LoadExpensivePluginsHasBeenRun = 0
 function! LoadExpensive()
@@ -31,6 +32,7 @@ function! LoadExpensive()
 		echom 'loadexpensive'
 		call plug#load('ultisnips')
 		call plug#load('tagbar')
+		" call plug#load('clang_complete')
 		autocmd! load_expensive
 		let s:LoadExpensivePluginsHasBeenRun = 1
 	endif
@@ -129,7 +131,6 @@ Plug 'ap/vim-css-color'
 " Plug 'chrisbra/NrrwRgn'
 Plug 'https://github.com/wesQ3/vim-windowswap'
 Plug 'sbdchd/neoformat'
-Plug 'Rip-Rip/clang_complete'
 Plug 'rhysd/conflict-marker.vim'
 Plug 'elzr/vim-json'
 Plug 'myhere/vim-nodejs-complete'
@@ -2959,7 +2960,7 @@ augroup ALEProgress
     autocmd User ALELintPost hi Statusline guifg=NONE
 augroup end
 
-let g:ale_list_window_size_max = 10
+" let g:ale_list_window_size_max = 10
 
 autocmd User ALELintPost call s:ale_loclist_limit()
 function! s:ale_loclist_limit()
@@ -3000,6 +3001,7 @@ let g:_ale_cpp_options_onboard = g:_ale_cpp_options
 			\ . ' -I /Users/slu/Documents/pigpio'
 
 let g:ale_linters =	{ 'cpp': ['clang', 'clangtidy', 'g++'] }
+" let g:ale_linters =	{ 'cpp': ['clang', 'g++'] }
 
 let g:ale_cpp_gcc_options = g:_ale_cpp_options
 let g:ale_cpp_clang_options = g:_ale_cpp_options
