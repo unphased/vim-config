@@ -54,9 +54,6 @@ Plug 'maxbrunsfeld/vim-yankstack'
 Plug 'mbbill/undotree', { 'on': 'UndotreeToggle' }
 Plug 'rhysd/clever-f.vim'
 
-let g:clever_f_mark_cursor_color = 'DiffChange'
-let g:clever_f_mark_char_color = 'DiffChange'
-
 Plug 'editorconfig/editorconfig-vim'
 
 Plug 'leafgarland/typescript-vim'
@@ -381,10 +378,10 @@ hi Exception ctermfg=211
 hi FoldColumn guibg=black
 hi Folded guibg=#151515
 
-highlight DiffAdd term=reverse ctermbg=156 ctermfg=black
-highlight DiffChange term=reverse ctermbg=33 ctermfg=black
-highlight DiffText term=reverse ctermbg=blue ctermfg=16
-highlight DiffDelete term=reverse ctermbg=red ctermfg=white
+highlight DiffAdd term=reverse ctermbg=156 ctermfg=black guibg=#304930
+highlight DiffChange term=reverse ctermbg=33 ctermfg=black guibg=#114048
+highlight DiffText term=reverse ctermbg=blue ctermfg=16 guibg=#452250
+highlight DiffDelete term=reverse ctermbg=red ctermfg=white guibg=#58252e
 
 highlight SignifySignAdd    cterm=bold ctermbg=none ctermfg=119 guifg=#99ee99
 highlight SignifySignDelete cterm=bold ctermbg=none ctermfg=167 guifg=#f255ba
@@ -2464,7 +2461,7 @@ function! WinTextWidth()
 	return winwidth
 endfunction
 
-let g:spreadratio = 0.5
+let g:spreadratio = 0.4
 " Terminate iteration at 'abort' lines for perf.
 " for the purposes of HeightSpread, any file taller than the g:spreadratio 
 " * (Vim height - 3) should be considered too large.
@@ -3040,6 +3037,7 @@ let g:_ale_cpp_options_jibo = g:_ale_cpp_options
 			\               . ' -I /home/slu/jibo/serviceframework/include'
 			\               . ' -I /home/slu/jibo/perception-framework/include'
 			\               . ' -I /home/slu/jibo/media-service/include'
+			\               . ' -I /home/slu/jibo/identity-service/include'
 
 let g:ale_pattern_options = {
 			\	'.*/lps-service/web/js/lps\.js$': {'ale_enabled': 0},
@@ -3104,3 +3102,7 @@ else
   let &t_SI = "\e[5 q"
   let &t_EI = "\e[1 q"
 endif
+
+hi CleverFMark guibg=#cf00af guifg=#eeeeee
+let g:clever_f_mark_cursor_color = 'CleverFMark'
+let g:clever_f_mark_char_color = 'CleverFMark'

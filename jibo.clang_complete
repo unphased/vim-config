@@ -29,3 +29,4 @@
 -I /home/slu/jibo/serviceframework/include
 -I /home/slu/jibo/perception-framework/include
 -I /home/slu/jibo/media-service/include
+-I /home/slu/jibo/identity-service/include
