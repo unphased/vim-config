@@ -89,6 +89,10 @@ Plug 'beyondmarc/glsl.vim'
 " Plug 'vim-airline/vim-airline-themes'
 Plug 'itchyny/lightline.vim'
 
+let g:lightline = {
+			\ 'colorscheme': 'Tomorrow_Night_Eighties'
+			\ }
+
 Plug 'derekwyatt/vim-fswitch'
 Plug 'wakatime/vim-wakatime'
 Plug 'kshenoy/vim-signature'
