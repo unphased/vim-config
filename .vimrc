@@ -642,7 +642,7 @@ set textwidth=79
 " after much messing around, 80 is still a good wrap point to keep at least the 
 " comments neat
 
-set formatoptions=caq1njw
+set formatoptions=aq1njw
 " override $VIMRUNTIME/ftplugin/*.vim messing up my formatoptions by forcing the 
 " options that i really care about at this point
 au FileType * setlocal fo-=r
