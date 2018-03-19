@@ -5,8 +5,19 @@ echo Hello from aliases.sh
 alias ls 2>/dev/null >/dev/null || alias ls="ls --color=always"
 
 # some versions of htop kill high sierra without being run as root.
+# TODO replace me with a version check on htop
 if [[ "$(uname -a)" =~ "Version 17" ]]; then
 	alias htop="sudo htop"
+fi
+
+# stub pbcopy and pbpaste for linux, for getting a little closer to copypaste 
+# holy grail for my usual envs. Still not gonna have direct vim clipboard 
+# compatibility (that's vim-specific, and can interact with this), but it def 
+# makes life easier in the shell. Should also not conflict with real clipboard 
+# if in a linux with a clipboard.
+if [[ "$(uname)" == Linux ]]; then
+	alias pbcopy="pbcopy_linux"
+	alias pbpaste="pbpaste_linux"
 fi
 
 alias l="ls"
