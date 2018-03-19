@@ -84,8 +84,11 @@ Plug 'beyondmarc/glsl.vim'
 " Plug 'honza/vim-snippets'
 " Bundle 'oblitum/rainbow'
 " Plug 'marijnh/tern_for_vim'
-Plug 'unphased/vim-airline'
-Plug 'vim-airline/vim-airline-themes'
+"
+" Plug 'unphased/vim-airline'
+" Plug 'vim-airline/vim-airline-themes'
+Plug 'itchyny/lightline.vim'
+
 Plug 'derekwyatt/vim-fswitch'
 Plug 'wakatime/vim-wakatime'
 Plug 'kshenoy/vim-signature'
@@ -2997,8 +3000,8 @@ let g:_ale_cpp_options_onboard = g:_ale_cpp_options
 			\ . ' -I /Users/slu/Documents/onboard-sdk/sample/linux/common'
 			\ . ' -I /Users/slu/Documents/pigpio'
 
-let g:ale_linters =	{ 'cpp': ['clang', 'clangtidy', 'g++'] }
-" let g:ale_linters =	{ 'cpp': ['clang', 'g++'] }
+" let g:ale_linters =	{ 'cpp': ['clang', 'clangtidy', 'g++'] }
+let g:ale_linters =	{ 'cpp': ['clang'] }
 
 let g:ale_cpp_gcc_options = g:_ale_cpp_options
 let g:ale_cpp_clang_options = g:_ale_cpp_options
