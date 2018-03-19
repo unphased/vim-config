@@ -405,17 +405,17 @@ let g:signify_line_highlight = 0
 
 " syntastic / ALE
 
-highlight SyntasticError ctermbg=91 guibg=#d05516
+" highlight SyntasticError ctermbg=91 guibg=#d05516
 highlight ALEError ctermbg=91 guibg=#d05516
-highlight SyntasticErrorSign guibg=#DC571C guifg=#FFFFFF
+" highlight SyntasticErrorSign guibg=#DC571C guifg=#FFFFFF
 highlight ALEErrorSign guibg=#DC571C guifg=#FFFFFF
-highlight SyntasticWarning ctermbg=24 guibg=#686832
+" highlight SyntasticWarning ctermbg=24 guibg=#686832
 highlight ALEWarning ctermbg=24 guibg=#686832
-highlight SyntasticWarningSign guibg=#f1af51 guifg=#303030
+" highlight SyntasticWarningSign guibg=#f1af51 guifg=#303030
 highlight ALEWarningSign guibg=#f1af51 guifg=#303030
-highlight SyntasticErrorLine guibg=#480000
+" highlight SyntasticErrorLine guibg=#480000
 highlight ALEErrorLine guibg=#480000
-highlight SyntasticWarningLine guibg=#383800
+" highlight SyntasticWarningLine guibg=#383800
 highlight ALEWarningLine guibg=#383800
 
 " TODO detect if gcc is old, adjust to c++11 instead of 14
@@ -642,11 +642,13 @@ set textwidth=79
 " after much messing around, 80 is still a good wrap point to keep at least the 
 " comments neat
 
-set formatoptions=aq1njw
+set formatoptions=caq1njw
 " override $VIMRUNTIME/ftplugin/*.vim messing up my formatoptions by forcing the 
 " options that i really care about at this point
 au FileType * setlocal fo-=r
 au FileType * setlocal fo+=b
+
+au FileType txt setlocal fo-=c
 
 " Helpful warning message
 au FileChangedShell * echo "Warning: File changed on disk!!"
