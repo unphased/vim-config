@@ -2966,7 +2966,7 @@ augroup ALEProgress
     autocmd User ALELintPost hi Statusline guifg=NONE
 augroup end
 
-" let g:ale_list_window_size_max = 10
+let g:ale_list_window_size_max = 5
 
 autocmd User ALELintPost call s:ale_loclist_limit()
 function! s:ale_loclist_limit()
@@ -2978,10 +2978,11 @@ function! s:ale_loclist_limit()
 endfunction
 
 let g:ale_open_list = 1
-let g:ale_lint_on_text_changed = 'never'
+let g:ale_lint_on_text_changed = 'always'
+let g:ale_lint_on_save = 0
 let g:ale_lint_on_enter = 0
 let g:ale_max_signs = 64
-let g:_ale_cpp_options = ' --std=c++11'
+let g:_ale_cpp_options = ' --std=c++11 -O0'
 
 " TODO going to use python to walk the cwd up and slurp .clang_complete files 
 " to populate ale_pattern_options with all the necessary flags, mostly header 
@@ -3007,7 +3008,7 @@ let g:_ale_cpp_options_onboard = g:_ale_cpp_options
 			\ . ' -I /Users/slu/Documents/pigpio'
 
 " let g:ale_linters =	{ 'cpp': ['clang', 'clangtidy', 'g++'] }
-let g:ale_linters =	{ 'cpp': ['clang'] }
+let g:ale_linters =	{ 'cpp': ['g++'] }
 
 let g:ale_cpp_gcc_options = g:_ale_cpp_options
 let g:ale_cpp_clang_options = g:_ale_cpp_options
