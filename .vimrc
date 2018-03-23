@@ -3064,7 +3064,7 @@ let g:ale_pattern_options = {
 			\}
 
 if !exists("g:os")
-	if has("win64") || has("win32") || has("win16") || has ("windows")
+	if has("win64") || has("win32") || has("win16") || has("windows")
 		let g:os="Windows"
 	else
 		" as a builtin (??), seems to require me to export OSTYPE in shell 
@@ -3086,7 +3086,7 @@ if (!strlen(g:clang_library_path))
 			let g:clang_library_path=glob('/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libclang.dylib')
 			if (!strlen(g:clang_library_path))
 				let g:clang_library_path=glob('/Applications/Xcode.app/Contents/Frameworks/libclang.dylib')
-				if (!strlen(g:clang_library_path) && g:os != 'linux-gnueabihf' && g:os != 'Windows')
+				if (!strlen(g:clang_library_path) && g:os != 'linux-gnueabihf' && g:os != 'Windows' && g:os != 'msys')
 					" do not surface this error on ARM linux systems such as raspi
 					echom "clang still couldn't be found. hmm!"
 				endif
