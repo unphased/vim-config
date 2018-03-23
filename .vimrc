@@ -24,6 +24,7 @@ Plug 'SirVer/ultisnips', { 'on': [] }
 Plug 'Shougo/neocomplete.vim'
 Plug 'w0rp/ale'
 Plug 'majutsushi/tagbar', { 'on': ['Tagbar'] }
+Plug 'Rip-Rip/clang_complete'
 
 let s:LoadExpensivePluginsHasBeenRun = 0
 function! LoadExpensive()
@@ -31,6 +32,7 @@ function! LoadExpensive()
 		echom 'loadexpensive'
 		call plug#load('ultisnips')
 		call plug#load('tagbar')
+		" call plug#load('clang_complete')
 		autocmd! load_expensive
 		let s:LoadExpensivePluginsHasBeenRun = 1
 	endif
@@ -51,9 +53,6 @@ Plug 'maxbrunsfeld/vim-yankstack'
 
 Plug 'mbbill/undotree', { 'on': 'UndotreeToggle' }
 Plug 'rhysd/clever-f.vim'
-
-let g:clever_f_mark_cursor_color = 'DiffChange'
-let g:clever_f_mark_char_color = 'DiffChange'
 
 Plug 'editorconfig/editorconfig-vim'
 
@@ -85,8 +84,15 @@ Plug 'beyondmarc/glsl.vim'
 " Plug 'honza/vim-snippets'
 " Bundle 'oblitum/rainbow'
 " Plug 'marijnh/tern_for_vim'
-Plug 'unphased/vim-airline'
-Plug 'vim-airline/vim-airline-themes'
+"
+" Plug 'unphased/vim-airline'
+" Plug 'vim-airline/vim-airline-themes'
+Plug 'itchyny/lightline.vim'
+
+let g:lightline = {
+			\ 'colorscheme': 'Tomorrow_Night_Eighties'
+			\ }
+
 Plug 'derekwyatt/vim-fswitch'
 Plug 'wakatime/vim-wakatime'
 Plug 'kshenoy/vim-signature'
@@ -97,7 +103,7 @@ Plug 'tmux-plugins/vim-tmux'
 
 Plug 'unphased/vim-unimpaired'
 
-Plug 'bkad/camelcasemotion'
+Plug 'vim-scripts/camelcasemotion'
 Plug 'vim-scripts/ingo-library' " needed for EnhancedJumps
 Plug 'vim-scripts/EnhancedJumps'
 
@@ -129,7 +135,6 @@ Plug 'ap/vim-css-color'
 " Plug 'chrisbra/NrrwRgn'
 Plug 'https://github.com/wesQ3/vim-windowswap'
 Plug 'sbdchd/neoformat'
-Plug 'Rip-Rip/clang_complete'
 Plug 'rhysd/conflict-marker.vim'
 Plug 'elzr/vim-json'
 Plug 'myhere/vim-nodejs-complete'
@@ -281,6 +286,9 @@ nnoremap <Leader>L :autocmd!<CR>:so $MYVIMRC<CR>:runtime! after/plugin/*.vim<CR>
 " onoremap ,, ;
 " now no longer really needed with cleverf
 
+" for use with bkad's cmm. i went back because i found a bug
+" call camelcasemotion#CreateMotionMappings(',')
+
 " add some cases so that certain common keystrokes when used from visual mode 
 " (which i often land in) will do what i would want it to do
 xmap <C-P> <ESC><C-P>
@@ -377,10 +385,10 @@ hi Exception ctermfg=211
 hi FoldColumn guibg=black
 hi Folded guibg=#151515
 
-highlight DiffAdd term=reverse ctermbg=156 ctermfg=black
-highlight DiffChange term=reverse ctermbg=33 ctermfg=black
-highlight DiffText term=reverse ctermbg=blue ctermfg=16
-highlight DiffDelete term=reverse ctermbg=red ctermfg=white
+highlight DiffAdd term=reverse ctermbg=156 ctermfg=black guibg=#304930
+highlight DiffChange term=reverse ctermbg=33 ctermfg=black guibg=#114048
+highlight DiffText term=reverse ctermbg=blue ctermfg=16 guibg=#452250
+highlight DiffDelete term=reverse ctermbg=red ctermfg=white guibg=#58252e
 
 highlight SignifySignAdd    cterm=bold ctermbg=none ctermfg=119 guifg=#99ee99
 highlight SignifySignDelete cterm=bold ctermbg=none ctermfg=167 guifg=#f255ba
@@ -397,17 +405,17 @@ let g:signify_line_highlight = 0
 
 " syntastic / ALE
 
-highlight SyntasticError ctermbg=91 guibg=#d05516
+" highlight SyntasticError ctermbg=91 guibg=#d05516
 highlight ALEError ctermbg=91 guibg=#d05516
-highlight SyntasticErrorSign guibg=#DC571C guifg=#FFFFFF
+" highlight SyntasticErrorSign guibg=#DC571C guifg=#FFFFFF
 highlight ALEErrorSign guibg=#DC571C guifg=#FFFFFF
-highlight SyntasticWarning ctermbg=24 guibg=#686832
+" highlight SyntasticWarning ctermbg=24 guibg=#686832
 highlight ALEWarning ctermbg=24 guibg=#686832
-highlight SyntasticWarningSign guibg=#f1af51 guifg=#303030
+" highlight SyntasticWarningSign guibg=#f1af51 guifg=#303030
 highlight ALEWarningSign guibg=#f1af51 guifg=#303030
-highlight SyntasticErrorLine guibg=#480000
+" highlight SyntasticErrorLine guibg=#480000
 highlight ALEErrorLine guibg=#480000
-highlight SyntasticWarningLine guibg=#383800
+" highlight SyntasticWarningLine guibg=#383800
 highlight ALEWarningLine guibg=#383800
 
 " TODO detect if gcc is old, adjust to c++11 instead of 14
@@ -639,6 +647,8 @@ set formatoptions=caq1njw
 " options that i really care about at this point
 au FileType * setlocal fo-=r
 au FileType * setlocal fo+=b
+
+au FileType txt setlocal fo-=c
 
 " Helpful warning message
 au FileChangedShell * echo "Warning: File changed on disk!!"
@@ -2460,7 +2470,7 @@ function! WinTextWidth()
 	return winwidth
 endfunction
 
-let g:spreadratio = 0.5
+let g:spreadratio = 0.4
 " Terminate iteration at 'abort' lines for perf.
 " for the purposes of HeightSpread, any file taller than the g:spreadratio 
 " * (Vim height - 3) should be considered too large.
@@ -2951,11 +2961,12 @@ au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent exe
 
 augroup ALEProgress
     autocmd!
+	" TODO FIX/FINISH THIS THING
     autocmd User ALELintPre hi Statusline guifg=red
     autocmd User ALELintPost hi Statusline guifg=NONE
 augroup end
 
-let g:ale_list_window_size_max = 10
+let g:ale_list_window_size_max = 5
 
 autocmd User ALELintPost call s:ale_loclist_limit()
 function! s:ale_loclist_limit()
@@ -2967,9 +2978,11 @@ function! s:ale_loclist_limit()
 endfunction
 
 let g:ale_open_list = 1
-let g:ale_lint_on_text_changed = 'never'
+let g:ale_lint_on_text_changed = 'always'
+let g:ale_lint_on_save = 0
+let g:ale_lint_on_enter = 0
 let g:ale_max_signs = 64
-let g:_ale_cpp_options = ' --std=c++11'
+let g:_ale_cpp_options = ' --std=c++11 -O0'
 
 " TODO going to use python to walk the cwd up and slurp .clang_complete files 
 " to populate ale_pattern_options with all the necessary flags, mostly header 
@@ -2994,7 +3007,8 @@ let g:_ale_cpp_options_onboard = g:_ale_cpp_options
 			\ . ' -I /Users/slu/Documents/onboard-sdk/sample/linux/common'
 			\ . ' -I /Users/slu/Documents/pigpio'
 
-let g:ale_linters =	{ 'cpp': ['clang', 'clangtidy', 'g++'] }
+" let g:ale_linters =	{ 'cpp': ['clang', 'clangtidy', 'g++'] }
+let g:ale_linters =	{ 'cpp': ['clang'] }
 
 let g:ale_cpp_gcc_options = g:_ale_cpp_options
 let g:ale_cpp_clang_options = g:_ale_cpp_options
@@ -3033,6 +3047,7 @@ let g:_ale_cpp_options_jibo = g:_ale_cpp_options
 			\               . ' -I /home/slu/jibo/serviceframework/include'
 			\               . ' -I /home/slu/jibo/perception-framework/include'
 			\               . ' -I /home/slu/jibo/media-service/include'
+			\               . ' -I /home/slu/jibo/identity-service/include'
 
 let g:ale_pattern_options = {
 			\	'.*/lps-service/web/js/lps\.js$': {'ale_enabled': 0},
@@ -3097,3 +3112,7 @@ else
   let &t_SI = "\e[5 q"
   let &t_EI = "\e[1 q"
 endif
+
+hi CleverFMark guibg=#cf00af guifg=#eeeeee
+let g:clever_f_mark_cursor_color = 'CleverFMark'
+let g:clever_f_mark_char_color = 'CleverFMark'
