@@ -3065,7 +3065,7 @@ let g:ale_pattern_options = {
 
 if !exists("g:os")
 	if has("win64") || has("win32") || has("win16") || has ("windows")
-		let g:os = "Windows"
+		let g:os="Windows"
 	else
 		" as a builtin (??), seems to require me to export OSTYPE in shell 
 		" config.
