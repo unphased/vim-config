@@ -2928,7 +2928,7 @@ nnoremap <silent> <Leader>g :FLines<CR>
 " This is intended to work by searching for the current search term without 
 " modifying the search term.
 
-" need to figure out how to munge the search buffer upon use here.
+" TODO need to figure out how to munge the search buffer upon use here.
 nnoremap <Leader>G :exec "FLineSearch <c-r>/"<CR>
 
 " does not interfere with main search
