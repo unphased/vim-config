@@ -87,7 +87,7 @@ Plug 'beyondmarc/glsl.vim'
 "
 " Plug 'unphased/vim-airline'
 " Plug 'vim-airline/vim-airline-themes'
-Plug 'itchyny/lightline.vim'
+" Plug 'itchyny/lightline.vim'
 
 let g:lightline = {
 			\ 'colorscheme': 'Tomorrow_Night_Eighties'
@@ -2962,8 +2962,8 @@ au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent exe
 augroup ALEProgress
     autocmd!
 	" TODO FIX/FINISH THIS THING
-    autocmd User ALELintPre hi Statusline guifg=red
-    autocmd User ALELintPost hi Statusline guifg=NONE
+    autocmd User ALELintPre hi Statusline guifg=#434343
+    autocmd User ALELintPost hi Statusline guifg=#262626
 augroup end
 
 let g:ale_list_window_size_max = 5
