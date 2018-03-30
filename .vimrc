@@ -135,7 +135,7 @@ Plug 'ap/vim-css-color'
 " Plug 'chrisbra/NrrwRgn'
 Plug 'https://github.com/wesQ3/vim-windowswap'
 Plug 'sbdchd/neoformat'
-Plug 'anowlcalledjosh/conflict-marker.vim', { 'branch': 'stable' }
+Plug 'anowlcalledjosh/conflict-marker.vim', { 'branch': 'diff3' }
 Plug 'elzr/vim-json'
 Plug 'myhere/vim-nodejs-complete'
 Plug 'Shougo/echodoc.vim'
@@ -2978,8 +2978,8 @@ function! s:ale_loclist_limit()
 endfunction
 
 let g:ale_open_list = 1
-let g:ale_lint_on_text_changed = 'always'
-let g:ale_lint_on_save = 0
+let g:ale_lint_on_text_changed = 'none'
+let g:ale_lint_on_save = 1
 let g:ale_lint_on_enter = 0
 let g:ale_max_signs = 64
 let g:_ale_cpp_options = ' --std=c++11 -O0'
