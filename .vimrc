@@ -135,7 +135,7 @@ Plug 'ap/vim-css-color'
 " Plug 'chrisbra/NrrwRgn'
 Plug 'https://github.com/wesQ3/vim-windowswap'
 Plug 'sbdchd/neoformat'
-Plug 'rhysd/conflict-marker.vim'
+Plug 'anowlcalledjosh/conflict-marker.vim', { 'branch': 'diff3' }
 Plug 'elzr/vim-json'
 Plug 'myhere/vim-nodejs-complete'
 Plug 'Shougo/echodoc.vim'
@@ -2978,8 +2978,8 @@ function! s:ale_loclist_limit()
 endfunction
 
 let g:ale_open_list = 1
-let g:ale_lint_on_text_changed = 'always'
-let g:ale_lint_on_save = 0
+let g:ale_lint_on_text_changed = 'none'
+let g:ale_lint_on_save = 1
 let g:ale_lint_on_enter = 0
 let g:ale_max_signs = 64
 let g:_ale_cpp_options = ' --std=c++11 -O0'
@@ -3116,3 +3116,12 @@ endif
 hi CleverFMark guibg=#cf00af guifg=#eeeeee
 let g:clever_f_mark_cursor_color = 'CleverFMark'
 let g:clever_f_mark_char_color = 'CleverFMark'
+
+" highlights for the bulitin tabline. When using lightline or airline or such, 
+" should not affect anything.
+" These colors are garish and bad for cterm, and since I'm using gui colors for 
+" vim now, i'm not bothering to fix them.
+hi TabLineFill ctermfg=LightGreen ctermbg=DarkGreen guibg=#111111 guifg=#222222
+hi TabLine ctermfg=Blue ctermbg=Yellow guifg=#000000
+hi TabLineSel ctermfg=Red ctermbg=Yellow guifg=#aaaaaa guibg=#222222
+hi Title guifg=#444444
