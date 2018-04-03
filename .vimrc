@@ -372,7 +372,7 @@ hi LineNr ctermfg=242
 " overrides the linenr set by above colorscheme.
 
 "set listchars=tab:→\ ,extends:>,precedes:<,trail:·,nbsp:◆
-set listchars=tab:\ \ ,extends:»,precedes:«,trail:·,nbsp:◆
+set listchars=tab:→\ ,extends:»,precedes:«,trail:·,nbsp:◆
 set list
 
 hi NonText ctermbg=235 ctermfg=241
