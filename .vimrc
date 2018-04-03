@@ -3116,3 +3116,12 @@ endif
 hi CleverFMark guibg=#cf00af guifg=#eeeeee
 let g:clever_f_mark_cursor_color = 'CleverFMark'
 let g:clever_f_mark_char_color = 'CleverFMark'
+
+" highlights for the bulitin tabline. When using lightline or airline or such, 
+" should not affect anything.
+" These colors are garish and bad for cterm, and since I'm using gui colors for 
+" vim now, i'm not bothering to fix them.
+hi TabLineFill ctermfg=LightGreen ctermbg=DarkGreen guibg=#111111 guifg=#222222
+hi TabLine ctermfg=Blue ctermbg=Yellow guifg=#000000
+hi TabLineSel ctermfg=Red ctermbg=Yellow guifg=#aaaaaa guibg=#222222
+hi Title guifg=#444444
