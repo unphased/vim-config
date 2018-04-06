@@ -87,7 +87,7 @@ Plug 'beyondmarc/glsl.vim'
 "
 " Plug 'unphased/vim-airline'
 " Plug 'vim-airline/vim-airline-themes'
-" Plug 'itchyny/lightline.vim'
+Plug 'itchyny/lightline.vim'
 
 let g:lightline = {
 			\ 'colorscheme': 'Tomorrow_Night_Eighties'
