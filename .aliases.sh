@@ -6,7 +6,7 @@ alias ls 2>/dev/null >/dev/null || alias ls="ls --color=always"
 
 # some versions of htop kill high sierra without being run as root.
 # TODO replace me with a version check on htop
-if [[ "$(uname -a)" =~ "Version 17" ]]; then
+if [[ "$(uname -a)" =~ "Darwin Kernel Version 17" ]]; then
 	alias htop="sudo htop"
 fi
 
@@ -15,7 +15,7 @@ fi
 # compatibility (that's vim-specific, and can interact with this), but it def 
 # makes life easier in the shell. Should also not conflict with real clipboard 
 # if in a linux with a clipboard.
-if [[ "$(uname)" == Linux ]]; then
+if [ "$(uname)" == Linux ]; then
 	alias pbcopy="pbcopy_linux"
 	alias pbpaste="pbpaste_linux"
 fi
