@@ -93,13 +93,15 @@ let g:lightline = { }
 let g:lightline.colorscheme = 'powerline'
 let g:lightline.tabline = {
 			\ 'left': [ [ 'tabs' ] ],
-			\ 'right': [ ] }
+			\ 'right': [ ]
+			\ }
 let g:lightline.tab = {
-			\ 'active': [ 'filename', 'modified' ]
+			\ 'active': [ 'filename', 'modified' ],
+			\ 'inactive': [ 'filename', 'modified' ]
 			\ }
 let g:lightline.active = {
 			\ 'left': [ [ 'mode', 'paste' ],
-			\           [ 'readonly', 'filename', 'modified' ] ],
+			\           [ 'readonly', 'relativepath', 'modified' ] ],
 			\ 'right': [ [ 'percent' ],
 			\            [ 'lineinfo', 'charvaluehex' ],
 			\            [ 'fileformatenc', 'filetype' ] ] }
@@ -125,7 +127,8 @@ let g:lightline.component = {
 			\ 'line': '%l',
 			\ 'column': '%c%V',
 			\ 'close': '%999X X ',
-			\ 'winnr': '%{winnr()}' }
+			\ 'winnr': '%{winnr()}'
+			\ }
 
 Plug 'derekwyatt/vim-fswitch'
 Plug 'wakatime/vim-wakatime'
