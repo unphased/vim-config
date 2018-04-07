@@ -90,7 +90,7 @@ Plug 'beyondmarc/glsl.vim'
 Plug 'itchyny/lightline.vim'
 
 let g:lightline = {
-			\ 'colorscheme': 'Tomorrow_Night_Eighties'
+			\ 'colorscheme': 'one'
 			\ }
 
 Plug 'derekwyatt/vim-fswitch'
