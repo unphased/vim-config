@@ -58,7 +58,7 @@ alias gr="git remote"
 
 # actually zsh with prezto won't need this since it has its own fallback 
 # mechanism for make. But, this is useful in e.g. bash.
-which colormake > /dev/null && alias make="colormake"
+which colormake > /dev/null 2>&1 && alias make="colormake"
 
 alias mk="make"
 alias gcp="git commit-push"
