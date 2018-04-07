@@ -14,10 +14,9 @@ fi
 # holy grail for my usual envs. Still not gonna have direct vim clipboard 
 # compatibility (that's vim-specific, and can interact with this), but it def 
 # makes life easier in the shell. Should also not conflict with real clipboard 
-# if in a linux with a clipboard.
-if [ "$(uname)" == Linux ]; then
-	alias pbcopy="pbcopy_linux"
-	alias pbpaste="pbpaste_linux"
+# if in a linux with a clipboard... that is still TODO though.
+if [ "$(uname)" = Linux ] && ! [[ "$PATH" = *"/linux_pb"* ]]; then
+	PATH="$PATH:$HOME/util/linux_pb"
 fi
 
 alias l="ls"
