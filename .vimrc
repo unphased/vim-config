@@ -89,9 +89,43 @@ Plug 'beyondmarc/glsl.vim'
 " Plug 'vim-airline/vim-airline-themes'
 Plug 'itchyny/lightline.vim'
 
-let g:lightline = {
-			\ 'colorscheme': 'one'
+let g:lightline = { }
+let g:lightline.colorscheme = 'powerline'
+let g:lightline.tabline = {
+			\ 'left': [ [ 'tabs' ] ],
+			\ 'right': [ ] }
+let g:lightline.tab = {
+			\ 'active': [ 'filename', 'modified' ]
 			\ }
+let g:lightline.active = {
+			\ 'left': [ [ 'mode', 'paste' ],
+			\           [ 'readonly', 'filename', 'modified' ] ],
+			\ 'right': [ [ 'percent' ],
+			\            [ 'lineinfo', 'charvaluehex' ],
+			\            [ 'fileformatenc', 'filetype' ] ] }
+let g:lightline.component = {
+			\ 'mode': '%{lightline#mode()}',
+			\ 'absolutepath': '%F',
+			\ 'relativepath': '%f',
+			\ 'filename': '%t',
+			\ 'modified': '%M',
+			\ 'bufnum': '%n',
+			\ 'paste': '%{&paste?"PASTE":""}',
+			\ 'readonly': '%R',
+			\ 'charvalue': '%b',
+			\ 'charvaluehex': '%02B',
+			\ 'fileencoding': '%{&fenc!=#""?&fenc:&enc}',
+			\ 'fileformat': '%{&ff}',
+			\ 'fileformatenc': '%{&fenc!=#""?&fenc:&enc} %{&ff}',
+			\ 'filetype': '%{&ft!=#""?&ft:"no ft"}',
+			\ 'percent': '%2p%%',
+			\ 'percentwin': '%P',
+			\ 'spell': '%{&spell?&spelllang:""}',
+			\ 'lineinfo': '%l/%L:%c%V',
+			\ 'line': '%l',
+			\ 'column': '%c%V',
+			\ 'close': '%999X X ',
+			\ 'winnr': '%{winnr()}' }
 
 Plug 'derekwyatt/vim-fswitch'
 Plug 'wakatime/vim-wakatime'
