@@ -2885,9 +2885,6 @@ endfunction
 set ruler
 nnoremap <Leader>c :let &statusline='%{ShowCount()} %<%f %h%m%r%=%-14.(%l,%c%V%) %P' "THIS WILL BLOW AWAY STATUS LINE FOR SEARCH COUNTING. Ctrl+C to cancel
 
-" paste the global search
-nnoremap <Leader>p :.-1read $HOME/.vim/.search<CR>
-
 " windowswap disable binds, reducing latency on two of my existing binds now, 
 " and allow me to bind just the one thing that i use with it.
 let g:windowswap_map_keys = 0
@@ -3101,7 +3098,7 @@ let g:ale_pattern_options = {
 			\}
 
 if !exists("g:os")
-	if has("win64") || has("win32") || has("win16") || has("windows")
+	if has("win64") || has("win32") || has("win16")
 		let g:os="Windows"
 	else
 		" as a builtin (??), seems to require me to export OSTYPE in shell 
@@ -3162,3 +3159,11 @@ hi TabLineFill ctermfg=LightGreen ctermbg=DarkGreen guibg=#111111 guifg=#222222
 hi TabLine ctermfg=Blue ctermbg=Yellow guifg=#000000
 hi TabLineSel ctermfg=Red ctermbg=Yellow guifg=#aaaaaa guibg=#222222
 hi Title guifg=#444444
+
+" paste the global search
+nnoremap <Leader>P :.-1read $HOME/.vim/.search<CR>
+
+vnoremap <Leader>y :w !pbcopy<CR>
+" the leader y works like normal yy (but for my clipboard)
+nnoremap <Leader>y :.w !pbcopy<CR>
+nnoremap <Leader>p :read !pbpaste<CR>
