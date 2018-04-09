@@ -6,7 +6,7 @@ alias ls 2>/dev/null >/dev/null || alias ls="ls --color=always"
 
 # some versions of htop kill high sierra without being run as root.
 # TODO replace me with a version check on htop
-if [[ "$(uname -a)" =~ "Version 17" ]]; then
+if [[ "$(uname -a)" =~ "Darwin Kernel Version 17" ]]; then
 	alias htop="sudo htop"
 fi
 
@@ -14,10 +14,9 @@ fi
 # holy grail for my usual envs. Still not gonna have direct vim clipboard 
 # compatibility (that's vim-specific, and can interact with this), but it def 
 # makes life easier in the shell. Should also not conflict with real clipboard 
-# if in a linux with a clipboard.
-if [[ "$(uname)" == Linux ]]; then
-	alias pbcopy="pbcopy_linux"
-	alias pbpaste="pbpaste_linux"
+# if in a linux with a clipboard... that is still TODO though.
+if [ "$(uname)" = Linux ] && ! [[ "$PATH" = *"/linux_pb"* ]]; then
+	PATH="$PATH:$HOME/util/linux_pb"
 fi
 
 alias l="ls"
@@ -59,7 +58,7 @@ alias gr="git remote"
 
 # actually zsh with prezto won't need this since it has its own fallback 
 # mechanism for make. But, this is useful in e.g. bash.
-which colormake > /dev/null && alias make="colormake"
+which colormake > /dev/null 2>&1 && alias make="colormake"
 
 alias mk="make"
 alias gcp="git commit-push"
