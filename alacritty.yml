@@ -120,7 +120,7 @@ colors:
 
   # Normal colors
   normal:
-    black:   '0x1d1f21'
+    black:   '0x444444'
     red:     '0xf78d8c'
     green:   '0xa8d4a9'
     yellow:  '0xffd479'
