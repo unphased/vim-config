@@ -3163,7 +3163,7 @@ hi Title guifg=#444444
 " paste the global search
 nnoremap <Leader>P :.-1read $HOME/.vim/.search<CR>
 
-vnoremap <Leader>y :w !pbcopy<CR>
+vnoremap <silent> <Leader>y :w !pbcopy<CR><CR>
 " the leader y works like normal yy (but for my clipboard)
-nnoremap <Leader>y :.w !pbcopy<CR>
+nnoremap <silent> <Leader>y :.w !pbcopy<CR><CR>
 nnoremap <Leader>p :read !pbpaste<CR>
