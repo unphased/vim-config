@@ -2795,10 +2795,14 @@ nnoremap <Leader>H :noautocmd call HeightSpread()<CR>
 
 " changing these to not switch window because its too damn slow
 " TODO make this into a function which uses v:count1.
-nnoremap = :vertical res +8<CR>
-nnoremap - :vertical res -8<CR>
-nnoremap + :res +8<CR>:noautocmd call HeightSpread()<CR>
-nnoremap _ :res -8<CR>:noautocmd call HeightSpread()<CR>
+nnoremap = :exe "vertical res " . (winwidth(0) * 5/4)<CR>
+nnoremap - :exe "vertical res " . (winwidth(0) * 4/5)<CR>
+nnoremap + :exe "res " . (winheight(0) * 4/3)<CR>:noautocmd call HeightSpread()<CR>
+nnoremap _ :exe "res " . (winheight(0) * 3/4)<CR>:noautocmd call HeightSpread()<CR>
+
+" needed with the ratios above
+set winheight=6
+set winminheight=3
 
 " conceal rule for javascript
 au! FileType javascript setl conceallevel=2 concealcursor=c
