@@ -81,7 +81,7 @@ Plug 'pangloss/vim-javascript'
 " Plug 'jelera/vim-javascript-syntax'
 Plug 'beyondmarc/glsl.vim'
 "Bundle 'kana/vim-smartinput'
-" Plug 'honza/vim-snippets'
+Plug 'honza/vim-snippets'
 " Bundle 'oblitum/rainbow'
 " Plug 'marijnh/tern_for_vim'
 "
@@ -2821,12 +2821,12 @@ hi Conceal ctermbg=238 ctermfg=NONE cterm=NONE guibg=#404040
 
 " spell fix bind (my s, f, c binds are filled up, so I'm using x)
 nnoremap <Leader>x ms[s1z=:let g:correct_index = 1<CR>`s
-inoremap C-x <C-G>u<Esc>ms[s1z=:let g:correct_index = 1<CR>`sa
+inoremap <C-x> <C-G>u<Esc>ms[s1z=:let g:correct_index = 1<CR>`sa
 
 " only works immediately after use of <Leader> x corrected to not the proper 
 " word
 nnoremap <Leader>X :let g:correct_index += 1<CR>u:exec "normal! " . correct_index . "z=`s"<CR>
-inoremap C-X <C-G>u<Esc>:let g:correct_index += 1<CR>u:exec "normal! " . correct_index . "z=`s"<CR>a
+inoremap <C-X> <C-G>u<Esc>:let g:correct_index += 1<CR>u:exec "normal! " . correct_index . "z=`s"<CR>a
 
 nnoremap <Leader>T :ThesaurusQueryReplaceCurrentWord<CR>
 nnoremap <Leader>t :Tagbar<CR>
@@ -3167,3 +3167,6 @@ vnoremap <silent> <Leader>y :w !pbcopy<CR><CR>
 " the leader y works like normal yy (but for my clipboard)
 nnoremap <silent> <Leader>y :.w !pbcopy<CR><CR>
 nnoremap <Leader>p :read !pbpaste<CR>
+
+" do not use read here so that the selected stuff gets slurped.
+vnoremap <Leader>p :!pbpaste<CR>
