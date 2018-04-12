@@ -2787,6 +2787,12 @@ endfun
 " Example of how to use w:created in an autocmd to initialize a window-local option
 " autocmd WinEnter,BufEnter,BufWritePost,VimResized,InsertLeave * noautocmd call HeightSpread()
 
+function! AdjustStatusSections()
+	echom "implement me"
+endfun
+
+autocmd VimResized * noautocmd call AdjustStatusSections()
+
 " Not sure if this one here is overkill or not, but on terminal resizing it 
 " will be useful to call the routine
 " au BufWinEnter * silent call HeightSpread()
