@@ -1401,6 +1401,7 @@ function! SetPaste()
 endf
 
 if !has('nvim')
+	set <F34>=comma]
 	set <F33>=p
 	set <F32>=w
 	" keybinding for toggling word-wrap
@@ -3180,3 +3181,6 @@ nnoremap <Leader>p :read !pbpaste<CR>
 
 " do not use read here so that the selected stuff gets slurped.
 vnoremap <Leader>p :!pbpaste<CR>
+
+let g:user_emmet_install_global = 0
+autocmd FileType html,css EmmetInstall | echom "emmet enabled" | imap <F34> <C-y>, | nmap <F34> <C-y>,

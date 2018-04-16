@@ -261,6 +261,7 @@ key_bindings:
   - { key: Subtract, mods: Command,       action: DecreaseFontSize }
   - { key: Comma,    mods: Alt,           chars: "\x1b,"           }
   - { key: Comma,    mods: Command,       chars: "\x1b,"           }
+  - { key: Comma,    mods: Control,       chars: "\x1bcomma]"      }
   - { key: Period,   mods: Alt,           chars: "\x1b."           }
   - { key: Period,   mods: Command,       chars: "\x1b."           }
   - { key: Key1,     mods: Alt,           chars: "\x1b1"           }
