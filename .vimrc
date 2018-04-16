@@ -3012,6 +3012,7 @@ augroup ALEProgress
 augroup end
 
 let g:ale_list_window_size_max = 5
+let g:ale_list_window_size = 1
 
 autocmd User ALELintPost call s:ale_loclist_limit()
 function! s:ale_loclist_limit()
@@ -3028,6 +3029,10 @@ let g:ale_lint_on_save = 1
 let g:ale_lint_on_enter = 0
 let g:ale_max_signs = 64
 let g:_ale_cpp_options = ' --std=c++11 -O0'
+
+let g:ale_echo_msg_error_str = 'E'
+let g:ale_echo_msg_warning_str = 'W'
+let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
 
 " TODO going to use python to walk the cwd up and slurp .clang_complete files 
 " to populate ale_pattern_options with all the necessary flags, mostly header 
