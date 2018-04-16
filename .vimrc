@@ -2809,7 +2809,7 @@ nnoremap _ :exe "res " . (winheight(0) * 3/4)<CR>:noautocmd call HeightSpread()<
 
 " needed with the ratios above
 set winheight=6
-set winminheight=3
+set winminheight=1
 
 " conceal rule for javascript
 au! FileType javascript setl conceallevel=2 concealcursor=c
