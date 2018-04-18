@@ -398,25 +398,25 @@ augroup checktime_augroup
 augroup END
 
 augroup yank_saving_group
-autocmd! CursorHold * noautocmd call YankSave()
+" autocmd! CursorHold * noautocmd call YankSave()
 " autocmd! CursorHoldI * call YankSave()
 augroup END
 
 let g:yank_save_buffer = ''
 function! YankSave()
-	" yank into pbcopy if @0 has changed.
-	let zero = substitute(@0, '\n', '\\n', 'g')
-	if g:yank_save_buffer != zero
-		echom "running YS update!"
+	" yank into pbcopy if @@ has changed.
+	let yanked = substitute(@@, '\n', '\\n', 'g')
+	if g:yank_save_buffer != yanked
+		echom "running YankSave update!"
 		let poscursor=getpos('.')
-		let g:yank_save_buffer = zero
-		" this converts @0 into a bash single-quoted string by doing two 
-		" transformations, turning single quotes inside @0 into '"'"', which is 
+		let g:yank_save_buffer = yanked
+		" this converts @@ into a bash single-quoted string by doing two 
+		" transformations, turning single quotes inside @@ into '"'"', which is 
 		" how you insert a single quote into a bash single quoted string, and 
 		" the newlines which show as NULs in the variable into escaped newlines 
 		" which are how to make the newlines work in the bash string. Then pipe 
 		" into pbcopy.
-		silent exec "!echo '" . substitute(escape(substitute(@0, "'", "'\"'\"'", 'g'), '!\#%'), '\n', '\\n', 'g') . "' | pbcopy"
+		silent exec "!echo '" . substitute(escape(substitute(@@, "'", "'\"'\"'", 'g'), '!\#%'), '\n', '\\n', 'g') . "' | pbcopy"
 		call setpos('.', poscursor)
 	endif
 endfun
@@ -3218,7 +3218,22 @@ hi Title guifg=#444444
 " paste the global search
 nnoremap <Leader>P :.-1read $HOME/.vim/.search<CR>
 
-vnoremap <silent> <Leader>y :w !pbcopy<CR><CR>
+" dont like this: this slurps entire line instead of what your visual selection 
+" was
+" vnoremap <silent> <Leader>y :w !pbcopy<CR><CR>
+function! YankVisual()
+	" let old_reg = getreg('"')
+	" let old_regtype = getregtype('"')
+	normal! gvy
+	echom "running YankVisual pbcopy"
+	let poscursor=getpos('.')
+	silent exec "!echo '" . substitute(escape(substitute(@@, "'", "'\"'\"'", 'g'), '!\#%'), '\n', '\\n', 'g') . "' | pbcopy"
+	" call setpos('.', poscursor)
+	" normal! gV
+	" call setreg('"', old_reg, old_regtype)
+endfun
+vnoremap <silent> <Leader>y :<C-U>silent! call YankVisual()<CR>:redraw!<CR>
+
 " the leader y works like normal yy (but for my clipboard)
 nnoremap <silent> <Leader>y :.w !pbcopy<CR><CR>
 nnoremap <Leader>p :read !pbpaste<CR>
