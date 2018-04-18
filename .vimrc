@@ -383,7 +383,7 @@ set tabstop=4
 set smarttab
 
 set autoread
-augroup checktime
+augroup checktime_augroup
     au!
     if !has("gui_running")
         "silent! necessary otherwise throws errors when using command
@@ -397,12 +397,51 @@ augroup checktime
     endif
 augroup END
 
+augroup yank_saving_group
+autocmd! CursorHold * noautocmd call YankSave()
+" autocmd! CursorHoldI * call YankSave()
+augroup END
+
+let g:yank_save_buffer = ''
+function! YankSave()
+	" yank into pbcopy if @0 has changed.
+	let zero = substitute(@0, '\n', '\\n', 'g')
+	if g:yank_save_buffer != zero
+		echom "running YS update!"
+		let poscursor=getpos('.')
+		let g:yank_save_buffer = zero
+		" this converts @0 into a bash single-quoted string by doing two 
+		" transformations, turning single quotes inside @0 into '"'"', which is 
+		" how you insert a single quote into a bash single quoted string, and 
+		" the newlines which show as NULs in the variable into escaped newlines 
+		" which are how to make the newlines work in the bash string. Then pipe 
+		" into pbcopy.
+		silent exec "!echo '" . substitute(escape(substitute(@0, "'", "'\"'\"'", 'g'), '!\#%'), '\n', '\\n', 'g') . "' | pbcopy"
+		call setpos('.', poscursor)
+	endif
+endfun
+" This stuff is cool, but is subject to vim's own ex substitutions, for 
+" a subset of the ones it does, which is reasonably safe even when tested on 
+" this vimrc itself (which is a minefield for this, if there ever was one). 
+" With that being said it is not a perfectly correct operation, because e.g. 
+" something like <afile> will get converted in the pbcopy. So, I am 
+" contemplating switching this approach for writing to a temp file first in 
+" order to make it correct.
+
+
 if &term =~ '256color'
     " Disable Background Color Erase (BCE) so that color schemes
     " work properly when Vim is used inside tmux and GNU screen.
     " See also http://snk.tuxfamily.org/log/vim-256color-bce.html
     set t_ut=
 endif
+
+" prevent the damn commandlist from coming up. One day when i prevent the enter 
+" bind from working in this window i can bring it back and actually use it. but 
+" until then...
+nnoremap q: <Nop>
+" this has a problem though: q now has a delay even when used to stop 
+" a recording. argh.
 
 colorscheme Tomorrow-Night-Eighties
 hi LineNr ctermfg=242
