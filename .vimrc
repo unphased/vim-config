@@ -66,6 +66,7 @@ Plug 'tpope/vim-speeddating'
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-obsession'
 Plug 'tpope/vim-fugitive'
+Plug 'itchyny/vim-gitbranch'
 Plug 'tpope/vim-abolish'
 " Plug 'vim-perl/vim-perl'
 "Bundle 'Raimondi/delimitMate'
@@ -101,10 +102,14 @@ let g:lightline.tab = {
 			\ }
 let g:lightline.active = {
 			\ 'left': [ [ 'mode', 'paste' ],
-			\           [ 'readonly', 'relativepath', 'modified' ] ],
+			\           [ 'gitbranch', 'readonly', 'relativepath', 'modified' ] ],
 			\ 'right': [ [ 'percent' ],
-			\            [ 'lineinfo', 'charvaluehex' ],
+			\            [ 'lineinfo', 'filesize', 'charvaluehex' ],
 			\            [ 'fileformatenc', 'filetype' ] ] }
+let g:lightline.component_function = {
+			\ 'gitbranch': 'gitbranch#name',
+			\ 'filesize': 'FileSize'
+			\ }
 let g:lightline.component = {
 			\ 'mode': '%{lightline#mode()}',
 			\ 'absolutepath': '%F',
@@ -129,6 +134,20 @@ let g:lightline.component = {
 			\ 'close': '%999X X ',
 			\ 'winnr': '%{winnr()}'
 			\ }
+
+function! FileSize()
+  let bytes = getfsize(expand("%:p"))
+  if bytes <= 0
+    return ""
+  endif
+  if bytes < 65536
+    return bytes
+  elseif bytes < 67108864
+    return (bytes / 1024) . "K"
+  else
+    return (bytes / 1048576) . "M"
+  endif
+endfunction
 
 Plug 'derekwyatt/vim-fswitch'
 Plug 'wakatime/vim-wakatime'
