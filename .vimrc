@@ -66,7 +66,6 @@ Plug 'tpope/vim-speeddating'
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-obsession'
 Plug 'tpope/vim-fugitive'
-Plug 'itchyny/vim-gitbranch'
 Plug 'tpope/vim-abolish'
 " Plug 'vim-perl/vim-perl'
 "Bundle 'Raimondi/delimitMate'
@@ -107,7 +106,7 @@ let g:lightline.active = {
 			\            [ 'lineinfo', 'filesize', 'charvaluehex' ],
 			\            [ 'fileformatenc', 'filetype' ] ] }
 let g:lightline.component_function = {
-			\ 'gitbranch': 'gitbranch#name',
+			\ 'gitbranch': 'fugitive#head',
 			\ 'filesize': 'FileSize'
 			\ }
 let g:lightline.component = {
