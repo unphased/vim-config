@@ -6,7 +6,10 @@
         "es6": true
     },
     "settings": {
-        "ecmascript": 6
+        "ecmascript": 7
+    },
+    "parserOptions": {
+        "ecmaVersion": 2017
     },
     "plugins": [
     ],

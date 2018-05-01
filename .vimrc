@@ -10,6 +10,12 @@ call plug#begin('~/.vim/plugged')
 
 Plug 'junegunn/fzf'
 Plug 'junegunn/fzf.vim'
+Plug 'chrisbra/csv.vim'
+
+let g:csv_hiGroup = 'CursorColumn'
+let g:csv_highlight_column = 'y'
+
+Plug 'jreybert/vimagit'
 
 " Load on nothing
 Plug 'SirVer/ultisnips', { 'on': [] }
@@ -21,6 +27,8 @@ function! LoadExpensive()
 	if !(s:LoadExpensivePluginsHasBeenRun)
 		echom 'loadexpensive'
 		call plug#load('ultisnips')
+		call plug#load('tagbar')
+		" call plug#load('clang_complete')
 		autocmd! load_expensive
 		let s:LoadExpensivePluginsHasBeenRun = 1
 	endif
@@ -42,9 +50,6 @@ Plug 'maxbrunsfeld/vim-yankstack'
 Plug 'mbbill/undotree', { 'on': 'UndotreeToggle' }
 Plug 'rhysd/clever-f.vim'
 
-let g:clever_f_mark_cursor_color = 'DiffChange'
-let g:clever_f_mark_char_color = 'DiffChange'
-
 Plug 'editorconfig/editorconfig-vim'
 
 Plug 'leafgarland/typescript-vim'
@@ -57,6 +62,7 @@ Plug 'tpope/vim-speeddating'
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-obsession'
 Plug 'tpope/vim-fugitive'
+Plug 'itchyny/vim-gitbranch'
 Plug 'tpope/vim-abolish'
 " Plug 'vim-perl/vim-perl'
 "Bundle 'Raimondi/delimitMate'
@@ -72,10 +78,73 @@ Plug 'pangloss/vim-javascript'
 " Plug 'jelera/vim-javascript-syntax'
 Plug 'beyondmarc/glsl.vim'
 "Bundle 'kana/vim-smartinput'
-" Plug 'honza/vim-snippets'
+Plug 'honza/vim-snippets'
 " Bundle 'oblitum/rainbow'
 " Plug 'marijnh/tern_for_vim'
-Plug 'unphased/vim-airline'
+"
+" Plug 'unphased/vim-airline'
+" Plug 'vim-airline/vim-airline-themes'
+Plug 'itchyny/lightline.vim'
+
+let g:lightline = { }
+let g:lightline.colorscheme = 'powerline'
+let g:lightline.tabline = {
+			\ 'left': [ [ 'tabs' ] ],
+			\ 'right': [ ]
+			\ }
+let g:lightline.tab = {
+			\ 'active': [ 'filename', 'modified' ],
+			\ 'inactive': [ 'filename', 'modified' ]
+			\ }
+let g:lightline.active = {
+			\ 'left': [ [ 'mode', 'paste' ],
+			\           [ 'gitbranch', 'readonly', 'relativepath', 'modified' ] ],
+			\ 'right': [ [ 'percent' ],
+			\            [ 'lineinfo', 'filesize', 'charvaluehex' ],
+			\            [ 'fileformatenc', 'filetype' ] ] }
+let g:lightline.component_function = {
+			\ 'gitbranch': 'gitbranch#name',
+			\ 'filesize': 'FileSize'
+			\ }
+let g:lightline.component = {
+			\ 'mode': '%{lightline#mode()}',
+			\ 'absolutepath': '%F',
+			\ 'relativepath': '%f',
+			\ 'filename': '%t',
+			\ 'modified': '%M',
+			\ 'bufnum': '%n',
+			\ 'paste': '%{&paste?"PASTE":""}',
+			\ 'readonly': '%R',
+			\ 'charvalue': '%b',
+			\ 'charvaluehex': '%02B',
+			\ 'fileencoding': '%{&fenc!=#""?&fenc:&enc}',
+			\ 'fileformat': '%{&ff}',
+			\ 'fileformatenc': '%{&fenc!=#""?&fenc:&enc} %{&ff}',
+			\ 'filetype': '%{&ft!=#""?&ft:"no ft"}',
+			\ 'percent': '%2p%%',
+			\ 'percentwin': '%P',
+			\ 'spell': '%{&spell?&spelllang:""}',
+			\ 'lineinfo': '%l/%L:%c%V',
+			\ 'line': '%l',
+			\ 'column': '%c%V',
+			\ 'close': '%999X X ',
+			\ 'winnr': '%{winnr()}'
+			\ }
+
+function! FileSize()
+  let bytes = getfsize(expand("%:p"))
+  if bytes <= 0
+    return ""
+  endif
+  if bytes < 65536
+    return bytes
+  elseif bytes < 67108864
+    return (bytes / 1024) . "K"
+  else
+    return (bytes / 1048576) . "M"
+  endif
+endfunction
+
 Plug 'derekwyatt/vim-fswitch'
 Plug 'wakatime/vim-wakatime'
 Plug 'kshenoy/vim-signature'
@@ -84,11 +153,9 @@ Plug 'jiangmiao/auto-pairs'
 
 Plug 'tmux-plugins/vim-tmux'
 
-Plug 'majutsushi/tagbar'
-
 Plug 'unphased/vim-unimpaired'
 
-Plug 'bkad/camelcasemotion'
+Plug 'vim-scripts/camelcasemotion'
 Plug 'vim-scripts/ingo-library' " needed for EnhancedJumps
 Plug 'vim-scripts/EnhancedJumps'
 
@@ -120,7 +187,7 @@ Plug 'ap/vim-css-color'
 " Plug 'chrisbra/NrrwRgn'
 Plug 'https://github.com/wesQ3/vim-windowswap'
 Plug 'sbdchd/neoformat'
-Plug 'rhysd/conflict-marker.vim'
+Plug 'anowlcalledjosh/conflict-marker.vim', { 'branch': 'diff3' }
 Plug 'elzr/vim-json'
 Plug 'myhere/vim-nodejs-complete'
 Plug 'Shougo/echodoc.vim'
@@ -259,7 +326,7 @@ inoremap <F4> <ESC>:UndotreeToggle<CR>
 " The new way to do copypaste is with + register -- I already have it set up to 
 " have visual mode y yank to OS X pasteboard.
 
-nnoremap <Leader>L :so $MYVIMRC<CR>:runtime! after/plugin/*.vim<CR>:runtime! after/ftplugin/*.vim<CR>
+nnoremap <Leader>L :autocmd!<CR>:so $MYVIMRC<CR>:runtime! after/plugin/*.vim<CR>:runtime! after/ftplugin/*.vim<CR>
 
 " for camelcasemotion, bringing back the original , by triggering it with ,,
 " the comma repeats last t/f/T/F, which is *still* completely useless... Here's
@@ -270,6 +337,9 @@ nnoremap <Leader>L :so $MYVIMRC<CR>:runtime! after/plugin/*.vim<CR>:runtime! aft
 " xnoremap ,, ;
 " onoremap ,, ;
 " now no longer really needed with cleverf
+
+" for use with bkad's cmm. i went back because i found a bug
+" call camelcasemotion#CreateMotionMappings(',')
 
 " add some cases so that certain common keystrokes when used from visual mode 
 " (which i often land in) will do what i would want it to do
@@ -328,7 +398,7 @@ set tabstop=4
 set smarttab
 
 set autoread
-augroup checktime
+augroup checktime_augroup
     au!
     if !has("gui_running")
         "silent! necessary otherwise throws errors when using command
@@ -342,6 +412,38 @@ augroup checktime
     endif
 augroup END
 
+augroup yank_saving_group
+" autocmd! CursorHold * noautocmd call YankSave()
+" autocmd! CursorHoldI * call YankSave()
+augroup END
+
+let g:yank_save_buffer = ''
+function! YankSave()
+	" yank into pbcopy if @@ has changed.
+	let yanked = substitute(@@, '\n', '\\n', 'g')
+	if g:yank_save_buffer != yanked
+		echom "running YankSave update!"
+		let poscursor=getpos('.')
+		let g:yank_save_buffer = yanked
+		" this converts @@ into a bash single-quoted string by doing two 
+		" transformations, turning single quotes inside @@ into '"'"', which is 
+		" how you insert a single quote into a bash single quoted string, and 
+		" the newlines which show as NULs in the variable into escaped newlines 
+		" which are how to make the newlines work in the bash string. Then pipe 
+		" into pbcopy.
+		silent exec "!echo '" . substitute(escape(substitute(@@, "'", "'\"'\"'", 'g'), '!\#%'), '\n', '\\n', 'g') . "' | pbcopy"
+		call setpos('.', poscursor)
+	endif
+endfun
+" This stuff is cool, but is subject to vim's own ex substitutions, for 
+" a subset of the ones it does, which is reasonably safe even when tested on 
+" this vimrc itself (which is a minefield for this, if there ever was one). 
+" With that being said it is not a perfectly correct operation, because e.g. 
+" something like <afile> will get converted in the pbcopy. So, I am 
+" contemplating switching this approach for writing to a temp file first in 
+" order to make it correct.
+
+
 if &term =~ '256color'
     " Disable Background Color Erase (BCE) so that color schemes
     " work properly when Vim is used inside tmux and GNU screen.
@@ -349,12 +451,19 @@ if &term =~ '256color'
     set t_ut=
 endif
 
+" prevent the damn commandlist from coming up. One day when i prevent the enter 
+" bind from working in this window i can bring it back and actually use it. but 
+" until then...
+nnoremap q: <Nop>
+" this has a problem though: q now has a delay even when used to stop 
+" a recording. argh.
+
 colorscheme Tomorrow-Night-Eighties
 hi LineNr ctermfg=242
 " overrides the linenr set by above colorscheme.
 
 "set listchars=tab:→\ ,extends:>,precedes:<,trail:·,nbsp:◆
-set listchars=tab:\ \ ,extends:»,precedes:«,trail:·,nbsp:◆
+set listchars=tab:→\ ,extends:»,precedes:«,trail:·,nbsp:◆
 set list
 
 hi NonText ctermbg=235 ctermfg=241
@@ -367,10 +476,10 @@ hi Exception ctermfg=211
 hi FoldColumn guibg=black
 hi Folded guibg=#151515
 
-highlight DiffAdd term=reverse ctermbg=156 ctermfg=black
-highlight DiffChange term=reverse ctermbg=33 ctermfg=black
-highlight DiffText term=reverse ctermbg=blue ctermfg=16
-highlight DiffDelete term=reverse ctermbg=red ctermfg=white
+highlight DiffAdd term=reverse ctermbg=156 ctermfg=black guibg=#304930
+highlight DiffChange term=reverse ctermbg=33 ctermfg=black guibg=#114048
+highlight DiffText term=reverse ctermbg=blue ctermfg=16 guibg=#452250
+highlight DiffDelete term=reverse ctermbg=red ctermfg=white guibg=#58252e
 
 highlight SignifySignAdd    cterm=bold ctermbg=none ctermfg=119 guifg=#99ee99
 highlight SignifySignDelete cterm=bold ctermbg=none ctermfg=167 guifg=#f255ba
@@ -383,7 +492,7 @@ highlight SignifyLineChange ctermfg=none ctermbg=227 guibg=#0e3535
 highlight SignifyLineChangeDelete ctermfg=none ctermbg=203 guibg=#433007
 
 nnoremap <Leader>d :call sy#highlight#line_toggle()<CR>
-let g:signify_line_highlight = 1
+let g:signify_line_highlight = 0
 
 " TODO detect if gcc is old, adjust to c++11 instead of 14
 " But, I'm not doing that because forking gcc sounds like a horrible idea on 
@@ -611,6 +720,8 @@ set formatoptions=caq1njw
 " options that i really care about at this point
 au FileType * setlocal fo-=r
 au FileType * setlocal fo+=b
+
+au FileType txt setlocal fo-=c
 
 " Helpful warning message
 au FileChangedShell * echo "Warning: File changed on disk!!"
@@ -1071,7 +1182,7 @@ let g:ycm_server_keep_logfiles = 1
 " This insert mapping is for pasting; it appears that YCM only takes over the
 " <C-P> when it has the complete box open (this may be a Vim
 " limitation/builtin)
-inoremap <C-P> <C-O>p<CR>
+inoremap <C-P> <C-O>P
 
 " set highlight for search to be less blinding
 " highlight Search ctermbg=33 ctermfg=16
@@ -1323,6 +1434,7 @@ function! SetPaste()
 endf
 
 if !has('nvim')
+	set <F34>=comma]
 	set <F33>=p
 	set <F32>=w
 	" keybinding for toggling word-wrap
@@ -1755,9 +1867,11 @@ vnoremap <silent> x :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr
 " syntax sync minlines=256 " this was an attempt to speed up syntax on raspi.
 " May not be necessary now that i took out line highlight
 
+let g:airline_skip_empty_sections = 1
 let g:airline#extensions#tabline#enabled = 1
-let g:airline#extensions#tabline#left_sep = ''
-let g:airline#extensions#tabline#left_alt_sep = ''
+let g:airline#extensions#tagbar#enabled = 0 " disruptive and also wont work anyway, since i've lazied tagbar
+let g:airline#extensions#tabline#left_sep = ' '
+let g:airline#extensions#tabline#left_alt_sep = ' '
 if !exists('g:airline_symbols')
   let g:airline_symbols = {}
 endif
@@ -1768,7 +1882,7 @@ let g:airline_right_alt_sep = ''
 let g:airline_symbols.branch = ''
 let g:airline_symbols.readonly = ''
 let g:airline_symbols.linenr = ''
-let g:airline_theme='bubblegum'
+let g:airline_theme='bubblegumslu'
 
 let g:airline#extensions#hunks#non_zero_only = 1
 let g:airline#extensions#whitespace#mixed_indent_algo = 1
@@ -1788,7 +1902,7 @@ let g:airline#extensions#default#section_truncate_width = {
   \ 'x': 45,
   \ 'y': 115,
   \ 'z': 120,
-  \ 'warning': 40,
+  \ 'warning': 30,
   \ }
 
 " Highlight words to avoid in tech writing
@@ -2405,7 +2519,7 @@ function! WinTextWidth()
 	return winwidth
 endfunction
 
-let g:spreadratio = 0.5
+let g:spreadratio = 0.4
 " Terminate iteration at 'abort' lines for perf.
 " for the purposes of HeightSpread, any file taller than the g:spreadratio 
 " * (Vim height - 3) should be considered too large.
@@ -2443,12 +2557,14 @@ function! LineCount(abort)
 	return numlines
 endfunction
 
-" changing these to not switch window because its too damn slow
-" TODO make this into a function which uses v:count1.
-nnoremap = :vertical res +8<CR>
-nnoremap - :vertical res -8<CR>
-nnoremap + :res +8<CR>
-nnoremap _ :res -8<CR>
+nnoremap = :exe "vertical res " . (winwidth(0) * 5/4)<CR>
+nnoremap - :exe "vertical res " . (winwidth(0) * 4/5)<CR>
+nnoremap + :exe "res " . (winheight(0) * 4/3)<CR>:noautocmd call HeightSpread()<CR>
+nnoremap _ :exe "res " . (winheight(0) * 3/4)<CR>:noautocmd call HeightSpread()<CR>
+
+" needed with the ratios above
+set winheight=6
+set winminheight=1
 
 " conceal rule for javascript
 au! FileType javascript setl conceallevel=2 concealcursor=c
@@ -2471,15 +2587,15 @@ hi Conceal ctermbg=238 ctermfg=NONE cterm=NONE guibg=#404040
 
 " spell fix bind (my s, f, c binds are filled up, so I'm using x)
 nnoremap <Leader>x ms[s1z=:let g:correct_index = 1<CR>`s
-inoremap C-x <C-G>u<Esc>ms[s1z=:let g:correct_index = 1<CR>`sa
+inoremap <C-x> <C-G>u<Esc>ms[s1z=:let g:correct_index = 1<CR>`sa
 
 " only works immediately after use of <Leader> x corrected to not the proper 
 " word
 nnoremap <Leader>X :let g:correct_index += 1<CR>u:exec "normal! " . correct_index . "z=`s"<CR>
-inoremap C-X <C-G>u<Esc>:let g:correct_index += 1<CR>u:exec "normal! " . correct_index . "z=`s"<CR>a
+inoremap <C-X> <C-G>u<Esc>:let g:correct_index += 1<CR>u:exec "normal! " . correct_index . "z=`s"<CR>a
 
 nnoremap <Leader>T :ThesaurusQueryReplaceCurrentWord<CR>
-nnoremap <Leader>t :TagBar
+nnoremap <Leader>t :Tagbar<CR>
 
 " because g: is easier to remember than :@* and also this is more full featured
 " i believe.
@@ -2534,9 +2650,6 @@ function! ShowCount()
 endfunction
 set ruler
 nnoremap <Leader>c :let &statusline='%{ShowCount()} %<%f %h%m%r%=%-14.(%l,%c%V%) %P' "THIS WILL BLOW AWAY STATUS LINE FOR SEARCH COUNTING. Ctrl+C to cancel
-
-" paste the global search
-nnoremap <Leader>p :.-1read $HOME/.vim/.search<CR>
 
 " windowswap disable binds, reducing latency on two of my existing binds now, 
 " and allow me to bind just the one thing that i use with it.
@@ -2615,7 +2728,7 @@ nnoremap <silent> <Leader>g :FLines<CR>
 " This is intended to work by searching for the current search term without 
 " modifying the search term.
 
-" need to figure out how to munge the search buffer upon use here.
+" TODO need to figure out how to munge the search buffer upon use here.
 nnoremap <Leader>G :exec "FLineSearch <c-r>/"<CR>
 
 " does not interfere with main search
@@ -2647,13 +2760,13 @@ set synmaxcol=1000
 au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent execute "!chmod a+x <afile>" | endif | endif
 
 if !exists("g:os")
-    if has("win64") || has("win32") || has("win16")
-        let g:os = "Windows"
-    else
+	if has("win64") || has("win32") || has("win16")
+		let g:os="Windows"
+	else
 		" as a builtin (??), seems to require me to export OSTYPE in shell 
 		" config.
-        let g:os=$OSTYPE
-    endif
+		let g:os=$OSTYPE
+	endif
 endif
 
 " this is for centos
@@ -2669,7 +2782,7 @@ if (!strlen(g:clang_library_path))
 			let g:clang_library_path=glob('/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libclang.dylib')
 			if (!strlen(g:clang_library_path))
 				let g:clang_library_path=glob('/Applications/Xcode.app/Contents/Frameworks/libclang.dylib')
-				if (!strlen(g:clang_library_path) && g:os != 'linux-gnueabihf')
+				if (!strlen(g:clang_library_path) && g:os != 'linux-gnueabihf' && g:os != 'Windows' && g:os != 'msys')
 					" do not surface this error on ARM linux systems such as raspi
 					echom "clang still couldn't be found. hmm!"
 				endif
@@ -2695,3 +2808,45 @@ else
   let &t_SI = "\e[5 q"
   let &t_EI = "\e[1 q"
 endif
+
+hi CleverFMark guibg=#cf00af guifg=#eeeeee
+let g:clever_f_mark_cursor_color = 'CleverFMark'
+let g:clever_f_mark_char_color = 'CleverFMark'
+
+" highlights for the bulitin tabline. When using lightline or airline or such, 
+" should not affect anything.
+" These colors are garish and bad for cterm, and since I'm using gui colors for 
+" vim now, i'm not bothering to fix them.
+hi TabLineFill ctermfg=LightGreen ctermbg=DarkGreen guibg=#111111 guifg=#222222
+hi TabLine ctermfg=Blue ctermbg=Yellow guifg=#000000
+hi TabLineSel ctermfg=Red ctermbg=Yellow guifg=#aaaaaa guibg=#222222
+hi Title guifg=#444444
+
+" paste the global search
+nnoremap <Leader>P :.-1read $HOME/.vim/.search<CR>
+
+" dont like this: this slurps entire line instead of what your visual selection 
+" was
+" vnoremap <silent> <Leader>y :w !pbcopy<CR><CR>
+function! YankVisual()
+	" let old_reg = getreg('"')
+	" let old_regtype = getregtype('"')
+	normal! gvy
+	echom "running YankVisual pbcopy"
+	let poscursor=getpos('.')
+	silent exec "!echo '" . substitute(escape(substitute(@@, "'", "'\"'\"'", 'g'), '!\#%'), '\n', '\\n', 'g') . "' | pbcopy"
+	" call setpos('.', poscursor)
+	" normal! gV
+	" call setreg('"', old_reg, old_regtype)
+endfun
+vnoremap <silent> <Leader>y :<C-U>silent! call YankVisual()<CR>:redraw!<CR>
+
+" the leader y works like normal yy (but for my clipboard)
+nnoremap <silent> <Leader>y :.w !pbcopy<CR><CR>
+nnoremap <Leader>p :read !pbpaste<CR>
+
+" do not use read here so that the selected stuff gets slurped.
+vnoremap <Leader>p :!pbpaste<CR>
+
+let g:user_emmet_install_global = 0
+autocmd FileType html,css EmmetInstall | echom "emmet enabled" | imap <F34> <C-y>, | nmap <F34> <C-y>,

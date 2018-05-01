@@ -8,4 +8,4 @@
 **/.git
 .cache/neocomplete
 **/.discrim.log
-machine_shell_logs/*
+**/machine_shell_logs/*

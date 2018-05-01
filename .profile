@@ -19,10 +19,12 @@ source $HOME/.aliases.sh
 # Remember to link this to ~/.bash_profile if it doesn't exist. (more robust 
 # than .bashrc)
 
-if [ -f `brew --prefix`/etc/bash_completion ]; then
+which brew > /dev/null && if [ -f `brew --prefix`/etc/bash_completion ]; then
     # TODO: make this check better...
     . `brew --prefix`/etc/bash_completion
 fi
+
+[ -f /usr/share/bash-completion/completions/git ] && . /usr/share/bash-completion/completions/git
 
 # a few helpers that have to match aliases
 __git_complete gco _git_checkout
