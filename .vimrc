@@ -1099,7 +1099,18 @@ let g:ctrlp_map = '<Leader><c-p>'
 nnoremap <c-p> :FZF<CR>
 
 " opens the current buffer in nerdtree
-nnoremap <Leader>f :NERDTreeFind<CR>
+nnoremap <Leader>f :call SmartNERDTree()<CR>
+
+function! SmartNERDTree()
+	if @% == ""
+		echom 'a'
+		NERDTreeToggle
+	else
+		echom 'b'
+		NERDTreeFind
+	endif
+endfun
+
 
 " I definitely do not use this -- F7 is now YCM sign toggle.
 " nnoremap <F7> :NERDTreeToggle<CR>
@@ -3260,4 +3271,4 @@ nnoremap <Leader>p :read !pbpaste<CR>
 vnoremap <Leader>p :!pbpaste<CR>
 
 let g:user_emmet_install_global = 0
-autocmd FileType html,css EmmetInstall | echom "emmet enabled" | imap <F34> <C-y>, | nmap <F34> <C-y>,
+autocmd FileType html,css EmmetInstall | silent echom "emmet enabled" | imap <F34> <C-y>, | nmap <F34> <C-y>,
