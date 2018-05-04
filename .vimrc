@@ -101,10 +101,14 @@ let g:lightline.tab = {
 			\ }
 let g:lightline.active = {
 			\ 'left': [ [ 'mode', 'paste' ],
-			\           [ 'readonly', 'relativepath', 'modified' ] ],
+			\           [ 'gitbranch', 'readonly', 'relativepath', 'modified' ] ],
 			\ 'right': [ [ 'percent' ],
-			\            [ 'lineinfo', 'charvaluehex' ],
+			\            [ 'lineinfo', 'filesize', 'charvaluehex' ],
 			\            [ 'fileformatenc', 'filetype' ] ] }
+let g:lightline.component_function = {
+			\ 'gitbranch': 'fugitive#head',
+			\ 'filesize': 'FileSize'
+			\ }
 let g:lightline.component = {
 			\ 'mode': '%{lightline#mode()}',
 			\ 'absolutepath': '%F',
@@ -129,6 +133,20 @@ let g:lightline.component = {
 			\ 'close': '%999X X ',
 			\ 'winnr': '%{winnr()}'
 			\ }
+
+function! FileSize()
+  let bytes = getfsize(expand("%:p"))
+  if bytes <= 0
+    return ""
+  endif
+  if bytes < 65536
+    return bytes
+  elseif bytes < 67108864
+    return (bytes / 1024) . "K"
+  else
+    return (bytes / 1048576) . "M"
+  endif
+endfunction
 
 Plug 'derekwyatt/vim-fswitch'
 Plug 'wakatime/vim-wakatime'
@@ -1081,7 +1099,18 @@ let g:ctrlp_map = '<Leader><c-p>'
 nnoremap <c-p> :FZF<CR>
 
 " opens the current buffer in nerdtree
-nnoremap <Leader>f :NERDTreeFind<CR>
+nnoremap <Leader>f :call SmartNERDTree()<CR>
+
+function! SmartNERDTree()
+	if @% == ""
+		echom 'a'
+		NERDTreeToggle
+	else
+		echom 'b'
+		NERDTreeFind
+	endif
+endfun
+
 
 " I definitely do not use this -- F7 is now YCM sign toggle.
 " nnoremap <F7> :NERDTreeToggle<CR>
