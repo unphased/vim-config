@@ -3242,4 +3242,4 @@ nnoremap <Leader>p :read !pbpaste<CR>
 vnoremap <Leader>p :!pbpaste<CR>
 
 let g:user_emmet_install_global = 0
-autocmd FileType html,css EmmetInstall | echom "emmet enabled" | imap <F34> <C-y>, | nmap <F34> <C-y>,
+autocmd FileType html,css EmmetInstall | silent echom "enabling ctrl+comma emmet bind" | imap <F34> <C-y>, | nmap <F34> <C-y>,
