@@ -1103,10 +1103,8 @@ nnoremap <Leader>f :call SmartNERDTree()<CR>
 
 function! SmartNERDTree()
 	if @% == ""
-		echom 'a'
 		NERDTreeToggle
 	else
-		echom 'b'
 		NERDTreeFind
 	endif
 endfun
