@@ -2108,7 +2108,7 @@ map <leader>et :tabe %%
 " set spell
 nmap <leader>s :set spell!<CR>
 
-nmap <leader>S :sav %%
+nmap <leader>S :saveas %%
 
 highlight SpellBad ctermbg=NONE ctermfg=NONE cterm=underline guifg=NONE guibg=NONE gui=underline term=NONE
 highlight SpellCap ctermbg=NONE ctermfg=NONE cterm=underline,bold guifg=NONE guibg=NONE gui=underline term=NONE
