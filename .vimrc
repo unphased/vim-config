@@ -1103,10 +1103,8 @@ nnoremap <Leader>f :call SmartNERDTree()<CR>
 
 function! SmartNERDTree()
 	if @% == ""
-		echom 'a'
 		NERDTreeToggle
 	else
-		echom 'b'
 		NERDTreeFind
 	endif
 endfun
@@ -2110,7 +2108,7 @@ map <leader>et :tabe %%
 " set spell
 nmap <leader>s :set spell!<CR>
 
-nmap <leader>S :sav %%
+nmap <leader>S :saveas %%
 
 highlight SpellBad ctermbg=NONE ctermfg=NONE cterm=underline guifg=NONE guibg=NONE gui=underline term=NONE
 highlight SpellCap ctermbg=NONE ctermfg=NONE cterm=underline,bold guifg=NONE guibg=NONE gui=underline term=NONE
@@ -2870,8 +2868,8 @@ nnoremap <Leader>H :noautocmd call HeightSpread()<CR>
 
 " changing these to not switch window because its too damn slow
 " TODO make this into a function which uses v:count1.
-nnoremap = :exe "vertical res " . (winwidth(0) * 5/4)<CR>
-nnoremap - :exe "vertical res " . (winwidth(0) * 4/5)<CR>
+nnoremap = :exe "vertical res " . (winwidth(0) * 7/6)<CR>
+nnoremap - :exe "vertical res " . (winwidth(0) * 6/7)<CR>
 nnoremap + :exe "res " . (winheight(0) * 4/3)<CR>:noautocmd call HeightSpread()<CR>
 nnoremap _ :exe "res " . (winheight(0) * 3/4)<CR>:noautocmd call HeightSpread()<CR>
 
