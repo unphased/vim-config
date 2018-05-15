@@ -963,9 +963,9 @@ if !has('nvim')
 	set <C-A-S>=
 endif
 
-cnoremap <C-A-S> <C-C>:w !sudo tee > /dev/null %<CR>
-noremap <C-A-S> <ESC>:w !sudo tee > /dev/null %<CR>
-inoremap <C-A-S> <ESC>:w !sudo tee > /dev/null %<CR>
+cnoremap <silent> <C-A-S> <C-C>:w !sudo tee > /dev/null %<CR>:e!<CR>
+noremap <silent> <C-A-S> <ESC>:w !sudo tee > /dev/null %<CR>:e!<CR>
+inoremap <silent> <C-A-S> <ESC>:w !sudo tee > /dev/null %<CR>:e!<CR>
 
 function! MyConfirmQuitAllNoSave()
 	qall
