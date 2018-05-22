@@ -205,7 +205,7 @@ live_config_reload: true
 # Entries in shell.args are passed unmodified as arguments to the shell.
 
 # shell:
-#   program: /bin/zsh
+#   program: /usr/local/bin/zsh
 #   args:
 #    - --login
 shell:
