@@ -83,19 +83,19 @@ console.log("${VISUAL}$1"${2:, ${VISUAL}$1});
 endsnippet
 
 snippet i "console.info()" !w
-console.info(${1});
+console.info("${VISUAL}$1"${2:, ${VISUAL}$1});
 endsnippet
 
 snippet w "console.warn()" !b
-console.warn(${1});
+console.warn("${VISUAL}$1"${2:, ${VISUAL}$1});
 endsnippet
 
 snippet e "console.error()" !w
-console.error("$1"${2:, $1});
+console.error("${VISUAL}$1"${2:, ${VISUAL}$1});
 endsnippet
 
 snippet a "console.assert()" !w
-console.assert(${1}, ${2:"$1 is falsy"});
+console.assert(${VISUAL}$1, ${2:"${VISUAL}$1 is falsy"});
 endsnippet
 
 snippet b "require(bluebird)" !b

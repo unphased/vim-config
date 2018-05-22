@@ -200,6 +200,8 @@ call plug#end()
 
 set title
 
+autocmd BufEnter * let &titlestring = hostname() . "[vim(" . expand("%:t") . ")]"
+
 " Bundle 'Decho'
 
 "
