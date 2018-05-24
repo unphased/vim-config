@@ -4,7 +4,7 @@ endsnippet
 
 snippet ok "Object.keys(object).map" !w
 Object.keys(${VISUAL}${1:obj}).map(${3:k} => {
-    var v = ${2:$1[$3]};
+    var v = ${2:${VISUAL}$1[$3]};
     return v;
 });
 
