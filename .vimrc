@@ -459,7 +459,7 @@ endif
 " prevent the damn commandlist from coming up. One day when i prevent the enter 
 " bind from working in this window i can bring it back and actually use it. but 
 " until then...
-nnoremap q: <Nop>
+" nnoremap q: <Nop>
 " this has a problem though: q now has a delay even when used to stop 
 " a recording. argh.
 
@@ -983,6 +983,9 @@ inoremap <C-Q> <C-O>:call MyConfirmQuitAllNoSave()<CR>
 " this bit controls search and highlighting by using the Enter key in normal mode
 let g:highlighting = 1
 function! Highlighting()
+	" if &buftype != ""
+	" 	return "<cr>"
+	" endif
 	let l:word = expand('<cword>')
 	if g:highlighting == 1 && @/ =~ '^\\<'.l:word.'\\>$'
 		let g:highlighting = 0
@@ -1009,7 +1012,7 @@ EOF
 	endif
 	return ":silent set hlsearch\<CR>"
 endfunction
-nnoremap <silent> <expr> <CR> Highlighting()
+nnoremap <silent> <expr> <CR> &buftype == "" ? Highlighting() : "<cr>"
 
 function! ChompCtrlM(string)
     return substitute(a:string, '$', '', '')
