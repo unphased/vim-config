@@ -6,9 +6,11 @@ alias ls 2>/dev/null >/dev/null || alias ls="ls --color=always"
 
 # some versions of htop kill high sierra without being run as root.
 # TODO replace me with a version check on htop
-if [[ "$(uname -a)" =~ "Darwin Kernel Version 17" ]]; then
-	alias htop="sudo htop"
-fi
+# Nah, it's ok. just make sure your system has 2.2.0 or newer and just dont 
+# worry about it.
+# if [[ "$(uname -a)" =~ "Darwin Kernel Version 17" ]]; then
+# 	alias htop="sudo htop"
+# fi
 
 # stub pbcopy and pbpaste for linux, for getting a little closer to copypaste 
 # holy grail for my usual envs. Still not gonna have direct vim clipboard 
