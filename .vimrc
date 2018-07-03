@@ -72,7 +72,7 @@ Plug 'tpope/vim-abolish'
 "Bundle 'Raimondi/delimitMate'
 Plug 'mattn/emmet-vim'
 " Plug 'unphased/git-time-lapse'
-Plug 'ldx/vim-indentfinder'
+Plug 'vim-scripts/yaifa.vim'
 Plug 'nathanaelkane/vim-indent-guides'
 Plug 'unphased/HiCursorWords'
 Plug 'dimasg/vim-mark', { 'on': '<Plug>MarkSet' }
