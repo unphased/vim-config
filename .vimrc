@@ -90,6 +90,12 @@ Plug 'honza/vim-snippets'
 " Plug 'vim-airline/vim-airline-themes'
 Plug 'itchyny/lightline.vim'
 
+" python integration seems to not work without this sometimes, i found this 
+" when i was compiling vim myself on ubuntu 18.04
+if has('python')
+	py import vim
+endif
+
 let g:lightline = { }
 let g:lightline.colorscheme = 'powerline'
 let g:lightline.tabline = {
