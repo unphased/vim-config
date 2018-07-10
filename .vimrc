@@ -394,7 +394,7 @@ endif
 syntax on
 set number
 
-setglobal numberwidth=2
+set numberwidth=2
 set laststatus=2
 set undodir=~/.tmp
 
