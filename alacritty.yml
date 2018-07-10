@@ -336,6 +336,7 @@ key_bindings:
   - { key: Tab,      mods: Control|Shift, chars: "\x1b[27;6;9~" }
   - { key: Back,     chars: "\x7f"                              }
   - { key: Back,     mods: Alt,           chars: "\x1b\x7f"     }
+  - { key: Back,     mods: Control,       chars: "\x1b\x7f"     }
   - { key: Insert,   chars: "\x1b[2~"                           }
   - { key: Delete,   chars: "\x1b[3~"                           }
   - { key: Left,     mods: Command,       chars: "\x1b[1~"      }
