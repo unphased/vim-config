@@ -161,6 +161,8 @@ Plug 'kshenoy/vim-signature'
 Plug 'jiangmiao/auto-pairs'
 "Plug 'mxw/vim-jsx'
 
+Plug 'fatih/vim-go'
+
 Plug 'tmux-plugins/vim-tmux'
 
 Plug 'unphased/vim-unimpaired'
