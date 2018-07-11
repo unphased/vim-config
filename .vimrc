@@ -738,9 +738,20 @@ nnoremap <silent> <C-N> :let poscursorjoinlines=getpos('.')<Bar>join<Bar>call se
 
 " accelerated j/k navigation
 noremap <S-J> 5gj
-noremap <S-K> 5gk
+" noremap <S-K> 5gk
 noremap <S-H> 7h
 noremap <S-L> 7l
+
+" override K bind from vim-go using an autocommand because that is the cleanest 
+" way to do this without forking vim-go.
+
+" this happens to also defer the bind for all buffer opens, but it shouldnt 
+" matter, really.
+au VimEnter * noremap <buffer> <silent> K 5gk
+
+" and now to provide a new binding for GoDoc using au instead of after because 
+" of maintainability
+au FileType go nnoremap <buffer> <silent> D :GoDoc<CR>
 
 set wrap
 set textwidth=79 
