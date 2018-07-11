@@ -747,7 +747,7 @@ noremap <S-L> 7l
 
 " this happens to also defer the bind for all buffer opens, but it shouldnt 
 " matter, really.
-au VimEnter * noremap <buffer> <silent> K 5gk
+au BufEnter * noremap <buffer> <silent> K 5gk
 
 " and now to provide a new binding for GoDoc using au instead of after because 
 " of maintainability
