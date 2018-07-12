@@ -3065,6 +3065,9 @@ nnoremap <silent> <Leader>g :FLines<CR>
 " modifying the search term.
 
 " TODO need to figure out how to munge the search buffer upon use here.
+" This is supposed to work like this: the active find buffer is used. Which is 
+" all fine and good, the problem is that this often has garbage like word end 
+" characters in it which must be cleaned for use in here.
 nnoremap <Leader>G :exec "FLineSearch <c-r>/"<CR>
 
 " does not interfere with main search
