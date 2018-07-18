@@ -737,7 +737,7 @@ nnoremap <silent> <C-N> :let poscursorjoinlines=getpos('.')<Bar>join<Bar>call se
 " overridden by YCM to move around the completion picker (which is useless)
 
 " accelerated j/k navigation
-noremap <S-J> 5gj
+" noremap <S-J> 5gj
 " noremap <S-K> 5gk
 noremap <S-H> 7h
 noremap <S-L> 7l
@@ -745,9 +745,13 @@ noremap <S-L> 7l
 " override K bind from vim-go using an autocommand because that is the cleanest 
 " way to do this without forking vim-go.
 
+" similarly and conveniently this 'fixes' the behavior for NERDTree so that 
+" navigation works as my brain expects it to, i.e. same as in a buffer.
+
 " this happens to also defer the bind for all buffer opens, but it shouldnt 
 " matter, really.
 au BufEnter * noremap <buffer> <silent> K 5gk
+au BufEnter * noremap <buffer> <silent> J 5gj
 
 " and now to provide a new binding for GoDoc using au instead of after because 
 " of maintainability
