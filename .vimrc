@@ -2903,7 +2903,7 @@ nnoremap + :exe "res " . (winheight(0) * 4/3)<CR>:noautocmd call HeightSpread()<
 nnoremap _ :exe "res " . (winheight(0) * 3/4)<CR>:noautocmd call HeightSpread()<CR>
 
 " needed with the ratios above
-set winheight=6
+set winheight=3
 set winminheight=1
 
 " conceal rule for javascript
