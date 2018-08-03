@@ -755,7 +755,7 @@ au BufEnter * noremap <buffer> <silent> J 5gj
 
 " and now to provide a new binding for GoDoc using au instead of after because 
 " of maintainability
-au FileType go nnoremap <buffer> <silent> D :GoDoc<CR>
+au FileType go nnoremap <buffer> <silent> <C-d> :GoDoc<CR>
 
 set wrap
 set textwidth=79 
