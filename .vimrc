@@ -3302,3 +3302,7 @@ vnoremap <Leader>p :!pbpaste<CR>
 
 let g:user_emmet_install_global = 0
 autocmd FileType html,css EmmetInstall | silent echom "enabling ctrl+comma emmet bind" | imap <F34> <C-y>, | nmap <F34> <C-y>,
+
+" This is used to help resolve the temp file cannot be opened issue on long 
+" running linux vim sessions.
+command! Mktmpdir call mkdir(fnamemodify(tempname(),":p:h"),"",0700)
