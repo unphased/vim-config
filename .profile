@@ -166,3 +166,5 @@ set_prompt () {
 # fi
 
 export PATH="$HOME/.cargo/bin:$PATH"
+
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash

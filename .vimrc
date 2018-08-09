@@ -743,19 +743,29 @@ noremap <S-H> 7h
 noremap <S-L> 7l
 
 " override K bind from vim-go using an autocommand because that is the cleanest 
-" way to do this without forking vim-go.
+" way to do this without forking vim-go. BufWritePost is needed because that 
+" will force it back since writing tends to have the plugin reapply the bind.
 
 " similarly and conveniently this 'fixes' the behavior for NERDTree so that 
-" navigation works as my brain expects it to, i.e. same as in a buffer.
+" navigation works as my brain expects it to, i.e. same as in a buffer. Except 
+" that with BufEnter this doesnt work on the first open for NERDTree.
 
 " this happens to also defer the bind for all buffer opens, but it shouldnt 
 " matter, really.
-au BufEnter * noremap <buffer> <silent> K 5gk
+au BufEnter,BufWritePost * noremap <buffer> <silent> K 5gk
 au BufEnter * noremap <buffer> <silent> J 5gj
 
-" and now to provide a new binding for GoDoc using au instead of after because 
+" and now to provide a new binding for GoDoc using au instead of after/ because 
 " of maintainability
-au FileType go nnoremap <buffer> <silent> D :GoDoc<CR>
+au FileType go nnoremap <buffer> <silent> <C-d> :GoDoc<CR>
+
+" this is kept here as an example for how to implement a (potentially buggy) 
+" autocommand that works on an event which is also to be dependent on filetype.
+
+" autocmd BufWritePost * if &filetype == "go"
+"     \ | echom "binding"
+"     \ | nnoremap <buffer> <silent> <C-d> :GoDoc<CR>
+"     \ | endif
 
 set wrap
 set textwidth=79 
@@ -3302,3 +3312,7 @@ vnoremap <Leader>p :!pbpaste<CR>
 
 let g:user_emmet_install_global = 0
 autocmd FileType html,css EmmetInstall | silent echom "enabling ctrl+comma emmet bind" | imap <F34> <C-y>, | nmap <F34> <C-y>,
+
+" This is used to help resolve the temp file cannot be opened issue on long 
+" running linux vim sessions.
+command! Mktmpdir call mkdir(fnamemodify(tempname(),":p:h"),"",0700)
