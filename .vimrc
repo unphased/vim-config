@@ -3066,6 +3066,8 @@ command! -bang FLines call fzf#vim#grep(
      \ 1,
      \ {'options': '--reverse --prompt "FLines> "'})
 
+command! -bang Directories call fzf#run(fzf#wrap({'source': 'find * -type d'}))
+
 " sets color style via fzf. kind of insane and seems to screw with the sign 
 " styles :\
 command! -bang Colors
