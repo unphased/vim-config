@@ -3157,6 +3157,8 @@ let g:_ale_cpp_options_onboard = g:_ale_cpp_options
 			\ . ' -I /home/slu/onboard-sdk/osdk-core/utility/inc'
 			\ . ' -I /home/slu/onboard-sdk/osdk-core/platform/linux/inc'
 			\ . ' -I /home/slu/onboard-sdk/sample/linux/common'
+			\ . ' -I /home/slu/raspi-software/display'
+			\ . ' -I /home/slu/WiringPi/wiringPi'
 			\ . ' -I /home/slu/pigpio'
 			\
 			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/api/inc'
