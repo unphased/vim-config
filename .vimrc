@@ -114,7 +114,9 @@ let g:lightline.active = {
 			\            [ 'fileformatenc', 'filetype' ] ] }
 let g:lightline.component_function = {
 			\ 'gitbranch': 'fugitive#head',
-			\ 'filesize': 'FileSize'
+			\ 'filesize': 'FileSize',
+			\ 'filetype': 'FileTypeFun',
+			\ 'fileformatenc': 'FileFormatEncFun'
 			\ }
 let g:lightline.component = {
 			\ 'mode': '%{lightline#mode()}',
@@ -129,8 +131,6 @@ let g:lightline.component = {
 			\ 'charvaluehex': '%02B',
 			\ 'fileencoding': '%{&fenc!=#""?&fenc:&enc}',
 			\ 'fileformat': '%{&ff}',
-			\ 'fileformatenc': '%{&fenc!=#""?&fenc:&enc} %{&ff}',
-			\ 'filetype': '%{&ft!=#""?&ft:"no ft"}',
 			\ 'percent': '%2p%%',
 			\ 'percentwin': '%P',
 			\ 'spell': '%{&spell?&spelllang:""}',
@@ -153,6 +153,13 @@ function! FileSize()
   else
     return (bytes / 1048576) . "M"
   endif
+endfunction
+
+function! FileTypeFun()
+	return winwidth(0) > 70 ? (&filetype !=# '' ? &filetype : 'no ft') : ''
+endfunction
+function! FileFormatEncFun()
+	return winwidth(0) > 70 ? &fileformat : ''
 endfunction
 
 Plug 'derekwyatt/vim-fswitch'
