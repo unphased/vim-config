@@ -1,5 +1,7 @@
 **/node_modules
 **/*.min.js
+**/*.svg
+**/*.min.css
 **/*.es5.js
 **/*source-map.js
 **/*.js.map
@@ -9,3 +11,4 @@
 .cache/neocomplete
 **/.discrim.log
 **/machine_shell_logs/*
+**/zxcvbn.js

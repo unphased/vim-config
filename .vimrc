@@ -8,7 +8,8 @@ filetype plugin indent on
 
 call plug#begin('~/.vim/plugged')
 
-Plug 'junegunn/fzf'
+Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+
 Plug 'junegunn/fzf.vim'
 Plug 'chrisbra/csv.vim'
 
@@ -71,7 +72,7 @@ Plug 'tpope/vim-abolish'
 "Bundle 'Raimondi/delimitMate'
 Plug 'mattn/emmet-vim'
 " Plug 'unphased/git-time-lapse'
-Plug 'ldx/vim-indentfinder'
+Plug 'vim-scripts/yaifa.vim'
 Plug 'nathanaelkane/vim-indent-guides'
 Plug 'unphased/HiCursorWords'
 Plug 'dimasg/vim-mark', { 'on': '<Plug>MarkSet' }
@@ -81,7 +82,7 @@ Plug 'pangloss/vim-javascript'
 " Plug 'jelera/vim-javascript-syntax'
 Plug 'beyondmarc/glsl.vim'
 "Bundle 'kana/vim-smartinput'
-" Plug 'honza/vim-snippets'
+Plug 'honza/vim-snippets'
 " Bundle 'oblitum/rainbow'
 " Plug 'marijnh/tern_for_vim'
 "
@@ -89,15 +90,85 @@ Plug 'beyondmarc/glsl.vim'
 " Plug 'vim-airline/vim-airline-themes'
 Plug 'itchyny/lightline.vim'
 
-let g:lightline = {
-			\ 'colorscheme': 'Tomorrow_Night_Eighties'
+" python integration seems to not work without this sometimes, i found this 
+" when i was compiling vim myself on ubuntu 18.04
+if has('python')
+	py import vim
+endif
+
+let g:lightline = { }
+let g:lightline.colorscheme = 'powerline'
+let g:lightline.tabline = {
+			\ 'left': [ [ 'tabs' ] ],
+			\ 'right': [ ]
 			\ }
+let g:lightline.tab = {
+			\ 'active': [ 'filename', 'modified' ],
+			\ 'inactive': [ 'filename', 'modified' ]
+			\ }
+let g:lightline.active = {
+			\ 'left': [ [ 'mode', 'paste' ],
+			\           [ 'gitbranch', 'readonly', 'relativepath', 'modified' ] ],
+			\ 'right': [ [ 'percent' ],
+			\            [ 'lineinfo', 'charvaluehex' ],
+			\            [ 'fileformatenc', 'filetype' ] ] }
+let g:lightline.component_function = {
+			\ 'gitbranch': 'fugitive#head',
+			\ 'filesize': 'FileSize',
+			\ 'filetype': 'FileTypeFun',
+			\ 'fileformatenc': 'FileFormatEncFun'
+			\ }
+let g:lightline.component = {
+			\ 'mode': '%{lightline#mode()}',
+			\ 'absolutepath': '%F',
+			\ 'relativepath': '%f',
+			\ 'filename': '%t',
+			\ 'modified': '%M',
+			\ 'bufnum': '%n',
+			\ 'paste': '%{&paste?"PASTE":""}',
+			\ 'readonly': '%R',
+			\ 'charvalue': '%b',
+			\ 'charvaluehex': '%02B',
+			\ 'fileencoding': '%{&fenc!=#""?&fenc:&enc}',
+			\ 'fileformat': '%{&ff}',
+			\ 'percent': '%2p%%',
+			\ 'percentwin': '%P',
+			\ 'spell': '%{&spell?&spelllang:""}',
+			\ 'lineinfo': '%l/%L:%c%V',
+			\ 'line': '%l',
+			\ 'column': '%c%V',
+			\ 'close': '%999X X ',
+			\ 'winnr': '%{winnr()}'
+			\ }
+
+function! FileSize()
+  let bytes = getfsize(expand("%:p"))
+  if bytes <= 0
+    return ""
+  endif
+  if bytes < 65536
+    return bytes
+  elseif bytes < 67108864
+    return (bytes / 1024) . "K"
+  else
+    return (bytes / 1048576) . "M"
+  endif
+endfunction
+
+function! FileTypeFun()
+	return winwidth(0) > 70 ? (&filetype !=# '' ? &filetype : 'no ft') : ''
+endfunction
+function! FileFormatEncFun()
+	return winwidth(0) > 70 ? &fileformat : ''
+endfunction
 
 Plug 'derekwyatt/vim-fswitch'
 Plug 'wakatime/vim-wakatime'
 Plug 'kshenoy/vim-signature'
 Plug 'jiangmiao/auto-pairs'
 "Plug 'mxw/vim-jsx'
+
+Plug 'fatih/vim-go'
 
 Plug 'tmux-plugins/vim-tmux'
 
@@ -135,7 +206,7 @@ Plug 'ap/vim-css-color'
 " Plug 'chrisbra/NrrwRgn'
 Plug 'https://github.com/wesQ3/vim-windowswap'
 Plug 'sbdchd/neoformat'
-Plug 'rhysd/conflict-marker.vim'
+Plug 'anowlcalledjosh/conflict-marker.vim', { 'branch': 'diff3' }
 Plug 'elzr/vim-json'
 Plug 'myhere/vim-nodejs-complete'
 Plug 'Shougo/echodoc.vim'
@@ -144,6 +215,8 @@ Plug 'Shougo/echodoc.vim'
 call plug#end()
 
 set title
+
+autocmd BufEnter * let &titlestring = hostname() . "[vim(" . expand("%:t") . ")]"
 
 " Bundle 'Decho'
 
@@ -328,7 +401,7 @@ endif
 syntax on
 set number
 
-setglobal numberwidth=2
+set numberwidth=2
 set laststatus=2
 set undodir=~/.tmp
 
@@ -346,7 +419,7 @@ set tabstop=4
 set smarttab
 
 set autoread
-augroup checktime
+augroup checktime_augroup
     au!
     if !has("gui_running")
         "silent! necessary otherwise throws errors when using command
@@ -360,6 +433,38 @@ augroup checktime
     endif
 augroup END
 
+augroup yank_saving_group
+" autocmd! CursorHold * noautocmd call YankSave()
+" autocmd! CursorHoldI * call YankSave()
+augroup END
+
+let g:yank_save_buffer = ''
+function! YankSave()
+	" yank into pbcopy if @@ has changed.
+	let yanked = substitute(@@, '\n', '\\n', 'g')
+	if g:yank_save_buffer != yanked
+		echom "running YankSave update!"
+		let poscursor=getpos('.')
+		let g:yank_save_buffer = yanked
+		" this converts @@ into a bash single-quoted string by doing two 
+		" transformations, turning single quotes inside @@ into '"'"', which is 
+		" how you insert a single quote into a bash single quoted string, and 
+		" the newlines which show as NULs in the variable into escaped newlines 
+		" which are how to make the newlines work in the bash string. Then pipe 
+		" into pbcopy.
+		silent exec "!echo '" . substitute(escape(substitute(@@, "'", "'\"'\"'", 'g'), '!\#%'), '\n', '\\n', 'g') . "' | pbcopy"
+		call setpos('.', poscursor)
+	endif
+endfun
+" This stuff is cool, but is subject to vim's own ex substitutions, for 
+" a subset of the ones it does, which is reasonably safe even when tested on 
+" this vimrc itself (which is a minefield for this, if there ever was one). 
+" With that being said it is not a perfectly correct operation, because e.g. 
+" something like <afile> will get converted in the pbcopy. So, I am 
+" contemplating switching this approach for writing to a temp file first in 
+" order to make it correct.
+
+
 if &term =~ '256color'
     " Disable Background Color Erase (BCE) so that color schemes
     " work properly when Vim is used inside tmux and GNU screen.
@@ -367,12 +472,19 @@ if &term =~ '256color'
     set t_ut=
 endif
 
+" prevent the damn commandlist from coming up. One day when i prevent the enter 
+" bind from working in this window i can bring it back and actually use it. but 
+" until then...
+" nnoremap q: <Nop>
+" this has a problem though: q now has a delay even when used to stop 
+" a recording. argh.
+
 colorscheme Tomorrow-Night-Eighties
 hi LineNr ctermfg=242
 " overrides the linenr set by above colorscheme.
 
 "set listchars=tab:→\ ,extends:>,precedes:<,trail:·,nbsp:◆
-set listchars=tab:\ \ ,extends:»,precedes:«,trail:·,nbsp:◆
+set listchars=tab:→\ ,extends:»,precedes:«,trail:·,nbsp:◆
 set list
 
 hi NonText ctermbg=235 ctermfg=241
@@ -596,8 +708,8 @@ nnoremap <Down> <C-E>g<Down>
 " to overdo the effect as well.
 " vnoremap <Left> 2zhh
 " vnoremap <Right> 2zll
-nnoremap <Left> 3zhhh
-nnoremap <Right> 3zlll
+nnoremap <Left> 3zhh
+nnoremap <Right> 3zll
 
 " Have to override the shift and ctrl + arrow keys in insert and normal mode, 
 " these do aggravating things by default
@@ -632,10 +744,35 @@ nnoremap <silent> <C-N> :let poscursorjoinlines=getpos('.')<Bar>join<Bar>call se
 " overridden by YCM to move around the completion picker (which is useless)
 
 " accelerated j/k navigation
-noremap <S-J> 5gj
-noremap <S-K> 5gk
+" noremap <S-J> 5gj
+" noremap <S-K> 5gk
 noremap <S-H> 7h
 noremap <S-L> 7l
+
+" override K bind from vim-go using an autocommand because that is the cleanest 
+" way to do this without forking vim-go. BufWritePost is needed because that 
+" will force it back since writing tends to have the plugin reapply the bind.
+
+" similarly and conveniently this 'fixes' the behavior for NERDTree so that 
+" navigation works as my brain expects it to, i.e. same as in a buffer. Except 
+" that with BufEnter this doesnt work on the first open for NERDTree.
+
+" this happens to also defer the bind for all buffer opens, but it shouldnt 
+" matter, really.
+au BufEnter,BufWritePost * noremap <buffer> <silent> K 5gk
+au BufEnter * noremap <buffer> <silent> J 5gj
+
+" and now to provide a new binding for GoDoc using au instead of after/ because 
+" of maintainability
+au FileType go nnoremap <buffer> <silent> <C-d> :GoDoc<CR>
+
+" this is kept here as an example for how to implement a (potentially buggy) 
+" autocommand that works on an event which is also to be dependent on filetype.
+
+" autocmd BufWritePost * if &filetype == "go"
+"     \ | echom "binding"
+"     \ | nnoremap <buffer> <silent> <C-d> :GoDoc<CR>
+"     \ | endif
 
 set wrap
 set textwidth=79 
@@ -869,9 +1006,9 @@ if !has('nvim')
 	set <C-A-S>=
 endif
 
-cnoremap <C-A-S> <C-C>:w !sudo tee > /dev/null %<CR>
-noremap <C-A-S> <ESC>:w !sudo tee > /dev/null %<CR>
-inoremap <C-A-S> <ESC>:w !sudo tee > /dev/null %<CR>
+cnoremap <silent> <C-A-S> <C-C>:w !sudo tee > /dev/null %<CR>:e!<CR>
+noremap <silent> <C-A-S> <ESC>:w !sudo tee > /dev/null %<CR>:e!<CR>
+inoremap <silent> <C-A-S> <ESC>:w !sudo tee > /dev/null %<CR>:e!<CR>
 
 function! MyConfirmQuitAllNoSave()
 	qall
@@ -887,6 +1024,9 @@ inoremap <C-Q> <C-O>:call MyConfirmQuitAllNoSave()<CR>
 " this bit controls search and highlighting by using the Enter key in normal mode
 let g:highlighting = 1
 function! Highlighting()
+	" if &buftype != ""
+	" 	return "<cr>"
+	" endif
 	let l:word = expand('<cword>')
 	if g:highlighting == 1 && @/ =~ '^\\<'.l:word.'\\>$'
 		let g:highlighting = 0
@@ -913,7 +1053,7 @@ EOF
 	endif
 	return ":silent set hlsearch\<CR>"
 endfunction
-nnoremap <silent> <expr> <CR> Highlighting()
+nnoremap <silent> <expr> <CR> &buftype == "" ? Highlighting() : "<cr>"
 
 function! ChompCtrlM(string)
     return substitute(a:string, '$', '', '')
@@ -1005,7 +1145,16 @@ let g:ctrlp_map = '<Leader><c-p>'
 nnoremap <c-p> :FZF<CR>
 
 " opens the current buffer in nerdtree
-nnoremap <Leader>f :NERDTreeFind<CR>
+nnoremap <Leader>f :call SmartNERDTree()<CR>
+
+function! SmartNERDTree()
+	if @% == ""
+		NERDTreeToggle
+	else
+		NERDTreeFind
+	endif
+endfun
+
 
 " I definitely do not use this -- F7 is now YCM sign toggle.
 " nnoremap <F7> :NERDTreeToggle<CR>
@@ -1364,6 +1513,7 @@ function! SetPaste()
 endf
 
 if !has('nvim')
+	set <F34>=comma]
 	set <F33>=p
 	set <F32>=w
 	" keybinding for toggling word-wrap
@@ -2004,7 +2154,7 @@ map <leader>et :tabe %%
 " set spell
 nmap <leader>s :set spell!<CR>
 
-nmap <leader>S :sav %%
+nmap <leader>S :saveas %%
 
 highlight SpellBad ctermbg=NONE ctermfg=NONE cterm=underline guifg=NONE guibg=NONE gui=underline term=NONE
 highlight SpellCap ctermbg=NONE ctermfg=NONE cterm=underline,bold guifg=NONE guibg=NONE gui=underline term=NONE
@@ -2750,6 +2900,12 @@ endfun
 " Example of how to use w:created in an autocmd to initialize a window-local option
 " autocmd WinEnter,BufEnter,BufWritePost,VimResized,InsertLeave * noautocmd call HeightSpread()
 
+function! AdjustStatusSections()
+	echom "implement me"
+endfun
+
+autocmd VimResized * noautocmd call AdjustStatusSections()
+
 " Not sure if this one here is overkill or not, but on terminal resizing it 
 " will be useful to call the routine
 " au BufWinEnter * silent call HeightSpread()
@@ -2758,10 +2914,14 @@ nnoremap <Leader>H :noautocmd call HeightSpread()<CR>
 
 " changing these to not switch window because its too damn slow
 " TODO make this into a function which uses v:count1.
-nnoremap = :vertical res +8<CR>
-nnoremap - :vertical res -8<CR>
-nnoremap + :res +8<CR>:noautocmd call HeightSpread()<CR>
-nnoremap _ :res -8<CR>:noautocmd call HeightSpread()<CR>
+nnoremap = :vertical res +5<CR>
+nnoremap - :vertical res -5<CR>
+nnoremap + :exe "res " . (winheight(0) * 4/3)<CR>:noautocmd call HeightSpread()<CR>
+nnoremap _ :exe "res " . (winheight(0) * 3/4)<CR>:noautocmd call HeightSpread()<CR>
+
+" needed with the ratios above
+set winheight=3
+set winminheight=1
 
 " conceal rule for javascript
 au! FileType javascript setl conceallevel=2 concealcursor=c
@@ -2784,12 +2944,12 @@ hi Conceal ctermbg=238 ctermfg=NONE cterm=NONE guibg=#404040
 
 " spell fix bind (my s, f, c binds are filled up, so I'm using x)
 nnoremap <Leader>x ms[s1z=:let g:correct_index = 1<CR>`s
-inoremap C-x <C-G>u<Esc>ms[s1z=:let g:correct_index = 1<CR>`sa
+inoremap <C-x> <C-G>u<Esc>ms[s1z=:let g:correct_index = 1<CR>`sa
 
 " only works immediately after use of <Leader> x corrected to not the proper 
 " word
 nnoremap <Leader>X :let g:correct_index += 1<CR>u:exec "normal! " . correct_index . "z=`s"<CR>
-inoremap C-X <C-G>u<Esc>:let g:correct_index += 1<CR>u:exec "normal! " . correct_index . "z=`s"<CR>a
+inoremap <C-X> <C-G>u<Esc>:let g:correct_index += 1<CR>u:exec "normal! " . correct_index . "z=`s"<CR>a
 
 nnoremap <Leader>T :ThesaurusQueryReplaceCurrentWord<CR>
 nnoremap <Leader>t :Tagbar<CR>
@@ -2847,9 +3007,6 @@ function! ShowCount()
 endfunction
 set ruler
 nnoremap <Leader>c :let &statusline='%{ShowCount()} %<%f %h%m%r%=%-14.(%l,%c%V%) %P' "THIS WILL BLOW AWAY STATUS LINE FOR SEARCH COUNTING. Ctrl+C to cancel
-
-" paste the global search
-nnoremap <Leader>p :.-1read $HOME/.vim/.search<CR>
 
 " windowswap disable binds, reducing latency on two of my existing binds now, 
 " and allow me to bind just the one thing that i use with it.
@@ -2912,9 +3069,11 @@ let g:fzf_action = {
 command! -bang -nargs=* FLineSearch call fzf#vim#grep("rg --color=always --line-number --column --no-heading --fixed-strings --hidden --ignore-file ".glob("~/.vim/rg.gitignore")." ".shellescape(<q-args>), 1, {'options': '--reverse --prompt "FLineSearch '.shellescape(<q-args>).'> "'})
 
 command! -bang FLines call fzf#vim#grep(
-     \ "rg --color=always --line-number --no-heading --ignore-case --hidden --ignore-file ".glob("~/.vim/rg.gitignore")." -v '^$'",
+     \ "rg --color=always --column --line-number --no-heading --ignore-case --hidden --ignore-file ".glob("~/.vim/rg.gitignore")." -v '^$'",
      \ 1,
      \ {'options': '--reverse --prompt "FLines> "'})
+
+command! -bang Directories call fzf#run(fzf#wrap({'source': 'find * -type d'}))
 
 " sets color style via fzf. kind of insane and seems to screw with the sign 
 " styles :\
@@ -2929,6 +3088,9 @@ nnoremap <silent> <Leader>g :FLines<CR>
 " modifying the search term.
 
 " TODO need to figure out how to munge the search buffer upon use here.
+" This is supposed to work like this: the active find buffer is used. Which is 
+" all fine and good, the problem is that this often has garbage like word end 
+" characters in it which must be cleaned for use in here.
 nnoremap <Leader>G :exec "FLineSearch <c-r>/"<CR>
 
 " does not interfere with main search
@@ -2962,11 +3124,12 @@ au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent exe
 augroup ALEProgress
     autocmd!
 	" TODO FIX/FINISH THIS THING
-    autocmd User ALELintPre hi Statusline guifg=red
-    autocmd User ALELintPost hi Statusline guifg=NONE
+    autocmd User ALELintPre hi Statusline guifg=#434343
+    autocmd User ALELintPost hi Statusline guifg=#262626
 augroup end
 
 let g:ale_list_window_size_max = 5
+let g:ale_list_window_size = 1
 
 autocmd User ALELintPost call s:ale_loclist_limit()
 function! s:ale_loclist_limit()
@@ -2978,11 +3141,15 @@ function! s:ale_loclist_limit()
 endfunction
 
 let g:ale_open_list = 1
-let g:ale_lint_on_text_changed = 'always'
-let g:ale_lint_on_save = 0
+let g:ale_lint_on_text_changed = 'none'
+let g:ale_lint_on_save = 1
 let g:ale_lint_on_enter = 0
 let g:ale_max_signs = 64
 let g:_ale_cpp_options = ' --std=c++11 -O0'
+
+let g:ale_echo_msg_error_str = 'E'
+let g:ale_echo_msg_warning_str = 'W'
+let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
 
 " TODO going to use python to walk the cwd up and slurp .clang_complete files 
 " to populate ale_pattern_options with all the necessary flags, mostly header 
@@ -2997,6 +3164,8 @@ let g:_ale_cpp_options_onboard = g:_ale_cpp_options
 			\ . ' -I /home/slu/onboard-sdk/osdk-core/utility/inc'
 			\ . ' -I /home/slu/onboard-sdk/osdk-core/platform/linux/inc'
 			\ . ' -I /home/slu/onboard-sdk/sample/linux/common'
+			\ . ' -I /home/slu/raspi-software/display'
+			\ . ' -I /home/slu/WiringPi/wiringPi'
 			\ . ' -I /home/slu/pigpio'
 			\
 			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/api/inc'
@@ -3064,7 +3233,7 @@ let g:ale_pattern_options = {
 			\}
 
 if !exists("g:os")
-	if has("win64") || has("win32") || has("win16") || has("windows")
+	if has("win64") || has("win32") || has("win16")
 		let g:os="Windows"
 	else
 		" as a builtin (??), seems to require me to export OSTYPE in shell 
@@ -3116,3 +3285,45 @@ endif
 hi CleverFMark guibg=#cf00af guifg=#eeeeee
 let g:clever_f_mark_cursor_color = 'CleverFMark'
 let g:clever_f_mark_char_color = 'CleverFMark'
+
+" highlights for the bulitin tabline. When using lightline or airline or such, 
+" should not affect anything.
+" These colors are garish and bad for cterm, and since I'm using gui colors for 
+" vim now, i'm not bothering to fix them.
+hi TabLineFill ctermfg=LightGreen ctermbg=DarkGreen guibg=#111111 guifg=#222222
+hi TabLine ctermfg=Blue ctermbg=Yellow guifg=#000000
+hi TabLineSel ctermfg=Red ctermbg=Yellow guifg=#aaaaaa guibg=#222222
+hi Title guifg=#444444
+
+" paste the global search
+nnoremap <Leader>P :.-1read $HOME/.vim/.search<CR>
+
+" dont like this: this slurps entire line instead of what your visual selection 
+" was
+" vnoremap <silent> <Leader>y :w !pbcopy<CR><CR>
+function! YankVisual()
+	" let old_reg = getreg('"')
+	" let old_regtype = getregtype('"')
+	normal! gvy
+	echom "running YankVisual pbcopy"
+	let poscursor=getpos('.')
+	silent exec "!echo '" . substitute(escape(substitute(@@, "'", "'\"'\"'", 'g'), '!\#%'), '\n', '\\n', 'g') . "' | pbcopy"
+	" call setpos('.', poscursor)
+	" normal! gV
+	" call setreg('"', old_reg, old_regtype)
+endfun
+vnoremap <silent> <Leader>y :<C-U>silent! call YankVisual()<CR>:redraw!<CR>
+
+" the leader y works like normal yy (but for my clipboard)
+nnoremap <silent> <Leader>y :.w !pbcopy<CR><CR>
+nnoremap <Leader>p :read !pbpaste<CR>
+
+" do not use read here so that the selected stuff gets slurped.
+vnoremap <Leader>p :!pbpaste<CR>
+
+let g:user_emmet_install_global = 0
+autocmd FileType html,css EmmetInstall | silent echom "enabling ctrl+comma emmet bind" | imap <F34> <C-y>, | nmap <F34> <C-y>,
+
+" This is used to help resolve the temp file cannot be opened issue on long 
+" running linux vim sessions.
+command! Mktmpdir call mkdir(fnamemodify(tempname(),":p:h"),"",0700)

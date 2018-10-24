@@ -17,16 +17,18 @@ env:
 # Window dimensions in character columns and lines
 # Falls back to size specified by window manager if set to 0x0.
 # (changes require restart)
-dimensions:
-  columns: 80
-  lines: 60
+window:
+  dimensions:
+    columns: 80
+    lines: 60
+  decorations: true
 
 # Adds this many blank pixels of padding around the window
 # Units are physical pixels; this is not DPI aware.
 # (change requires restart)
-padding:
-  x: 1
-  y: 1
+  padding:
+    x: 1
+    y: 1
 
 # Display tabs using this many cells (changes require restart)
 tabspaces: 8
@@ -82,15 +84,15 @@ font:
   # Offset is the extra space around each character. offset.y can be thought of
   # as modifying the linespacing, and offset.x as modifying the letter spacing.
   offset:
-    x: 0.0
-    y: 1.0
+    x: 0
+    y: 1
 
   # Glyph offset determines the locations of the glyphs within their cells with
   # the default being at the bottom. Increase the x offset to move the glyph to
   # the right, increase the y offset to move the glyph upward.
   glyph_offset:
-    x: 0.0
-    y: 1.0
+    x: 0
+    y: 1
 
   # OS X only: use thin stroke font rendering. Thin strokes are suitable
   # for retina displays, but for non-retina you probably want this set to
@@ -110,7 +112,7 @@ cursor_style: Block
 colors:
   # Default colors
   primary:
-    background: '0x1d1f21'
+    background: '0x0d0f0e'
     foreground: '0xd6d6d6'
 
   # Colors the cursor will use if `custom_cursor_colors` is true
@@ -120,7 +122,7 @@ colors:
 
   # Normal colors
   normal:
-    black:   '0x1d1f21'
+    black:   '0x282828'
     red:     '0xf78d8c'
     green:   '0xa8d4a9'
     yellow:  '0xffd479'
@@ -131,7 +133,7 @@ colors:
 
   # Bright colors
   bright:
-    black:   '0x666666'
+    black:   '0x444444'
     red:     '0xff3334'
     green:   '0x9ec400'
     yellow:  '0xf0c674'
@@ -184,7 +186,7 @@ background_opacity: 0.93
 # - Paste
 # - PasteSelection
 # - Copy (TODO)
-mouse_bindings:
+# mouse_bindings:
   # - { mouse: Middle, action: PasteSelection }
 
 mouse:
@@ -193,11 +195,20 @@ mouse:
 
 selection:
   semantic_escape_chars: ",│`|:\"' ()[]{}<>"
+  save_to_clipboard: true
 
 hide_cursor_when_typing: true
 
 # Live config reload (changes require restart)
 live_config_reload: true
+
+scrolling:
+  # How many lines of scrollback to keep,
+  # '0' will disable scrolling.
+  history: 100000
+  multiplier: 3
+  faux_multiplier: 3
+  auto_scroll: false
 
 # Shell
 #
@@ -205,7 +216,7 @@ live_config_reload: true
 # Entries in shell.args are passed unmodified as arguments to the shell.
 
 # shell:
-#   program: /bin/zsh
+#   program: /usr/local/bin/zsh
 #   args:
 #    - --login
 shell:
@@ -257,10 +268,12 @@ key_bindings:
   - { key: Insert,   mods: Shift,         action: PasteSelection   }
   - { key: Key0,     mods: Command,       action: ResetFontSize    }
   - { key: Equals,   mods: Command,       action: IncreaseFontSize }
-  - { key: Minus,    mods: Command,       action: DecreaseFontSize }
   - { key: Subtract, mods: Command,       action: DecreaseFontSize }
+  - { key: Minus, mods: Command,       action: DecreaseFontSize }
+  - { key: Subtract,    mods: Control,       chars: "\x1f"            }
   - { key: Comma,    mods: Alt,           chars: "\x1b,"           }
   - { key: Comma,    mods: Command,       chars: "\x1b,"           }
+  - { key: Comma,    mods: Control,       chars: "\x1bcomma]"      }
   - { key: Period,   mods: Alt,           chars: "\x1b."           }
   - { key: Period,   mods: Command,       chars: "\x1b."           }
   - { key: Key1,     mods: Alt,           chars: "\x1b1"           }
@@ -331,8 +344,11 @@ key_bindings:
   - { key: Tab,      mods: Shift,         chars: "\x1b[Z"       }
   - { key: Tab,      mods: Control,       chars: "\x1b[27;5;9~" }
   - { key: Tab,      mods: Control|Shift, chars: "\x1b[27;6;9~" }
-  - { key: Back,     chars: "\x7f"                              }
+  - { key: Back,                          chars: "\x7f"         }
+  - { key: Back,     mods: Shift,         chars: "\x7f"         }
   - { key: Back,     mods: Alt,           chars: "\x1b\x7f"     }
+  - { key: Back,     mods: Control,       chars: "\x1b\x7f"     }
+  - { key: Insert,   mods: Shift,         action: Paste         }
   - { key: Insert,   chars: "\x1b[2~"                           }
   - { key: Delete,   chars: "\x1b[3~"                           }
   - { key: Left,     mods: Command,       chars: "\x1b[1~"      }

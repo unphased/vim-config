@@ -3,11 +3,10 @@ map(function (${1:e}) { return ${2:$1}; })
 endsnippet
 
 snippet ok "Object.keys(object).map" !w
-Object.keys(${VISUAL}${1:obj}).map(${3:k} => {
-    var v = ${2:$1[$3]};
+Object.keys(${1:${VISUAL:obj}}).map(${3:k} => {
+    var v = ${2:$1}[$3]};
     return v;
 });
-
 endsnippet
 
 snippet okr "Object.keys(object).reduce" !w
@@ -15,7 +14,6 @@ Object.keys(${VISUAL}${1:obj}).reduce((a, ${3:b}) => {
     var v = ${2:$1[$3]};
     return v;
 }, ${4:{}});
-
 endsnippet
 
 snippet db "debugger;" !w
@@ -83,19 +81,19 @@ console.log("${VISUAL}$1"${2:, ${VISUAL}$1});
 endsnippet
 
 snippet i "console.info()" !w
-console.info(${1});
+console.info("${VISUAL}$1"${2:, ${VISUAL}$1});
 endsnippet
 
 snippet w "console.warn()" !b
-console.warn(${1});
+console.warn("${VISUAL}$1"${2:, ${VISUAL}$1});
 endsnippet
 
 snippet e "console.error()" !w
-console.error("$1"${2:, $1});
+console.error("${VISUAL}$1"${2:, ${VISUAL}$1});
 endsnippet
 
 snippet a "console.assert()" !w
-console.assert(${1}, ${2:"$1 is falsy"});
+console.assert(${VISUAL}$1, ${2:"${VISUAL}$1 is falsy"});
 endsnippet
 
 snippet b "require(bluebird)" !b
@@ -198,4 +196,8 @@ snippet t "then after a promise" !w
 .then(function(${1:val}) {
 ${2}
 })${3}
+endsnippet
+
+snippet et "error throw" !w
+err => { if (err) { throw err; } }
 endsnippet
