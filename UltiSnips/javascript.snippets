@@ -1,3 +1,7 @@
+snippet et "error throw" !w
+err => { if (err) { throw err; } }
+endsnippet
+
 snippet m "map" !w
 map(function (${1:e}) { return ${2:$1}; })
 endsnippet
@@ -96,10 +100,6 @@ snippet a "console.assert()" !w
 console.assert(${VISUAL}$1, ${2:"${VISUAL}$1 is falsy"});
 endsnippet
 
-snippet b "require(bluebird)" !b
-var Promise = require("bluebird");
-endsnippet
-
 snippet d "document.getElementById()" !w
 document.getElementById('$1')
 endsnippet
@@ -196,8 +196,4 @@ snippet t "then after a promise" !w
 .then(function(${1:val}) {
 ${2}
 })${3}
-endsnippet
-
-snippet et "error throw" !w
-err => { if (err) { throw err; } }
 endsnippet
