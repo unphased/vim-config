@@ -206,7 +206,8 @@ Plug 'ap/vim-css-color'
 " Plug 'chrisbra/NrrwRgn'
 Plug 'https://github.com/wesQ3/vim-windowswap'
 Plug 'sbdchd/neoformat'
-Plug 'anowlcalledjosh/conflict-marker.vim', { 'branch': 'diff3' }
+" Plug 'anowlcalledjosh/conflict-marker.vim', { 'branch': 'diff3' }
+" use unimpaired: ]n [n
 Plug 'elzr/vim-json'
 Plug 'myhere/vim-nodejs-complete'
 Plug 'Shougo/echodoc.vim'
