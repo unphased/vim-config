@@ -204,6 +204,7 @@ Plug 'AndrewRadev/linediff.vim'
 Plug 'AndrewRadev/splitjoin.vim'
 Plug 'AndrewRadev/inline_edit.vim'
 Plug 'AndrewRadev/whitespaste.vim'
+Plug 'sickill/vim-pasta'
 Plug 'ap/vim-css-color'
 " Plug 'Xuyuanp/nerdtree-git-plugin'
 
@@ -254,6 +255,9 @@ nnoremap <Leader>R :silent redraw!<CR>
 let g:whitespaste_before_mapping = ',P'
 let g:whitespaste_after_mapping = ',p'
 
+let g:pasta_paste_before_mapping = ',P'
+let g:pasta_paste_after_mapping = ',p'
+
 let g:neocomplete#enable_at_startup = 1
 let g:neocomplete#min_keyword_length = 3
 let g:neocomplete#enable_fuzzy_completion = 1
@@ -277,6 +281,7 @@ if !has('nvim')
 	set <F23>=[27;5;9~
 	set <F22>=[27;6;9~
 	set <F21>=n
+
 
 	set <F20>=.
 	set <F19>=,
