@@ -195,11 +195,15 @@ Plug 'octol/vim-cpp-enhanced-highlight' " this broke way too often on modern c++
 Plug 'unphased/vim-html-escape' " my master has gdefault detecting tweak
 
 Plug 'rking/ag.vim'
-Plug 'AndrewRadev/sideways.vim'
 Plug 'kana/vim-textobj-user'
 
 Plug 'Ron89/thesaurus_query.vim'
 Plug 'AndrewRadev/switch.vim'
+Plug 'AndrewRadev/sideways.vim'
+Plug 'AndrewRadev/linediff.vim'
+Plug 'AndrewRadev/splitjoin.vim'
+Plug 'AndrewRadev/inline_edit.vim'
+Plug 'AndrewRadev/whitespaste.vim'
 Plug 'ap/vim-css-color'
 " Plug 'Xuyuanp/nerdtree-git-plugin'
 
@@ -246,6 +250,9 @@ autocmd FileType gitcommit set nosmartindent | set formatoptions-=t
 
 " nnoremap <Leader>e :silent !p4 edit %:p<CR>:redraw!<CR>
 nnoremap <Leader>R :silent redraw!<CR>
+
+let g:whitespaste_before_mapping = ',P'
+let g:whitespaste_after_mapping = ',p'
 
 let g:neocomplete#enable_at_startup = 1
 let g:neocomplete#min_keyword_length = 3
