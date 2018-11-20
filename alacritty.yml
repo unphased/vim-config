@@ -21,7 +21,7 @@ window:
   dimensions:
     columns: 80
     lines: 60
-  decorations: true
+  decorations: 'transparent'
 
 # Adds this many blank pixels of padding around the window
 # Units are physical pixels; this is not DPI aware.
@@ -102,12 +102,6 @@ font:
 # Should display the render timer
 render_timer: false
 
-# Use custom cursor colors. If true, display the cursor in the cursor.foreground
-# and cursor.background colors, otherwise invert the colors of the cursor.
-custom_cursor_colors: true
-
-cursor_style: Block
-
 # Colors (Tomorrow Night)
 colors:
   # Default colors
@@ -119,6 +113,7 @@ colors:
   cursor:
     text: '0x0f640f'
     cursor: '0x00ff00'
+    style: 'Block'
 
   # Normal colors
   normal:
@@ -169,7 +164,7 @@ visual_bell:
   duration: 0
 
 # Background opacity
-background_opacity: 0.93
+background_opacity: 0.97
 
 # Mouse bindings
 #
@@ -192,12 +187,11 @@ background_opacity: 0.93
 mouse:
   double_click: { threshold: 300 }
   triple_click: { threshold: 300 }
+  hide_when_typing: true
 
 selection:
   semantic_escape_chars: ",│`|:\"' ()[]{}<>"
   save_to_clipboard: true
-
-hide_cursor_when_typing: true
 
 # Live config reload (changes require restart)
 live_config_reload: true
