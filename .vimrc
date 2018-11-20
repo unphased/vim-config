@@ -114,7 +114,9 @@ let g:lightline.active = {
 			\            [ 'fileformatenc', 'filetype' ] ] }
 let g:lightline.component_function = {
 			\ 'gitbranch': 'fugitive#head',
-			\ 'filesize': 'FileSize'
+			\ 'filesize': 'FileSize',
+			\ 'filetype': 'FileTypeFun',
+			\ 'fileformatenc': 'FileFormatEncFun'
 			\ }
 let g:lightline.component = {
 			\ 'mode': '%{lightline#mode()}',
@@ -129,8 +131,6 @@ let g:lightline.component = {
 			\ 'charvaluehex': '%02B',
 			\ 'fileencoding': '%{&fenc!=#""?&fenc:&enc}',
 			\ 'fileformat': '%{&ff}',
-			\ 'fileformatenc': '%{&fenc!=#""?&fenc:&enc} %{&ff}',
-			\ 'filetype': '%{&ft!=#""?&ft:"no ft"}',
 			\ 'percent': '%2p%%',
 			\ 'percentwin': '%P',
 			\ 'spell': '%{&spell?&spelllang:""}',
@@ -153,6 +153,13 @@ function! FileSize()
   else
     return (bytes / 1048576) . "M"
   endif
+endfunction
+
+function! FileTypeFun()
+	return winwidth(0) > 70 ? (&filetype !=# '' ? &filetype : 'no ft') : ''
+endfunction
+function! FileFormatEncFun()
+	return winwidth(0) > 70 ? &fileformat : ''
 endfunction
 
 Plug 'derekwyatt/vim-fswitch'
@@ -188,11 +195,16 @@ Plug 'octol/vim-cpp-enhanced-highlight' " this broke way too often on modern c++
 Plug 'unphased/vim-html-escape' " my master has gdefault detecting tweak
 
 Plug 'rking/ag.vim'
-Plug 'AndrewRadev/sideways.vim'
 Plug 'kana/vim-textobj-user'
 
 Plug 'Ron89/thesaurus_query.vim'
 Plug 'AndrewRadev/switch.vim'
+Plug 'AndrewRadev/sideways.vim'
+Plug 'AndrewRadev/linediff.vim'
+Plug 'AndrewRadev/splitjoin.vim'
+Plug 'AndrewRadev/inline_edit.vim'
+Plug 'AndrewRadev/whitespaste.vim'
+Plug 'sickill/vim-pasta'
 Plug 'ap/vim-css-color'
 " Plug 'Xuyuanp/nerdtree-git-plugin'
 
@@ -200,6 +212,7 @@ Plug 'ap/vim-css-color'
 Plug 'https://github.com/wesQ3/vim-windowswap'
 Plug 'sbdchd/neoformat'
 " Plug 'anowlcalledjosh/conflict-marker.vim', { 'branch': 'diff3' }
+" use unimpaired: ]n [n
 Plug 'elzr/vim-json'
 Plug 'myhere/vim-nodejs-complete'
 Plug 'Shougo/echodoc.vim'
@@ -239,6 +252,12 @@ autocmd FileType gitcommit set nosmartindent | set formatoptions-=t
 " nnoremap <Leader>e :silent !p4 edit %:p<CR>:redraw!<CR>
 nnoremap <Leader>R :silent redraw!<CR>
 
+let g:whitespaste_before_mapping = ',P'
+let g:whitespaste_after_mapping = ',p'
+
+let g:pasta_paste_before_mapping = ',P'
+let g:pasta_paste_after_mapping = ',p'
+
 let g:neocomplete#enable_at_startup = 1
 let g:neocomplete#min_keyword_length = 3
 let g:neocomplete#enable_fuzzy_completion = 1
@@ -262,6 +281,7 @@ if !has('nvim')
 	set <F23>=[27;5;9~
 	set <F22>=[27;6;9~
 	set <F21>=n
+
 
 	set <F20>=.
 	set <F19>=,
