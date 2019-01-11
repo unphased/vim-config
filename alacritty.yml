@@ -338,6 +338,8 @@ key_bindings:
   - { key: Tab,      mods: Shift,         chars: "\x1b[Z"       }
   - { key: Tab,      mods: Control,       chars: "\x1b[27;5;9~" }
   - { key: Tab,      mods: Control|Shift, chars: "\x1b[27;6;9~" }
+  - { key: Tab,      mods: Alt,           chars: "\x1b[27;5;9~" }
+  - { key: Tab,      mods: Alt|Shift,     chars: "\x1b[27;6;9~" }
   - { key: Back,                          chars: "\x7f"         }
   - { key: Back,     mods: Shift,         chars: "\x7f"         }
   - { key: Back,     mods: Alt,           chars: "\x1b\x7f"     }
