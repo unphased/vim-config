@@ -3162,7 +3162,7 @@ let g:_ale_cpp_options = ' --std=c++11 -O0'
 
 let g:ale_echo_msg_error_str = 'E'
 let g:ale_echo_msg_warning_str = 'W'
-let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
+let g:ale_echo_msg_format = '[%linter%] %s %code% [%severity%]'
 
 " TODO going to use python to walk the cwd up and slurp .clang_complete files 
 " to populate ale_pattern_options with all the necessary flags, mostly header 
