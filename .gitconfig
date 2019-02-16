@@ -20,7 +20,7 @@
 
 	commit-push = "!f() { git commit-message \"$*\" && git push; };f"
 	commit-message = "!f() { [ -z \"$*\" ] && git commit -am \"- old bugs fixed\n- new bugs added\" || git commit -am \"$*\"; };f"
-	alias = "!f() { git config --get-regexp ^alias\\. | sed -e s/^alias\\.// -e s/\\ /\\ =\\ /; };f"
+	alias = "!f() { git config --get-regexp ^alias\\. | sed -e s/^alias\\.// -e s/\\ /\\ =\\ / | grep $1; };f"
 [difftool]
 	prompt = false
 [diff]
