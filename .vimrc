@@ -3190,7 +3190,11 @@ let g:_ale_cpp_options_onboard = g:_ale_cpp_options
 			\ . ' -I /Users/slu/Documents/pigpio'
 
 " let g:ale_linters =	{ 'cpp': ['clang', 'clangtidy', 'g++'] }
-let g:ale_linters =	{ 'cpp': ['clang'] }
+" disable eslint for typescript. it interferes.
+let g:ale_linters =	{
+			\ 'cpp': ['clang'],
+			\ 'typescript': ['tslint', 'tsserver']
+			\}
 
 let g:ale_cpp_gcc_options = g:_ale_cpp_options
 let g:ale_cpp_clang_options = g:_ale_cpp_options
