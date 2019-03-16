@@ -1268,7 +1268,7 @@ let g:ycm_server_keep_logfiles = 1
 " 	endif
 " endfunc
 
-nnoremap <F7> :ALEDetail<CR>
+nnoremap <F7> :Windows<CR>
 " nnoremap <S-F7> :YcmCompleter GoToDefinition<CR>
 
 " This insert mapping is for pasting; it appears that YCM only takes over the
