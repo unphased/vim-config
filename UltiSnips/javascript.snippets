@@ -81,23 +81,23 @@ if (err) return cb(err);
 endsnippet
 
 snippet l "console.log()" !w
-console.log("${VISUAL}$1"${2:, ${VISUAL}$1});
+console.log('${VISUAL}$1'${2:, ${VISUAL}$1});
 endsnippet
 
 snippet i "console.info()" !w
-console.info("${VISUAL}$1"${2:, ${VISUAL}$1});
+console.info('${VISUAL}$1'${2:, ${VISUAL}$1});
 endsnippet
 
 snippet w "console.warn()" !b
-console.warn("${VISUAL}$1"${2:, ${VISUAL}$1});
+console.warn('${VISUAL}$1'${2:, ${VISUAL}$1});
 endsnippet
 
 snippet e "console.error()" !w
-console.error("${VISUAL}$1"${2:, ${VISUAL}$1});
+console.error('${VISUAL}$1'${2:, ${VISUAL}$1});
 endsnippet
 
 snippet a "console.assert()" !w
-console.assert(${VISUAL}$1, ${2:"${VISUAL}$1 is falsy"});
+console.assert(${VISUAL}$1, ${2:'${VISUAL}$1 is falsy'});
 endsnippet
 
 snippet d "document.getElementById()" !w
@@ -130,50 +130,8 @@ ${1}
 }
 endsnippet
 
-snippet bs "Super (Backbone)" !b
-${1:Backbone.Model}.prototype.${2:constructor}.apply(this, arguments);
-endsnippet
-snippet super "Super (Backbone)" !b
-${1:Backbone.Model}.prototype.${2:constructor}.apply(this, arguments);
-endsnippet
-
 snippet exit "process.exit(0);" !b
 process.exit(${1:0});
-endsnippet
-
-snippet jsx "Add JSX comment" !b
-/** @jsx React.DOM */
-endsnippet
-
-snippet react "Create React Component" !b
-/**
- * ${1/(.*)/$1/}
- *
- * @namespace components
- * @class ${1/(.*)/$1/}
- */
-var ${1:Component} = React.createClass({
-    render: function() {
-        return (
-            ${2}
-        );
-    }
-});
-endsnippet
-
-snippet me "Create method with docstring" !b
-/**
- * ${3:TODO}
- *
- * @method ${1/(.*)/$1/}
- */
-${1:method}: function(){
-${2}
-}
-endsnippet
-
-snippet use "use strict" !b
-"use strict";
 endsnippet
 
 snippet re "require(module)" !b
@@ -184,7 +142,6 @@ snippet remove "Remove element from array" !b
 var ${3:i} = ${1:array}.indexOf(${2:value});
 if (${3/(.*)/$1/} > -1) ${1/(.*)/$1/}.splice(${3/(.*)/$1/}, 1);
 endsnippet
-
 
 snippet ** "yuidoc comment" !b
 /**
