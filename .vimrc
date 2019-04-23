@@ -68,6 +68,8 @@ Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-obsession'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-abolish'
+Plug 'rust-lang/rust.vim'
+Plug 'tpope/vim-endwise'
 " Plug 'vim-perl/vim-perl'
 "Bundle 'Raimondi/delimitMate'
 Plug 'mattn/emmet-vim'
@@ -165,7 +167,8 @@ endfunction
 Plug 'derekwyatt/vim-fswitch'
 Plug 'wakatime/vim-wakatime'
 Plug 'kshenoy/vim-signature'
-Plug 'jiangmiao/auto-pairs'
+" Plug 'jiangmiao/auto-pairs'
+Plug 'Raimondi/delimitMate'
 "Plug 'mxw/vim-jsx'
 
 Plug 'fatih/vim-go'
@@ -2459,17 +2462,17 @@ endif
 
 " Override the default which uses m-p which conflicts with my paste mode 
 " binding
-let g:AutoPairsShortcutToggle = '<M-z>'
-let g:AutoPairsShortcutBackInsert = '<M-x>'
-let g:AutoPairsShortcutJump = '<M-a>'
-let g:AutoPairsCenterLine = 0
-let g:AutoPairsOnlyWhitespace = 1
+" let g:AutoPairsShortcutToggle = '<M-z>'
+" let g:AutoPairsShortcutBackInsert = '<M-x>'
+" let g:AutoPairsShortcutJump = '<M-a>'
+" let g:AutoPairsCenterLine = 0
+" let g:AutoPairsOnlyWhitespace = 1
 
-" make html files pair up brackets
-au Filetype html let b:AutoPairs = {'`': '`', '"': '"', '{': '}', '''': '''', '(': ')', '[': ']', '<':'>'}
+" " make html files pair up brackets
+" au Filetype html let b:AutoPairs = {'`': '`', '"': '"', '{': '}', '''': '''', '(': ')', '[': ']', '<':'>'}
 
-let g:AutoPairsMapCR=0
-imap <silent><CR> <CR><Plug>AutoPairsReturn
+" let g:AutoPairsMapCR=0
+" imap <silent><CR> <CR><Plug>AutoPairsReturn
 
 " bind Alt+P in insert mode to paste (for nvim)..
 " this actually conflicts with internal vim binding, see i_CTRL_P, but 
