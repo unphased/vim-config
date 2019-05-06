@@ -102,6 +102,8 @@ font:
 # Should display the render timer
 render_timer: false
 
+custom_cursor_colors: true
+
 # Colors (Tomorrow Night)
 colors:
   # Default colors
