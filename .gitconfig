@@ -1,3 +1,6 @@
+[credential "https://git-codecommit.us-east-1.amazonaws.com/v1/repos/5x5-portal/"]
+	helper = !aws codecommit credential-helper --profile 5x5dev $@
+	UseHttpPath = true
 [user]
 [core]
 	editor = vim
