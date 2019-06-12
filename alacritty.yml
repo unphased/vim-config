@@ -162,11 +162,12 @@ colors:
 # To completely disable the visual bell, set its duration to 0.
 #
 visual_bell:
-  animation: EaseOut
-  duration: 0
+  animation: Linear
+  duration: 200
+  color: '0x303030'
 
 # Background opacity
-background_opacity: 0.97
+background_opacity: 0.92
 
 # Mouse bindings
 #

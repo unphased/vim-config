@@ -1214,7 +1214,8 @@ endif
 " inoremap <End> <C-O>g<End>
 
 " This is for making the alternate backspace delete an entire word.
-" Attempting to focus window to the left in insert mode just wont work.
+" Attempting to focus window to the left in insert mode just wont work. I think 
+" this is for placating putty's binding. But i am not certain.
 inoremap <C-H> <C-W>
 
 " Move current tab into the specified direction.
