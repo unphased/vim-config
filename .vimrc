@@ -98,10 +98,9 @@ if has('python')
 endif
 
 let g:lightline = { }
-let g:lightline.colorscheme = 'powerline'
+let g:lightline.colorscheme = 'wombat'
 let g:lightline.tabline = {
 			\ 'left': [ [ 'tabs' ] ],
-			\ 'right': [ ]
 			\ }
 let g:lightline.tab = {
 			\ 'active': [ 'filename', 'modified' ],
@@ -1964,43 +1963,43 @@ vnoremap <silent> x :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr
 " syntax sync minlines=256 " this was an attempt to speed up syntax on raspi.
 " May not be necessary now that i took out line highlight
 
-let g:airline_skip_empty_sections = 1
-let g:airline#extensions#tabline#enabled = 1
-let g:airline#extensions#tagbar#enabled = 0 " disruptive and also wont work anyway, since i've lazied tagbar
-let g:airline#extensions#tabline#left_sep = ' '
-let g:airline#extensions#tabline#left_alt_sep = ' '
-if !exists('g:airline_symbols')
-  let g:airline_symbols = {}
-endif
-let g:airline_left_sep = ''
-let g:airline_left_alt_sep = ''
-let g:airline_right_sep = ''
-let g:airline_right_alt_sep = ''
-let g:airline_symbols.branch = ''
-let g:airline_symbols.readonly = ''
-let g:airline_symbols.linenr = ''
-let g:airline_theme='bubblegumslu'
+" let g:airline_skip_empty_sections = 1
+" let g:airline#extensions#tabline#enabled = 1
+" let g:airline#extensions#tagbar#enabled = 0 " disruptive and also wont work anyway, since i've lazied tagbar
+" let g:airline#extensions#tabline#left_sep = ' '
+" let g:airline#extensions#tabline#left_alt_sep = ' '
+" if !exists('g:airline_symbols')
+"   let g:airline_symbols = {}
+" endif
+" let g:airline_left_sep = ''
+" let g:airline_left_alt_sep = ''
+" let g:airline_right_sep = ''
+" let g:airline_right_alt_sep = ''
+" let g:airline_symbols.branch = ''
+" let g:airline_symbols.readonly = ''
+" let g:airline_symbols.linenr = ''
+" let g:airline_theme='bubblegumslu'
 
-let g:airline#extensions#hunks#non_zero_only = 1
-let g:airline#extensions#whitespace#mixed_indent_algo = 1
-let g:airline#extensions#hunks#hunk_symbols = ['+', '~', '-']
-let g:airline#extensions#tagbar#enabled = 1 " not sure if does anything
-let g:airline#extensions#tagbar#flags = 'f' " not sure if does anything
+" let g:airline#extensions#hunks#non_zero_only = 1
+" let g:airline#extensions#whitespace#mixed_indent_algo = 1
+" let g:airline#extensions#hunks#hunk_symbols = ['+', '~', '-']
+" let g:airline#extensions#tagbar#enabled = 1 " not sure if does anything
+" let g:airline#extensions#tagbar#flags = 'f' " not sure if does anything
 
-" Honestly I spend way too much time cleaning up trailing spaces which has as 
-" yet never had any solid reason. There are legitimate uses of trailing spaces 
-" in e.g. markdown.
-let g:airline#extensions#whitespace#checks = [ 'indent' ]
+" " Honestly I spend way too much time cleaning up trailing spaces which has as 
+" " yet never had any solid reason. There are legitimate uses of trailing spaces 
+" " in e.g. markdown.
+" let g:airline#extensions#whitespace#checks = [ 'indent' ]
 
-let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
-let g:airline#extensions#branch#displayed_head_limit = 15
-let g:airline#extensions#default#section_truncate_width = {
-  \ 'b': 120,
-  \ 'x': 45,
-  \ 'y': 115,
-  \ 'z': 120,
-  \ 'warning': 30,
-  \ }
+" let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
+" let g:airline#extensions#branch#displayed_head_limit = 15
+" let g:airline#extensions#default#section_truncate_width = {
+"   \ 'b': 120,
+"   \ 'x': 45,
+"   \ 'y': 115,
+"   \ 'z': 120,
+"   \ 'warning': 30,
+"   \ }
 
 " Highlight words to avoid in tech writing
 " =======================================
