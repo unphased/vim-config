@@ -98,10 +98,13 @@ if has('python')
 endif
 
 let g:lightline = { }
-let g:lightline.colorscheme = 'wombat'
-let g:lightline.tabline = {
-			\ 'left': [ [ 'tabs' ] ],
+let g:lightline.colorscheme = 'powerline'
+let g:lightline.enable = {
+			\   'tabline': 0
 			\ }
+" let g:lightline.tabline = {
+" 			\ 'left': [ [ 'tabs' ] ],
+" 			\ }
 let g:lightline.tab = {
 			\ 'active': [ 'filename', 'modified' ],
 			\ 'inactive': [ 'filename', 'modified' ]
