@@ -8,15 +8,15 @@ endsnippet
 
 snippet ok "Object.keys(object).map" !w
 Object.keys(${1:${VISUAL:obj}}).map(${3:k} => {
-    var v = ${2:$1}[$3];
-    return v;
+	var v = ${2:$1}[$3];
+	return v;
 });
 endsnippet
 
 snippet okr "Object.keys(object).reduce" !w
 Object.keys(${VISUAL}${1:obj}).reduce((a, ${3:b}) => {
-    var v = ${2:$1[$3]};
-    return v;
+	var v = ${2:$1[$3]};
+	return v;
 }, ${4:{}});
 endsnippet
 
@@ -26,7 +26,7 @@ endsnippet
 
 snippet f "Basic function" !w
 function ${VISUAL}$1(${2}) {
-    ${3}
+	${3}
 }
 endsnippet
 
@@ -42,19 +42,15 @@ snippet s "var self" !w
 var self = this;
 endsnippet
 
-snippet bp "break point" !w
-debugger;
-endsnippet
-
 snippet f, "Basic (anon) function with comma" !w
 function ${3}(${1}) {
-    ${2}
+	${2}
 },
 endsnippet
 
 snippet f; "Basic (anon) function with semicolon" !w
 function ${3}(${1}) {
-    ${2}
+	${2}
 };
 endsnippet
 
@@ -72,7 +68,7 @@ endsnippet
 
 snippet iferr "if error" !b
 if (err) {
-    ${1}
+	${1}
 }
 endsnippet
 
