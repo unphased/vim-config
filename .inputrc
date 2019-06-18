@@ -37,3 +37,7 @@ set output-meta on
 
 set show-all-if-ambiguous on
 set completion-ignore-case on
+
+$if Bash
+     Space: magic-space
+$endif
