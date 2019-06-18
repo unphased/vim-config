@@ -9,6 +9,7 @@ export HISTCONTROL=ignoredups
 # append history entries.. 
 shopt -s histappend
 shopt -s lithist
+shopt -s histverify
 
 export PATH=$HOME/util:$PATH
 export PATH=$HOME/Documents/personal-utility/scripts:$PATH
