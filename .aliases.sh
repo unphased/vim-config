@@ -79,9 +79,9 @@ alias d="gde"
 
 # alias iack="ack -i"
 
-if [ "$(uname)" != "MSYS_NT-10.0" ]; then
-	alias vim="TERM=xterm-256color-italic vim"
-fi
+# if [ "$(uname)" != "MSYS_NT-10.0" ]; then
+# 	alias vim="TERM=xterm-256color-italic vim"
+# fi
 
 alias c="cd"
 
