@@ -68,6 +68,7 @@ Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-obsession'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-abolish'
+Plug 'tpope/vim-afterimage'
 Plug 'rust-lang/rust.vim'
 " Plug 'tpope/vim-endwise'
 " Plug 'vim-perl/vim-perl'
@@ -186,7 +187,6 @@ Plug 'vim-scripts/EnhancedJumps'
 
 Plug 't9md/vim-textmanip', { 'on': [ '<Plug>(textmanip-move-down)', '<Plug>(textmanip-move-up)', '<Plug>(textmanip-move-left)', '<Plug>(textmanip-move-right)', '<Plug>(textmanip-toggle-mode)', '<Plug>(textmanip-toggle-mode)', ] }
 
-Plug 'tpope/vim-afterimage'
 Plug 'junegunn/vim-easy-align'
 Plug 'blueyed/argtextobj.vim'
 
