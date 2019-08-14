@@ -91,6 +91,26 @@ Plug 'honza/vim-snippets'
 " Plug 'vim-airline/vim-airline-themes'
 Plug 'itchyny/lightline.vim'
 
+" Plug 'prettier/vim-prettier', {
+"   \ 'do': 'npm install',
+"   \ 'branch': 'release/1.x',
+"   \ 'for': [
+"     \ 'javascript',
+"     \ 'typescript',
+"     \ 'css',
+"     \ 'less',
+"     \ 'scss',
+"     \ 'json',
+"     \ 'graphql',
+"     \ 'markdown',
+"     \ 'vue',
+"     \ 'lua',
+"     \ 'php',
+"     \ 'python',
+"     \ 'ruby',
+"     \ 'html',
+"     \ 'swift' ] }
+
 " python integration seems to not work without this sometimes, i found this 
 " when i was compiling vim myself on ubuntu 18.04
 if has('python')
@@ -209,7 +229,7 @@ Plug 'AndrewRadev/sideways.vim'
 Plug 'AndrewRadev/linediff.vim'
 Plug 'AndrewRadev/splitjoin.vim'
 Plug 'AndrewRadev/inline_edit.vim'
-Plug 'AndrewRadev/whitespaste.vim'
+" Plug 'AndrewRadev/whitespaste.vim'
 Plug 'sickill/vim-pasta'
 Plug 'ap/vim-css-color'
 " Plug 'Xuyuanp/nerdtree-git-plugin'
@@ -227,6 +247,10 @@ Plug 'Shougo/echodoc.vim'
 call plug#end()
 
 set title
+
+" To use echodoc, you must increase 'cmdheight' value.
+" set cmdheight=2
+" let g:echodoc_enable_at_startup = 1
 
 autocmd BufEnter * let &titlestring = hostname() . "[vim(" . expand("%:t") . ")]"
 
@@ -1021,7 +1045,7 @@ cmap w!! w !sudo tee > /dev/null %
 
 " bind CTRL-ALT-S for saving as root (run sudo tee)
 " SHIFT-CTRL is not possible on terminals (same as CTRL-S)
-if !has('nvim')
+if !has('nvim') " regular vim doesn't understand c-a-s for whatever reason
 	set <C-A-S>=
 endif
 
