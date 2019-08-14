@@ -25,6 +25,7 @@ alias l="ls"
 alias sl="ls"
 alias ll="l -l"
 alias la="ll -a"
+alias ssht="TERM=xterm ssh"
 alias g="git"
 alias gs="git s" # short status 
 alias gco="git checkout"
