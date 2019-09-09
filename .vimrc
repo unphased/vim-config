@@ -195,7 +195,7 @@ Plug 'jiangmiao/auto-pairs'
 "Plug 'rstacruz/vim-closer'
 " Plug 'cohama/lexima.vim'
 
-Plug 'fatih/vim-go'
+" Plug 'fatih/vim-go'
 
 Plug 'tmux-plugins/vim-tmux'
 
