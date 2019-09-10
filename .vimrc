@@ -1317,7 +1317,7 @@ highlight Error term=reverse ctermfg=8 ctermbg=9
 " set t_ZR=[23m
 
 " only on an italic term do we set comment to use italic cterm highlight
-if &term == 'xterm-256color-italic' || &term == 'nvim'
+if &term == 'xterm-256color-italic' || &term == 'nvim' || &term == 'tmux-256color-italic'
 	hi Comment cterm=italic
 endif
 
