@@ -21,6 +21,10 @@ if [ "$(uname)" = Linux ] && ! [[ "$PATH" = *"/linux_pb"* ]]; then
 	PATH="$PATH:$HOME/util/linux_pb"
 fi
 
+if [ "$(uname)" = Linux ] && lsb_release -i | grep Ubuntu; then
+	alias open="xdg-open"
+fi
+
 alias l="ls"
 alias sl="ls"
 alias ll="l -l"
@@ -55,7 +59,7 @@ unalias gcp # I rarely cherry pick (if not using ohmyzsh, this will cause bash t
 alias gc="git commit -v"
 
 alias gp="git push"
-alias k='l' # this is a bit tongue in cheek
+alias k="l" # this is a bit tongue in cheek
 
 alias gl="git pull"
 
