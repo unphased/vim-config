@@ -109,7 +109,7 @@ font:
 colors:
   # Default colors
   primary:
-    background: '0x131812'
+    background: '0x101310'
     foreground: '0xd6d6d6'
 
   # Colors the cursor will use if `custom_cursor_colors` is true
@@ -426,6 +426,7 @@ key_bindings:
   - { key: F10,      mods: Alt,     chars: "\x1b[21;6~"                  }
   - { key: F11,      mods: Alt,     chars: "\x1b[23;6~"                  }
   - { key: F12,      mods: Alt,     chars: "\x1b[24;6~"                  }
+  - { key: F10,      mods: Alt|Shift,     chars: "\x1b[21;7~"                  }
   - { key: F1,       mods: Super,   chars: "\x1b[1;3P"                   }
   - { key: F2,       mods: Super,   chars: "\x1b[1;3Q"                   }
   - { key: F3,       mods: Super,   chars: "\x1b[1;3R"                   }
