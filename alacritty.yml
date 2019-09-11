@@ -263,7 +263,6 @@ key_bindings:
   - { key: Grave,    mods: Shift|Command, command: { program: "/Users/slu/util/macos-open-next-program.sh", args: ["alacritty", "prev"] } }
   - { key: V,        mods: Command,       action: Paste            }
   - { key: C,        mods: Command,       action: Copy             }
-  - { key: Insert,   mods: Shift,         action: PasteSelection   }
   - { key: Key0,     mods: Command,       action: ResetFontSize    }
   - { key: Equals,   mods: Command,       action: IncreaseFontSize }
   - { key: Subtract, mods: Command,       action: DecreaseFontSize }
