@@ -25,7 +25,7 @@ Plug 'SirVer/ultisnips', { 'on': [] }
 Plug 'Shougo/neocomplete.vim'
 Plug 'w0rp/ale'
 Plug 'majutsushi/tagbar', { 'on': ['Tagbar'] }
-Plug 'Rip-Rip/clang_complete'
+" Plug 'xavierd/clang_complete'
 
 let s:LoadExpensivePluginsHasBeenRun = 0
 function! LoadExpensive()
