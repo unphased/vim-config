@@ -3269,7 +3269,7 @@ endif
 let g:clang_library_path=glob('/usr/local/lib/libclang.so')
 if (!strlen(g:clang_library_path))
 	" this is for ubuntu
-	let g:clang_library_path=glob('/usr/lib/llvm-*/lib/libclang.so*')
+	let g:clang_library_path=glob('/usr/lib/llvm-*/lib/libclang.so')
 	if (!strlen(g:clang_library_path))
 		" echom 'no clang found in /usr/lib/llvm-*, attempting /Library/Developer/...'
 		" this is for macOS

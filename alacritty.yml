@@ -185,8 +185,8 @@ background_opacity: 0.92
 # - Paste
 # - PasteSelection
 # - Copy (TODO)
-# mouse_bindings:
-  # - { mouse: Middle, action: PasteSelection }
+mouse_bindings:
+  - { mouse: Middle, action: PasteSelection }
 
 mouse:
   double_click: { threshold: 300 }
