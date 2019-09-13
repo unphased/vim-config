@@ -15,10 +15,14 @@ alias ls 2>/dev/null >/dev/null || alias ls="ls --color=always"
 # stub pbcopy and pbpaste for linux, for getting a little closer to copypaste 
 # holy grail for my usual envs. Still not gonna have direct vim clipboard 
 # compatibility (that's vim-specific, and can interact with this), but it def 
-# makes life easier in the shell. Should also not conflict with real clipboard 
-# if in a linux with a clipboard... that is still TODO though.
-if [ "$(uname)" = Linux ] && ! [[ "$PATH" = *"/linux_pb"* ]]; then
-	PATH="$PATH:$HOME/util/linux_pb"
+# makes life easier in the shell.
+if [ "$(uname)" = Linux ] && ! [[ "$PATH" = *"/linux_pb"* ]] && ! xset q &>/dev/null; then
+	# This ensures that these fallback filesystem clipboard programs become 
+	# available for vim to use if X is not running, regardless of whether 
+	# X exists on the system. In particular we insert linux_pb earlier in the 
+	# path than /usr/local/bin should be, and the environment will control 
+	# which program is pulled on a system.
+	PATH="$HOME/util/linux_pb:$PATH"
 fi
 
 if [ "$(uname)" = Linux ] && lsb_release -i | grep Ubuntu; then
