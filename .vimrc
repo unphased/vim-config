@@ -57,6 +57,7 @@ Plug 'rhysd/clever-f.vim'
 
 Plug 'editorconfig/editorconfig-vim'
 
+Plug 'rhysd/git-messenger.vim'
 Plug 'leafgarland/typescript-vim'
 Plug 'scrooloose/nerdtree', { 'on': ['NERDTreeFind', 'NERDTreeToggle'] }
 Plug 'ctrlpvim/ctrlp.vim'
@@ -3379,3 +3380,5 @@ autocmd FileType html,css EmmetInstall | silent echom "enabling ctrl+comma emmet
 " This is used to help resolve the temp file cannot be opened issue on long 
 " running linux vim sessions.
 command! Mktmpdir call mkdir(fnamemodify(tempname(),":p:h"),"",0700)
+
+let g:git_messenger_include_diff = "current"
