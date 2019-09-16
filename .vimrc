@@ -1693,20 +1693,31 @@ nmap Y y$
 
 " vmap <expr> y YankOverloadVisual('y')
 
-" set the numpad key codes -- Mark helpfully already implements the stuff that
-" calls <k0>, etc
-if !has('nvim')
-	set <k0>=Op
-	set <k1>=Oq
-	set <k2>=Or
-	set <k3>=Os
-	set <k4>=Ot
-	set <k5>=Ou
-	set <k6>=Ov
-	set <k7>=Ow
-	set <k8>=Ox
-	set <k9>=Oy
-endif
+" " set the numpad key codes -- Mark helpfully already implements the stuff that
+" " calls <k0>, etc
+" if !has('nvim')
+" 	set <k0>=Op
+" 	set <k1>=Oq
+" 	set <k2>=Or
+" 	set <k3>=Os
+" 	set <k4>=Ot
+" 	set <k5>=Ou
+" 	set <k6>=Ov
+" 	set <k7>=Ow
+" 	set <k8>=Ox
+" 	set <k9>=Oy
+" endif
+
+set <k0>=0
+set <k1>=1
+set <k2>=2
+set <k3>=3
+set <k4>=4
+set <k5>=5
+set <k6>=6
+set <k7>=7
+set <k8>=8
+set <k9>=9
 
 " make recordings easier to fire off, binding alt+comma to @q (use qq to record 
 " to q register)

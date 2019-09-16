@@ -283,6 +283,16 @@ key_bindings:
   - { key: Key8,     mods: Alt,           chars: "\x1b8"           }
   - { key: Key9,     mods: Alt,           chars: "\x1b9"           }
   - { key: Key0,     mods: Alt,           chars: "\x1b0"           }
+  - { key: Numpad1,                       chars: "\x1b1"           }
+  - { key: Numpad2,                       chars: "\x1b2"           }
+  - { key: Numpad3,                       chars: "\x1b3"           }
+  - { key: Numpad4,                       chars: "\x1b4"           }
+  - { key: Numpad5,                       chars: "\x1b5"           }
+  - { key: Numpad6,                       chars: "\x1b6"           }
+  - { key: Numpad7,                       chars: "\x1b7"           }
+  - { key: Numpad8,                       chars: "\x1b8"           }
+  - { key: Numpad9,                       chars: "\x1b9"           }
+  - { key: Numpad0,                       chars: "\x1b0"           }
   - { key: P,        mods: Command,       chars: "\x1bp"           }
   - { key: P,        mods: Alt,           chars: "\x1bp"           }
   - { key: B,        mods: Command,       chars: "\x1bb"           }
