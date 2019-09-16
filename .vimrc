@@ -283,9 +283,6 @@ autocmd FileType gitcommit set nosmartindent | set formatoptions-=t
 " nnoremap <Leader>e :silent !p4 edit %:p<CR>:redraw!<CR>
 nnoremap <Leader>R :silent redraw!<CR>
 
-let g:pasta_paste_before_mapping = ',P'
-let g:pasta_paste_after_mapping = ',p'
-
 let g:neocomplete#enable_at_startup = 1
 let g:neocomplete#min_keyword_length = 3
 let g:neocomplete#enable_fuzzy_completion = 1
