@@ -1642,17 +1642,21 @@ if has('nvim')
 	nnoremap <m-k> :wincmd K<CR>
 	nnoremap <m-l> :wincmd L<CR>
 else
-	set <F30>=h
-	set <F29>=j
-	set <F28>=k
-	set <F27>=l
+	" set <F30>=h
+	" set <F29>=j
+	set <m-h>=h
+	set <m-j>=j
+	set <m-k>=k
+	set <m-l>=l
+	" set <F28>=k
+	" set <F27>=l
 
 	" These binds are for quick rearrangement of windows, very awesome function
 	" that sadly I'll need to do hacking to get the same on tmux
-	nnoremap <F30> :wincmd H<CR>
-	nnoremap <F29> :wincmd J<CR>
-	nnoremap <F28> :wincmd K<CR>
-	nnoremap <F27> :wincmd L<CR>
+	nnoremap <m-h> :wincmd H<CR>
+	nnoremap <m-j> :wincmd J<CR>
+	nnoremap <m-k> :wincmd K<CR>
+	nnoremap <m-l> :wincmd L<CR>
 endif
 
 " This is a new thing that I realized I could implement with vimscript -- it 
@@ -3422,3 +3426,17 @@ let g:git_messenger_include_diff = "current"
 
 " for JSONC (JSON with comments) format
 autocmd FileType json syntax match Comment +\/\/.\+$+
+
+nmap <PageUp> :echo 'pgup'<CR>
+nmap <PageDown> :echo 'pgdn'<CR>
+if !has('nvim')
+	set <F27>=[5;5~
+	nmap <F27> :echo 'c-pgup'<CR>
+	set <F28>=[6;5~
+	nmap <F28> :echo 'c-pgdn'<CR>
+else
+	nmap <C-PageUp> :echo 'c-pgup'<CR>
+	nmap <C-PageDown> :echo 'c-pgdn'<CR>
+	nmap <S-PageUp> :echo 's-pgup'<CR>
+	nmap <S-PageDown> :echo 's-pgdn'<CR>
+endif
