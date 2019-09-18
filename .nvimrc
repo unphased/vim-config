@@ -10,6 +10,3 @@ set rtp+=~/.vim/after/
 source ~/.vimrc
 
 " Put neovim specific adjustments here
-noremap <F22> <ESC>
-noremap! <F22> <ESC>
-nnoremap <F22> :call F10OverloadedFunctionalityCheckTmux('-')<CR>
