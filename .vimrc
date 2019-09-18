@@ -190,7 +190,7 @@ function! FileFormatEncFun()
 endfunction
 
 " Plug 'derekwyatt/vim-fswitch'
-Plug 'wakatime/vim-wakatime'
+" Plug 'wakatime/vim-wakatime'
 Plug 'kshenoy/vim-signature'
 Plug 'jiangmiao/auto-pairs'
 " Plug 'Raimondi/delimitMate'
@@ -3419,3 +3419,6 @@ autocmd FileType html,css EmmetInstall | silent echom "enabling ctrl+comma emmet
 command! Mktmpdir call mkdir(fnamemodify(tempname(),":p:h"),"",0700)
 
 let g:git_messenger_include_diff = "current"
+
+" for JSONC (JSON with comments) format
+autocmd FileType json syntax match Comment +\/\/.\+$+
