@@ -3296,7 +3296,7 @@ let g:_ale_cpp_options_onboard = g:_ale_cpp_options
 " let g:ale_linters =	{ 'cpp': ['clang', 'clangtidy', 'g++'] }
 " disable eslint for typescript. it interferes.
 let g:ale_linters =	{
-			\ 'cpp': ['clang'],
+			\ 'cpp': ['c++'],
 			\ 'typescript': ['tslint', 'tsserver']
 			\}
 
@@ -3309,57 +3309,57 @@ let g:ale_cpp_clangtidy_checks = ['*', '-cppcoreguidelines-pro-bounds-pointer-ar
 let g:_ale_cpp_options_jibo = g:_ale_cpp_options
 
 let g:ale_pattern_options = {
-			\	'.*/lps-service/web/js/lps\.js$': {'ale_enabled': 0},
-			\   'jibo/': {
-			\   	'ale_cpp_gcc_options': g:_ale_cpp_options_jibo,
-			\   	'ale_cpp_clang_options': g:_ale_cpp_options_jibo,
-			\   	'ale_cpp_clangtidy_options': g:_ale_cpp_options_jibo
-			\   },
-			\	'onboard-sdk/': {
-			\   	'ale_cpp_gcc_options': g:_ale_cpp_options_onboard,
-			\   	'ale_cpp_clang_options': g:_ale_cpp_options_onboard,
-			\   	'ale_cpp_clangtidy_options': g:_ale_cpp_options_onboard
-			\	}
 			\}
+" \	'.*/lps-service/web/js/lps\.js$': {'ale_enabled': 0},
+" \   'jibo/': {
+" \   	'ale_cpp_gcc_options': g:_ale_cpp_options_jibo,
+" \   	'ale_cpp_clang_options': g:_ale_cpp_options_jibo,
+" \   	'ale_cpp_clangtidy_options': g:_ale_cpp_options_jibo
+" \   },
+" \	'onboard-sdk/': {
+" \   	'ale_cpp_gcc_options': g:_ale_cpp_options_onboard,
+" \   	'ale_cpp_clang_options': g:_ale_cpp_options_onboard,
+" \   	'ale_cpp_clangtidy_options': g:_ale_cpp_options_onboard
+" \	}
 
-if !exists("g:os")
-	if has("win64") || has("win32") || has("win16")
-		let g:os="Windows"
-	else
-		" as a builtin (??), seems to require me to export OSTYPE in shell 
-		" config.
-		let g:os=$OSTYPE
-	endif
-endif
+" if !exists("g:os")
+" 	if has("win64") || has("win32") || has("win16")
+" 		let g:os="Windows"
+" 	else
+" 		" as a builtin (??), seems to require me to export OSTYPE in shell 
+" 		" config.
+" 		let g:os=$OSTYPE
+" 	endif
+" endif
 
 " this is for centos
-let g:clang_library_path=glob('/usr/local/lib/libclang.so')
-if (!strlen(g:clang_library_path))
-	" this is for ubuntu
-	let g:clang_library_path=glob('/usr/lib/llvm-*/lib/libclang.so')
-	if (!strlen(g:clang_library_path))
-		" echom 'no clang found in /usr/lib/llvm-*, attempting /Library/Developer/...'
-		" this is for macOS
-		let g:clang_library_path=glob('/Library/Developer/CommandLineTools/usr/lib/libclang.dylib')
-		if (!strlen(g:clang_library_path))
-			let g:clang_library_path=glob('/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libclang.dylib')
-			if (!strlen(g:clang_library_path))
-				let g:clang_library_path=glob('/Applications/Xcode.app/Contents/Frameworks/libclang.dylib')
-				if (!strlen(g:clang_library_path) && g:os != 'linux-gnueabihf' && g:os != 'Windows' && g:os != 'msys')
-					" do not surface this error on ARM linux systems such as raspi
-					echom "clang still couldn't be found. hmm!"
-				endif
-			endif
-		endif
-	endif
-endif
+" let g:clang_library_path=glob('/usr/local/lib/libclang.so')
+" if (!strlen(g:clang_library_path))
+" 	" this is for ubuntu
+" 	let g:clang_library_path=glob('/usr/lib/llvm-*/lib/libclang.so')
+" 	if (!strlen(g:clang_library_path))
+" 		" echom 'no clang found in /usr/lib/llvm-*, attempting /Library/Developer/...'
+" 		" this is for macOS
+" 		let g:clang_library_path=glob('/Library/Developer/CommandLineTools/usr/lib/libclang.dylib')
+" 		if (!strlen(g:clang_library_path))
+" 			let g:clang_library_path=glob('/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libclang.dylib')
+" 			if (!strlen(g:clang_library_path))
+" 				let g:clang_library_path=glob('/Applications/Xcode.app/Contents/Frameworks/libclang.dylib')
+" 				if (!strlen(g:clang_library_path) && g:os != 'linux-gnueabihf' && g:os != 'Windows' && g:os != 'msys')
+" 					" do not surface this error on ARM linux systems such as raspi
+" 					echom "clang still couldn't be found. hmm!"
+" 				endif
+" 			endif
+" 		endif
+" 	endif
+" endif
 
 " write some dates fast, from 
 " http://blog.erw.dk/2016/04/19/entering-dates-and-times-in-vim/
-noremap! <expr> <c-d>t strftime("%H:%M")
-noremap! <expr> <c-d>T strftime("%H:%M:%S")
-noremap! <expr> <c-d>d strftime("%Y-%m-%d")
-noremap! <expr> <c-d>l strftime("%Y-%m-%d %H:%M")
+inoremap <expr> <c-d>t strftime("%H:%M")
+inoremap <expr> <c-d>T strftime("%H:%M:%S")
+inoremap <expr> <c-d>d strftime("%Y-%m-%d")
+inoremap <expr> <c-d>l strftime("%Y-%m-%d %H:%M")
 
 " for cursor fanciness
 if exists('$TMUX')
