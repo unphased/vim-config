@@ -165,7 +165,7 @@ colors:
 visual_bell:
   animation: Linear
   duration: 150
-  color: '0x303030'
+  color: '0x101010'
 
 # Background opacity
 background_opacity: 0.92
