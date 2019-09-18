@@ -17,12 +17,14 @@ let g:csv_hiGroup = 'CursorColumn'
 let g:csv_highlight_column = 'y'
 
 Plug 'jreybert/vimagit'
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
+" Plug 'jackguo380/vim-lsp-cxx-highlight'
 
 " Load on nothing
-Plug 'SirVer/ultisnips', { 'on': [] }
+" Plug 'SirVer/ultisnips', { 'on': [] }
 " Plug 'Valloric/YouCompleteMe', { 'on': [] }
 " Plug 'scrooloose/syntastic', { 'on': [] }
-Plug 'Shougo/neocomplete.vim'
+" Plug 'Shougo/neocomplete.vim'
 Plug 'w0rp/ale'
 Plug 'majutsushi/tagbar', { 'on': ['Tagbar'] }
 " Plug 'xavierd/clang_complete'
@@ -187,7 +189,7 @@ function! FileFormatEncFun()
 	return winwidth(0) > 70 ? &fileformat : ''
 endfunction
 
-Plug 'derekwyatt/vim-fswitch'
+" Plug 'derekwyatt/vim-fswitch'
 Plug 'wakatime/vim-wakatime'
 Plug 'kshenoy/vim-signature'
 Plug 'jiangmiao/auto-pairs'
@@ -211,7 +213,7 @@ Plug 't9md/vim-textmanip', { 'on': [ '<Plug>(textmanip-move-down)', '<Plug>(text
 Plug 'junegunn/vim-easy-align'
 Plug 'blueyed/argtextobj.vim'
 
-Plug 'octol/vim-cpp-enhanced-highlight' " this broke way too often on modern c++ files. Really problematic angle bracket handling. Trying it again.
+" Plug 'octol/vim-cpp-enhanced-highlight' " this broke way too often on modern c++ files. Really problematic angle bracket handling. Trying it again.
 
 " Plug 'unphased/Cpp11-Syntax-Support'
 " apparently a somewhat-working extension from base cpp stuff. At least it isnt
@@ -295,8 +297,8 @@ let g:neocomplete#keyword_patterns['javascript'] = '[@#.]\?[[:alpha:]_:-][[:alnu
 " this is unsafe (syntax errors and bad line wrapping)
 
 " neocomplete: bind tab for similar behavior to YCM
-inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
-inoremap <expr><S-TAB>  pumvisible() ? "\<C-p>" : "\<S-TAB>"
+" inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
+" inoremap <expr><S-TAB>  pumvisible() ? "\<C-p>" : "\<S-TAB>"
 
 " These are apparently the defacto terminal codes for Ctrl+Tab and Ctrl+Shift+Tab
 " but Vim has no knowledge of it. so here i am adding it to the fastkey 
@@ -604,17 +606,54 @@ command! SyntaxDetect :echom "hi<" . synIDattr(synID(line("."),col("."),1),"name
 " noremap! <F5> <C-O>:YcmForceCompileAndDiagnostics<CR>
 " noremap <F5> :YcmForceCompileAndDiagnostics<CR>
 
-" Binding F5 to the fswitch (switching between c/cpp and h/hxx/hpp) -- I like
-" to use this and ctrlp MRU rather than having to type in stuff
-nmap <silent> <F5> :FSSplitBelow<CR>
+" " Binding F5 to the fswitch (switching between c/cpp and h/hxx/hpp) -- I like
+" " to use this and ctrlp MRU rather than having to type in stuff
+" nmap <silent> <F5> :FSSplitBelow<CR>
 
-" additional fswitch definitions are implemented not through any friendly 
-" variables but through defining variables via file autocommands -- i think it's
-" admissible as its fairly straightforward reasoning, at least
-au BufEnter *.cu let b:fswitchdst = 'h'
-au BufEnter *.vsh let b:fswitchdst = 'fsh'
-au BufEnter *.fsh let b:fswitchdst = 'vsh'
-au BufEnter *.mm  let b:fswitchdst = 'h' | let b:fswitchlocs = 'reg:/src/include/,reg:|src|include/**|,ifrel:|/src/|../include|'
+" " additional fswitch definitions are implemented not through any friendly 
+" " variables but through defining variables via file autocommands -- i think it's
+" " admissible as its fairly straightforward reasoning, at least
+" au BufEnter *.cu let b:fswitchdst = 'h'
+" au BufEnter *.vsh let b:fswitchdst = 'fsh'
+" au BufEnter *.fsh let b:fswitchdst = 'vsh'
+" au BufEnter *.mm  let b:fswitchdst = 'h' | let b:fswitchlocs = 'reg:/src/include/,reg:|src|include/**|,ifrel:|/src/|../include|'
+
+let g:lsp_cxx_hl_log_file = '/tmp/vim-lsp-cxx-hl.log'
+let g:lsp_cxx_hl_verbose_log = 1
+
+" for coc.nvim
+inoremap <silent><expr> <TAB>
+      \ pumvisible() ? "\<C-n>" :
+      \ <SID>check_back_space() ? "\<TAB>" :
+      \ coc#refresh()
+inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+
+function! s:check_back_space() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
+endfunction
+
+inoremap <silent><expr> <c-space> coc#refresh()
+nnoremap <c-space> :echo test
+
+" Use <cr> to confirm completion, `<C-g>u` means break undo chain at current position.
+" Coc only does snippet and additional edit on confirm.
+inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
+" Or use `complete_info` if your vim support it, like:
+" inoremap <expr> <cr> complete_info()["selected"] != "-1" ? "\<C-y>" : "\<C-g>u\<CR>"
+
+" Use `[g` and `]g` to navigate diagnostics
+nmap <silent> [g <Plug>(coc-diagnostic-prev)
+nmap <silent> ]g <Plug>(coc-diagnostic-next)
+
+" Remap keys for gotos
+nmap <silent> gd <Plug>(coc-definition)
+nmap <silent> gy <Plug>(coc-type-definition)
+nmap <silent> gi <Plug>(coc-implementation)
+nmap <silent> gr <Plug>(coc-references)
+
+au CursorHold * sil call CocActionAsync('highlight')
+au CursorHoldI * sil call CocActionAsync('showSignatureHelp')
 
 function! InsertEnterActions(mode)
 	"echo 'islc'
@@ -1992,6 +2031,10 @@ vnoremap <silent> x :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr
 " auto enable rainbow on c/cpp files
 " Nope! too slow on preprocessor output
 " au FileType c,cpp,objc,objcpp call rainbow#load()
+
+au FileType c,cpp,objc,objcpp set cmdheight=2
+set updatetime=300
+set shortmess+=c
 
 " syntax sync minlines=256 " this was an attempt to speed up syntax on raspi.
 " May not be necessary now that i took out line highlight
