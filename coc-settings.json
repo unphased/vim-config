@@ -8,6 +8,7 @@
          "cache": {
            "directory": ".ccls-cache"
          },
+         "index": {"initialBlacklist": ["."]},
          "highlight": { "lsRanges": true }
        }
     }
