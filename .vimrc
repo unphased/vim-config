@@ -3437,12 +3437,13 @@ function! YankVisual()
 	normal! gvy
 	echom "running YankVisual pbcopy"
 	let poscursor=getpos('.')
-	silent exec "!echo '" . substitute(escape(substitute(@@, "'", "'\"'\"'", 'g'), '!\#%'), '\n', '\\n', 'g') . "' | pbcopy"
+	echom "execing: !echo '" . substitute(escape(substitute(@@, "'", "'\"'\"'", 'g'), '!\#%'), '\n', '\\n', 'g') . "' | sed 's/\\\\n/\\n/g' | pbcopy"
+	exec "!echo '" . substitute(escape(substitute(@@, "'", "'\"'\"'", 'g'), '!\#%'), '\n', '\\n', 'g') . "' | sed 's/\\\\n/\\n/g' | pbcopy"
 	" call setpos('.', poscursor)
 	" normal! gV
 	" call setreg('"', old_reg, old_regtype)
 endfun
-vnoremap <silent> <Leader>y :<C-U>silent! call YankVisual()<CR>:redraw!<CR>
+vnoremap <Leader>y :<C-U> call YankVisual()<CR>:redraw!<CR>
 
 " the leader y works like normal yy (but for my clipboard)
 nnoremap <silent> <Leader>y :.w !pbcopy<CR><CR>
