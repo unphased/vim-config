@@ -3432,17 +3432,16 @@ nnoremap <Leader>P :.-1read $HOME/.vim/.search<CR>
 " was
 " vnoremap <silent> <Leader>y :w !pbcopy<CR><CR>
 function! YankVisual()
-	" let old_reg = getreg('"')
-	" let old_regtype = getregtype('"')
 	normal! gvy
 	echom "running YankVisual pbcopy"
 	let poscursor=getpos('.')
 	" to debug -- make sure to keep it consistent with the below
 	echom "exec !echo '" . substitute(escape(substitute(@@, "'", "'\"'\"'", 'g'), '!\#%'), '\n', '\\n', 'g') . "' | perl -pe 's/(?<\\!\\\\)\\\\n/\\n/g' | pbcopy"
+	" Here's a quick summary. The exec body here has to be escaped for vim 
+	" single quote strings, so single quotes are replaced with "'" and newlines 
+	" are replaced with \n and converted back, except that \\n must be not be 
+	" escaped (hence perl negative lookbehind).
 	exec "!echo '" . substitute(escape(substitute(@@, "'", "'\"'\"'", 'g'), '!\#%'), '\n', '\\n', 'g') . "' | perl -pe 's/(?<\\!\\\\)\\\\n/\\n/g' | pbcopy"
-	" call setpos('.', poscursor)
-	" normal! gV
-	" call setreg('"', old_reg, old_regtype)
 endfun
 vnoremap <Leader>y :<C-U> call YankVisual()<CR>:redraw!<CR>
 
