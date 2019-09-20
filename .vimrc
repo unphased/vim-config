@@ -622,6 +622,10 @@ let g:lsp_cxx_hl_log_file = '/tmp/vim-lsp-cxx-hl.log'
 let g:lsp_cxx_hl_verbose_log = 1
 
 " for coc.nvim
+au FileType c,cpp,objc,objcpp set cmdheight=2
+set updatetime=300
+set shortmess+=c
+
 set hidden
 set nobackup
 set nowritebackup
@@ -2071,10 +2075,6 @@ vnoremap <silent> x :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr
 " auto enable rainbow on c/cpp files
 " Nope! too slow on preprocessor output
 " au FileType c,cpp,objc,objcpp call rainbow#load()
-
-au FileType c,cpp,objc,objcpp set cmdheight=2
-set updatetime=300
-set shortmess+=c
 
 " syntax sync minlines=256 " this was an attempt to speed up syntax on raspi.
 " May not be necessary now that i took out line highlight
