@@ -137,8 +137,8 @@ let g:lightline.tabline = {
 		    \ 'right': [ [ 'close' ] ] }
 
 let g:lightline.tab = {
-			\ 'active': [ 'tabwinct', 'filename', 'modified', 'readonly' ],
-			\ 'inactive': [ 'tabwinct', 'filename', 'modified' ]
+			\ 'active': [ 'tabwinct', 'filename', 'tabmod', 'readonly' ],
+			\ 'inactive': [ 'tabwinct', 'filename', 'tabmod' ]
 			\ }
 let g:lightline.active = {
 			\ 'left': [ [ 'mode', 'paste' ],
@@ -147,7 +147,8 @@ let g:lightline.active = {
 			\            [ 'lineinfo', 'charvaluehex' ],
 			\            [ 'fileformatenc', 'filetype' ] ] }
 let g:lightline.tab_component_function = {
-			\ 'tabwinct': 'TabWinCt'
+			\ 'tabwinct': 'TabWinCt',
+			\ 'tabmod': 'TabAnyModified'
 			\ }
 let g:lightline.component_function = {
 			\ 'gitbranch': 'fugitive#head',
@@ -182,18 +183,30 @@ function! TabWinCt(n) abort
   return tabpagewinnr(a:n, '$')
 endfun
 
+function! TabAnyModified(n) abort
+	let winct = tabpagewinnr(a:n, '$')
+	let modified = 0
+	while winct > 0
+		if gettabwinvar(a:n, winct, '&modified')
+			return '+'
+		endif
+		let winct -= 1
+	endwhile
+	return ''
+endfunction
+
 function! FileSize()
-  let bytes = getfsize(expand("%:p"))
-  if bytes <= 0
-    return ""
-  endif
-  if bytes < 65536
-    return bytes
-  elseif bytes < 67108864
-    return (bytes / 1024) . "K"
-  else
-    return (bytes / 1048576) . "M"
-  endif
+	let bytes = getfsize(expand("%:p"))
+	if bytes <= 0
+		return ""
+	endif
+	if bytes < 65536
+		return bytes
+	elseif bytes < 67108864
+		return (bytes / 1024) . "K"
+	else
+		return (bytes / 1048576) . "M"
+	endif
 endfunction
 
 function! FileTypeFun()
