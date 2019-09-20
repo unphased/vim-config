@@ -129,25 +129,31 @@ endif
 let g:lightline = { }
 let g:lightline.colorscheme = 'powerline'
 let g:lightline.enable = {
-			\   'tabline': 0
+			\   'tabline': 1
 			\ }
-" let g:lightline.tabline = {
-" 			\ 'left': [ [ 'tabs' ] ],
-" 			\ }
+
+let g:lightline.tabline = {
+		    \ 'left': [ [ 'tabs' ] ],
+		    \ 'right': [ [ 'close' ] ] }
+
 let g:lightline.tab = {
-			\ 'active': [ 'filename', 'modified' ],
-			\ 'inactive': [ 'filename', 'modified' ]
+			\ 'active': [ 'tabwinct', 'filename', 'modified', 'readonly' ],
+			\ 'inactive': [ 'tabwinct', 'filename', 'modified' ]
 			\ }
 let g:lightline.active = {
 			\ 'left': [ [ 'mode', 'paste' ],
-			\           [ 'gitbranch', 'readonly', 'relativepath', 'modified' ] ],
+			\           [ 'cocstatus', 'gitbranch', 'readonly', 'relativepath', 'modified' ] ],
 			\ 'right': [ [ 'percent' ],
 			\            [ 'lineinfo', 'charvaluehex' ],
 			\            [ 'fileformatenc', 'filetype' ] ] }
+let g:lightline.tab_component_function = {
+			\ 'tabwinct': 'TabWinCt'
+			\ }
 let g:lightline.component_function = {
 			\ 'gitbranch': 'fugitive#head',
 			\ 'filesize': 'FileSize',
 			\ 'filetype': 'FileTypeFun',
+			\ 'cocstatus': 'coc#status',
 			\ 'fileformatenc': 'FileFormatEncFun'
 			\ }
 let g:lightline.component = {
@@ -170,8 +176,11 @@ let g:lightline.component = {
 			\ 'line': '%l',
 			\ 'column': '%c%V',
 			\ 'close': '%999X X ',
-			\ 'winnr': '%{winnr()}'
 			\ }
+
+function! TabWinCt(n) abort
+  return tabpagewinnr(a:n, '$')
+endfun
 
 function! FileSize()
   let bytes = getfsize(expand("%:p"))
