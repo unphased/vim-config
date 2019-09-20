@@ -3437,8 +3437,9 @@ function! YankVisual()
 	normal! gvy
 	echom "running YankVisual pbcopy"
 	let poscursor=getpos('.')
-	echom "execing: !echo '" . substitute(escape(substitute(@@, "'", "'\"'\"'", 'g'), '!\#%'), '\n', '\\n', 'g') . "' | sed 's/\\\\n/\\n/g' | pbcopy"
-	exec "!echo '" . substitute(escape(substitute(@@, "'", "'\"'\"'", 'g'), '!\#%'), '\n', '\\n', 'g') . "' | sed 's/\\\\n/\\n/g' | pbcopy"
+	" to debug -- make sure to keep it consistent with the below
+	echom "exec !echo '" . substitute(escape(substitute(@@, "'", "'\"'\"'", 'g'), '!\#%'), '\n', '\\n', 'g') . "' | perl -pe 's/(?<\\!\\\\)\\\\n/\\n/g' | pbcopy"
+	exec "!echo '" . substitute(escape(substitute(@@, "'", "'\"'\"'", 'g'), '!\#%'), '\n', '\\n', 'g') . "' | perl -pe 's/(?<\\!\\\\)\\\\n/\\n/g' | pbcopy"
 	" call setpos('.', poscursor)
 	" normal! gV
 	" call setreg('"', old_reg, old_regtype)
