@@ -1675,29 +1675,24 @@ nnoremap <Leader>w :set wrap!<CR>
 " the latter of which may be intercepted by tmux and passed through
 " a shell script! (tmux is smart, though, and does the term timeout on
 " the escape, it will be letting it pass through)
-if has('nvim')
-	" nvim's binds are simpler
-	nnoremap <m-h> :wincmd H<CR>
-	nnoremap <m-j> :wincmd J<CR>
-	nnoremap <m-k> :wincmd K<CR>
-	nnoremap <m-l> :wincmd L<CR>
-else
+if !has('nvim')
 	" set <F30>=h
 	" set <F29>=j
-	set <m-h>=h
-	set <m-j>=j
-	set <m-k>=k
-	set <m-l>=l
+	set <m-H>=H
+	set <m-J>=J
+	set <m-K>=K
+	set <m-L>=L
 	" set <F28>=k
 	" set <F27>=l
 
-	" These binds are for quick rearrangement of windows, very awesome function
+	" These binds are for quick rearrangement of windows, useful function
 	" that sadly I'll need to do hacking to get the same on tmux
-	nnoremap <m-h> :wincmd H<CR>
-	nnoremap <m-j> :wincmd J<CR>
-	nnoremap <m-k> :wincmd K<CR>
-	nnoremap <m-l> :wincmd L<CR>
 endif
+
+nnoremap <m-H> :wincmd H<CR>
+nnoremap <m-J> :wincmd J<CR>
+nnoremap <m-K> :wincmd K<CR>
+nnoremap <m-L> :wincmd L<CR>
 
 " This is a new thing that I realized I could implement with vimscript -- it 
 " mirrors my simplistic rearrangement shortcuts for Tmux (which are annoyingly 
