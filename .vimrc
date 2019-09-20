@@ -79,7 +79,12 @@ Plug 'mattn/emmet-vim'
 " Plug 'unphased/git-time-lapse'
 Plug 'vim-scripts/yaifa.vim'
 Plug 'nathanaelkane/vim-indent-guides'
-Plug 'unphased/HiCursorWords'
+
+" TODO: replace hicursorwords with a more straightforward impl such as 
+" https://github.com/hotoo/highlight-cursor-word.vim/blob/master/plugin/highlight.vim
+"
+" Plug 'unphased/HiCursorWords'
+
 Plug 'dimasg/vim-mark', { 'on': '<Plug>MarkSet' }
 " Bundle 'kien/rainbow_parentheses.vim'
 Plug 'mhinz/vim-signify'
