@@ -747,6 +747,9 @@ function! InsertEnterActions(mode)
 endfunction
 
 function! InsertLeaveActions()
+	" we disable cursorline in normal mode because there used to be 
+	" a performance problem in vim for general scrolling around. Leaving it 
+	" because i don't need it so bad.
 	set nocursorline
 	" hi CursorLine ctermbg=NONE cterm=NONE
 	hi CursorLineNr ctermfg=11 ctermbg=NONE
