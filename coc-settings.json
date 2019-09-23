@@ -11,6 +11,14 @@
          "index": {"initialBlacklist": ["."]},
          "highlight": { "lsRanges": true }
        }
+    },
+    "flow": {
+      "command": "flow"
+      ,"args": ["lsp"]
+      ,"filetypes": ["javascript"]
+      ,"requireRootPattern": "true"
+      ,"settings": {}
+      ,"rootPatterns": [".flowconfig"]
     }
   }
 }
