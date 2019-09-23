@@ -34,7 +34,7 @@ let s:LoadExpensivePluginsHasBeenRun = 0
 function! LoadExpensive()
 	if !(s:LoadExpensivePluginsHasBeenRun)
 		echom 'loadexpensive'
-		call plug#load('ultisnips')
+		" call plug#load('ultisnips')
 		call plug#load('tagbar')
 		" call plug#load('clang_complete')
 		autocmd! load_expensive
@@ -345,31 +345,31 @@ if !has('nvim')
 	set <F14>=<
 endif
 
-" Ultisnips settings (to have it work together with YCM)
-if has('nvim')
-	let g:UltiSnipsExpandTrigger="<C-TAB>"
-	let g:UltiSnipsJumpForwardTrigger="<C-TAB>"
-	let g:UltiSnipsJumpBackwardTrigger="<C-S-TAB>"
+" " Ultisnips settings (to have it work together with YCM)
+" if has('nvim')
+" 	let g:UltiSnipsExpandTrigger="<C-TAB>"
+" 	let g:UltiSnipsJumpForwardTrigger="<C-TAB>"
+" 	let g:UltiSnipsJumpBackwardTrigger="<C-S-TAB>"
 
-	" Just set to something so that c-tab wont be used (needed for nvim)
-	let g:UltiSnipsListSnippets="<M-c>"
-else
-	" I believe default <c-tab> binding fails to work on vim so this just ends 
-	" up working the way i want
-	let g:UltiSnipsExpandTrigger="<F23>"
-	let g:UltiSnipsJumpForwardTrigger="<F23>"
-	let g:UltiSnipsJumpBackwardTrigger="<F22>"
-endif
-" Using Ctrl Tab to fire the snippets. Shift tab is taken by YCM.
-" the weird custom mapping doesn't really seem to help anything and I cannot
-" figure out how to get it to respond to tab properly, so it should be an easy
-" enough thing to get used to to use Ctrl+(Shift+)Tab to control snips. Should
-" even allow seamless use of YCM while entering an ultisnip segment, so this is
-" pretty much near perfect for snippets since too much overloading is confusing
-" anyway.
-let g:UltiSnipsEditSplit="vertical"
+" 	" Just set to something so that c-tab wont be used (needed for nvim)
+" 	let g:UltiSnipsListSnippets="<M-c>"
+" else
+" 	" I believe default <c-tab> binding fails to work on vim so this just ends 
+" 	" up working the way i want
+" 	let g:UltiSnipsExpandTrigger="<F23>"
+" 	let g:UltiSnipsJumpForwardTrigger="<F23>"
+" 	let g:UltiSnipsJumpBackwardTrigger="<F22>"
+" endif
+" " Using Ctrl Tab to fire the snippets. Shift tab is taken by YCM.
+" " the weird custom mapping doesn't really seem to help anything and I cannot
+" " figure out how to get it to respond to tab properly, so it should be an easy
+" " enough thing to get used to to use Ctrl+(Shift+)Tab to control snips. Should
+" " even allow seamless use of YCM while entering an ultisnip segment, so this is
+" " pretty much near perfect for snippets since too much overloading is confusing
+" " anyway.
+" let g:UltiSnipsEditSplit="vertical"
 
-" let g:UltiSnipsSnippetDirectories = ["UltiSnips"]
+" " let g:UltiSnipsSnippetDirectories = ["UltiSnips"]
 
 " indent guides plugin
 let g:indent_guides_enable_on_vim_startup = 1
@@ -651,6 +651,7 @@ let g:lsp_cxx_hl_log_file = '/tmp/vim-lsp-cxx-hl.log'
 let g:lsp_cxx_hl_verbose_log = 1
 
 " for coc.nvim
+
 au FileType c,cpp,objc,objcpp set cmdheight=2
 set updatetime=300
 set shortmess+=c
@@ -685,6 +686,8 @@ nmap <silent> gd <Plug>(coc-definition)
 nmap <silent> gy <Plug>(coc-type-definition)
 nmap <silent> gi <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
+
+call coc#add_extension('coc-json', 'coc-snippets')
 
 " Highlight symbol under cursor on CursorHold
 autocmd CursorHold * silent call CocActionAsync('highlight')
