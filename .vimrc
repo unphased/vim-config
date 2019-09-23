@@ -26,6 +26,7 @@ Plug 'jackguo380/vim-lsp-cxx-highlight'
 " Plug 'scrooloose/syntastic', { 'on': [] }
 " Plug 'Shougo/neocomplete.vim'
 Plug 'w0rp/ale'
+Plug 'chrisbra/Colorizer'
 Plug 'majutsushi/tagbar', { 'on': ['Tagbar'] }
 " Plug 'xavierd/clang_complete'
 
@@ -262,7 +263,8 @@ Plug 'AndrewRadev/inline_edit.vim'
 " Plug 'AndrewRadev/whitespaste.vim'
 Plug 'sickill/vim-pasta'
 
-Plug 'ap/vim-css-color'
+" superceded by Colorizer
+" Plug 'ap/vim-css-color'
 " Plug 'Xuyuanp/nerdtree-git-plugin'
 
 " Plug 'chrisbra/NrrwRgn'
