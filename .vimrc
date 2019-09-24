@@ -181,7 +181,12 @@ let g:lightline.component = {
 			\ }
 
 function! TabWinCt(n) abort
-  return tabpagewinnr(a:n, '$')
+  let n = tabpagewinnr(a:n, '$')
+  if (n == 1)
+	  return ''
+  else
+	  return n
+  endif
 endfun
 
 function! TabAnyModified(n) abort

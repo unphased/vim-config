@@ -2,6 +2,7 @@ stty -ixon
 stty -ixoff
 
 export HISTSIZE=20000
+export HISTFILESIZE=40000
 export HISTTIMEFORMAT="%d/%m/%y %T "
 
 # avoid duplicates.. 
