@@ -652,7 +652,8 @@ let g:lsp_cxx_hl_verbose_log = 1
 
 " for coc.nvim
 
-au FileType c,cpp,objc,objcpp set cmdheight=2
+" au FileType c,cpp,objc,objcpp set cmdheight=2
+
 set updatetime=300
 set shortmess+=c
 

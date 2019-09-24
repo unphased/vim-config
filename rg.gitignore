@@ -12,3 +12,4 @@
 **/.discrim.log
 **/machine_shell_logs/*
 **/zxcvbn.js
+.ccls-cache

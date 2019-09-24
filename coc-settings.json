@@ -3,14 +3,15 @@
     "ccls": {
       "command": "ccls",
       "filetypes": ["c", "cpp", "cuda", "objc", "objcpp"],
-      "rootPatterns": [".ccls", "compile_commands.json", ".vim/", ".git/", ".hg/"],
+      "rootPatterns": [".git/", ".hg/"],
       "initializationOptions": {
-         "cache": {
-           "directory": ".ccls-cache"
-         },
-         "index": {"initialBlacklist": ["."]},
-         "highlight": { "lsRanges": true }
-       }
+        "compilationDatabaseDirectory": "./cdb/",
+        "cache": {
+          "directory": ".ccls-cache"
+        },
+        "index": {"initialBlacklist": ["."]},
+        "highlight": { "lsRanges": true }
+      }
     },
     "flow": {
       "command": "flow"
