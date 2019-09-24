@@ -3,21 +3,21 @@
     "ccls": {
       "command": "ccls",
       "filetypes": ["c", "cpp", "cuda", "objc", "objcpp"],
-      "rootPatterns": [".git/", ".hg/"],
+      "rootPatterns": ["cdb", ".ccls-cache"],
       "initializationOptions": {
-        "compilationDatabaseDirectory": "./cdb/",
+        "compilationDatabaseDirectory": "./cdb",
         "cache": {
           "directory": ".ccls-cache"
         },
         "index": {"initialBlacklist": ["."]},
-        "highlight": { "lsRanges": true }
+        // "highlight": { "lsRanges": true }
       }
     },
     "flow": {
       "command": "flow"
       ,"args": ["lsp"]
       ,"filetypes": ["javascript"]
-      ,"requireRootPattern": "true"
+      ,"requireRootPattern": true
       ,"settings": {}
       ,"rootPatterns": [".flowconfig"]
     }
