@@ -63,7 +63,7 @@ Plug 'editorconfig/editorconfig-vim'
 Plug 'rhysd/git-messenger.vim'
 Plug 'leafgarland/typescript-vim'
 Plug 'scrooloose/nerdtree', { 'on': ['NERDTreeFind', 'NERDTreeToggle'] }
-Plug 'ctrlpvim/ctrlp.vim'
+" Plug 'ctrlpvim/ctrlp.vim'
 Plug 'vim-scripts/diffchanges.vim'
 Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-surround'
@@ -1306,10 +1306,8 @@ nnoremap Q :q<CR>
 " nnoremap <F5> :TlistToggle<CR>
 " inoremap <F5> <C-O>:TlistToggle<CR>
 
-nnoremap <F6> :CtrlPMRUFiles<CR>
-inoremap <F6> <ESC>:CtrlPMRUFiles<CR>
-nnoremap <S-F6> :CtrlPLine<CR>
-let g:ctrlp_map = '<Leader><c-p>'
+nnoremap <F6> :History<CR>
+inoremap <F6> <ESC>:History<CR>
 nnoremap <c-p> :FZF<CR>
 
 " opens the current buffer in nerdtree
@@ -1328,12 +1326,12 @@ endfun
 " nnoremap <F7> :NERDTreeToggle<CR>
 
 " configuring CtrlP
-let g:ctrlp_max_files = 200000
-let g:ctrlp_clear_cache_on_exit = 0
-let g:ctrlp_root_markers = ['.ctrlp_root'] " insert this sentinel file anywhere that you'd like ctrlp to index from
+" let g:ctrlp_max_files = 200000
+" let g:ctrlp_clear_cache_on_exit = 0
+" let g:ctrlp_root_markers = ['.ctrlp_root'] " insert this sentinel file anywhere that you'd like ctrlp to index from
 
-" If cwd is deep then it goes up to repo root. Else stays there!
-let g:ctrlp_working_path_mode = 'w'
+" " If cwd is deep then it goes up to repo root. Else stays there!
+" let g:ctrlp_working_path_mode = 'w'
 
 noremap k gk
 noremap j gj
@@ -1900,18 +1898,18 @@ function! EnhancedComma(count)
 endfunction
 
 " more ctrlp settings
-let g:ctrlp_switch_buffer = 'Et' " Jump to tab AND buffer if already open
-let g:ctrlp_open_new_file = 'r' " Open new files in a new tab
-let g:ctrlp_open_multiple_files = 'vj'
-let g:ctrlp_show_hidden = 1 " Index hidden files
-let g:ctrlp_follow_symlinks = 1
+" let g:ctrlp_switch_buffer = 'Et' " Jump to tab AND buffer if already open
+" let g:ctrlp_open_new_file = 'r' " Open new files in a new tab
+" let g:ctrlp_open_multiple_files = 'vj'
+" let g:ctrlp_show_hidden = 1 " Index hidden files
+" let g:ctrlp_follow_symlinks = 1
 
-" Edit this as necessary as work patterns change...
-" Do note that you have to manually rescan with F5 to see this applied!
-let g:ctrlp_custom_ignore = { 
-			\ 'dir':  '\v[\/]node_modules|(public\/js\/app\/views)|(\.(git|hg|svn))',
-			\ 'file': '\v\.(exe|so|dll|DS_Store|un\~|min\.js|es5\.js)$',
-			\ }
+" " Edit this as necessary as work patterns change...
+" " Do note that you have to manually rescan with F5 to see this applied!
+" let g:ctrlp_custom_ignore = { 
+" 			\ 'dir':  '\v[\/]node_modules|(public\/js\/app\/views)|(\.(git|hg|svn))',
+" 			\ 'file': '\v\.(exe|so|dll|DS_Store|un\~|min\.js|es5\.js)$',
+" 			\ }
 
 " pulled from http://vim.wikia.com/wiki/Move_current_window_between_tabs
 function! MoveToPrevTab()
