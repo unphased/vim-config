@@ -319,13 +319,13 @@ autocmd FileType gitcommit set nosmartindent | set formatoptions-=t
 " nnoremap <Leader>e :silent !p4 edit %:p<CR>:redraw!<CR>
 nnoremap <Leader>R :silent redraw!<CR>
 
-let g:neocomplete#enable_at_startup = 1
-let g:neocomplete#min_keyword_length = 3
-let g:neocomplete#enable_fuzzy_completion = 1
-if !exists('g:neocomplete#keyword_patterns')
-    let g:neocomplete#keyword_patterns = {}
-endif
-let g:neocomplete#keyword_patterns['javascript'] = '[@#.]\?[[:alpha:]_:-][[:alnum:]_:-]*'
+" let g:neocomplete#enable_at_startup = 1
+" let g:neocomplete#min_keyword_length = 3
+" let g:neocomplete#enable_fuzzy_completion = 1
+" if !exists('g:neocomplete#keyword_patterns')
+"     let g:neocomplete#keyword_patterns = {}
+" endif
+" let g:neocomplete#keyword_patterns['javascript'] = '[@#.]\?[[:alpha:]_:-][[:alnum:]_:-]*'
 
 " autocmd FileType javascript set formatprg=prettier\ --stdin
 " this is unsafe (syntax errors and bad line wrapping)
@@ -3316,6 +3316,8 @@ let g:fzf_colors =
 " previous-history instead of down and up. If you don't like the change,
 " explicitly bind the keys to down and up in your $FZF_DEFAULT_OPTS.
 let g:fzf_history_dir = '~/.local/share/fzf-history'
+
+" inoremap <expr> <c-x><c-k> fzf#vim#complete('cat /usr/share/dict/words')
 
 " https://stackoverflow.com/a/6271254
 function! s:get_visual_selection()
