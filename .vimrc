@@ -1308,7 +1308,7 @@ nnoremap Q :q<CR>
 
 nnoremap <F6> :History<CR>
 inoremap <F6> <ESC>:History<CR>
-nnoremap <c-p> :FZF<CR>
+nnoremap <c-p> :Files<CR>
 
 " opens the current buffer in nerdtree
 nnoremap <Leader>f :call SmartNERDTree()<CR>
@@ -3287,7 +3287,7 @@ endfunction
 let g:fzf_action = {
   \ 'ctrl-q': function('s:build_quickfix_list'),
   \ 'ctrl-t': 'tab split',
-  \ 'ctrl-x': 'split',
+  \ 'ctrl-s': 'split',
   \ 'ctrl-v': 'vsplit' }
 
 " You can set up fzf window using a Vim command (Neovim or latest Vim 8 required)
@@ -3300,7 +3300,7 @@ let g:fzf_layout = { 'window': 'new' }
 let g:fzf_colors =
 \ { 'fg':      ['fg', 'Normal'],
   \ 'bg':      ['bg', 'Normal'],
-  \ 'hl':      ['fg', 'Comment'],
+  \ 'hl':      ['fg', 'CursorColumn'],
   \ 'fg+':     ['fg', 'CursorLine', 'CursorColumn', 'Normal'],
   \ 'bg+':     ['bg', 'CursorLine', 'CursorColumn'],
   \ 'hl+':     ['fg', 'Statement'],
@@ -3321,6 +3321,9 @@ let g:fzf_history_dir = '~/.local/share/fzf-history'
 " inoremap <expr> <c-x><c-k> fzf#vim#complete('cat /usr/share/dict/words')
 
 let g:fzf_commits_log_options = '--graph --date-order --pretty=format:"%C(bold magenta)%h%Creset -%C(auto)%d%Creset %s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset"'
+
+command! -bang -nargs=? -complete=dir Files
+  \ call fzf#vim#files(<q-args>, fzf#vim#with_preview(), <bang>0)
 
 " https://stackoverflow.com/a/6271254
 function! s:get_visual_selection()
