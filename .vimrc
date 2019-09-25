@@ -3238,23 +3238,17 @@ endif
 
 hi Todo guibg=#484848
 
-let g:fzf_action = {
-	\ 'ctrl-s': 'split',
-	\ 'ctrl-t': 'tab split',
-	\ 'ctrl-v': 'vsplit',
-	\ }
-
 " command! -bang FLinesGrep call fzf#vim#grep(
 "      \ 'GREP_COLORS="fn=34:mc=01;30:ms=33:sl=21:cx=31" grep -vnIr --exclude-dir=".git" --color=always "^$" .',
 "      \ 0,
 "      \ {'options': '--reverse --prompt "FLines> "'})
 
-command! -bang -nargs=* FLineSearch call fzf#vim#grep("rg --line-number --column --no-heading --fixed-strings --hidden --ignore-file ".glob("~/.vim/rg.gitignore")." ".shellescape(<q-args>), 1, {'options': '--reverse --prompt "FLineSearch '.shellescape(<q-args>).'> "'})
+command! -bang -nargs=* FLineSearch call fzf#vim#grep("rg --line-number --column --no-heading --fixed-strings --hidden --ignore-file ".glob("~/.vim/rg.gitignore")." ".shellescape(<q-args>), 1, {'options': '--prompt "FLineSearch '.shellescape(<q-args>).'> "'})
 
 command! -bang FLines call fzf#vim#grep(
      \ "rg --column --line-number --no-heading --ignore-case --hidden --ignore-file ".glob("~/.vim/rg.gitignore")." -v '^$'",
      \ 1,
-     \ {'options': '--reverse --prompt "FLines> "'})
+     \ {'options': '--prompt "FLines> "'})
 
 command! -bang Directories call fzf#run(fzf#wrap({'source': 'find * -type d'}))
 
@@ -3300,13 +3294,13 @@ let g:fzf_layout = { 'window': 'new' }
 let g:fzf_colors =
 \ { 'fg':      ['fg', 'Normal'],
   \ 'bg':      ['bg', 'Normal'],
-  \ 'hl':      ['fg', 'CursorColumn'],
-  \ 'fg+':     ['fg', 'CursorLine', 'CursorColumn', 'Normal'],
-  \ 'bg+':     ['bg', 'CursorLine', 'CursorColumn'],
-  \ 'hl+':     ['fg', 'Statement'],
+  \ 'hl':      ['fg', 'Constant'],
+  \ 'fg+':     ['fg', 'Normal'],
+  \ 'bg+':     ['bg', 'CursorLine'],
+  \ 'hl+':     ['fg', 'Constant'],
   \ 'info':    ['fg', 'PreProc'],
-  \ 'border':  ['fg', 'WarningMsg'],
-  \ 'prompt':  ['fg', 'Conditional'],
+  \ 'border':  ['fg', 'Directory'],
+  \ 'prompt':  ['fg', 'StatusLine'],
   \ 'pointer': ['fg', 'Exception'],
   \ 'marker':  ['fg', 'Keyword'],
   \ 'spinner': ['fg', 'Label'],
@@ -3323,7 +3317,7 @@ let g:fzf_history_dir = '~/.local/share/fzf-history'
 let g:fzf_commits_log_options = '--graph --date-order --pretty=format:"%C(bold magenta)%h%Creset -%C(auto)%d%Creset %s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset"'
 
 command! -bang -nargs=? -complete=dir Files
-  \ call fzf#vim#files(<q-args>, fzf#vim#with_preview(), <bang>0)
+  \ call fzf#vim#files(<q-args>, {'options': ['--preview', 'bat --color always {}']}, <bang>0)
 
 " https://stackoverflow.com/a/6271254
 function! s:get_visual_selection()
