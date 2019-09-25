@@ -3291,9 +3291,10 @@ let g:fzf_action = {
   \ 'ctrl-v': 'vsplit' }
 
 " You can set up fzf window using a Vim command (Neovim or latest Vim 8 required)
-let g:fzf_layout = { 'window': 'enew' }
-let g:fzf_layout = { 'window': '-tabnew' }
-let g:fzf_layout = { 'window': '10new' }
+" let g:fzf_layout = { 'window': 'enew' }
+" let g:fzf_layout = { 'window': '-tabnew' }
+let g:fzf_layout = { 'window': 'new' }
+" let g:fzf_layout = { 'down': '~60%' }
 
 " Customize fzf colors to match your color scheme
 let g:fzf_colors =
@@ -3318,6 +3319,8 @@ let g:fzf_colors =
 let g:fzf_history_dir = '~/.local/share/fzf-history'
 
 " inoremap <expr> <c-x><c-k> fzf#vim#complete('cat /usr/share/dict/words')
+
+let g:fzf_commits_log_options = '--graph --date-order --pretty=format:"%C(bold magenta)%h%Creset -%C(auto)%d%Creset %s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset"'
 
 " https://stackoverflow.com/a/6271254
 function! s:get_visual_selection()
