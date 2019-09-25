@@ -10,7 +10,7 @@
           "directory": ".ccls-cache"
         },
         "index": {"initialBlacklist": ["."]},
-        // "highlight": { "lsRanges": true }
+        "highlight": { "lsRanges": true }
       }
     },
     "flow": {
