@@ -4,6 +4,7 @@
       "command": "ccls",
       "filetypes": ["c", "cpp", "cuda", "objc", "objcpp"],
       "rootPatterns": ["cdb", ".ccls-cache"],
+      // "trace.server": "verbose",
       "initializationOptions": {
         "compilationDatabaseDirectory": "./cdb",
         "cache": {
