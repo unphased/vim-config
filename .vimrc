@@ -3287,8 +3287,8 @@ let g:fzf_action = {
 " You can set up fzf window using a Vim command (Neovim or latest Vim 8 required)
 " let g:fzf_layout = { 'window': 'enew' }
 " let g:fzf_layout = { 'window': '-tabnew' }
-let g:fzf_layout = { 'window': 'new' }
-" let g:fzf_layout = { 'down': '~60%' }
+" let g:fzf_layout = { 'window': 'new' }
+let g:fzf_layout = { 'down': '~60%' }
 
 " Customize fzf colors to match your color scheme
 let g:fzf_colors =

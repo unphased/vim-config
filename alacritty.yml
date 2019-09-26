@@ -337,6 +337,7 @@ key_bindings:
   - { key: W,        mods: Alt,           chars: "\x1bw"        }
   - { key: W,        mods: Command,       chars: "\x1bw"        }
   - { key: Z,        mods: Alt,           chars: "\x1bz"        }
+  - { key: Z,        mods: Alt|Shift, chars: ""            }
   - { key: Z,        mods: Command,       chars: "\x1bz"        }
   - { key: Home,     chars: "\x1bOH",     mode: AppCursor       }
   - { key: Home,     chars: "\x1b[H",     mode: ~AppCursor      }
