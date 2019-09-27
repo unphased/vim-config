@@ -3354,7 +3354,7 @@ vnoremap <Leader><CR> :call SearchForSelection()<CR>
 
 " override vim local search with global vim search (which is implicitly set in 
 " filesystem by searching in any vim)
-nnoremap <silent> <Leader>n :let @/ = join(readfile(glob("~/.vim/.search")), "\n")<CR>
+nnoremap <silent> <Leader>n :let @/ = join(readfile(glob("~/.vim/.search")), "\n")<CR>n
 " TODO FINISH ME
 
 if exists('&t_8f')
