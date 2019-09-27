@@ -142,8 +142,6 @@ alias grepc='grep --color=always --exclude=\*{.,-}min.\*'
 # alias agc='ag --color'
 alias mkae='make'
 
-alias rg="rg --type-add 'jsx:*.jsx' --hidden --ignore-file $HOME/.vim/rg.gitignore"
-
 # to make fzf's file finding usage (mainly when using vim but should work for 
 # non-vim) work like i want, which is let me comb through all the files ever. 
 # Except for git repoes.

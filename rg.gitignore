@@ -13,6 +13,8 @@
 **/machine_shell_logs/*
 **/zxcvbn.js
 .ccls-cache
+ccls-cache
 **/CMakeFiles/**
 **/moc_*.cpp
 **/compile_commands.json
+**/*.o
