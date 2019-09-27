@@ -18,3 +18,9 @@ ccls-cache
 **/moc_*.cpp
 **/compile_commands.json
 **/*.o
+**/*.log
+**/*.stderr
+**/*.stdout
+**/cdb/**
+**/*.cmake
+**/CMakeCache.txt
