@@ -261,6 +261,12 @@ Plug 'kana/vim-textobj-user'
 
 Plug 'Ron89/thesaurus_query.vim'
 Plug 'AndrewRadev/switch.vim'
+
+let g:switch_custom_definitions = 
+			\ [
+			\   ['show', 'hide']
+			\ ]
+
 Plug 'AndrewRadev/sideways.vim'
 Plug 'AndrewRadev/linediff.vim'
 Plug 'AndrewRadev/splitjoin.vim'

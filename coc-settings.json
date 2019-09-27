@@ -3,12 +3,12 @@
     "ccls": {
       "command": "ccls",
       "filetypes": ["c", "cpp", "cuda", "objc", "objcpp"],
-      "rootPatterns": ["cdb", ".ccls-cache"],
+      "rootPatterns": ["cdb", ".ccls_root"],
       // "trace.server": "verbose",
       "initializationOptions": {
         "compilationDatabaseDirectory": "./cdb",
         "cache": {
-          "directory": ".ccls-cache"
+          "directory": "/tmp/ccls-cache"
         },
         "index": {"initialBlacklist": ["."]},
         "highlight": { "lsRanges": true }
