@@ -3357,11 +3357,6 @@ vnoremap <Leader><CR> :call SearchForSelection()<CR>
 nnoremap <silent> <Leader>n :let @/ = join(readfile(glob("~/.vim/.search")), "\n")<CR>n
 " TODO FINISH ME
 
-if exists('&t_8f')
-	let &t_8f = "\x1b[38;2;%lu;%lu;%lum"
-	let &t_8b = "\x1b[48;2;%lu;%lu;%lum"
-endif
-
 set nostartofline
 
 " prevent epic slowdowns in certain poorly formatted (often minified or 
@@ -3495,15 +3490,16 @@ inoremap <expr> <c-d>d strftime("%Y-%m-%d")
 inoremap <expr> <c-d>l strftime("%Y-%m-%d %H:%M")
 
 " for cursor fanciness
-if exists('$TMUX')
-  let &t_SI = "\<Esc>Ptmux;\<Esc>\<Esc>[5 q\<Esc>\\"
-  let &t_EI = "\<Esc>Ptmux;\<Esc>\<Esc>[1 q\<Esc>\\"
-else
-  " let &t_SI = "\<Esc>]50;CursorShape=1\x7"
-  " let &t_EI = "\<Esc>]50;CursorShape=0\x7"
+" if exists('$TMUX')
+"   let &t_SI = "\<Esc>Ptmux;\<Esc>\<Esc>[5 q\<Esc>\\"
+"   let &t_EI = "\<Esc>Ptmux;\<Esc>\<Esc>[1 q\<Esc>\\"
+" else
+"   " let &t_SI = "\<Esc>]50;CursorShape=1\x7"
+"   " let &t_EI = "\<Esc>]50;CursorShape=0\x7"
   let &t_SI = "\e[5 q"
+  let &t_SR = "\e[3 q"
   let &t_EI = "\e[1 q"
-endif
+" endif
 
 hi CleverFMark guibg=#cf00af guifg=#eeeeee
 let g:clever_f_mark_cursor_color = 'CleverFMark'
