@@ -3,7 +3,7 @@
     "ccls": {
       "command": "ccls",
       "filetypes": ["c", "cpp", "cuda", "objc", "objcpp"],
-      "rootPatterns": ["cdb", ".ccls_root"],
+      "rootPatterns": [".ccls", "cdb", ".ccls_root"],
       // "trace.server": "verbose",
       "initializationOptions": {
         "compilationDatabaseDirectory": "./cdb",
