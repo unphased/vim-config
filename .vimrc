@@ -1687,40 +1687,19 @@ endf
 
 if !has('nvim')
 	set <F34>=comma]
-	set <F33>=p
-	set <F32>=w
-	" keybinding for toggling word-wrap
-	" nnoremap <F32> :set wrap!<CR>
-	" inoremap <F32> :set wrap!<CR>
-
-	set <F31>=s
-
-	" just a convenience thing for being lazy what with switching OS's and this
-	" being a rather common key sequence and macs...
-	noremap <F31> :update<CR>
-	vnoremap <F31> <ESC>:update<CR>
-	cnoremap <F31> <C-C>:update<CR>
-	inoremap <F31> <ESC>:update<CR>
-
-	nnoremap <silent> <F33> :set invpaste<CR>:call SetPaste()<CR>
-	" imap <silent> <F33> <C-O>:call SetPaste()<CR>
 	
-	set pastetoggle=<F33>
-else
-	" nnoremap <m-w> :set wrap!<CR>
-	" inoremap <m-w> :set wrap!<CR>
-	noremap <m-s> :update<CR>
-	vnoremap <m-s> <ESC>:update<CR>
-	cnoremap <m-s> <C-C>:update<CR>
-	inoremap <m-s> <ESC>:update<CR>
-
-	nnoremap <silent> <m-p> :set invpaste<CR>:call SetPaste()<CR>
-	" imap <m-p> <C-O>:set invpaste|call SetPaste()<CR>
-	" if nvim and osx and iterm, then leave pastetoggle as-is for well-behaved 
-	" bracketed paste mode default (slightly hokey) implementation.
-	set pastetoggle=<m-p>
-	" au! BufRead * set pastetoggle=<m-p>
+	set <m-s>=s
+	set <m-p>=p
+	set <m-w>=w
 endif
+
+noremap <m-s> :update<CR>
+vnoremap <m-s> <ESC>:update<CR>
+cnoremap <m-s> <C-C>:update<CR>
+inoremap <m-s> <ESC>:update<CR>
+nnoremap <silent> <m-p> :set invpaste<CR>:call SetPaste()<CR>
+set pastetoggle=<m-p>
+
 set showmode
 
 nnoremap <Leader>w :set wrap!<CR>
@@ -3194,11 +3173,7 @@ nnoremap <Leader>c :let &statusline='%{ShowCount()} %<%f %h%m%r%=%-14.(%l,%c%V%)
 " windowswap disable binds, reducing latency on two of my existing binds now, 
 " and allow me to bind just the one thing that i use with it.
 let g:windowswap_map_keys = 0
-if !has('nvim')
-	nnoremap <F32> :call WindowSwap#EasyWindowSwap()<CR>
-else
-	nnoremap <m-w> :call WindowSwap#EasyWindowSwap()<CR>
-endif
+nnoremap <m-w> :call WindowSwap#EasyWindowSwap()<CR>
 
 " fuck, still doesnt work (i tried twice)
 " function! HiCursorWordsDisable()
@@ -3553,16 +3528,28 @@ let g:git_messenger_include_diff = "current"
 " for JSONC (JSON with comments) format
 autocmd FileType json syntax match Comment +\/\/.\+$+
 
-nmap <PageUp> :echo 'pgup'<CR>
-nmap <PageDown> :echo 'pgdn'<CR>
+" just to view them
+" nmap <PageUp> :echo 'pgup'<CR>
+" nmap <PageDown> :echo 'pgdn'<CR>
+
 if !has('nvim')
 	set <F27>=[5;5~
 	nmap <F27> :echo 'c-pgup'<CR>
 	set <F28>=[6;5~
 	nmap <F28> :echo 'c-pgdn'<CR>
+	set <F29>=[5;2~
+	nmap <F29> :echo 's-pgup'<CR>
+	set <F30>=[6;2~
+	nmap <F30> :echo 's-pgdn'<CR>
+	set <F31>=[5;3~
+	nmap <F31> :echo 'm-pgup'<CR>
+	set <F32>=[6;3~
+	nmap <F32> :echo 'm-pgdn'<CR>
 else
 	nmap <C-PageUp> :echo 'c-pgup'<CR>
 	nmap <C-PageDown> :echo 'c-pgdn'<CR>
 	nmap <S-PageUp> :echo 's-pgup'<CR>
 	nmap <S-PageDown> :echo 's-pgdn'<CR>
+	nmap <M-PageUp> :echo 'm-pgup'<CR>
+	nmap <M-PageDown> :echo 'm-pgdn'<CR>
 endif
