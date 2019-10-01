@@ -143,7 +143,7 @@ let g:lightline.tab = {
 			\ }
 let g:lightline.active = {
 			\ 'left': [ [ 'mode', 'paste' ],
-			\           [ 'cocstatus', 'gitbranch', 'readonly', 'relativepath', 'modified' ] ],
+			\           [ 'cocstatus', 'gitbranch', 'readonly', 'relativepathtrunc', 'modified' ] ],
 			\ 'right': [ [ 'percent' ],
 			\            [ 'lineinfo', 'charvaluehex' ],
 			\            [ 'fileformatenc', 'filetype' ] ] }
@@ -161,7 +161,7 @@ let g:lightline.component_function = {
 let g:lightline.component = {
 			\ 'mode': '%{lightline#mode()}',
 			\ 'absolutepath': '%F',
-			\ 'relativepath': '%f',
+			\ 'relativepathtrunc': '%<%f',
 			\ 'filename': '%t',
 			\ 'modified': '%M',
 			\ 'bufnum': '%n',
@@ -660,6 +660,7 @@ command! SyntaxDetect :echom "hi<" . synIDattr(synID(line("."),col("."),1),"name
 
 let g:lsp_cxx_hl_log_file = '/tmp/vim-lsp-cxx-hl.log'
 let g:lsp_cxx_hl_verbose_log = 1
+let g:lsp_cxx_hl_use_text_props = 1
 
 " for coc.nvim
 
