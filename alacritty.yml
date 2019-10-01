@@ -203,7 +203,7 @@ live_config_reload: true
 scrolling:
   # How many lines of scrollback to keep,
   # '0' will disable scrolling.
-  history: 100000
+  history: 10000
   multiplier: 3
   faux_multiplier: 3
   auto_scroll: false
