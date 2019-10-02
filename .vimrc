@@ -660,7 +660,7 @@ command! SyntaxDetect :echom "hi<" . synIDattr(synID(line("."),col("."),1),"name
 
 let g:lsp_cxx_hl_log_file = '/tmp/vim-lsp-cxx-hl.log'
 let g:lsp_cxx_hl_verbose_log = 1
-let g:lsp_cxx_hl_use_text_props = 1
+" let g:lsp_cxx_hl_use_text_props = 1
 
 " for coc.nvim
 
