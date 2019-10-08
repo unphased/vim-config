@@ -941,7 +941,7 @@ au BufEnter * noremap <buffer> <silent> J 5gj
 
 " and now to provide a new binding for GoDoc using au instead of after/ because 
 " of maintainability
-au FileType go nnoremap <buffer> <silent> <C-d> :GoDoc<CR>
+" au FileType go nnoremap <buffer> <silent> <C-d> :GoDoc<CR>
 
 " this is kept here as an example for how to implement a (potentially buggy) 
 " autocommand that works on an event which is also to be dependent on filetype.
@@ -1200,10 +1200,7 @@ inoremap <C-Q> <C-O>:call MyConfirmQuitAllNoSave()<CR>
 
 " this bit controls search and highlighting by using the Enter key in normal mode
 let g:highlighting = 1
-function! Highlighting()
-	" if &buftype != ""
-	" 	return "<cr>"
-	" endif
+function! SearchForWord()
 	let l:word = expand('<cword>')
 	if g:highlighting == 1 && @/ =~ '^\\<'.l:word.'\\>$'
 		let g:highlighting = 0
@@ -1230,7 +1227,7 @@ EOF
 	endif
 	return ":silent set hlsearch\<CR>"
 endfunction
-nnoremap <silent> <expr> <CR> &buftype == "" ? Highlighting() : "<cr>"
+nnoremap <silent> <expr> <CR> &buftype == "" ? SearchForWord() : "<cr>"
 
 function! ChompCtrlM(string)
     return substitute(a:string, '$', '', '')
@@ -1239,7 +1236,7 @@ endfunction
 " proof of concept that i can chain something to occur after an eval-string 
 " providing function. dont think i achieved this before
 function! SearchWithHighlighting()
-	let string = ChompCtrlM(Highlighting())
+	let string = ChompCtrlM(SearchForWord())
 	" echom 'A: '.string
 	let string .= " | echom 'test'\<CR>"
 	echom 'B: '.string
