@@ -127,6 +127,8 @@ if has('python')
 	py import vim
 endif
 
+autocmd FileType c,cpp,cs,java setlocal commentstring=//\ %s
+
 let g:lightline = { }
 let g:lightline.colorscheme = 'powerline'
 let g:lightline.enable = {
