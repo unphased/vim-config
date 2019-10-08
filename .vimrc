@@ -1225,6 +1225,10 @@ f.write(w)
 f.close()
 EOF
 	endif
+
+	" this shit flickers and sucks
+	" silent exec "!curl -s localhost:4000/ > /dev/null &"
+	" redraw!
 	return ":silent set hlsearch\<CR>"
 endfunction
 nnoremap <silent> <expr> <CR> &buftype == "" ? SearchForWord() : "<cr>"
