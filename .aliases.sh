@@ -147,6 +147,9 @@ alias mkae='make'
 # Except for git repoes.
 export FZF_DEFAULT_COMMAND="fd --type file"
 
-# do not export PATH in aliases. it gets run a bit too much for my comfort. 
-# bloats it.
-# export PATH=~/Documents/personal-utility/scripts:$PATH
+# i'm trying to not export PATH in the aliases script here. But, so far it is 
+# my only way to dedupe a sane config across OS's, bash & omz & prezto.
+
+# set PATH so it includes user's private bin directories
+export PATH=$HOME/util:$PATH
+export PATH="$HOME/.yarn/bin:$HOME/.cargo/bin:$HOME/bin:$HOME/.local/bin:$PATH"

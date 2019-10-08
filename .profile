@@ -12,7 +12,6 @@ shopt -s histappend
 shopt -s lithist
 shopt -s histverify
 
-export PATH=$HOME/util:$PATH
 
 export LESS='-g -i -M -R -z-4'
 
