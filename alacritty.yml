@@ -187,6 +187,8 @@ background_opacity: 0.92
 # - Copy (TODO)
 mouse_bindings:
   - { mouse: Middle, action: PasteSelection }
+  - { mouse: "8",  chars: "" }
+  - { mouse: "9",  chars: "" }
 
 mouse:
   double_click: { threshold: 300 }

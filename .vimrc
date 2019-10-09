@@ -3221,6 +3221,12 @@ if has("gui_macvim")
     " set macvim specific stuff
 endif
 
+if has("mouse_sgr")
+	set ttymouse=sgr
+"else
+	"set ttymouse=xterm2
+endif
+
 hi Todo guibg=#484848
 
 " command! -bang FLinesGrep call fzf#vim#grep(
