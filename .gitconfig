@@ -35,9 +35,9 @@
 	# tool = pydifflib
 	tool = opendiff
 [pager]
-	log = diff-so-fancy | less --tabs=4 -RXM
-	show = diff-so-fancy | less --tabs=4 -RXM
-	diff = diff-so-fancy | less --tabs=4 -RXM
+	log = diff-so-fancy | less --tabs=4 -RM
+	show = diff-so-fancy | less --tabs=4 -RM
+	diff = diff-so-fancy | less --tabs=4 -RM
 [color]
 	branch = auto
 	#diff = always
