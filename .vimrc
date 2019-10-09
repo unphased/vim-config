@@ -702,7 +702,7 @@ nmap <silent> gy <Plug>(coc-type-definition)
 nmap <silent> gi <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
 
-call coc#add_extension('coc-json', 'coc-snippets')
+call coc#add_extension('coc-json', 'coc-snippets', 'coc-python')
 
 " Highlight symbol under cursor on CursorHold
 autocmd CursorHold * silent call CocActionAsync('highlight')
