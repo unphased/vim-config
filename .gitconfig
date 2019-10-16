@@ -73,3 +73,5 @@
 	required = true
 [status]
 	submoduleSummary = true
+[credential]
+	helper = store
