@@ -164,11 +164,11 @@ colors:
 #
 visual_bell:
   animation: Linear
-  duration: 150
-  color: '0x101010'
+  duration: 20
+  color: '0x000000'
 
 # Background opacity
-background_opacity: 0.92
+background_opacity: 0.97
 
 # Mouse bindings
 #
@@ -207,7 +207,6 @@ scrolling:
   # '0' will disable scrolling.
   history: 10000
   multiplier: 3
-  faux_multiplier: 3
   auto_scroll: false
 
 # Shell
