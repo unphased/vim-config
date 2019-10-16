@@ -164,11 +164,11 @@ colors:
 #
 visual_bell:
   animation: Linear
-  duration: 20
+  duration: 0
   color: '0x000000'
 
 # Background opacity
-background_opacity: 0.97
+background_opacity: 0.975
 
 # Mouse bindings
 #
