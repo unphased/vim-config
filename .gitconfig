@@ -75,3 +75,5 @@
 	submoduleSummary = true
 [credential]
 	helper = store
+[config]
+	helper = store
