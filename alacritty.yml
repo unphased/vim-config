@@ -59,23 +59,18 @@ draw_bold_text_with_bright_colors: false
 font:
   # The normal (roman) font face to use.
   normal:
-    family: "DejaVu Sans Mono for Powerline" # should be "Menlo" or something on macOS.
-    # Style can be specified to pick a specific face.
+    family: "Meslo LG S DZ for Powerline" # should be "Menlo" or something on macOS.
     style: Regular
 
   # The bold font face
   bold:
-    family: "DejaVu Sans Mono" # should be "Menlo" or something on macOS.
-  #   family: "Menlo for Powerline" # should be "Menlo" or something on macOS.
-  #   # Style can be specified to pick a specific face.
+    family: "Meslo LG S DZ for Powerline" # should be "Menlo" or something on macOS.
     style: Bold
 
   # The italic font face
   italic:
-    # family: "Menlo for Powerline" # should be "Menlo" or something on macOS.
-    family: "DejaVu Sans Mono for Powerline" # should be "Menlo" or something on macOS.
-    # Style can be specified to pick a specific face.
-    style: Oblique
+    family: "Meslo LG S DZ for Powerline" # should be "Menlo" or something on macOS.
+    style: Italic
 
   antialias: true
 
