@@ -3234,10 +3234,10 @@ hi Todo guibg=#484848
 "      \ 0,
 "      \ {'options': '--reverse --prompt "FLines> "'})
 
-command! -bang -nargs=* FLineSearch call fzf#vim#grep("rg --line-number --column --no-heading --fixed-strings --hidden ".shellescape(<q-args>), 1, {'options': '--prompt "FLineSearch '.shellescape(<q-args>).'> "'})
+command! -bang -nargs=* FLineSearch call fzf#vim#grep("rg --color=never --line-number --column --no-heading --fixed-strings --hidden ".shellescape(<q-args>), 1, {'options': '--prompt "FLineSearch '.shellescape(<q-args>).'> "'})
 
 command! -bang FLines call fzf#vim#grep(
-     \ "rg --column --line-number --no-heading --ignore-case --hidden -v '^$'",
+     \ "rg --color=never --column --line-number --no-heading --ignore-case --hidden -v '^$'",
      \ 1,
      \ {'options': '--prompt "FLines> "'})
 
