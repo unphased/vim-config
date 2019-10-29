@@ -86,6 +86,10 @@ alias ga="git add"
 alias ds="dirs -v | head -10"
 alias d="gde"
 
+alias ts="tmux split-window"
+# V is the easier mnemonic. But in tmux parlance this is a horizontal split.
+alias tv="tmux split-window -h"
+
 # alias iack="ack -i"
 
 # if [ "$(uname)" != "MSYS_NT-10.0" ]; then
