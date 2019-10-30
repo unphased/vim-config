@@ -671,7 +671,6 @@ let g:lsp_cxx_hl_verbose_log = 1
 set updatetime=300
 set shortmess+=c
 
-set hidden
 set nobackup
 set nowritebackup
 inoremap <silent><expr> <TAB>

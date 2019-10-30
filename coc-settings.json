@@ -11,7 +11,8 @@
         "cache": {
           "directory": "/tmp/ccls-cache"
         },
-        "index": {"initialBlacklist": ["."]},
+        // "index": {"initialBlacklist": ["."]},
+        "index": { "threads": 4 },
         "highlight": { "lsRanges": true }
       }
     },
