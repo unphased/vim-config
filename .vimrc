@@ -291,6 +291,12 @@ Plug 'elzr/vim-json'
 
 call plug#end()
 
+" ensures (from vim) that tmux config works right for title
+" if &term == "tmux-256color-italic"
+" 	set t_ts=]0;
+" 	set t_fs=
+" endif
+
 set title
 
 " To use echodoc, you must increase 'cmdheight' value.
