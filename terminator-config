@@ -6,6 +6,7 @@
   go_prev = None
   go_right = <Primary>l
   go_up = <Primary>k
+  layout_launcher = None
   resize_down = <Alt>j
   resize_left = <Alt>h
   resize_right = <Alt>l
