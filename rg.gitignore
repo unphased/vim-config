@@ -24,4 +24,3 @@ ccls-cache
 **/cdb/**
 **/*.cmake
 **/CMakeCache.txt
-!.*
