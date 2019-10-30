@@ -347,7 +347,9 @@ nnoremap <Leader>R :silent redraw!<CR>
 " repertoire, but skipping F24 and F25 because the actual vitality plugin uses 
 " this method specifically on F24 and F25
 if !has('nvim')
+	" c-tab
 	set <F23>=[27;5;9~
+	" s-c-tab
 	set <F22>=[27;6;9~
 	set <F21>=n
 
@@ -687,7 +689,7 @@ endfunction
 " Use <cr> to confirm completion, `<C-g>u` means break undo chain at current 
 " position.
 " Coc only does snippet and additional edit on confirm.
-inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
+" inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
 " Or use `complete_info` if your vim support it, like:
 " inoremap <expr> <cr> complete_info()["selected"] != "-1" ? "\<C-y>" : "\<C-g>u\<CR>"
 
@@ -702,6 +704,10 @@ nmap <silent> gi <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
 
 call coc#add_extension('coc-json', 'coc-snippets', 'coc-python')
+
+imap <F23> <Plug>(coc-snippets-expand-jump)
+let g:coc_snippet_next = '<F23>'
+let g:coc_snippet_prev = '<F22>'
 
 " Highlight symbol under cursor on CursorHold
 autocmd CursorHold * silent call CocActionAsync('highlight')
