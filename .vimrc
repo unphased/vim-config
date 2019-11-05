@@ -963,9 +963,7 @@ au BufEnter * noremap <buffer> <silent> J 5gj
 "     \ | endif
 
 set wrap
-set textwidth=79 
-" after much messing around, 80 is still a good wrap point to keep at least the 
-" comments neat
+set textwidth=109
 
 set formatoptions=caq1njw
 " override $VIMRUNTIME/ftplugin/*.vim messing up my formatoptions by forcing the 
@@ -2451,7 +2449,7 @@ fu! LongLineHighlightToggle()
 endfunction
 map <Leader>l :call LongLineHighlightToggle()<CR>
 
-set colorcolumn=80
+set colorcolumn=110
 highlight ColorColumn ctermbg=235 term=NONE guibg=#252525
 
 " This one is insane. In the membraaaane...
