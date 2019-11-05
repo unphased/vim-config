@@ -963,7 +963,7 @@ au BufEnter * noremap <buffer> <silent> J 5gj
 "     \ | endif
 
 set wrap
-set textwidth=109
+set textwidth=99
 
 set formatoptions=caq1njw
 " override $VIMRUNTIME/ftplugin/*.vim messing up my formatoptions by forcing the 
@@ -2449,7 +2449,7 @@ fu! LongLineHighlightToggle()
 endfunction
 map <Leader>l :call LongLineHighlightToggle()<CR>
 
-set colorcolumn=110
+set colorcolumn=100
 highlight ColorColumn ctermbg=235 term=NONE guibg=#252525
 
 " This one is insane. In the membraaaane...
