@@ -3497,9 +3497,12 @@ inoremap <expr> <c-d>l strftime("%Y-%m-%d %H:%M")
   let &t_EI = "\e[1 q"
 " endif
 
-hi CleverFMark guibg=#cf00af guifg=#eeeeee
+hi CleverFMark guibg=#af008f guifg=#eeeeee
+hi CleverFDirectMark guifg=#2fc00f cterm=bold,underline
 let g:clever_f_mark_cursor_color = 'CleverFMark'
 let g:clever_f_mark_char_color = 'CleverFMark'
+let g:clever_f_mark_direct = 1
+let g:clever_f_mark_direct_color = 'CleverFDirectMark'
 
 " highlights for the bulitin tabline. When using lightline or airline or such, 
 " should not affect anything.
