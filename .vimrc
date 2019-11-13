@@ -299,6 +299,10 @@ endif
 
 set title
 
+" suppresses "Thanks for flying Vim", though I'd like to know why it fails at restoring original 
+" title.
+set titleold=""
+
 " To use echodoc, you must increase 'cmdheight' value.
 " set cmdheight=2
 " let g:echodoc_enable_at_startup = 1
