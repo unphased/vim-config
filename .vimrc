@@ -71,7 +71,7 @@ Plug 'tpope/vim-speeddating'
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-obsession'
 Plug 'tpope/vim-fugitive'
-Plug 'tpope/vim-abolish'
+Plug 'tpope/vim-abolish' " this is the plug that does crc,crm,crs,cru (convert variable case e.g. camelCase MixedCase snake_case)
 Plug 'tpope/vim-afterimage'
 Plug 'rust-lang/rust.vim'
 " Plug 'tpope/vim-endwise'
