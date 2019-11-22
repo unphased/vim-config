@@ -709,12 +709,12 @@ nmap <silent> ]g <Plug>(coc-diagnostic-next)
 " Remap keys for gotos
 nmap <silent> gd <Plug>(coc-definition)
 " satisfies my need for commanded go to def split, this replaces Select mode
-nnoremap gh :call CocAction('jumpDefinition', 'split')
+nnoremap gh :call CocAction('jumpDefinition', 'split')<CR>
 " vert split go to def, replaces gv which selects previous selection
-nnoremap gv :call CocAction('jumpDefinition', 'vsplit')
+nnoremap gv :call CocAction('jumpDefinition', 'vsplit')<CR>
 " new tab go to def, replaces original vim bind for going to next tab, which is good to know, and 
 " which i will use on clean systems, but i already have F2 and tab and ctrl+pgdn for that.
-nnoremap gt :call CocAction('jumpDefinition', 'tabe')
+nnoremap gt :call CocAction('jumpDefinition', 'tabe')<CR>
 nmap <silent> gy <Plug>(coc-type-definition)
 nmap <silent> gi <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
