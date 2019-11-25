@@ -22,5 +22,4 @@ ccls-cache
 **/*.stderr
 **/*.stdout
 **/cdb/**
-**/*.cmake
 **/CMakeCache.txt
