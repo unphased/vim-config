@@ -149,6 +149,9 @@ let g:lightline.active = {
 			\ 'right': [ [ 'percent' ],
 			\            [ 'lineinfo', 'charvaluehex' ],
 			\            [ 'fileformatenc', 'filetype' ] ] }
+let g:lightline.inactive = {
+			\ 'left': [ [ 'relativepathtrunc' ] ] }
+
 let g:lightline.tab_component_function = {
 			\ 'tabwinct': 'TabWinCt',
 			\ 'tabmod': 'TabAnyModified'
