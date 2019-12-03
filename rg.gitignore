@@ -1,3 +1,5 @@
+!.vimrc
+!.vim/
 **/node_modules
 **/*.min.js
 **/*.svg
