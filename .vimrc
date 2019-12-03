@@ -150,7 +150,7 @@ let g:lightline.active = {
 			\            [ 'lineinfo', 'charvaluehex' ],
 			\            [ 'fileformatenc', 'filetype' ] ] }
 let g:lightline.inactive = {
-			\ 'left': [ [ 'relativepathtrunc' ] ] }
+			\ 'left': [ [ 'relativepathtrunc', 'modified' ] ] }
 
 let g:lightline.tab_component_function = {
 			\ 'tabwinct': 'TabWinCt',
