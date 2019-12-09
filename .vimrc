@@ -80,6 +80,8 @@ Plug 'mattn/emmet-vim'
 " Plug 'unphased/git-time-lapse'
 Plug 'vim-scripts/yaifa.vim'
 Plug 'nathanaelkane/vim-indent-guides'
+Plug 'wellle/context.vim'
+Plug 'wellle/targets.vim'
 
 " TODO: replace hicursorwords with a more straightforward impl such as 
 " https://github.com/hotoo/highlight-cursor-word.vim/blob/master/plugin/highlight.vim
@@ -249,7 +251,6 @@ Plug 'vim-scripts/EnhancedJumps'
 Plug 't9md/vim-textmanip', { 'on': [ '<Plug>(textmanip-move-down)', '<Plug>(textmanip-move-up)', '<Plug>(textmanip-move-left)', '<Plug>(textmanip-move-right)', '<Plug>(textmanip-toggle-mode)', '<Plug>(textmanip-toggle-mode)', ] }
 
 Plug 'junegunn/vim-easy-align'
-Plug 'blueyed/argtextobj.vim'
 
 " Plug 'octol/vim-cpp-enhanced-highlight' " this broke way too often on modern c++ files. Really problematic angle bracket handling. Trying it again.
 
