@@ -3105,12 +3105,8 @@ nnoremap <Leader>H :noautocmd call HeightSpread()<CR>
 " TODO make this into a function which uses v:count1.
 nnoremap = :vertical res +5<CR>
 nnoremap - :vertical res -5<CR>
-nnoremap + :exe "res " . (winheight(0) * 4/3)<CR>:noautocmd call HeightSpread()<CR>
-nnoremap _ :exe "res " . (winheight(0) * 3/4)<CR>:noautocmd call HeightSpread()<CR>
-
-" needed with the ratios above
-set winheight=3
-set winminheight=1
+nnoremap + :res +4<CR>:noautocmd call HeightSpread()<CR>
+nnoremap _ :res -4<CR>:noautocmd call HeightSpread()<CR>
 
 " conceal rule for javascript
 au! FileType javascript setl conceallevel=2 concealcursor=c
