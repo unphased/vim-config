@@ -80,7 +80,7 @@ Plug 'mattn/emmet-vim'
 " Plug 'unphased/git-time-lapse'
 Plug 'vim-scripts/yaifa.vim'
 Plug 'nathanaelkane/vim-indent-guides'
-Plug 'wellle/context.vim'
+" Plug 'wellle/context.vim'
 Plug 'wellle/targets.vim'
 
 " TODO: replace hicursorwords with a more straightforward impl such as 
@@ -339,6 +339,8 @@ autocmd FileType gitcommit set nosmartindent | set formatoptions-=t
 
 " nnoremap <Leader>e :silent !p4 edit %:p<CR>:redraw!<CR>
 nnoremap <Leader>R :silent redraw!<CR>
+
+set noequalalways
 
 " let g:neocomplete#enable_at_startup = 1
 " let g:neocomplete#min_keyword_length = 3
