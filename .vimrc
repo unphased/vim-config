@@ -3568,11 +3568,11 @@ autocmd FileType json syntax match Comment +\/\/.\+$+
 
 if !has('nvim')
 	set <F27>=[5;5~
-	noremap! <silent> <F27> <ESC>:call SwitchTabPrev()<CR>
-	noremap <silent> <F27> :call SwitchTabPrev()<CR>
+	noremap! <silent> <F27> <ESC>:tabprev<CR>
+	noremap <silent> <F27> :tabprev<CR>
 	set <F28>=[6;5~
-	noremap! <silent> <F28> <ESC>:call SwitchTabNext()<CR>
-	noremap <silent> <F28> :call SwitchTabNext()<CR>
+	noremap! <silent> <F28> <ESC>:tabnext<CR>
+	noremap <silent> <F28> :tabnext<CR>
 	set <F29>=[5;2~
 	nmap <F29> :echo 's-pgup'<CR>
 	set <F30>=[6;2~
