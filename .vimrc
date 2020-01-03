@@ -62,6 +62,7 @@ Plug 'editorconfig/editorconfig-vim'
 
 Plug 'rhysd/git-messenger.vim'
 Plug 'leafgarland/typescript-vim'
+Plug 'peitalin/vim-jsx-typescript'
 Plug 'scrooloose/nerdtree', { 'on': ['NERDTreeFind', 'NERDTreeToggle'] }
 " Plug 'ctrlpvim/ctrlp.vim'
 Plug 'vim-scripts/diffchanges.vim'
