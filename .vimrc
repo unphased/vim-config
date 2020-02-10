@@ -124,11 +124,11 @@ Plug 'itchyny/lightline.vim'
 "     \ 'html',
 "     \ 'swift' ] }
 
-Plug 'lfilho/cosco.vim'
-let g:auto_comma_or_semicolon = 1
-let g:cosco_ignore_comment_lines = 1
-nnoremap <Leader>; :AutoCommaOrSemiColonToggle
-let g:cosco_filetype_blacklist = ['vim', 'bash']
+" Plug 'lfilho/cosco.vim'
+" let g:auto_comma_or_semicolon = 1
+" let g:cosco_ignore_comment_lines = 1
+" nnoremap <Leader>; :AutoCommaOrSemiColonToggle
+" let g:cosco_filetype_blacklist = ['vim', 'bash']
 
 " python integration seems to not work without this sometimes, i found this 
 " when i was compiling vim myself on ubuntu 18.04
