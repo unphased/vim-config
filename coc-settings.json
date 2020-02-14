@@ -20,7 +20,7 @@
     "flow": {
       "command": "flow"
       ,"args": ["lsp"]
-      ,"filetypes": ["javascript"]
+      ,"filetypes": ["javascript", "javascriptreact"]
       ,"requireRootPattern": true
       ,"settings": {}
       ,"rootPatterns": [".flowconfig"]
