@@ -291,6 +291,8 @@ Plug 'sickill/vim-pasta'
 " Plug 'ap/vim-css-color'
 " Plug 'Xuyuanp/nerdtree-git-plugin'
 
+:let g:colorizer_auto_color = 1
+
 " Plug 'chrisbra/NrrwRgn'
 Plug 'https://github.com/wesQ3/vim-windowswap'
 Plug 'sbdchd/neoformat'
