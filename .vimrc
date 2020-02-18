@@ -58,7 +58,7 @@ Plug 'maxbrunsfeld/vim-yankstack'
 Plug 'mbbill/undotree', { 'on': 'UndotreeToggle' }
 Plug 'rhysd/clever-f.vim'
 
-Plug 'editorconfig/editorconfig-vim'
+" Plug 'editorconfig/editorconfig-vim'
 
 Plug 'rhysd/git-messenger.vim'
 Plug 'leafgarland/typescript-vim'
