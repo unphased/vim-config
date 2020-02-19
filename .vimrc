@@ -1087,7 +1087,7 @@ noremap <S-F10> <ESC>
 noremap! <S-F10> <ESC>
 nnoremap <silent> <S-F10> :call EfTen('-')<CR>
 
-noremap <F12> <Help>
+noremap <F12> :ColorSwapFgBg<CR>
 function! SwitchTabNext()
 	if tabpagenr('$') == 1
 		call system('tmux next-window')
