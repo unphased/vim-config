@@ -419,11 +419,12 @@ lua << EOF
 	-- the following settings are not working. i ended up getting shit working using a .ccls file at the end of the day.
 	-- settings = { ccls = {clang = {extraArgs = {'-isystem', '/usr/local/Cellar/llvm/9.0.1/include/c++/v1'}}} }
 	}
+	require'nvim_lsp'.vimls.setup{}
+	require'nvim_lsp'.pyls.setup{}
 EOF
 else
 	call coc#add_extension('coc-json', 'coc-snippets', 'coc-python')
 endif
-
 
 " ensures (from vim) that tmux config works right for title
 if &term == "tmux-256color-italic"
