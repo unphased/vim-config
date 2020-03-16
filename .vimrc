@@ -411,8 +411,12 @@ call plug#end()
 
 if has('nvim')
 	echo 'nvim_lsp setting up ccls'
+	lua vim.lsp.set_log_level("debug")
 lua << EOF
-	require'nvim_lsp'.ccls.setup{}
+	require'nvim_lsp'.ccls.setup{
+	-- the following settings are not working. i ended up getting shit working using a .ccls file at the end of the day.
+	-- settings = { ccls = {clang = {extraArgs = {'-isystem', '/usr/local/Cellar/llvm/9.0.1/include/c++/v1'}}} }
+	}
 EOF
 else
 	call coc#add_extension('coc-json', 'coc-snippets', 'coc-python')

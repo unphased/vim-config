@@ -9,6 +9,9 @@
       // "trace.server": "verbose",
       "initializationOptions": {
         "compilationDatabaseDirectory": "./cdb",
+        "clang": {
+          "extraArgs": ["-isystem", "/usr/local/Cellar/llvm/9.0.1/include/c++/v1"]
+        },
         "cache": {
           "directory": "/tmp/ccls-cache"
         },
