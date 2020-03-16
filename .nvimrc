@@ -10,4 +10,5 @@ set packpath+=~/.vim
 " Source .vimrc
 source ~/.vimrc
 
-" Put neovim specific adjustments here
+" Put neovim specific adjustments here (but usually cannot because of plug command order 
+" requirements.)

@@ -17,8 +17,115 @@ let g:csv_hiGroup = 'CursorColumn'
 let g:csv_highlight_column = 'y'
 
 Plug 'jreybert/vimagit'
-Plug 'neoclide/coc.nvim', {'branch': 'release'}
-Plug 'jackguo380/vim-lsp-cxx-highlight'
+
+if !has('nvim')
+	Plug 'neoclide/coc.nvim', {'branch': 'release'}
+	" for coc.nvim
+
+	" au FileType c,cpp,objc,objcpp set cmdheight=2
+
+	set updatetime=300
+	set shortmess+=c
+
+	set nobackup
+	set nowritebackup
+	inoremap <silent><expr> <TAB>
+		  \ pumvisible() ? "\<C-n>" :
+		  \ <SID>check_back_space() ? "\<TAB>" :
+		  \ coc#refresh()
+	inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+
+	function! s:check_back_space() abort
+	  let col = col('.') - 1
+	  return !col || getline('.')[col - 1]  =~# '\s'
+	endfunction
+
+	" Use <cr> to confirm completion, `<C-g>u` means break undo chain at current 
+	" position.
+	" Coc only does snippet and additional edit on confirm.
+	" inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
+	" Or use `complete_info` if your vim support it, like:
+	" inoremap <expr> <cr> complete_info()["selected"] != "-1" ? "\<C-y>" : "\<C-g>u\<CR>"
+
+	" Use `[g` and `]g` to navigate diagnostics
+	nmap <silent> [g <Plug>(coc-diagnostic-prev)
+	nmap <silent> ]g <Plug>(coc-diagnostic-next)
+
+	" Remap keys for gotos
+	nmap <silent> gd <Plug>(coc-definition)
+	" satisfies my need for commanded go to def split, this replaces Select mode
+	nnoremap gh :call CocAction('jumpDefinition', 'split')<CR>
+	" vert split go to def, replaces gv which selects previous selection
+	nnoremap gv :call CocAction('jumpDefinition', 'vsplit')<CR>
+	" new tab go to def, replaces original vim bind for going to next tab, which is good to know, and 
+	" which i will use on clean systems, but i already have F2 and tab and ctrl+pgdn for that.
+	nnoremap gt :call CocAction('jumpDefinition', 'tabe')<CR>
+	nmap <silent> gy <Plug>(coc-type-definition)
+	nmap <silent> gi <Plug>(coc-implementation)
+	nmap <silent> gr <Plug>(coc-references)
+
+	imap <F23> <Plug>(coc-snippets-expand-jump)
+	let g:coc_snippet_next = '<F23>'
+	let g:coc_snippet_prev = '<F22>'
+
+	" Highlight symbol under cursor on CursorHold
+	autocmd CursorHold * silent call CocActionAsync('highlight')
+
+	" Remap for rename current word
+	nmap <leader>rn <Plug>(coc-rename)
+
+	" Remap for format selected region
+	xmap <leader>f  <Plug>(coc-format-selected)
+
+	augroup mygroup
+	  autocmd!
+	  " Setup formatexpr specified filetype(s).
+	  autocmd FileType typescript,json setl formatexpr=CocAction('formatSelected')
+	  " Update signature help on jump placeholder
+	  autocmd User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
+	augroup end
+
+	" Remap for do codeAction of selected region, ex: `<leader>aap` for current paragraph
+	xmap <leader>a  <Plug>(coc-codeaction-selected)
+	nmap <leader>a  <Plug>(coc-codeaction-selected)
+
+	" Remap for do codeAction of current line
+	nmap <leader>ac  <Plug>(coc-codeaction)
+	" Fix autofix problem of current line
+	nmap <leader>qf  <Plug>(coc-fix-current)
+
+	" Use `:Format` to format current buffer
+	command! -nargs=0 Format :call CocAction('format')
+
+	" Use `:Fold` to fold current buffer
+	command! -nargs=? Fold :call   CocAction('fold', <f-args>)
+
+	" use `:OR` for organize import of current buffer
+	command! -nargs=0 OR   :call   CocAction('runCommand', 'editor.action.organizeImport')
+
+	" Add status line support, for integration with other plugin, checkout `:h coc-status`
+	" set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
+
+	nnoremap <F5> :call <SID>show_documentation()<CR>
+
+	function! s:show_documentation()
+	  if (index(['vim','help'], &filetype) >= 0)
+		execute 'h '.expand('<cword>')
+	  else
+		call CocAction('doHover')
+	  endif
+	endfunction
+
+	Plug 'jackguo380/vim-lsp-cxx-highlight'
+	let g:lsp_cxx_hl_log_file = '/tmp/vim-lsp-cxx-hl.log'
+	let g:lsp_cxx_hl_verbose_log = 1
+	" let g:lsp_cxx_hl_use_text_props = 1
+
+endif
+
+if has('nvim')
+Plug 'neovim/nvim-lsp'
+endif
 
 " Load on nothing
 " Plug 'SirVer/ultisnips', { 'on': [] }
@@ -302,6 +409,16 @@ Plug 'elzr/vim-json'
 
 call plug#end()
 
+if has('nvim')
+	echo 'nvim_lsp setting up ccls'
+lua << EOF
+	require'nvim_lsp'.ccls.setup{}
+EOF
+else
+	call coc#add_extension('coc-json', 'coc-snippets', 'coc-python')
+endif
+
+
 " ensures (from vim) that tmux config works right for title
 if &term == "tmux-256color-italic"
 	set t_ts=]0;
@@ -318,7 +435,11 @@ set titleold=
 " set cmdheight=2
 " let g:echodoc_enable_at_startup = 1
 
-autocmd BufEnter * let &titlestring = "VIM " . expand("%:t")
+if has('nvim')
+	autocmd BufEnter * let &titlestring = "NVIM " . expand("%:t")
+else
+	autocmd BufEnter * let &titlestring = "VIM " . expand("%:t")
+endif
 " Bundle 'Decho'
 
 "
@@ -683,108 +804,6 @@ command! SyntaxDetect :echom "hi<" . synIDattr(synID(line("."),col("."),1),"name
 " au BufEnter *.vsh let b:fswitchdst = 'fsh'
 " au BufEnter *.fsh let b:fswitchdst = 'vsh'
 " au BufEnter *.mm  let b:fswitchdst = 'h' | let b:fswitchlocs = 'reg:/src/include/,reg:|src|include/**|,ifrel:|/src/|../include|'
-
-let g:lsp_cxx_hl_log_file = '/tmp/vim-lsp-cxx-hl.log'
-let g:lsp_cxx_hl_verbose_log = 1
-" let g:lsp_cxx_hl_use_text_props = 1
-
-" for coc.nvim
-
-" au FileType c,cpp,objc,objcpp set cmdheight=2
-
-set updatetime=300
-set shortmess+=c
-
-set nobackup
-set nowritebackup
-inoremap <silent><expr> <TAB>
-      \ pumvisible() ? "\<C-n>" :
-      \ <SID>check_back_space() ? "\<TAB>" :
-      \ coc#refresh()
-inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
-
-function! s:check_back_space() abort
-  let col = col('.') - 1
-  return !col || getline('.')[col - 1]  =~# '\s'
-endfunction
-
-" Use <cr> to confirm completion, `<C-g>u` means break undo chain at current 
-" position.
-" Coc only does snippet and additional edit on confirm.
-" inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
-" Or use `complete_info` if your vim support it, like:
-" inoremap <expr> <cr> complete_info()["selected"] != "-1" ? "\<C-y>" : "\<C-g>u\<CR>"
-
-" Use `[g` and `]g` to navigate diagnostics
-nmap <silent> [g <Plug>(coc-diagnostic-prev)
-nmap <silent> ]g <Plug>(coc-diagnostic-next)
-
-" Remap keys for gotos
-nmap <silent> gd <Plug>(coc-definition)
-" satisfies my need for commanded go to def split, this replaces Select mode
-nnoremap gh :call CocAction('jumpDefinition', 'split')<CR>
-" vert split go to def, replaces gv which selects previous selection
-nnoremap gv :call CocAction('jumpDefinition', 'vsplit')<CR>
-" new tab go to def, replaces original vim bind for going to next tab, which is good to know, and 
-" which i will use on clean systems, but i already have F2 and tab and ctrl+pgdn for that.
-nnoremap gt :call CocAction('jumpDefinition', 'tabe')<CR>
-nmap <silent> gy <Plug>(coc-type-definition)
-nmap <silent> gi <Plug>(coc-implementation)
-nmap <silent> gr <Plug>(coc-references)
-
-call coc#add_extension('coc-json', 'coc-snippets', 'coc-python')
-
-imap <F23> <Plug>(coc-snippets-expand-jump)
-let g:coc_snippet_next = '<F23>'
-let g:coc_snippet_prev = '<F22>'
-
-" Highlight symbol under cursor on CursorHold
-autocmd CursorHold * silent call CocActionAsync('highlight')
-
-" Remap for rename current word
-nmap <leader>rn <Plug>(coc-rename)
-
-" Remap for format selected region
-xmap <leader>f  <Plug>(coc-format-selected)
-
-augroup mygroup
-  autocmd!
-  " Setup formatexpr specified filetype(s).
-  autocmd FileType typescript,json setl formatexpr=CocAction('formatSelected')
-  " Update signature help on jump placeholder
-  autocmd User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
-augroup end
-
-" Remap for do codeAction of selected region, ex: `<leader>aap` for current paragraph
-xmap <leader>a  <Plug>(coc-codeaction-selected)
-nmap <leader>a  <Plug>(coc-codeaction-selected)
-
-" Remap for do codeAction of current line
-nmap <leader>ac  <Plug>(coc-codeaction)
-" Fix autofix problem of current line
-nmap <leader>qf  <Plug>(coc-fix-current)
-
-" Use `:Format` to format current buffer
-command! -nargs=0 Format :call CocAction('format')
-
-" Use `:Fold` to fold current buffer
-command! -nargs=? Fold :call   CocAction('fold', <f-args>)
-
-" use `:OR` for organize import of current buffer
-command! -nargs=0 OR   :call   CocAction('runCommand', 'editor.action.organizeImport')
-
-" Add status line support, for integration with other plugin, checkout `:h coc-status`
-" set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
-
-nnoremap <F5> :call <SID>show_documentation()<CR>
-
-function! s:show_documentation()
-  if (index(['vim','help'], &filetype) >= 0)
-    execute 'h '.expand('<cword>')
-  else
-    call CocAction('doHover')
-  endif
-endfunction
 
 function! InsertEnterActions(mode)
 	"echo 'islc'
@@ -3098,11 +3117,11 @@ endfun
 " Example of how to use w:created in an autocmd to initialize a window-local option
 " autocmd WinEnter,BufEnter,BufWritePost,VimResized,InsertLeave * noautocmd call HeightSpread()
 
-function! AdjustStatusSections()
-	echom "implement me"
-endfun
+" function! AdjustStatusSections()
+" 	echom "implement me"
+" endfun
 
-autocmd VimResized * noautocmd call AdjustStatusSections()
+" autocmd VimResized * noautocmd call AdjustStatusSections()
 
 " Not sure if this one here is overkill or not, but on terminal resizing it 
 " will be useful to call the routine
