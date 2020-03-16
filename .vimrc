@@ -13,6 +13,8 @@ Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 Plug 'chrisbra/csv.vim'
 
+Plug 'brgmnn/vim-opencl'
+
 let g:csv_hiGroup = 'CursorColumn'
 let g:csv_highlight_column = 'y'
 
