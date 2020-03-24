@@ -11,6 +11,8 @@ call plug#begin('~/.vim/plugged')
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 
 Plug 'junegunn/fzf.vim'
+Plug 'fidian/hexmode'
+Plug 'rizzatti/dash.vim'
 Plug 'chrisbra/csv.vim'
 
 Plug 'brgmnn/vim-opencl'
