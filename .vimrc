@@ -110,7 +110,7 @@ if !has('nvim')
 	" Add status line support, for integration with other plugin, checkout `:h coc-status`
 	" set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
 
-	nnoremap <F5> :call <SID>show_documentation()<CR>
+	nnoremap ? :call <SID>show_documentation()<CR>
 
 	function! s:show_documentation()
 	  if (index(['vim','help'], &filetype) >= 0)
@@ -129,6 +129,7 @@ endif
 
 if has('nvim')
 Plug 'neovim/nvim-lsp'
+Plug 'ervandew/supertab'
 endif
 
 " Load on nothing
@@ -198,7 +199,7 @@ Plug 'wellle/targets.vim'
 " TODO: replace hicursorwords with a more straightforward impl such as 
 " https://github.com/hotoo/highlight-cursor-word.vim/blob/master/plugin/highlight.vim
 "
-" Plug 'unphased/HiCursorWords'
+Plug 'unphased/HiCursorWords'
 
 Plug 'dimasg/vim-mark', { 'on': '<Plug>MarkSet' }
 " Bundle 'kien/rainbow_parentheses.vim'
@@ -414,6 +415,23 @@ Plug 'elzr/vim-json'
 call plug#end()
 
 if has('nvim')
+	set omnifunc=v:lua.vim.lsp.omnifunc
+	nnoremap <silent> <c-]> <cmd>lua vim.lsp.buf.definition()<CR>
+	nnoremap <silent> gd    <cmd>lua vim.lsp.buf.declaration()<CR>
+	nnoremap <silent> ?     <cmd>lua vim.lsp.buf.hover()<CR>
+	nnoremap <silent> 2gd   <cmd>lua vim.lsp.buf.implementation()<CR>
+	nnoremap <silent> 3gd   <cmd>lua vim.lsp.buf.signature_help()<CR>
+	nnoremap <silent> 1gd   <cmd>lua vim.lsp.buf.type_definition()<CR>
+	nnoremap <silent> gr    <cmd>lua vim.lsp.buf.references()<CR>
+	nnoremap <silent> g0    <cmd>lua vim.lsp.buf.document_symbol()<CR>
+
+	highlight LspDiagnosticsError term=italic ctermbg=88 guibg=#870000
+	highlight LspDiagnosticsWarning term=italic ctermbg=88 guibg=#870000
+	highlight LspDiagnosticInformation term=italic ctermbg=88 guibg=#870000
+	highlight LspDiagnosticHint term=italic ctermbg=88 guibg=#870000
+	highlight LspReferenceText term=italic ctermbg=88 guibg=#870000
+
+
 	echo 'nvim_lsp setting up ccls'
 	lua vim.lsp.set_log_level("debug")
 lua << EOF
@@ -427,6 +445,9 @@ EOF
 else
 	call coc#add_extension('coc-json', 'coc-snippets', 'coc-python')
 endif
+
+" TODO make this detect and use zeal for linux and dash on mac
+nnoremap <F5> :Dash!<CR>
 
 " ensures (from vim) that tmux config works right for title
 if &term == "tmux-256color-italic"
@@ -870,13 +891,13 @@ au! FileType tagbar setlocal cursorline
 "
 " Do I need these omnifuncs?
 " autocmd FileType python set omnifunc=pythoncomplete#Complete
-autocmd FileType javascript set omnifunc=javascriptcomplete#CompleteJS
+" autocmd FileType javascript set omnifunc=javascriptcomplete#CompleteJS
 " autocmd FileType html set omnifunc=htmlcomplete#CompleteTags
 " autocmd FileType css set omnifunc=csscomplete#CompleteCSS
 " autocmd FileType xml set omnifunc=xmlcomplete#CompleteTags
 " autocmd FileType php set omnifunc=phpcomplete#CompletePHP
 " autocmd FileType c set omnifunc=ccomplete#Complete
-
+"
 set mouse=a
 
 " for hopping words (from default shitty putty)
