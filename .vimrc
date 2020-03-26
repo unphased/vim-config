@@ -3164,14 +3164,15 @@ hi Conceal ctermbg=238 ctermfg=NONE cterm=NONE guibg=#404040
 " action bound to [ or ] proper, so im not sure what i was getting at with this 
 " comment originally.)
 
-" spell fix bind (my s, f, c binds are filled up, so I'm using x)
-nnoremap <Leader>x ms[s1z=:let g:correct_index = 1<CR>`s
-inoremap <C-x> <C-G>u<Esc>ms[s1z=:let g:correct_index = 1<CR>`sa
+"""" I'm not using the following stuff and wanted to test omnicomplete """"
+" " spell fix bind (my s, f, c binds are filled up, so I'm using x)
+" nnoremap <Leader>x ms[s1z=:let g:correct_index = 1<CR>`s
+" inoremap <C-x> <C-G>u<Esc>ms[s1z=:let g:correct_index = 1<CR>`sa
 
-" only works immediately after use of <Leader> x corrected to not the proper 
-" word
-nnoremap <Leader>X :let g:correct_index += 1<CR>u:exec "normal! " . correct_index . "z=`s"<CR>
-inoremap <C-X> <C-G>u<Esc>:let g:correct_index += 1<CR>u:exec "normal! " . correct_index . "z=`s"<CR>a
+" " only works immediately after use of <Leader> x corrected to not the proper 
+" " word
+" nnoremap <Leader>X :let g:correct_index += 1<CR>u:exec "normal! " . correct_index . "z=`s"<CR>
+" inoremap <C-X> <C-G>u<Esc>:let g:correct_index += 1<CR>u:exec "normal! " . correct_index . "z=`s"<CR>a
 
 nnoremap <Leader>T :ThesaurusQueryReplaceCurrentWord<CR>
 nnoremap <Leader>t :Tagbar<CR>
