@@ -15,7 +15,7 @@
 **/.discrim.log
 **/machine_shell_logs/*
 **/zxcvbn.js
-.ccls-cache
+.ccls-cache/*
 ccls-cache
 **/CMakeFiles/**
 **/moc_*.cpp

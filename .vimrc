@@ -425,13 +425,6 @@ if has('nvim')
 	nnoremap <silent> gr    <cmd>lua vim.lsp.buf.references()<CR>
 	nnoremap <silent> g0    <cmd>lua vim.lsp.buf.document_symbol()<CR>
 
-	highlight LspDiagnosticsError term=italic ctermbg=88 guibg=#870000
-	highlight LspDiagnosticsWarning term=italic ctermbg=88 guibg=#870000
-	highlight LspDiagnosticInformation term=italic ctermbg=88 guibg=#870000
-	highlight LspDiagnosticHint term=italic ctermbg=88 guibg=#870000
-	highlight LspReferenceText term=italic ctermbg=88 guibg=#870000
-
-
 	echo 'nvim_lsp setting up ccls'
 	lua vim.lsp.set_log_level("debug")
 lua << EOF
@@ -467,6 +460,13 @@ set titleold=
 
 if has('nvim')
 	autocmd BufEnter * let &titlestring = "NVIM " . expand("%:t")
+
+	autocmd BufEnter * highlight LspDiagnosticsError ctermbg=88 guibg=#870000
+	autocmd BufEnter * highlight LspDiagnosticsWarning ctermbg=11 guibg=#878700
+	autocmd BufEnter * highlight LspDiagnosticInformation ctermbg=242 guibg=#303030
+	autocmd BufEnter * highlight LspDiagnosticHint ctermbg=88 guibg=#870000
+	autocmd BufEnter * highlight LspReferenceText ctermbg=88 guibg=#870000
+
 else
 	autocmd BufEnter * let &titlestring = "VIM " . expand("%:t")
 endif
