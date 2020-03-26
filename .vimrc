@@ -244,8 +244,8 @@ Plug 'itchyny/lightline.vim'
 
 " python integration seems to not work without this sometimes, i found this 
 " when i was compiling vim myself on ubuntu 18.04
-if has('python')
-	py import vim
+if has('python3')
+	python3 import vim
 endif
 
 autocmd FileType c,cpp,cs,java setlocal commentstring=//\ %s
@@ -1296,8 +1296,8 @@ function! SearchForWord()
 	" visually distracting and i need an async way to deal with this...
 	" silent exe "!echo " . l:word . " > $HOME/.vim/.search"
 	" redraw!
-	if has('python')
-		python << EOF
+	if has('python3')
+		python3 << EOF
 from os.path import expanduser
 f = open(expanduser('~') + '/.vim/.search', 'w')
 # print f
@@ -1338,8 +1338,8 @@ function! s:VSetSearch(cmd)
   let old_reg = getreg('"')
   let old_regtype = getregtype('"')
   normal! gvy
-  if has('python')
-    python << EOF
+  if has('python3')
+    python3 << EOF
 from os.path import expanduser
 f = open(expanduser('~') + '/.vim/.search', 'w')
 # print f
@@ -2716,18 +2716,18 @@ endif
 " a special case for surrounding with newlines
 vmap S<CR> S<C-J>V2j=
 
-if has('python')
-	python << EOF
-# print 'hi from python'
+if has('python3')
+	python3 << EOF
+# print ('hi from python')
 EOF
 	function! MungeArgListPython()
-		python << EOF
+		python3 << EOF
 import string
 # check we are inside parens
 curcol = vim.current.window.cursor[1];
 parensstart = string.rfind(vim.current.line, '(', 0, curcol);
 parensend = string.find(vim.current.line, ')', curcol);
-print 'curcol ' + str(curcol)+ ' idxs are ' + str(parensstart) + ', ' + str(parensend) + ' line inside parens is >>' + vim.current.line[parensstart:parensend+1] + '<<'
+print ('curcol ' + str(curcol)+ ' idxs are ' + str(parensstart) + ', ' + str(parensend) + ' line inside parens is >>' + vim.current.line[parensstart:parensend+1] + '<<')
 EOF
 	endfun
 	" X does something rather kind of useful but i never use it --- I am 
@@ -2909,7 +2909,7 @@ endfunction
 " maybe call this on new window/bufload)
 function! HeightSpread()
 	" short circuit me if do not have python
-	if !has('python')
+	if !has('python3')
 		return
 	endif
 
@@ -2990,7 +2990,7 @@ function! HeightSpread()
 	" echom 'start '.string(start)
 
 	" sort (vimscript algorithms are insane so i am pythoning)
-	python << EOF
+	python3 << EOF
 # import operator
 # import time
 # timestart = time.time()
