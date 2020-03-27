@@ -490,7 +490,7 @@ au! BufNewFile,BufReadPost *.md set filetype=markdown
 au! BufRead,BufNewFile CUDA*.in,*.cuda,*.cu,*.cuh set ft=cuda
 
 " customize it for my usual workflow
-autocmd FileType gitcommit set nosmartindent | set formatoptions-=t
+autocmd FileType gitcommit setlocal nosmartindent | setlocal formatoptions-=tcl
 
 " this thing needs work
 " nnoremap <Leader>g :call TimeLapse()<CR>
@@ -1037,13 +1037,13 @@ au BufEnter * noremap <buffer> <silent> J 5gj
 set wrap
 set textwidth=99
 
-set formatoptions=caq1njw
-" override $VIMRUNTIME/ftplugin/*.vim messing up my formatoptions by forcing the 
-" options that i really care about at this point
-au FileType * setlocal fo-=r
-au FileType * setlocal fo+=b
+" set formatoptions=caq1njw
+" " override $VIMRUNTIME/ftplugin/*.vim messing up my formatoptions by forcing the 
+" " options that i really care about at this point
+" au FileType * setlocal fo-=r
+" au FileType * setlocal fo+=b
 
-au FileType txt setlocal fo-=c
+" au FileType txt setlocal fo-=c
 
 " Helpful warning message
 au FileChangedShell * echo "Warning: File changed on disk!!"
@@ -3083,15 +3083,22 @@ splitlen = int(totspc) - tot
 # height ratios, and use greedy assignment to be fuzzy with divisions while
 # ensuring total height count adds up.
 
-# print 'before: ' + str(splitlen) + ', ' + str(fits_unsorted)
+# print ('before: ' + str(splitlen) + ', ' + str(fits_unsorted))
+import functools
 
 abort=False
 if len(split) > 0:
 	split.insert(0, 0)
-	sum = reduce(lambda x,y: x + int(y[1]), split)
+	suma = functools.reduce(lambda x,y: x + int(y[1]), split)
+	print ('split: ' + str(split))
+	print('suma' + str(suma))
+	sum = 0
+	for e in split:
+		print('e' + str(e))
+		sum += int(e[1])
 	ratio = float(splitlen) / sum
-	# print 'ratio: ' + str(ratio)
-	# print 'split: ' + str(split)
+	print ('ratio: ' + str(ratio))
+	print ('split: ' + str(split))
 	split = [[x[0], round(ratio*int(x[1])), x[2], False] for x in split[1:]]
 else:
 	# if everything fits we have to be careful and pad out the one which is
@@ -3102,7 +3109,7 @@ else:
 	# 	if (e[2] == '0'):
 	# 		e[1] = int(e[1]) + splitlen
 	# 		break
-# print 'after: ' + str(fits_unsorted)
+# print ('after: ' + str(fits_unsorted))
 
 # sort by position
 if not abort: # if aborting just effectively skip the rest
@@ -3163,8 +3170,8 @@ nnoremap <Leader>H :noautocmd call HeightSpread()<CR>
 " TODO make this into a function which uses v:count1.
 nnoremap = :vertical res +5<CR>
 nnoremap - :vertical res -5<CR>
-nnoremap + :res +4<CR>:noautocmd call HeightSpread()<CR>
-nnoremap _ :res -4<CR>:noautocmd call HeightSpread()<CR>
+nnoremap + :res +4<CR>
+nnoremap _ :res -4<CR>
 
 " conceal rule for javascript
 au! FileType javascript setl conceallevel=2 concealcursor=c
