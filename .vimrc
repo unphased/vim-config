@@ -130,7 +130,7 @@ endif
 Plug 'jackguo380/vim-lsp-cxx-highlight'
 let g:lsp_cxx_hl_log_file = '/tmp/vim-lsp-cxx-hl.log'
 let g:lsp_cxx_hl_verbose_log = 1
-" let g:lsp_cxx_hl_use_text_props = 1
+let g:lsp_cxx_hl_use_text_props = 1
 
 " Load on nothing
 " Plug 'SirVer/ultisnips', { 'on': [] }
@@ -430,7 +430,7 @@ if has('nvim')
 lua << EOF
 	require'nvim_lsp'.ccls.setup{
 	-- the following settings are not working. i ended up getting shit working using a .ccls file at the end of the day.
-	-- settings = { ccls = {clang = {extraArgs = {'-isystem', '/usr/local/Cellar/llvm/9.0.1/include/c++/v1'}}} }
+		init_options = { highlight = { lsRanges = true }}
 	}
 	require'nvim_lsp'.vimls.setup{}
 	require'nvim_lsp'.pyls.setup{}
