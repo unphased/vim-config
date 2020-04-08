@@ -120,17 +120,17 @@ if !has('nvim')
 	  endif
 	endfunction
 
-	Plug 'jackguo380/vim-lsp-cxx-highlight'
-	let g:lsp_cxx_hl_log_file = '/tmp/vim-lsp-cxx-hl.log'
-	let g:lsp_cxx_hl_verbose_log = 1
-	" let g:lsp_cxx_hl_use_text_props = 1
-
 endif
 
 if has('nvim')
 Plug 'neovim/nvim-lsp'
 Plug 'ervandew/supertab'
 endif
+
+Plug 'jackguo380/vim-lsp-cxx-highlight'
+let g:lsp_cxx_hl_log_file = '/tmp/vim-lsp-cxx-hl.log'
+let g:lsp_cxx_hl_verbose_log = 1
+" let g:lsp_cxx_hl_use_text_props = 1
 
 " Load on nothing
 " Plug 'SirVer/ultisnips', { 'on': [] }
@@ -382,7 +382,7 @@ Plug 'junegunn/vim-easy-align'
 Plug 'unphased/vim-html-escape' " my master has gdefault detecting tweak
 
 Plug 'rking/ag.vim'
-Plug 'kana/vim-textobj-user'
+" Plug 'kana/vim-textobj-user'
 
 Plug 'Ron89/thesaurus_query.vim'
 Plug 'AndrewRadev/switch.vim'
