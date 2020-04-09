@@ -1037,7 +1037,7 @@ au BufEnter * noremap <buffer> <silent> J 5gj
 set wrap
 set textwidth=99
 
-" set formatoptions=caq1njw
+set formatoptions=caq1njwbl
 " " override $VIMRUNTIME/ftplugin/*.vim messing up my formatoptions by forcing the 
 " " options that i really care about at this point
 " au FileType * setlocal fo-=r
