@@ -22,6 +22,8 @@ let g:csv_highlight_column = 'y'
 
 Plug 'jreybert/vimagit'
 
+Plug 'liuchengxu/vista.vim'
+
 if !has('nvim')
 	Plug 'neoclide/coc.nvim', {'branch': 'release'}
 	" for coc.nvim
@@ -120,7 +122,7 @@ if !has('nvim')
 	  endif
 	endfunction
 
-endif
+endif " if not nvim
 
 if has('nvim')
 Plug 'neovim/nvim-lsp'
@@ -435,6 +437,15 @@ lua << EOF
 	require'nvim_lsp'.vimls.setup{}
 	require'nvim_lsp'.pyls.setup{}
 EOF
+
+	" supertab
+
+	let g:SuperTabDefaultCompletionType = 'context'
+	autocmd FileType *
+				\ if &omnifunc != '' |
+				\   call SuperTabChain(&omnifunc, "<c-n>") |
+				\ endif
+
 else
 	call coc#add_extension('coc-json', 'coc-snippets', 'coc-python')
 endif
