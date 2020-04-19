@@ -24,7 +24,7 @@ Plug 'jreybert/vimagit'
 
 Plug 'liuchengxu/vista.vim'
 
-if !has('nvim')
+" if !has('nvim')
 	Plug 'neoclide/coc.nvim', {'branch': 'release'}
 	" for coc.nvim
 
@@ -122,16 +122,17 @@ if !has('nvim')
 	  endif
 	endfunction
 
-endif " if not nvim
+" endif " if not nvim
 
 if has('nvim')
-Plug 'neovim/nvim-lsp'
-Plug 'ervandew/supertab'
+" Plug 'neovim/nvim-lsp'
+" Plug 'ervandew/supertab'
+" Plug 'haorenW1025/completion-nvim'
 endif
 
 Plug 'jackguo380/vim-lsp-cxx-highlight'
 let g:lsp_cxx_hl_log_file = '/tmp/vim-lsp-cxx-hl.log'
-let g:lsp_cxx_hl_verbose_log = 1
+" let g:lsp_cxx_hl_verbose_log = 1
 let g:lsp_cxx_hl_use_text_props = 1
 
 " Load on nothing
@@ -139,7 +140,7 @@ let g:lsp_cxx_hl_use_text_props = 1
 " Plug 'Valloric/YouCompleteMe', { 'on': [] }
 " Plug 'scrooloose/syntastic', { 'on': [] }
 " Plug 'Shougo/neocomplete.vim'
-Plug 'w0rp/ale'
+" Plug 'w0rp/ale'
 Plug 'chrisbra/Colorizer'
 Plug 'majutsushi/tagbar', { 'on': ['Tagbar'] }
 " Plug 'xavierd/clang_complete'
@@ -188,7 +189,7 @@ Plug 'tpope/vim-obsession'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-abolish' " this is the plug that does crc,crm,crs,cru (convert variable case e.g. camelCase MixedCase snake_case)
 Plug 'tpope/vim-afterimage'
-Plug 'rust-lang/rust.vim'
+" Plug 'rust-lang/rust.vim'
 " Plug 'tpope/vim-endwise'
 " Plug 'vim-perl/vim-perl'
 Plug 'mattn/emmet-vim'
@@ -416,7 +417,8 @@ Plug 'elzr/vim-json'
 
 call plug#end()
 
-if has('nvim')
+" if has('nvim')
+if 0
 	set omnifunc=v:lua.vim.lsp.omnifunc
 	nnoremap <silent> <c-]> <cmd>lua vim.lsp.buf.definition()<CR>
 	nnoremap <silent> gd    <cmd>lua vim.lsp.buf.declaration()<CR>
@@ -440,15 +442,38 @@ EOF
 
 	" supertab
 
-	let g:SuperTabDefaultCompletionType = 'context'
-	autocmd FileType *
-				\ if &omnifunc != '' |
-				\   call SuperTabChain(&omnifunc, "<c-n>") |
-				\ endif
+	" let g:SuperTabDefaultCompletionType = 'context'
+	" autocmd FileType *
+	" 			\ if &omnifunc != '' |
+	" 			\   call SuperTabChain(&omnifunc, "<c-n>") |
+	" 			\ endif
 
-else
-	call coc#add_extension('coc-json', 'coc-snippets', 'coc-python')
+	" " Use completion-nvim in every buffer
+	" autocmd BufEnter * lua require'completion'.on_attach()
+
+	" " Use <Tab> and <S-Tab> to navigate through popup menu
+	" inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
+	" inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+
+	" " Set completeopt to have a better completion experience
+	" set completeopt=menuone,noinsert,noselect
+
+	" " Avoid showing message extra message when using completion
+	" set shortmess+=c
+	" let g:completion_enable_auto_popup = 0
+	" function! s:check_back_space() abort
+	" 	let col = col('.') - 1
+	" 	return !col || getline('.')[col - 1]  =~ '\s'
+	" endfunction
+
+	" inoremap <silent><expr> <TAB>
+	" 			\ pumvisible() ? "\<C-n>" :
+	" 			\ <SID>check_back_space() ? "\<TAB>" :
+	" 			\ completion#trigger_completion()
+
 endif
+
+call coc#add_extension('coc-json', 'coc-snippets', 'coc-python')
 
 " TODO make this detect and use zeal for linux and dash on mac
 nnoremap <F5> :Dash!<CR>
@@ -535,8 +560,6 @@ if !has('nvim')
 	set <F23>=[27;5;9~
 	" s-c-tab
 	set <F22>=[27;6;9~
-	set <F21>=n
-
 
 	set <F20>=.
 	set <F19>=,
