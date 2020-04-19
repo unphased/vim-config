@@ -3,7 +3,8 @@
         "browser": true,
         "node": true,
         "jquery": true,
-        "es6": true
+        "es6": true,
+        "es7": true
     },
     "settings": {
         "ecmascript": 7
