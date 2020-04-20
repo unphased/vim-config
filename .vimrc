@@ -1171,6 +1171,8 @@ noremap <S-F10> <ESC>
 noremap! <S-F10> <ESC>
 nnoremap <silent> <S-F10> :call EfTen('-')<CR>
 
+let g:colorizer_auto_filetype='css,html,colorlog'
+
 noremap <F12> :ColorSwapFgBg<CR>
 function! SwitchTabNext()
 	if tabpagenr('$') == 1
