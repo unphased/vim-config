@@ -1123,10 +1123,10 @@ function! TmuxWindow(dir)
 	endif
 endfun
 
-noremap <silent> <C-H> :call TmuxWindow('h')<CR>
-noremap <silent> <C-J> :call TmuxWindow('j')<CR>
-noremap <silent> <C-K> :call TmuxWindow('k')<CR>
-noremap <silent> <C-L> :call TmuxWindow('l')<CR>
+noremap <silent> <C-H> :<c-u>call TmuxWindow('h')<CR>
+noremap <silent> <C-J> :<c-u>call TmuxWindow('j')<CR>
+noremap <silent> <C-K> :<c-u>call TmuxWindow('k')<CR>
+noremap <silent> <C-L> :<c-u>call TmuxWindow('l')<CR>
 
 noremap! <silent> <C-H> <ESC>:call TmuxWindow('h')<CR>
 noremap! <silent> <C-J> <ESC>:call TmuxWindow('j')<CR>
@@ -1159,7 +1159,8 @@ function! EfTen(direction)
 		call system('tmux select-pane -t :.'.a:direction)
 	endif
 endfunc
-nnoremap <silent> <F10> :call EfTen('+')<CR>
+" <c-u> erases any numeric prefix to prevent numbers from accidentally DoS'ing tmux with vim
+nnoremap <silent> <F10> :<c-u>call EfTen('+')<CR>
 
 " I am not really sure what happened here but, tmux 2 seems to just have its 
 " own idea about how to send Shift F10 if TERM is screen-*. (before this used 
@@ -1194,10 +1195,10 @@ endfunc
 " noremap <F1> :tabnew<CR>
 " inoremap <F1> <ESC>:tabnew<CR>
 noremap! <silent> <F2> <ESC>:call SwitchTabPrev()<CR>
-noremap <silent> <F2> :call SwitchTabPrev()<CR>
+noremap <silent> <F2> :<c-u>call SwitchTabPrev()<CR>
 " inoremap <F2> <ESC>:tabprev<CR>
 noremap! <silent> <F3> <ESC>:call SwitchTabNext()<CR>
-noremap <silent> <F3> :call SwitchTabNext()<CR>
+noremap <silent> <F3> :<c-u>call SwitchTabNext()<CR>
 " inoremap <F3> <ESC>:tabnext<CR>
 " I am hoping to come up with mappings for the F-keys in insert mode that
 " can serve productive purposes.
