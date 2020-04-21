@@ -1621,6 +1621,9 @@ vnoremap <C-F> /\v
 nnoremap / /\v
 vnoremap / /\v
 
+" pull up last search, usually for in case you typoed it or something
+nnoremap <F1> /<c-u><up>
+
 " Finding % to be highly powerful so I map to high traffic area single key
 " This mostly alleviates the want for matching highlights for surrounding
 " stuff because moving back and forth between the endpoints can be quite
