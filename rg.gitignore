@@ -25,4 +25,5 @@
 **/*.stderr
 **/*.stdout
 **/cdb/**
+**/cdb_h.json
 **/CMakeCache.txt
