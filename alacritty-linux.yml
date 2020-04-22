@@ -22,7 +22,7 @@ window:
   dimensions:
     columns: 120
     lines: 90
-  decorations: 'transparent'
+  decorations: 'none'
 
 # Adds this many blank pixels of padding around the window
 # Units are physical pixels; this is not DPI aware.
@@ -383,7 +383,7 @@ key_bindings:
   - { key: F8,       chars: "\x1b[19~"                          }
   - { key: F9,       chars: "\x1b[20~"                          }
   - { key: F10,      chars: "\x1b[21~"                          }
-  - { key: F11,      action: ToggleSimpleFullscreen   }
+  - { key: F11,      command:{ program: "wmctrl", args: ["-r", ":ACTIVE:", "-b", "toggle,fullscreen" ]    }   }
   - { key: F12,      chars: "\x1b[24~"                          }
   - { key: F1,       mods: Shift,   chars: "\x1b[1;2P"          }
   - { key: F2,       mods: Shift,   chars: "\x1b[1;2Q"          }
