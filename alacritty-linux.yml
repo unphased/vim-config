@@ -245,11 +245,8 @@ scrolling:
 # (e.g. "\x1b[5~") is? Open another terminal (like xterm) without tmux,
 # then run `showkey -a` to get the sequence associated to a key combination.
 key_bindings:
-  - { key: N,        mods: Command, action: SpawnNewInstance }
-  - { key: N,        mods: Shift|Command, command: { program: "open", args: ["-n", "/Applications/Alacritty.app"] } }
-  - { key: Grave,    mods: Alt, command: { program: "/Users/slu/util/macos-open-next-program.sh", args: ["alacritty"] } }
-  - { key: Grave,    mods: Shift|Alt, command: { program: "/Users/slu/util/macos-open-next-program.sh", args: ["alacritty", "prev"] } }
-  - { key: V,        mods: Command,       action: Paste            }
+  - { key: N,        mods: Alt, action: SpawnNewInstance }
+  - { key: V,        mods: Alt,       action: Paste            }
   - { key: C,        mods: Command,       action: Copy             }
   - { key: Key0,     mods: Command,       action: ResetFontSize    }
   - { key: Equals,   mods: Command,       action: IncreaseFontSize }
@@ -378,7 +375,7 @@ key_bindings:
   - { key: F8,       chars: "\x1b[19~"                          }
   - { key: F9,       chars: "\x1b[20~"                          }
   - { key: F10,      chars: "\x1b[21~"                          }
-  - { key: F11,      command:{ program: "wmctrl", args: ["-r", ":ACTIVE:", "-b", "toggle,fullscreen" ]    }   }
+  - { key: F11,      action: ToggleFullscreen }
   - { key: F12,      chars: "\x1b[24~"                          }
   - { key: F1,       mods: Shift,   chars: "\x1b[1;2P"          }
   - { key: F2,       mods: Shift,   chars: "\x1b[1;2Q"          }
