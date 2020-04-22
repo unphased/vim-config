@@ -25,13 +25,6 @@ window:
   dynamic_padding: true
   decorations: 'transparent'
 
-# Adds this many blank pixels of padding around the window
-# Units are physical pixels; this is not DPI aware.
-# (change requires restart)
-  padding:
-    x: 1
-    y: 1
-
 # When true, bold text is drawn using the bright variant of colors.
 draw_bold_text_with_bright_colors: false
 
@@ -91,7 +84,7 @@ font:
   # OS X only: use thin stroke font rendering. Thin strokes are suitable
   # for retina displays, but for non-retina you probably want this set to
   # false.
-  use_thin_strokes: false
+  use_thin_strokes: true
 
 # Should display the render timer
 # render_timer: false
@@ -156,9 +149,9 @@ colors:
 # To completely disable the visual bell, set its duration to 0.
 #
 visual_bell:
-  animation: Linear
+  animation: EaseOutExpo
   duration: 0
-  color: '0x000000'
+  color: '0x202020'
 
 # Background opacity
 background_opacity: 0.97
