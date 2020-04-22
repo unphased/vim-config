@@ -22,14 +22,9 @@ window:
   dimensions:
     columns: 120
     lines: 90
-  decorations: 'none'
-
-# Adds this many blank pixels of padding around the window
-# Units are physical pixels; this is not DPI aware.
-# (change requires restart)
-  padding:
-    x: 1
-    y: 1
+  dynamic_padding: true
+  decorations: 'none' # awkward, but i need the real estate. also 18.04 keeps things decent
+  startup_mode: Fullscreen
 
 # When true, bold text is drawn using the bright variant of colors.
 draw_bold_text_with_bright_colors: false
@@ -56,36 +51,36 @@ draw_bold_text_with_bright_colors: false
 font:
   # The normal (roman) font face to use.
   normal:
-    family: "Meslo LG S DZ for Powerline" # should be "Menlo" or something on macOS.
+    family: "DejaVu Sans Mono for Powerline" # should be "Menlo" or something on macOS.
     style: Regular
 
   # The bold font face
   bold:
-    family: "Meslo LG S DZ for Powerline" # should be "Menlo" or something on macOS.
+    family: "DejaVu Sans Mono for Powerline" # should be "Menlo" or something on macOS.
     style: Bold
 
   # The italic font face
   italic:
-    family: "Meslo LG S DZ for Powerline" # should be "Menlo" or something on macOS.
+    family: "DejaVu Sans Mono for Powerline" # should be "Menlo" or something on macOS.
     style: Italic
 
-  antialias: true
+  antialias: false
 
   # Point size of the font
-  size: 12
+  size: 9
 
   # Offset is the extra space around each character. offset.y can be thought of
   # as modifying the linespacing, and offset.x as modifying the letter spacing.
   offset:
     x: 0
-    y: 1
+    y: 0
 
   # Glyph offset determines the locations of the glyphs within their cells with
   # the default being at the bottom. Increase the x offset to move the glyph to
   # the right, increase the y offset to move the glyph upward.
   glyph_offset:
     x: 0
-    y: 1
+    y: 0
 
   # OS X only: use thin stroke font rendering. Thin strokes are suitable
   # for retina displays, but for non-retina you probably want this set to
@@ -155,12 +150,12 @@ colors:
 # To completely disable the visual bell, set its duration to 0.
 #
 visual_bell:
-  animation: Linear
-  duration: 0
-  color: '0x000000'
+  animation: EaseOutExpo
+  duration: 100
+  color: '0x303030'
 
 # Background opacity
-background_opacity: 0.97
+background_opacity: 0.95
 
 # Mouse bindings
 #
@@ -188,7 +183,7 @@ mouse:
   hide_when_typing: true
 
 selection:
-  semantic_escape_chars: ",│`|:\"' ()[]{}<>"
+  semantic_escape_chars: ",│`|:\"' ()[]{}<>\t"
   save_to_clipboard: true
 
 # Live config reload (changes require restart)
@@ -197,7 +192,7 @@ live_config_reload: true
 scrolling:
   # How many lines of scrollback to keep,
   # '0' will disable scrolling.
-  history: 10000
+  history: 50000
   multiplier: 3
 
 # Shell
