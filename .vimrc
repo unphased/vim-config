@@ -473,7 +473,7 @@ EOF
 
 endif
 
-call coc#add_extension('coc-json', 'coc-snippets', 'coc-python')
+call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tabnine')
 
 " TODO make this detect and use zeal for linux and dash on mac
 nnoremap <F5> :Dash!<CR>
@@ -1172,7 +1172,7 @@ noremap! <S-F10> <ESC>
 nnoremap <silent> <S-F10> :call EfTen('-')<CR>
 
 let g:colorizer_auto_filetype='css,html'
-autocmd BufEnter,BufNew *.colorlog ColorHighlight
+autocmd BufEnter,BufNew colorlog ColorHighlight
 
 noremap <F12> :ColorSwapFgBg<CR>
 function! SwitchTabNext()
