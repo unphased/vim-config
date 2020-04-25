@@ -15,6 +15,7 @@ Plug 'fidian/hexmode'
 Plug 'rizzatti/dash.vim'
 Plug 'chrisbra/csv.vim'
 
+Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() } }
 Plug 'brgmnn/vim-opencl'
 
 let g:csv_hiGroup = 'CursorColumn'
@@ -1543,9 +1544,9 @@ nnoremap m<F2> :tabmove -1<CR>
 
 " semantic on OSX works again! hooray -- now this has to be bound to a key 
 " because of limitations. see issue 887 at YCM's github
-let g:ycm_enable_diagnostic_signs = 1
-let g:ycm_enable_diagnostic_highlighting = 1
-let g:ycm_server_keep_logfiles = 1
+" let g:ycm_enable_diagnostic_signs = 1
+" let g:ycm_enable_diagnostic_highlighting = 1
+" let g:ycm_server_keep_logfiles = 1
 
 " sadly, this doesn't work on the fly for some reason. It's supposed to!
 " nnoremap <F7> :call YCMSignToggle()<CR>
@@ -3632,7 +3633,7 @@ let g:clever_f_mark_direct_color = 'CleverFDirectMark'
 hi TabLineFill ctermfg=LightGreen ctermbg=DarkGreen guibg=#111111 guifg=#222222
 hi TabLine ctermfg=Blue ctermbg=Yellow guifg=#000000
 hi TabLineSel ctermfg=Red ctermbg=Yellow guifg=#aaaaaa guibg=#222222
-hi Title guifg=#444444
+hi Title guifg=#f4f4f4 cterm=italic,bold gui=italic,bold
 
 " paste the global search
 nnoremap <Leader>P :.-1read $HOME/.vim/.search<CR>
