@@ -475,6 +475,12 @@ endif
 
 call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tabnine')
 
+call system('onbatt')
+if v:shell_error == 0
+	echom 'On battery: Disabling coc-tabnine.'
+	call CocAction('deactivateExtension', 'coc-tabnine')
+endif
+
 " TODO make this detect and use zeal for linux and dash on mac
 nnoremap <F5> :Dash!<CR>
 
