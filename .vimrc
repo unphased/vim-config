@@ -15,8 +15,12 @@ Plug 'fidian/hexmode'
 Plug 'rizzatti/dash.vim'
 Plug 'chrisbra/csv.vim'
 
+Plug 'godlygeek/tabular'
+Plug 'plasticboy/vim-markdown'
 Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() } }
 Plug 'brgmnn/vim-opencl'
+
+let g:vim_markdown_folding_disabled = 1
 
 let g:csv_hiGroup = 'CursorColumn'
 let g:csv_highlight_column = 'y'
@@ -478,8 +482,8 @@ call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tabnine')
 
 call system('onbatt')
 if v:shell_error == 0
-	echom 'On battery: Disabling coc-tabnine.'
-	call CocAction('deactivateExtension', 'coc-tabnine')
+	echom 'On battery: Disabling coc-tabnine when entering buffers.'
+	autocmd BufEnter * call CocAction('deactivateExtension', 'coc-tabnine')
 endif
 
 " TODO make this detect and use zeal for linux and dash on mac
