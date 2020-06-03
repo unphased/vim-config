@@ -1,6 +1,7 @@
 {
   // "coc.preferences.jumpCommand": "sp",
   "suggest.triggerAfterInsertEnter": true,
+  "suggest.snippetIndicator": "►",
   "languageserver": {
     "ccls": {
       "command": "ccls",
