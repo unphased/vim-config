@@ -478,7 +478,7 @@ EOF
 
 endif
 
-call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tabnine')
+call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tabnine', 'coc-tsserver')
 
 call system('onbatt')
 if v:shell_error == 0
