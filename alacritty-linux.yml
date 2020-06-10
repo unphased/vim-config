@@ -151,7 +151,7 @@ colors:
 #
 visual_bell:
   animation: EaseOutExpo
-  duration: 100
+  duration: 0
   color: '0x303030'
 
 # Background opacity
