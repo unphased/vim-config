@@ -54,10 +54,10 @@ Plug 'liuchengxu/vista.vim'
 	" Use <cr> to confirm completion, `<C-g>u` means break undo chain at current 
 	" position.
 	" Coc only does snippet and additional edit on confirm.
-	" inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
+	inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
 	" Or use `complete_info` if your vim support it, like:
 	" inoremap <expr> <cr> complete_info()["selected"] != "-1" ? "\<C-y>" : "\<C-g>u\<CR>"
-
+	
 	" Use `[g` and `]g` to navigate diagnostics
 	nmap <silent> [g <Plug>(coc-diagnostic-prev)
 	nmap <silent> ]g <Plug>(coc-diagnostic-next)
@@ -480,21 +480,28 @@ endif
 
 call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tabnine', 'coc-tsserver', 'coc-vimlsp')
 
-
+let g:on_battery = 'zzzz'
 function! CheckBatteryTabNine()
 	call system('onbatt')
-	if v:shell_error == 0
-		echom 'On battery: Disabling coc-tabnine when entering buffers.'
-		call CocAction('deactivateExtension', 'coc-tabnine')
+	echom 'what '.g:on_battery
+	echom 'wtf '. (v:shell_error != g:on_battery)
+	if v:shell_error != g:on_battery
+		let g:on_battery = v:shell_error
+		if g:on_battery == 0
+			echom 'On battery: Disabling coc-tabnine when entering buffers.'
+			call CocAction('deactivateExtension', 'coc-tabnine')
+		else
+			echom 'Not on battery: Enabling coc-tabnine when entering buffers.'
+			" let l:z = CocAction('extensionStats')
+			" echo 'extensionStats: '.l:z
+			call CocAction('activeExtension', 'coc-tabnine')
+		endif
 	else
-		echom 'Not on battery: Enabling coc-tabnine when entering buffers.'
-		" let l:z = CocAction('extensionStats')
-		" echo 'extensionStats: '.l:z
-		call CocAction('activeExtension', 'coc-tabnine')
+		echom 'no '.v:shell_error
 	endif
 endfun
 
-autocmd BufEnter * call CheckBatteryTabNine()
+" autocmd BufRead * call CheckBatteryTabNine()
 
 " TODO make this detect and use zeal for linux and dash on mac
 nnoremap <F5> :Dash!<CR>
@@ -2765,7 +2772,7 @@ let g:AutoPairsOnlyWhitespace = 1
 au Filetype html let b:AutoPairs = {'`': '`', '"': '"', '{': '}', '''': '''', '(': ')', '[': ']', '<':'>'}
 
 let g:AutoPairsMapCR=0
-imap <silent><CR> <CR><Plug>AutoPairsReturn
+" imap <silent><CR> <CR><Plug>AutoPairsReturn
 
 " bind Alt+P in insert mode to paste (for nvim)..
 " this actually conflicts with internal vim binding, see i_CTRL_P, but 
