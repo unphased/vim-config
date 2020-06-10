@@ -478,13 +478,23 @@ EOF
 
 endif
 
-call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tabnine', 'coc-tsserver')
+call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tabnine', 'coc-tsserver', 'coc-vimlsp')
 
-call system('onbatt')
-if v:shell_error == 0
-	echom 'On battery: Disabling coc-tabnine when entering buffers.'
-	autocmd BufEnter * call CocAction('deactivateExtension', 'coc-tabnine')
-endif
+
+function! CheckBatteryTabNine()
+	call system('onbatt')
+	if v:shell_error == 0
+		echom 'On battery: Disabling coc-tabnine when entering buffers.'
+		call CocAction('deactivateExtension', 'coc-tabnine')
+	else
+		echom 'Not on battery: Enabling coc-tabnine when entering buffers.'
+		" let l:z = CocAction('extensionStats')
+		" echo 'extensionStats: '.l:z
+		call CocAction('activeExtension', 'coc-tabnine')
+	endif
+endfun
+
+autocmd BufEnter * call CheckBatteryTabNine()
 
 " TODO make this detect and use zeal for linux and dash on mac
 nnoremap <F5> :Dash!<CR>
