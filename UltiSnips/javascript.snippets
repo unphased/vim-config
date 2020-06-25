@@ -13,6 +13,10 @@ Object.keys(${1:${VISUAL:obj}}).map(${3:k} => {
 });
 endsnippet
 
+snippet red "reduce" !w
+reduce((a, b) => { a + b }, 0)
+endsnippet
+
 snippet okr "Object.keys(object).reduce" !w
 Object.keys(${VISUAL}${1:obj}).reduce((a, ${3:b}) => {
 	var v = ${2:$1[$3]};

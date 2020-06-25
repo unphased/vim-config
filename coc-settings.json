@@ -5,6 +5,11 @@
   "list.normalMappings": {
     "v": "action:vsplit"
   },
+  "snippets.extends": {
+    "typescript": ["javascript"],
+    "typescriptreact": ["javascript"],
+    "javascriptreact": ["javascript"]
+  },
   "languageserver": {
     "ccls": {
       "command": "ccls",
@@ -32,4 +37,5 @@
       ,"rootPatterns": [".flowconfig"]
     }
   }
+  , "tsserver.log": "verbose"
 }
