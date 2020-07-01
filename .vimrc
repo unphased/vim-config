@@ -181,11 +181,13 @@ Plug 'rhysd/clever-f.vim'
 " Plug 'editorconfig/editorconfig-vim'
 
 Plug 'rhysd/git-messenger.vim'
-" Plug 'leafgarland/typescript-vim'
-" Plug 'peitalin/vim-jsx-typescript'
+Plug 'leafgarland/typescript-vim'
+Plug 'peitalin/vim-jsx-typescript'
 
-Plug 'chemzqm/vim-jsx-improve'
-let g:jsx_improve_motion_disable = 1
+" Plug 'neoclide/vim-jsx-improve'
+
+" Plug 'chemzqm/vim-jsx-improve'
+" let g:jsx_improve_motion_disable = 1
 
 Plug 'scrooloose/nerdtree', { 'on': ['NERDTreeFind', 'NERDTreeToggle'] }
 " Plug 'ctrlpvim/ctrlp.vim'
