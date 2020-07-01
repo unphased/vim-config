@@ -181,8 +181,12 @@ Plug 'rhysd/clever-f.vim'
 " Plug 'editorconfig/editorconfig-vim'
 
 Plug 'rhysd/git-messenger.vim'
-Plug 'leafgarland/typescript-vim'
-Plug 'peitalin/vim-jsx-typescript'
+" Plug 'leafgarland/typescript-vim'
+" Plug 'peitalin/vim-jsx-typescript'
+
+Plug 'chemzqm/vim-jsx-improve'
+let g:jsx_improve_motion_disable = 1
+
 Plug 'scrooloose/nerdtree', { 'on': ['NERDTreeFind', 'NERDTreeToggle'] }
 " Plug 'ctrlpvim/ctrlp.vim'
 Plug 'vim-scripts/diffchanges.vim'
@@ -212,7 +216,7 @@ Plug 'unphased/HiCursorWords'
 Plug 'dimasg/vim-mark', { 'on': '<Plug>MarkSet' }
 " Bundle 'kien/rainbow_parentheses.vim'
 Plug 'mhinz/vim-signify'
-Plug 'pangloss/vim-javascript'
+" Plug 'pangloss/vim-javascript'
 " Plug 'jelera/vim-javascript-syntax'
 Plug 'beyondmarc/glsl.vim'
 "Bundle 'kana/vim-smartinput'
@@ -836,27 +840,27 @@ let g:signify_line_highlight = 0
 
 " syntastic / ALE
 
-" highlight SyntasticError ctermbg=91 guibg=#d05516
-highlight ALEError ctermbg=91 guibg=#d05516
-" highlight SyntasticErrorSign guibg=#DC571C guifg=#FFFFFF
-highlight ALEErrorSign guibg=#DC571C guifg=#FFFFFF
-" highlight SyntasticWarning ctermbg=24 guibg=#686832
-highlight ALEWarning ctermbg=24 guibg=#686832
-" highlight SyntasticWarningSign guibg=#f1af51 guifg=#303030
-highlight ALEWarningSign guibg=#f1af51 guifg=#303030
-" highlight SyntasticErrorLine guibg=#480000
-highlight ALEErrorLine guibg=#480000
-" highlight SyntasticWarningLine guibg=#383800
-highlight ALEWarningLine guibg=#383800
+" " highlight SyntasticError ctermbg=91 guibg=#d05516
+" highlight ALEError ctermbg=91 guibg=#d05516
+" " highlight SyntasticErrorSign guibg=#DC571C guifg=#FFFFFF
+" highlight ALEErrorSign guibg=#DC571C guifg=#FFFFFF
+" " highlight SyntasticWarning ctermbg=24 guibg=#686832
+" highlight ALEWarning ctermbg=24 guibg=#686832
+" " highlight SyntasticWarningSign guibg=#f1af51 guifg=#303030
+" highlight ALEWarningSign guibg=#f1af51 guifg=#303030
+" " highlight SyntasticErrorLine guibg=#480000
+" highlight ALEErrorLine guibg=#480000
+" " highlight SyntasticWarningLine guibg=#383800
+" highlight ALEWarningLine guibg=#383800
 
-" TODO detect if gcc is old, adjust to c++11 instead of 14
-" But, I'm not doing that because forking gcc sounds like a horrible idea on 
-" vim startup. So, I'm blanket-conf'ing gcc for c++11 for now
+" " TODO detect if gcc is old, adjust to c++11 instead of 14
+" " But, I'm not doing that because forking gcc sounds like a horrible idea on 
+" " vim startup. So, I'm blanket-conf'ing gcc for c++11 for now
 
 hi clear SignColumn
 
-let g:ale_sign_warning = '->'
-let g:ale_sign_error = '>>'
+" let g:ale_sign_warning = '->'
+" let g:ale_sign_error = '>>'
 
 " HiCursorWords
 let g:HiCursorWords_delay = 50
@@ -3245,14 +3249,14 @@ nnoremap _ :res -4<CR>
 " conceal rule for javascript
 au! FileType javascript setl conceallevel=2 concealcursor=c
 
-"pangloss conceal rules
-let g:javascript_conceal_function   = "ƒ"
-let g:javascript_conceal_null       = "ø"
-let g:javascript_conceal_this       = "@"
-let g:javascript_conceal_return     = "↲"
-let g:javascript_conceal_undefined  = "¿"
-let g:javascript_conceal_NaN        = "ℕ"
-let g:javascript_conceal_prototype  = "¶"
+""pangloss conceal rules
+"let g:javascript_conceal_function   = "ƒ"
+"let g:javascript_conceal_null       = "ø"
+"let g:javascript_conceal_this       = "@"
+"let g:javascript_conceal_return     = "↲"
+"let g:javascript_conceal_undefined  = "¿"
+"let g:javascript_conceal_NaN        = "ℕ"
+"let g:javascript_conceal_prototype  = "¶"
 
 hi Conceal ctermbg=238 ctermfg=NONE cterm=NONE guibg=#404040
 
@@ -3505,78 +3509,78 @@ set synmaxcol=1000
 " useful magic for making files executable if they look like they should be
 au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent execute "!chmod a+x <afile>" | endif | endif
 
-augroup ALEProgress
-    autocmd!
-	" TODO FIX/FINISH THIS THING
-    autocmd User ALELintPre hi Statusline guifg=#434343
-    autocmd User ALELintPost hi Statusline guifg=#262626
-augroup end
+" augroup ALEProgress
+"     autocmd!
+" 	" TODO FIX/FINISH THIS THING
+"     autocmd User ALELintPre hi Statusline guifg=#434343
+"     autocmd User ALELintPost hi Statusline guifg=#262626
+" augroup end
 
-let g:ale_list_window_size_max = 5
-let g:ale_list_window_size = 1
+" let g:ale_list_window_size_max = 5
+" let g:ale_list_window_size = 1
 
-autocmd User ALELintPost call s:ale_loclist_limit()
-function! s:ale_loclist_limit()
-    if exists("b:ale_list_window_size_max")
-        let b:ale_list_window_size = min([len(ale#engine#GetLoclist(bufnr('%'))), b:ale_list_window_size_max])
-    elseif exists("g:ale_list_window_size_max")
-        let b:ale_list_window_size = min([len(ale#engine#GetLoclist(bufnr('%'))), g:ale_list_window_size_max])
-    endif
-endfunction
+" autocmd User ALELintPost call s:ale_loclist_limit()
+" function! s:ale_loclist_limit()
+"     if exists("b:ale_list_window_size_max")
+"         let b:ale_list_window_size = min([len(ale#engine#GetLoclist(bufnr('%'))), b:ale_list_window_size_max])
+"     elseif exists("g:ale_list_window_size_max")
+"         let b:ale_list_window_size = min([len(ale#engine#GetLoclist(bufnr('%'))), g:ale_list_window_size_max])
+"     endif
+" endfunction
 
-let g:ale_open_list = 1
-let g:ale_lint_on_text_changed = 'none'
-let g:ale_lint_on_save = 1
-let g:ale_lint_on_enter = 0
-let g:ale_max_signs = 64
-let g:_ale_cpp_options = ' --std=c++11 -O0'
+" let g:ale_open_list = 1
+" let g:ale_lint_on_text_changed = 'none'
+" let g:ale_lint_on_save = 1
+" let g:ale_lint_on_enter = 0
+" let g:ale_max_signs = 64
+" let g:_ale_cpp_options = ' --std=c++11 -O0'
 
-let g:ale_echo_msg_error_str = 'E'
-let g:ale_echo_msg_warning_str = 'W'
-let g:ale_echo_msg_format = '[%linter%] %s %code% [%severity%]'
+" let g:ale_echo_msg_error_str = 'E'
+" let g:ale_echo_msg_warning_str = 'W'
+" let g:ale_echo_msg_format = '[%linter%] %s %code% [%severity%]'
 
-" TODO going to use python to walk the cwd up and slurp .clang_complete files 
-" to populate ale_pattern_options with all the necessary flags, mostly header 
-" paths. Bit annoying (and if i have the time i'd contribute it to ale...) but 
-" should work reliably. Then, no project specific header config will exist in 
-" vimrc (phew!!!)
+" " TODO going to use python to walk the cwd up and slurp .clang_complete files 
+" " to populate ale_pattern_options with all the necessary flags, mostly header 
+" " paths. Bit annoying (and if i have the time i'd contribute it to ale...) but 
+" " should work reliably. Then, no project specific header config will exist in 
+" " vimrc (phew!!!)
 
-let g:_ale_cpp_options_onboard = g:_ale_cpp_options
-			\ . ' -I /home/slu/onboard-sdk/osdk-core/api/inc'
-			\ . ' -I /home/slu/onboard-sdk/osdk-core/protocol/inc'
-			\ . ' -I /home/slu/onboard-sdk/osdk-core/hal/inc'
-			\ . ' -I /home/slu/onboard-sdk/osdk-core/utility/inc'
-			\ . ' -I /home/slu/onboard-sdk/osdk-core/platform/linux/inc'
-			\ . ' -I /home/slu/onboard-sdk/sample/linux/common'
-			\ . ' -I /home/slu/raspi-software/display'
-			\ . ' -I /home/slu/WiringPi/wiringPi'
-			\ . ' -I /home/slu/pigpio'
-			\
-			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/api/inc'
-			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/protocol/inc'
-			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/hal/inc'
-			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/utility/inc'
-			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/platform/linux/inc'
-			\ . ' -I /Users/slu/Documents/onboard-sdk/sample/linux/common'
-			\ . ' -I /Users/slu/Documents/pigpio'
+" let g:_ale_cpp_options_onboard = g:_ale_cpp_options
+" 			\ . ' -I /home/slu/onboard-sdk/osdk-core/api/inc'
+" 			\ . ' -I /home/slu/onboard-sdk/osdk-core/protocol/inc'
+" 			\ . ' -I /home/slu/onboard-sdk/osdk-core/hal/inc'
+" 			\ . ' -I /home/slu/onboard-sdk/osdk-core/utility/inc'
+" 			\ . ' -I /home/slu/onboard-sdk/osdk-core/platform/linux/inc'
+" 			\ . ' -I /home/slu/onboard-sdk/sample/linux/common'
+" 			\ . ' -I /home/slu/raspi-software/display'
+" 			\ . ' -I /home/slu/WiringPi/wiringPi'
+" 			\ . ' -I /home/slu/pigpio'
+" 			\
+" 			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/api/inc'
+" 			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/protocol/inc'
+" 			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/hal/inc'
+" 			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/utility/inc'
+" 			\ . ' -I /Users/slu/Documents/onboard-sdk/osdk-core/platform/linux/inc'
+" 			\ . ' -I /Users/slu/Documents/onboard-sdk/sample/linux/common'
+" 			\ . ' -I /Users/slu/Documents/pigpio'
 
 " let g:ale_linters =	{ 'cpp': ['clang', 'clangtidy', 'g++'] }
 " disable eslint for typescript. it interferes.
-let g:ale_linters =	{
-			\ 'cpp': ['c++'],
-			\ 'typescript': ['tslint', 'tsserver']
-			\}
+" let g:ale_linters =	{
+" 			\ 'cpp': ['c++'],
+" 			\ 'typescript': ['tslint', 'tsserver']
+" 			\}
 
-let g:ale_cpp_gcc_options = g:_ale_cpp_options
-let g:ale_cpp_clang_options = g:_ale_cpp_options
-let g:ale_cpp_clangtidy_options = g:_ale_cpp_options
+" let g:ale_cpp_gcc_options = g:_ale_cpp_options
+" let g:ale_cpp_clang_options = g:_ale_cpp_options
+" let g:ale_cpp_clangtidy_options = g:_ale_cpp_options
 
-let g:ale_cpp_clangtidy_checks = ['*', '-cppcoreguidelines-pro-bounds-pointer-arithmetic']
+" let g:ale_cpp_clangtidy_checks = ['*', '-cppcoreguidelines-pro-bounds-pointer-arithmetic']
 
-let g:_ale_cpp_options_jibo = g:_ale_cpp_options
+" let g:_ale_cpp_options_jibo = g:_ale_cpp_options
 
-let g:ale_pattern_options = {
-			\}
+" let g:ale_pattern_options = {
+" 			\}
 " \	'.*/lps-service/web/js/lps\.js$': {'ale_enabled': 0},
 " \   'jibo/': {
 " \   	'ale_cpp_gcc_options': g:_ale_cpp_options_jibo,
