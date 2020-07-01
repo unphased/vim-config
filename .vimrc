@@ -13,12 +13,12 @@ Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 Plug 'fidian/hexmode'
 Plug 'rizzatti/dash.vim'
-Plug 'chrisbra/csv.vim'
+" Plug 'chrisbra/csv.vim'
 
 Plug 'godlygeek/tabular'
 Plug 'plasticboy/vim-markdown'
 Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() } }
-Plug 'brgmnn/vim-opencl'
+" Plug 'brgmnn/vim-opencl'
 
 let g:vim_markdown_folding_disabled = 1
 
@@ -181,13 +181,20 @@ Plug 'rhysd/clever-f.vim'
 " Plug 'editorconfig/editorconfig-vim'
 
 Plug 'rhysd/git-messenger.vim'
-Plug 'leafgarland/typescript-vim'
-Plug 'peitalin/vim-jsx-typescript'
+
+" Plug 'leafgarland/typescript-vim'
+" Plug 'peitalin/vim-jsx-typescript'
 
 " Plug 'neoclide/vim-jsx-improve'
 
 " Plug 'chemzqm/vim-jsx-improve'
 " let g:jsx_improve_motion_disable = 1
+
+" Eh these do not work well.
+" Plug 'yuezk/vim-js'
+" Plug 'maxmellon/vim-jsx-pretty'
+Plug 'sheerun/vim-polyglot'
+
 
 Plug 'scrooloose/nerdtree', { 'on': ['NERDTreeFind', 'NERDTreeToggle'] }
 " Plug 'ctrlpvim/ctrlp.vim'
@@ -208,7 +215,7 @@ Plug 'mattn/emmet-vim'
 Plug 'vim-scripts/yaifa.vim'
 Plug 'nathanaelkane/vim-indent-guides'
 " Plug 'wellle/context.vim'
-Plug 'wellle/targets.vim'
+" Plug 'wellle/targets.vim'
 
 " TODO: replace hicursorwords with a more straightforward impl such as 
 " https://github.com/hotoo/highlight-cursor-word.vim/blob/master/plugin/highlight.vim
@@ -220,7 +227,7 @@ Plug 'dimasg/vim-mark', { 'on': '<Plug>MarkSet' }
 Plug 'mhinz/vim-signify'
 " Plug 'pangloss/vim-javascript'
 " Plug 'jelera/vim-javascript-syntax'
-Plug 'beyondmarc/glsl.vim'
+" Plug 'beyondmarc/glsl.vim'
 "Bundle 'kana/vim-smartinput'
 Plug 'honza/vim-snippets'
 " Bundle 'oblitum/rainbow'
@@ -419,10 +426,10 @@ Plug 'sickill/vim-pasta'
 
 " Plug 'chrisbra/NrrwRgn'
 Plug 'https://github.com/wesQ3/vim-windowswap'
-Plug 'sbdchd/neoformat'
+" Plug 'sbdchd/neoformat'
 " Plug 'anowlcalledjosh/conflict-marker.vim', { 'branch': 'diff3' }
 " use unimpaired for conflict markers: ]n [n
-Plug 'elzr/vim-json'
+" Plug 'elzr/vim-json'
 " Plug 'Shougo/echodoc.vim'
 " Plug 'myhere/vim-nodejs-complete'
 
