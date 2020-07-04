@@ -54,9 +54,13 @@ Plug 'liuchengxu/vista.vim'
 	" Use <cr> to confirm completion, `<C-g>u` means break undo chain at current 
 	" position.
 	" Coc only does snippet and additional edit on confirm.
-	inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
+	" inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
 	" Or use `complete_info` if your vim support it, like:
 	" inoremap <expr> <cr> complete_info()["selected"] != "-1" ? "\<C-y>" : "\<C-g>u\<CR>"
+	"
+	" new way to complete on enter
+	inoremap <silent><expr> <cr> pumvisible() ? coc#_select_confirm()
+				\: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 	
 	" Use `[g` and `]g` to navigate diagnostics
 	nmap <silent> [g <Plug>(coc-diagnostic-prev)
@@ -75,9 +79,14 @@ Plug 'liuchengxu/vista.vim'
 	nmap <silent> gi <Plug>(coc-implementation)
 	nmap <silent> gr <Plug>(coc-references)
 
-	imap <F23> <Plug>(coc-snippets-expand-jump)
-	let g:coc_snippet_next = '<F23>'
-	let g:coc_snippet_prev = '<F22>'
+	if has('nvim')
+		let g:coc_snippet_next = '<c-tab>'
+		let g:coc_snippet_prev = '<c-s-tab>'
+	else
+		imap <F23> <Plug>(coc-snippets-expand-jump)
+		let g:coc_snippet_next = '<F23>'
+		let g:coc_snippet_prev = '<F22>'
+	endif
 
 	" Highlight symbol under cursor on CursorHold
 	autocmd CursorHold * silent call CocActionAsync('highlight')
