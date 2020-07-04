@@ -37,5 +37,6 @@
       ,"rootPatterns": [".flowconfig"]
     }
   }
+  , "coc.source.file.ignoreHidden": false
   , "tsserver.log": "verbose"
 }

@@ -203,7 +203,7 @@ Plug 'tpope/vim-afterimage'
 " Plug 'rust-lang/rust.vim'
 " Plug 'tpope/vim-endwise'
 " Plug 'vim-perl/vim-perl'
-Plug 'mattn/emmet-vim'
+" Plug 'mattn/emmet-vim'
 " Plug 'unphased/git-time-lapse'
 Plug 'vim-scripts/yaifa.vim'
 Plug 'nathanaelkane/vim-indent-guides'
@@ -484,7 +484,7 @@ EOF
 
 endif
 
-call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tabnine', 'coc-tsserver', 'coc-vimlsp', 'coc-emmet')
+call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tabnine', 'coc-tsserver', 'coc-vimlsp')
 
 let g:on_battery = 'zzzz'
 function! CheckBatteryTabNine()
@@ -3689,8 +3689,8 @@ nnoremap <Leader>p :read !pbpaste<CR>
 " do not use read here so that the selected stuff gets slurped.
 vnoremap <Leader>p :!pbpaste<CR>
 
-let g:user_emmet_install_global = 0
-autocmd FileType html,css EmmetInstall | silent echom "enabling ctrl+comma emmet bind" | imap <F34> <C-y>, | nmap <F34> <C-y>,
+" let g:user_emmet_install_global = 0
+" autocmd FileType html,css EmmetInstall | silent echom "enabling ctrl+comma emmet bind" | imap <F34> <C-y>, | nmap <F34> <C-y>,
 
 " This is used to help resolve the temp file cannot be opened issue on long 
 " running linux vim sessions.
