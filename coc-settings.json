@@ -12,7 +12,7 @@
   },
   "languageserver": {
     "ccls": {
-      "command": "ccls",
+      "command": "/snap/ccls/current/bin/ccls",
       "filetypes": ["c", "cpp", "cuda", "objc", "objcpp"],
       "rootPatterns": [".ccls", "cdb", ".ccls_root"],
       // "trace.server": "verbose",

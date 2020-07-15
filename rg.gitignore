@@ -1,6 +1,8 @@
 !.vimrc
 !.vim/
 !.*tmux*.conf
+!.eslintrc.json
+!.eslintrc.js
 **/node_modules
 **/*.min.js
 **/*.svg
