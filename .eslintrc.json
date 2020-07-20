@@ -3,14 +3,13 @@
         "browser": true,
         "node": true,
         "jquery": true,
-        "es6": true,
-        "es7": true
+        "es6": true
     },
     "settings": {
         "ecmascript": 7
     },
     "parserOptions": {
-        "ecmaVersion": 2017,
+        "ecmaVersion": 2020,
         "sourceType": "module"
     },
     "plugins": [
