@@ -1215,7 +1215,7 @@ noremap! <S-F10> <ESC>
 nnoremap <silent> <S-F10> :call EfTen('-')<CR>
 
 let g:colorizer_auto_filetype='css,html'
-autocmd BufEnter,BufNew colorlog ColorHighlight
+autocmd BufEnter,BufNew *.colorlog ColorHighlight
 
 noremap <F12> :ColorSwapFgBg<CR>
 function! SwitchTabNext()

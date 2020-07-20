@@ -29,6 +29,7 @@
         "no-trailing-spaces": [0, { "skipBlankLines": true  }],
         "semi": [1, "always"],
         "no-underscore-dangle": 0,
+        "comma-dangle": 0,
         "no-unused-vars": ["error", {
             "vars": "local",
             "args": "after-used",
@@ -45,7 +46,6 @@
             "hoist": "functions",
             "allow": ["top"]
         }],
-        "comma-dangle": 1,
         "comma-spacing": 0,
         "curly": ["warn", "multi-line"],
         "camelcase": 0,
