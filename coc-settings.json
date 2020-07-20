@@ -10,6 +10,18 @@
     "typescriptreact": ["javascript"],
     "javascriptreact": ["javascript"]
   },
+  "diagnostic-languageserver.filetypes": {
+    "sh": "shellcheck"
+  },
+  "diagnostic-languageserver.formatFiletypes": {
+    "sh": "shfmt"
+  },
+  "diagnostic-languageserver.formatters": {
+    "shfmt": {
+      "command": "shfmt",
+      "args": ["-i", "4", "-bn", "-ci"]
+    }
+  },
   "languageserver": {
     "ccls": {
       "command": "/snap/ccls/current/bin/ccls",

@@ -493,7 +493,7 @@ EOF
 
 endif
 
-call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tabnine', 'coc-tsserver', 'coc-vimlsp', 'coc-emmet', 'coc-eslint', 'coc-diagnostic')
+call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tabnine', 'coc-tsserver', 'coc-vimlsp', 'coc-emmet', 'coc-eslint', 'coc-diagnostic', 'coc-prettier')
 
 let g:on_battery = 'zzzz'
 function! CheckBatteryTabNine()
