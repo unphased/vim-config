@@ -148,10 +148,13 @@ colors:
 #
 # To completely disable the visual bell, set its duration to 0.
 #
-visual_bell:
-  animation: EaseOutExpo
-  duration: 0
-  color: '0x202020'
+bell:
+  command:
+    program: afplay
+    args: ["/System/Library/Sounds/Funk.aiff"]
+  # animation: EaseOutExpo
+  # duration: 20
+  # color: '0x101010'
 
 # Background opacity
 background_opacity: 0.97
@@ -173,8 +176,8 @@ background_opacity: 0.97
 # - Copy (TODO)
 mouse_bindings:
   - { mouse: Middle, action: PasteSelection }
-  - { mouse: "8",  chars: "" }
-  - { mouse: "9",  chars: "" }
+  - { mouse: 8,  chars: "" }
+  - { mouse: 9,  chars: "" }
 
 mouse:
   double_click: { threshold: 300 }

@@ -2482,7 +2482,7 @@ map <leader>et :tabe %%
 " background is problematic. I am a little undecided on if underline is 
 " sufficient.
 
-" set spell
+set spell
 nmap <leader>s :set spell!<CR>
 
 nmap <leader>S :saveas %%

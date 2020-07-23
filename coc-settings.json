@@ -40,14 +40,14 @@
         "highlight": { "lsRanges": true }
       }
     },
-    "flow": {
-      "command": "flow"
-      ,"args": ["lsp"]
-      ,"filetypes": ["javascript", "javascriptreact"]
-      ,"requireRootPattern": true
-      ,"settings": {}
-      ,"rootPatterns": [".flowconfig"]
-    }
+    // "flow": {
+    //   "command": "flow"
+    //   ,"args": ["lsp"]
+    //   ,"filetypes": ["javascript", "javascriptreact"]
+    //   ,"requireRootPattern": true
+    //   ,"settings": {}
+    //   ,"rootPatterns": [".flowconfig"]
+    // }
   }
   , "coc.source.file.ignoreHidden": false
   , "tsserver.log": "verbose"
