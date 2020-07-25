@@ -51,4 +51,5 @@
   }
   , "coc.source.file.ignoreHidden": false
   , "tsserver.log": "verbose"
+  , "coc.preferences.formatOnSaveFiletypes": [ "javascript", "typescriptreact", "typescript.tsx" ]
 }
