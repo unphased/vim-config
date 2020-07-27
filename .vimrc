@@ -17,7 +17,7 @@ Plug 'chrisbra/csv.vim'
 
 Plug 'godlygeek/tabular'
 Plug 'plasticboy/vim-markdown'
-Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() } }
+Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': [ 'markdown', 'vim-plug' ] }
 Plug 'brgmnn/vim-opencl'
 
 let g:vim_markdown_folding_disabled = 1
@@ -2482,7 +2482,7 @@ map <leader>et :tabe %%
 " background is problematic. I am a little undecided on if underline is 
 " sufficient.
 
-set spell
+" set spell
 nmap <leader>s :set spell!<CR>
 
 nmap <leader>S :saveas %%

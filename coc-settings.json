@@ -7,6 +7,7 @@
   },
   "snippets.extends": {
     "typescript": ["javascript"],
+    "typescript.tsx": ["javascript"],
     "typescriptreact": ["javascript"],
     "javascriptreact": ["javascript"]
   },
@@ -39,7 +40,7 @@
         "index": {"initialBlacklist": ["."], "threads": 4},
         "highlight": { "lsRanges": true }
       }
-    },
+    }
     // "flow": {
     //   "command": "flow"
     //   ,"args": ["lsp"]
@@ -51,5 +52,6 @@
   }
   , "coc.source.file.ignoreHidden": false
   , "tsserver.log": "verbose"
-  , "coc.preferences.formatOnSaveFiletypes": [ "javascript", "typescriptreact", "typescript.tsx" ]
+  , "coc.preferences.formatOnSaveFiletypes": [ "javascript", "typescript", "javascriptreact", "typescriptreact", "typescript.tsx" ]
+  , "snippets.priority": 100
 }
