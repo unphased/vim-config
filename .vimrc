@@ -91,6 +91,9 @@ Plug 'liuchengxu/vista.vim'
 	" Highlight symbol under cursor on CursorHold
 	autocmd CursorHold * silent call CocActionAsync('highlight')
 
+	" always show the signatures when possible
+	au CursorHoldI * sil call CocActionAsync('showSignatureHelp')
+
 	" Remap for rename current word
 	nmap <leader>rn <Plug>(coc-rename)
 
@@ -102,7 +105,7 @@ Plug 'liuchengxu/vista.vim'
 	  " Setup formatexpr specified filetype(s).
 	  autocmd FileType typescript,json setl formatexpr=CocAction('formatSelected')
 	  " Update signature help on jump placeholder
-	  autocmd User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
+	  " autocmd User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
 	augroup end
 
 	" Remap for do codeAction of selected region, ex: `<leader>aap` for current paragraph
