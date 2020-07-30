@@ -24,24 +24,24 @@
     }
   },
   "languageserver": {
-    "ccls": {
-      "command": "/snap/ccls/current/bin/ccls",
-      "filetypes": ["c", "cpp", "cuda", "objc", "objcpp"],
-      "args": ["--log-file=/tmp/ccls.log", "-v=1"],
-      "rootPatterns": [".ccls", "cdb", ".ccls_root"],
-      // "trace.server": "verbose",
-      "initializationOptions": {
-        "compilationDatabaseDirectory": "./cdb",
-        // "clang": {
-          // "extraArgs": ["-isystem", "/usr/local/Cellar/llvm/9.0.1/include/c++/v1"]
-        // },
-        // "cache": {
-          // "directory": "/tmp/ccls-cache"
-        // },
-        "index": {"initialBlacklist": ["."], "threads": 4},
-        "highlight": { "lsRanges": true }
-      }
-    }
+    // "ccls": {
+    //   "command": "/snap/ccls/current/bin/ccls",
+    //   "filetypes": ["c", "cpp", "cuda", "objc", "objcpp"],
+    //   "args": ["--log-file=/tmp/ccls.log", "-v=1"],
+    //   "rootPatterns": [".ccls", "cdb", ".ccls_root"],
+    //   "trace.server": "verbose",
+    //   "initializationOptions": {
+    //     "compilationDatabaseDirectory": "./cdb",
+    //     // "clang": {
+    //       // "extraArgs": ["-isystem", "/usr/local/Cellar/llvm/9.0.1/include/c++/v1"]
+    //     // },
+    //     // "cache": {
+    //       // "directory": "/tmp/ccls-cache"
+    //     // },
+    //     "index": {"initialBlacklist": ["."], "threads": 4},
+    //     "highlight": { "lsRanges": true }
+    //   }
+    // }
     // "flow": {
     //   "command": "flow"
     //   ,"args": ["lsp"]
