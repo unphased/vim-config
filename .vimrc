@@ -18,6 +18,11 @@ Plug 'chrisbra/csv.vim'
 Plug 'godlygeek/tabular'
 Plug 'plasticboy/vim-markdown'
 Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': [ 'markdown', 'vim-plug' ] }
+
+let $NVIM_MKDP_LOG_FILE = $HOME . '/.tmp/mkdp-log.log'
+let $NVIM_MKDP_LOG_LEVEL = 'debug'
+let g:mkdp_echo_preview_url = 1
+
 Plug 'brgmnn/vim-opencl'
 
 let g:vim_markdown_folding_disabled = 1
