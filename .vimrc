@@ -755,9 +755,9 @@ set gdefault " Reverses meaning of /g in regex
 " I took out smartindent
 " au! FileType python setl nosmartindent
 
-set shiftwidth=4
-set tabstop=4
-" set expandtab
+set shiftwidth=2
+set tabstop=2
+set expandtab
 set smarttab
 
 set autoread
