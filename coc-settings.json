@@ -53,6 +53,6 @@
   }
   , "coc.source.file.ignoreHidden": false
   //, "tsserver.log": "verbose"
-  , "coc.preferences.formatOnSaveFiletypes": [ "typescript", "javascriptreact", "typescriptreact", "typescript.tsx" ]
+  , "coc.preferences.formatOnSaveFiletypes": [ "javascript", "typescript", "javascriptreact", "typescriptreact", "typescript.tsx" ]
   , "snippets.priority": 100
 }
