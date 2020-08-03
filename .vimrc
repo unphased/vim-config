@@ -1496,6 +1496,9 @@ function! SmartNERDTree()
 	endif
 endfun
 
+let g:NERDTreeMapOpenSplit = "s"
+let g:NERDTreeMapOpenVSplit = "v"
+
 
 " I definitely do not use this -- F7 is now YCM sign toggle.
 " nnoremap <F7> :NERDTreeToggle<CR>
