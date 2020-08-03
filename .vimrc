@@ -18,6 +18,11 @@ Plug 'chrisbra/csv.vim'
 Plug 'godlygeek/tabular'
 Plug 'plasticboy/vim-markdown'
 Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': [ 'markdown', 'vim-plug' ] }
+
+let $NVIM_MKDP_LOG_FILE = $HOME . '/.tmp/mkdp-log.log'
+let $NVIM_MKDP_LOG_LEVEL = 'debug'
+let g:mkdp_echo_preview_url = 1
+
 Plug 'brgmnn/vim-opencl'
 
 let g:vim_markdown_folding_disabled = 1
@@ -750,9 +755,9 @@ set gdefault " Reverses meaning of /g in regex
 " I took out smartindent
 " au! FileType python setl nosmartindent
 
-set shiftwidth=4
-set tabstop=4
-" set expandtab
+set shiftwidth=2
+set tabstop=2
+set expandtab
 set smarttab
 
 set autoread
