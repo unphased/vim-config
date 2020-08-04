@@ -296,13 +296,13 @@ let g:lightline.tab = {
 			\ 'inactive': [ 'tabwinct', 'filename', 'tabmod' ]
 			\ }
 let g:lightline.active = {
-			\ 'left': [ [ 'mode', 'paste' ],
-			\           [ 'cocstatus', 'gitbranch', 'readonly', 'relativepathtrunc', 'modified' ] ],
+			\ 'left': [ [ 'modified', 'mode', 'paste' ],
+			\           [ 'cocstatus', 'gitbranch', 'readonly', 'relativepathtrunc'] ],
 			\ 'right': [ [ 'percent' ],
 			\            [ 'lineinfo', 'charvaluehex' ],
 			\            [ 'fileformatenc', 'filetype' ] ] }
 let g:lightline.inactive = {
-			\ 'left': [ [ 'relativepathtrunc', 'modified' ] ] }
+			\ 'left': [ [ 'modified' ], [ 'relativepathtrunc' ] ] }
 
 let g:lightline.tab_component_function = {
 			\ 'tabwinct': 'TabWinCt',

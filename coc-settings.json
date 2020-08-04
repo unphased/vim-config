@@ -55,4 +55,5 @@
   //, "tsserver.log": "verbose"
   , "coc.preferences.formatOnSaveFiletypes": [ "javascript", "typescript", "javascriptreact", "typescriptreact", "typescript.tsx", "javascript.jsx" ]
   , "snippets.priority": 100
+  , "clangd.semanticHighlighting": true
 }
