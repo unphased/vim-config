@@ -246,6 +246,7 @@ Plug 'honza/vim-snippets'
 " Plug 'unphased/vim-airline'
 " Plug 'vim-airline/vim-airline-themes'
 Plug 'itchyny/lightline.vim'
+Plug 'mengelbrecht/lightline-bufferline'
 
 " Plug 'prettier/vim-prettier', {
 "   \ 'do': 'npm install',
@@ -289,7 +290,7 @@ let g:lightline.enable = {
 
 let g:lightline.tabline = {
 		    \ 'left': [ [ 'tabs' ] ],
-		    \ 'right': [ [ 'close' ] ] }
+		    \ 'right': [ ['buffers'] ] }
 
 let g:lightline.tab = {
 			\ 'active': [ 'tabwinct', 'filename', 'tabmod', 'readonly' ],
@@ -297,7 +298,7 @@ let g:lightline.tab = {
 			\ }
 let g:lightline.active = {
 			\ 'left': [ [ 'modified', 'mode', 'paste' ],
-			\           [ 'cocstatus', 'gitbranch', 'readonly', 'relativepathtrunc'] ],
+			\           [ 'relativepathtrunc', 'cocstatus', 'gitbranch', 'readonly'] ],
 			\ 'right': [ [ 'percent' ],
 			\            [ 'lineinfo', 'charvaluehex' ],
 			\            [ 'fileformatenc', 'filetype' ] ] }
@@ -315,6 +316,13 @@ let g:lightline.component_function = {
 			\ 'cocstatus': 'coc#status',
 			\ 'fileformatenc': 'FileFormatEncFun'
 			\ }
+let g:lightline.component_expand = {
+			\ 'buffers': 'lightline#bufferline#buffers'
+			\ }
+let g:lightline.component_type = {
+			\ 'buffers': 'tabsel'
+			\ }
+let g:lightline.component_raw = {'buffers': 1}
 let g:lightline.component = {
 			\ 'mode': '%{lightline#mode()}',
 			\ 'absolutepath': '%F',
@@ -336,6 +344,8 @@ let g:lightline.component = {
 			\ 'column': '%c%V',
 			\ 'close': '%999X X ',
 			\ }
+
+let g:lightline#bufferline#clickable = 1
 
 function! TabWinCt(n) abort
   let n = tabpagewinnr(a:n, '$')
