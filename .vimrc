@@ -346,6 +346,9 @@ let g:lightline.component = {
 			\ }
 
 let g:lightline#bufferline#clickable = 1
+let g:lightline#bufferline#show_number = 2
+let g:lightline#bufferline#right_aligned = 1
+let g:lightline#bufferline#more_buffers = '…'
 
 function! TabWinCt(n) abort
   let n = tabpagewinnr(a:n, '$')
@@ -1272,7 +1275,7 @@ noremap <silent> <F3> :<c-u>call SwitchTabNext()<CR>
 " (for being able to use those keys in parallels)
 " nnoremap <F11> :tabclose<CR>
 
-set showtabline=1  " 0, 1 or 2; when to use a tab pages line
+set showtabline=2  " 0, 1 or 2; when to use a tab pages line
 " set tabline=%!MyTabLine()  " custom tab pages line
 function! MyTabLine()
 	let s = '' " complete tabline goes here
