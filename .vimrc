@@ -461,6 +461,13 @@ Plug 'elzr/vim-json'
 
 call plug#end()
 
+" custom lightline palette fuckery
+let s:palette =  g:lightline#colorscheme#powerline#palette
+let s:palette.inactive.left = [
+			\   ['#585858', '#121212', 240, 233],
+			\   ['#9e9e9e', '#303030', 240, 235]
+			\ ]
+
 " if has('nvim')
 if 0
 	set omnifunc=v:lua.vim.lsp.omnifunc
