@@ -289,8 +289,8 @@ let g:lightline.enable = {
 			\ }
 
 let g:lightline.tabline = {
-		    \ 'left': [ [ 'tabs' ] ],
-		    \ 'right': [ ['buffers'] ] }
+			\ 'left': [ [ 'tabs' ] ],
+			\ 'right': [ ['buffers'] ] }
 
 let g:lightline.tab = {
 			\ 'active': [ 'tabwinct', 'filename', 'tabmod', 'readonly' ],
@@ -300,7 +300,7 @@ let g:lightline.active = {
 			\ 'left': [ [ 'modified', 'mode', 'paste' ],
 			\           [ 'relativepathtrunc', 'cocstatus', 'gitbranch', 'readonly'] ],
 			\ 'right': [ [ 'percent' ],
-			\            [ 'lineinfo', 'charvaluehex' ],
+			\            [ 'lineinfo', 'filesize', 'charvaluehex' ],
 			\            [ 'fileformatenc', 'filetype' ] ] }
 let g:lightline.inactive = {
 			\ 'left': [ [ 'modified' ], [ 'relativepathtrunc' ] ] }
@@ -326,17 +326,17 @@ let g:lightline.component_raw = {'buffers': 1}
 let g:lightline.component = {
 			\ 'mode': '%{lightline#mode()}',
 			\ 'absolutepath': '%F',
-			\ 'relativepathtrunc': '%<%f',
+			\ 'relativepathtrunc': '%f',
 			\ 'filename': '%t',
 			\ 'modified': '%M',
 			\ 'bufnum': '%n',
 			\ 'paste': '%{&paste?"PASTE":""}',
 			\ 'readonly': '%R',
 			\ 'charvalue': '%b',
-			\ 'charvaluehex': '%02B',
+			\ 'charvaluehex': '0x%02B',
 			\ 'fileencoding': '%{&fenc!=#""?&fenc:&enc}',
 			\ 'fileformat': '%{&ff}',
-			\ 'percent': '%2p%%',
+			\ 'percent': '%2p%%%<',
 			\ 'percentwin': '%P',
 			\ 'spell': '%{&spell?&spelllang:""}',
 			\ 'lineinfo': '%l/%L:%c%V',
@@ -372,9 +372,12 @@ function! TabAnyModified(n) abort
 endfunction
 
 function! FileSize()
+	if winwidth(0) < 100
+		return ''
+	endif
 	let bytes = getfsize(expand("%:p"))
 	if bytes <= 0
-		return ""
+		return ''
 	endif
 	if bytes < 65536
 		return bytes
@@ -386,10 +389,10 @@ function! FileSize()
 endfunction
 
 function! FileTypeFun()
-	return winwidth(0) > 70 ? (&filetype !=# '' ? &filetype : 'no ft') : ''
+	return winwidth(0) > 80 ? (&filetype !=# '' ? &filetype : 'no ft') : ''
 endfunction
 function! FileFormatEncFun()
-	return winwidth(0) > 70 ? &fileformat : ''
+	return winwidth(0) > 80 ? &fileformat : ''
 endfunction
 
 " Plug 'derekwyatt/vim-fswitch'
