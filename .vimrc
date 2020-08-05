@@ -464,8 +464,8 @@ call plug#end()
 " custom lightline palette fuckery
 let s:palette =  g:lightline#colorscheme#powerline#palette
 let s:palette.inactive.left = [
-			\   ['#585858', '#121212', 240, 233],
-			\   ['#9e9e9e', '#303030', 240, 235]
+			\   ['#262626', '#606060', 235, 241],
+			\   ['#9e9e9e', '#303030', 247, 236]
 			\ ]
 
 " if has('nvim')
