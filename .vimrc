@@ -43,7 +43,7 @@ Plug 'liuchengxu/vista.vim'
 	set updatetime=300
 	set shortmess+=c
 
-	set nobackup
+	set backup
 	set nowritebackup
 	inoremap <silent><expr> <TAB>
 		  \ pumvisible() ? "\<C-n>" :
