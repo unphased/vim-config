@@ -10,4 +10,4 @@
 #
 xterm-256color-italic|xterm with 256 colors and italic confd for 24bit in tmux,
 	sitm=\E[3m, ritm=\E[23m, khome=\EOH, kend=\EOF, kbs=\177,
-	use=xterm-256color,
+	use=xterm-256color, dim=\E[2m,
