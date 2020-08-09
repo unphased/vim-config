@@ -225,7 +225,9 @@ Plug 'tpope/vim-afterimage'
 Plug 'vim-scripts/yaifa.vim'
 Plug 'nathanaelkane/vim-indent-guides'
 " Plug 'wellle/context.vim'
-Plug 'wellle/targets.vim'
+" Plug 'wellle/targets.vim'
+
+Plug 'metakirby5/codi.vim'
 
 " TODO: replace hicursorwords with a more straightforward impl such as 
 " https://github.com/hotoo/highlight-cursor-word.vim/blob/master/plugin/highlight.vim
@@ -428,7 +430,7 @@ Plug 'junegunn/vim-easy-align'
 
 Plug 'unphased/vim-html-escape' " my master has gdefault detecting tweak
 
-Plug 'rking/ag.vim'
+" Plug 'rking/ag.vim'
 " Plug 'kana/vim-textobj-user'
 
 Plug 'Ron89/thesaurus_query.vim'
