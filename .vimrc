@@ -228,7 +228,7 @@ Plug 'tpope/vim-afterimage'
 Plug 'vim-scripts/yaifa.vim'
 Plug 'nathanaelkane/vim-indent-guides'
 " Plug 'wellle/context.vim'
-" Plug 'wellle/targets.vim'
+Plug 'wellle/targets.vim'
 
 Plug 'metakirby5/codi.vim'
 
