@@ -11,6 +11,9 @@ call plug#begin('~/.vim/plugged')
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 
 Plug 'junegunn/fzf.vim'
+
+Plug 'prabirshrestha/async.vim'
+
 Plug 'fidian/hexmode'
 Plug 'rizzatti/dash.vim'
 Plug 'chrisbra/csv.vim'
@@ -225,7 +228,7 @@ Plug 'tpope/vim-afterimage'
 Plug 'vim-scripts/yaifa.vim'
 Plug 'nathanaelkane/vim-indent-guides'
 " Plug 'wellle/context.vim'
-" Plug 'wellle/targets.vim'
+Plug 'wellle/targets.vim'
 
 Plug 'metakirby5/codi.vim'
 
@@ -298,6 +301,7 @@ let g:lightline.tab = {
 			\ 'active': [ 'tabwinct', 'filename', 'tabmod', 'readonly' ],
 			\ 'inactive': [ 'tabwinct', 'filename', 'tabmod' ]
 			\ }
+
 let g:lightline.active = {
 			\ 'left': [ [ 'modified', 'mode', 'paste' ],
 			\           [ 'relativepathtrunc', 'cocstatus', 'gitbranch', 'readonly'] ],
@@ -526,7 +530,7 @@ EOF
 
 endif
 
-call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tabnine', 'coc-tsserver', 'coc-vimlsp', 'coc-emmet', 'coc-eslint', 'coc-diagnostic', 'coc-prettier', 'coc-clangd')
+call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tabnine', 'coc-tsserver', 'coc-vimlsp', 'coc-emmet', 'coc-eslint', 'coc-diagnostic', 'coc-prettier', 'coc-clangd', 'coc-sh')
 
 let g:on_battery = 'zzzz'
 function! CheckBatteryTabNine()
@@ -3773,3 +3777,9 @@ else
 	nmap <M-PageUp> :echo 'm-pgup'<CR>
 	nmap <M-PageDown> :echo 'm-pgdn'<CR>
 endif
+
+autocmd User targets#mappings#user call targets#mappings#extend({
+			\ 'b': {'pair': [{'o':'(', 'c':')'}]},
+			\ 'a': {'argument': [{'o': '[{([]', 'c': '[])}]', 's': ','}]},
+			\ })
+
