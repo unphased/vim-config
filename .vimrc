@@ -97,7 +97,7 @@ Plug 'liuchengxu/vista.vim'
 	autocmd CursorHold * silent call CocActionAsync('highlight')
 
 	" always show the signatures when possible
-	au CursorHoldI * sil call CocActionAsync('showSignatureHelp')
+	" au CursorHoldI * sil call CocActionAsync('showSignatureHelp')
 
 	" Remap for rename current word
 	nmap <leader>rn <Plug>(coc-rename)
