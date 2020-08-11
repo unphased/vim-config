@@ -3777,3 +3777,9 @@ else
 	nmap <M-PageUp> :echo 'm-pgup'<CR>
 	nmap <M-PageDown> :echo 'm-pgdn'<CR>
 endif
+
+autocmd User targets#mappings#user call targets#mappings#extend({
+			\ 'b': {'pair': [{'o':'(', 'c':')'}]},
+			\ 'a': {'argument': [{'o': '[{([]', 'c': '[])}]', 's': ','}]},
+			\ })
+
