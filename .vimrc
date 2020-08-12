@@ -467,6 +467,8 @@ Plug 'elzr/vim-json'
 
 call plug#end()
 
+call async#job#start(['bash', '-c', 'echo vim startup | nc -U widget_socket -q 0'], {})
+
 " custom lightline palette fuckery
 let s:palette =  g:lightline#colorscheme#powerline#palette
 let s:palette.inactive.left = [
@@ -1133,7 +1135,7 @@ noremap <S-L> 7l
 
 " this happens to also defer the bind for all buffer opens, but it shouldnt 
 " matter, really.
-au BufEnter,BufWritePost * noremap <buffer> <silent> K 5gk
+au BufEnter * noremap <buffer> <silent> K 5gk
 au BufEnter * noremap <buffer> <silent> J 5gj
 
 " and now to provide a new binding for GoDoc using au instead of after/ because 
@@ -1425,11 +1427,14 @@ f.close()
 EOF
 	endif
 
+	call async#job#start(['bash', '-c', 'echo search | nc -U widget_socket -q 0'], {})
+
 	" this shit flickers and sucks
 	" silent exec "!curl -s localhost:4000/ > /dev/null &"
 	" redraw!
 	return ":silent set hlsearch\<CR>"
 endfunction
+
 nnoremap <silent> <expr> <CR> &buftype == "" ? SearchForWord() : "<cr>"
 
 function! ChompCtrlM(string)
@@ -3559,6 +3564,8 @@ set synmaxcol=1000
 
 " useful magic for making files executable if they look like they should be
 au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent execute "!chmod a+x <afile>" | endif | endif
+
+au BufWritePost * call async#job#start(['bash', '-c', 'echo diff | nc -U widget_socket -q 0'], {})
 
 " augroup ALEProgress
 "     autocmd!
