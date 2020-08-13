@@ -81,6 +81,6 @@
   , "coc.source.file.ignoreHidden": false
   //, "tsserver.log": "verbose"
   , "coc.preferences.formatOnSaveFiletypes": [ "javascript", "typescript", "javascriptreact", "typescriptreact", "typescript.tsx", "javascript.jsx" ]
-  , "snippets.priority": 100
+  , "snippets.priority": 80
   , "clangd.semanticHighlighting": true
 }
