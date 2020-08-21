@@ -294,8 +294,9 @@ let g:lightline.enable = {
 			\ }
 
 let g:lightline.tabline = {
-			\ 'left': [ [ 'tabs' ] ],
-			\ 'right': [ ['buffers'] ] }
+			\ 'left': [ [ 'tabs' ] ] }
+
+	" \ 'right': [ ['buffers'] ] }
 
 let g:lightline.tab = {
 			\ 'active': [ 'tabwinct', 'filename', 'tabmod', 'readonly' ],
@@ -3565,7 +3566,7 @@ set synmaxcol=1000
 " useful magic for making files executable if they look like they should be
 au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent execute "!chmod a+x <afile>" | endif | endif
 
-au BufWritePost * call async#job#start(['bash', '-c', 'echo diff | nc -U widget_socket -q 0'], {})
+au BufWritePost * call async#job#start(['bash', '-c', 'echo BufWritePost | nc -U widget_socket -q 0'], {})
 
 " augroup ALEProgress
 "     autocmd!
