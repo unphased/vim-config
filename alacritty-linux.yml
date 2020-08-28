@@ -23,7 +23,7 @@ window:
     columns: 120
     lines: 90
   dynamic_padding: true
-  decorations: 'none' # awkward, but i need the real estate. also 18.04 keeps things decent
+  decorations: "full" # awkward, but i need the real estate. also 18.04 keeps things decent
   startup_mode: Fullscreen
 
 # When true, bold text is drawn using the bright variant of colors.
@@ -149,7 +149,7 @@ colors:
 #
 # To completely disable the visual bell, set its duration to 0.
 #
-visual_bell:
+bell:
   animation: EaseOutExpo
   duration: 0
   color: '0x303030'
@@ -174,8 +174,8 @@ background_opacity: 0.95
 # - Copy (TODO)
 mouse_bindings:
   - { mouse: Middle, action: PasteSelection }
-  - { mouse: "8",  chars: "" }
-  - { mouse: "9",  chars: "" }
+  - { mouse: 8,  chars: "" }
+  - { mouse: 9,  chars: "" }
 
 mouse:
   double_click: { threshold: 300 }
