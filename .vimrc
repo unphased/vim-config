@@ -446,8 +446,8 @@ let g:switch_custom_definitions =
 			\   ['show', 'hide']
 			\ ]
 
-Plug 'AndrewRadev/sideways.vim'
-Plug 'AndrewRadev/linediff.vim'
+" Plug 'AndrewRadev/sideways.vim'
+" Plug 'AndrewRadev/linediff.vim'
 " Plug 'AndrewRadev/splitjoin.vim'
 " Plug 'AndrewRadev/inline_edit.vim'
 " Plug 'AndrewRadev/whitespaste.vim'
