@@ -15,7 +15,7 @@
 **/.git
 .cache/neocomplete
 **/.discrim.log
-**/machine_shell_logs/*
+~/util/machine_shell_logs/*
 **/zxcvbn.js
 **/.ccls-cache/*
 .ccls-cache
@@ -30,3 +30,4 @@
 **/cdb_h.json
 **/CMakeCache.txt
 **/*.dae
+**/rapidplan*/build/*

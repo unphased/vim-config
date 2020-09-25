@@ -239,7 +239,7 @@ Plug 'unphased/HiCursorWords'
 
 Plug 'dimasg/vim-mark', { 'on': '<Plug>MarkSet' }
 " Bundle 'kien/rainbow_parentheses.vim'
-Plug 'mhinz/vim-signify'
+" Plug 'mhinz/vim-signify'
 " Plug 'pangloss/vim-javascript'
 " Plug 'jelera/vim-javascript-syntax'
 Plug 'beyondmarc/glsl.vim'
@@ -404,7 +404,7 @@ endfunction
 
 " Plug 'derekwyatt/vim-fswitch'
 " Plug 'wakatime/vim-wakatime'
-Plug 'kshenoy/vim-signature'
+" Plug 'kshenoy/vim-signature'
 Plug 'jiangmiao/auto-pairs'
 " Plug 'Raimondi/delimitMate'
 "Plug 'mxw/vim-jsx'
@@ -423,7 +423,7 @@ Plug 'vim-scripts/EnhancedJumps'
 
 Plug 't9md/vim-textmanip', { 'on': [ '<Plug>(textmanip-move-down)', '<Plug>(textmanip-move-up)', '<Plug>(textmanip-move-left)', '<Plug>(textmanip-move-right)', '<Plug>(textmanip-toggle-mode)', '<Plug>(textmanip-toggle-mode)', ] }
 
-Plug 'junegunn/vim-easy-align'
+" Plug 'junegunn/vim-easy-align'
 
 " Plug 'octol/vim-cpp-enhanced-highlight' " this broke way too often on modern c++ files. Really problematic angle bracket handling. Trying it again.
 
@@ -3788,6 +3788,6 @@ endif
 
 autocmd User targets#mappings#user call targets#mappings#extend({
 			\ 'b': {'pair': [{'o':'(', 'c':')'}]},
-			\ 'a': {'argument': [{'o': '[{([]', 'c': '[])}]', 's': ','}]},
+			\ 'a': {'argument': [{'o': '[{([]', 'c': '[])}]', 's': '[,;]'}]},
 			\ })
 

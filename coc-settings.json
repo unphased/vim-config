@@ -82,6 +82,6 @@
   //, "tsserver.log": "verbose"
   , "coc.preferences.formatOnSaveFiletypes": [ "javascript", "typescript", "javascriptreact", "typescriptreact", "typescript.tsx", "javascript.jsx" ]
   , "snippets.priority": 50
-  , "tabnine.priority": 20
+  , "tabnine.priority": 5
   , "clangd.semanticHighlighting": true
 }
