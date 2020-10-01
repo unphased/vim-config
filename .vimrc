@@ -468,9 +468,9 @@ Plug 'elzr/vim-json'
 
 call plug#end()
 
-call async#job#start(['bash', '-c', 'echo vim startup | nc -U widget_socket -q 0'], {})
+let s:vimHelperServerJob = async#job#start(["vimhelper_server.mjs"], {})
 
-" custom lightline palette fuckery
+" custom lightline palette fuckery (to make the inactive pane bars more readable)
 let s:palette =  g:lightline#colorscheme#powerline#palette
 let s:palette.inactive.left = [
 			\   ['#262626', '#606060', 235, 241],
@@ -580,11 +580,11 @@ set titleold=
 if has('nvim')
 	autocmd BufEnter * let &titlestring = "NVIM " . expand("%:t")
 
-	autocmd BufEnter * highlight LspDiagnosticsError ctermbg=88 guibg=#870000
-	autocmd BufEnter * highlight LspDiagnosticsWarning ctermbg=11 guibg=#878700
-	autocmd BufEnter * highlight LspDiagnosticInformation ctermbg=242 guibg=#303030
-	autocmd BufEnter * highlight LspDiagnosticHint ctermbg=88 guibg=#870000
-	autocmd BufEnter * highlight LspReferenceText ctermbg=88 guibg=#870000
+	" autocmd BufEnter * highlight LspDiagnosticsError ctermbg=88 guibg=#870000
+	" autocmd BufEnter * highlight LspDiagnosticsWarning ctermbg=11 guibg=#878700
+	" autocmd BufEnter * highlight LspDiagnosticInformation ctermbg=242 guibg=#303030
+	" autocmd BufEnter * highlight LspDiagnosticHint ctermbg=88 guibg=#870000
+	" autocmd BufEnter * highlight LspReferenceText ctermbg=88 guibg=#870000
 
 else
 	autocmd BufEnter * let &titlestring = "VIM " . expand("%:t")
@@ -799,8 +799,8 @@ augroup checktime_augroup
         "silent! necessary otherwise throws errors when using command
         "line window.
         autocmd BufEnter        * silent! checktime
-        autocmd CursorHold      * silent! checktime
-        autocmd CursorHoldI     * silent! checktime
+        " autocmd CursorHold      * silent! checktime
+        " autocmd CursorHoldI     * silent! checktime
         "these two _may_ slow things down. Remove if they do.
         "autocmd CursorMoved     * silent! checktime
         "autocmd CursorMovedI    * silent! checktime
@@ -1429,6 +1429,7 @@ EOF
 	endif
 
 	call async#job#start(['bash', '-c', 'echo search | nc -U widget_socket -q 0'], {})
+	call async#job#send(s:vimHelperServerJob, "search")
 
 	" this shit flickers and sucks
 	" silent exec "!curl -s localhost:4000/ > /dev/null &"
@@ -3566,7 +3567,9 @@ set synmaxcol=1000
 " useful magic for making files executable if they look like they should be
 au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent execute "!chmod a+x <afile>" | endif | endif
 
-au BufWritePost * call async#job#start(['bash', '-c', 'echo BufWritePost | nc -U widget_socket -q 0'], {})
+" au BufWritePost * call async#job#start(['bash', '-c', 'echo BufWritePost | nc -U widget_socket -q 0'], {})
+au BufEnter * call async#job#send(s:vimHelperServerJob, "BufEnter")
+au BufWritePost * call async#job#send(s:vimHelperServerJob, "BufWritePost")
 
 " augroup ALEProgress
 "     autocmd!

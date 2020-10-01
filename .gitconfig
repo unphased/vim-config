@@ -71,5 +71,3 @@
 	helper = store
 [config]
 	helper = store
-[pull]
-	ff = only
