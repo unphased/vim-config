@@ -468,7 +468,7 @@ Plug 'elzr/vim-json'
 
 call plug#end()
 
-let s:vimHelperServerJob = async#job#start(["vimhelper_server.mjs"], {})
+let s:vimHelperServerJob = async#job#start(["vimhelper_server.mjs", getpid()], {})
 
 " custom lightline palette fuckery (to make the inactive pane bars more readable)
 let s:palette =  g:lightline#colorscheme#powerline#palette
@@ -1428,7 +1428,7 @@ f.close()
 EOF
 	endif
 
-	call async#job#start(['bash', '-c', 'echo search | nc -U widget_socket -q 0'], {})
+	" call async#job#start(['bash', '-c', 'echo search | nc -U widget_socket -q 0'], {})
 	call async#job#send(s:vimHelperServerJob, "search")
 
 	" this shit flickers and sucks
@@ -3568,8 +3568,9 @@ set synmaxcol=1000
 au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent execute "!chmod a+x <afile>" | endif | endif
 
 " au BufWritePost * call async#job#start(['bash', '-c', 'echo BufWritePost | nc -U widget_socket -q 0'], {})
-au BufEnter * call async#job#send(s:vimHelperServerJob, "BufEnter")
-au BufWritePost * call async#job#send(s:vimHelperServerJob, "BufWritePost")
+"
+au BufEnter * call async#job#send(s:vimHelperServerJob, "BufEnter:".expand('%:p'))
+au BufWritePost * call async#job#send(s:vimHelperServerJob, "BufWritePost:".expand('%:p'))
 
 " augroup ALEProgress
 "     autocmd!
