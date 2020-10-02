@@ -251,7 +251,7 @@ Plug 'honza/vim-snippets'
 " Plug 'unphased/vim-airline'
 " Plug 'vim-airline/vim-airline-themes'
 Plug 'itchyny/lightline.vim'
-Plug 'mengelbrecht/lightline-bufferline'
+" Plug 'mengelbrecht/lightline-bufferline'
 
 " Plug 'prettier/vim-prettier', {
 "   \ 'do': 'npm install',
