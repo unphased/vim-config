@@ -1249,12 +1249,13 @@ nnoremap <silent> <F10> :<c-u>call EfTen('+')<CR>
 " own idea about how to send Shift F10 if TERM is screen-*. (before this used 
 " to set <S-F10> to \x1b[34~ but that seems to have no effect when I commented 
 " it out! Even under TERM=xterm-*!)
-set <S-F10>=[34~
+set <S-F10>=[21;2~
 noremap <S-F10> <ESC>
 noremap! <S-F10> <ESC>
 nnoremap <silent> <S-F10> :call EfTen('-')<CR>
 
-" Note that the set S-F10 binding does not work for neovim
+" Note that set to set an escape key code does not work in neovim. This is for now using the real 
+" true S-F10 code, which we perform a translation at the tmux level for. Sad times for complexity
 
 let g:colorizer_auto_filetype='css,html'
 autocmd BufEnter,BufNew *.colorlog ColorHighlight
