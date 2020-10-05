@@ -71,3 +71,5 @@
 	helper = store
 [config]
 	helper = store
+[pull]
+	rebase = false

@@ -3571,6 +3571,8 @@ au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent exe
 
 " au BufWritePost * call async#job#start(['bash', '-c', 'echo BufWritePost | nc -U widget_socket -q 0'], {})
 "
+au FocusGained * call async#job#send(s:vimHelperServerJob, "FocusGained:".expand('%:p'))
+au FocusLost * call async#job#send(s:vimHelperServerJob, "FocusLost:".expand('%:p'))
 au BufEnter * call async#job#send(s:vimHelperServerJob, "BufEnter:".expand('%:p'))
 au BufWritePost * call async#job#send(s:vimHelperServerJob, "BufWritePost:".expand('%:p'))
 
