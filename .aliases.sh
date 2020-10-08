@@ -162,9 +162,12 @@ export FZF_DEFAULT_COMMAND="fd --type file"
 export PATH=$HOME/util:$PATH
 export PATH="$HOME/.yarn/bin:$HOME/.cargo/bin:$HOME/bin:$HOME/.local/bin:$PATH"
 
-rtr () {
+sourcertrsetup () {
 	CURRENTSHELL="$(ps -o cmd= -p $$ | sed -e 's/^-//' -e 's:.*/::' )"
 	TOPLEVEL=$(git rev-parse --show-toplevel)
 	echo shell is "$CURRENTSHELL" and your git root is at "$TOPLEVEL"
-	source "$TOPLEVEL/devel/setup.$CURRENTSHELL"
+	source "$TOPLEVEL/$1/setup.$CURRENTSHELL"
 }
+
+alias rtr='sourcertrsetup devel'
+alias rtrins='sourcertrsetup install'
