@@ -164,9 +164,11 @@ export PATH="$HOME/.yarn/bin:$HOME/.cargo/bin:$HOME/bin:$HOME/.local/bin:$PATH"
 
 sourcertrsetup () {
 	CURRENTSHELL="$(ps -o cmd= -p $$ | sed -e 's/^-//' -e 's:.*/::' )"
-	TOPLEVEL=$(git rev-parse --show-toplevel)
-	echo shell is "$CURRENTSHELL" and your git root is at "$TOPLEVEL"
-	source "$TOPLEVEL/$1/setup.$CURRENTSHELL"
+	WORKSPACE_LINE="$(catkin config | grep $1)"
+	echo "$WORKSPACE_LINE"
+	WORKSPACE="${WORKSPACE_LINE##* }"
+	echo shell is "$CURRENTSHELL", sourcing from "$WORKSPACE"
+	source "$WORKSPACE/setup.$CURRENTSHELL"
 }
 
 alias rtr='sourcertrsetup devel'
