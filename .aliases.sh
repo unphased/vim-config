@@ -1,3 +1,5 @@
+#!/bin/bash
+
 echo Hello from aliases.sh
 # todo: make me a function
 # idempotent alias check (or prints existing alias -- might wanna suppress that 
@@ -159,3 +161,10 @@ export FZF_DEFAULT_COMMAND="fd --type file"
 # set PATH so it includes user's private bin directories
 export PATH=$HOME/util:$PATH
 export PATH="$HOME/.yarn/bin:$HOME/.cargo/bin:$HOME/bin:$HOME/.local/bin:$PATH"
+
+rtr () {
+	CURRENTSHELL="$(ps -o cmd= -p $$ | sed 's/^-//')"
+	TOPLEVEL=$(git rev-parse --show-toplevel)
+	echo shell is "$CURRENTSHELL" and your git root is at "$TOPLEVEL"
+	source "$TOPLEVEL/devel/setup.$CURRENTSHELL"
+}

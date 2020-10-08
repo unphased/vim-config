@@ -3,6 +3,7 @@
 !.*tmux*.conf
 !.eslintrc.json
 !.eslintrc.js
+!.github/
 **/node_modules
 **/*.min.js
 **/*.svg
