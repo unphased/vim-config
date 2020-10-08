@@ -226,7 +226,7 @@ Plug 'tpope/vim-afterimage'
 " Plug 'mattn/emmet-vim'
 " Plug 'unphased/git-time-lapse'
 Plug 'vim-scripts/yaifa.vim'
-" Plug 'nathanaelkane/vim-indent-guides'
+Plug 'nathanaelkane/vim-indent-guides'
 " Plug 'wellle/context.vim'
 Plug 'wellle/targets.vim'
 

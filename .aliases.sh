@@ -164,11 +164,10 @@ export PATH="$HOME/.yarn/bin:$HOME/.cargo/bin:$HOME/bin:$HOME/.local/bin:$PATH"
 
 sourcertrsetup () {
 	CURRENTSHELL="$(ps -o cmd= -p $$ | sed -e 's/^-//' -e 's:.*/::' )"
-	WORKSPACE_LINE="$(catkin config | grep $1)"
-	echo "$WORKSPACE_LINE"
-	WORKSPACE="${WORKSPACE_LINE##* }"
-	echo shell is "$CURRENTSHELL", sourcing from "$WORKSPACE"
-	source "$WORKSPACE/setup.$CURRENTSHELL"
+	WORKSPACE="$(catkin locate)/$1"
+	SETUPSCRIPT="$WORKSPACE/setup.$CURRENTSHELL"
+	echo sourcing "$SETUPSCRIPT"
+	source "$SETUPSCRIPT"
 }
 
 alias rtr='sourcertrsetup devel'
