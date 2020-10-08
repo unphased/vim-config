@@ -163,7 +163,7 @@ export PATH=$HOME/util:$PATH
 export PATH="$HOME/.yarn/bin:$HOME/.cargo/bin:$HOME/bin:$HOME/.local/bin:$PATH"
 
 rtr () {
-	CURRENTSHELL="$(ps -o cmd= -p $$ | sed 's/^-//')"
+	CURRENTSHELL="$(ps -o cmd= -p $$ | sed -e 's/^-//' -e 's:.*/::' )"
 	TOPLEVEL=$(git rev-parse --show-toplevel)
 	echo shell is "$CURRENTSHELL" and your git root is at "$TOPLEVEL"
 	source "$TOPLEVEL/devel/setup.$CURRENTSHELL"
