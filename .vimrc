@@ -226,7 +226,7 @@ Plug 'tpope/vim-afterimage'
 " Plug 'mattn/emmet-vim'
 " Plug 'unphased/git-time-lapse'
 Plug 'vim-scripts/yaifa.vim'
-Plug 'nathanaelkane/vim-indent-guides'
+" Plug 'nathanaelkane/vim-indent-guides'
 " Plug 'wellle/context.vim'
 Plug 'wellle/targets.vim'
 
@@ -3576,6 +3576,7 @@ au FocusGained * call async#job#send(s:vimHelperServerJob, "FocusGained:".expand
 au FocusLost * call async#job#send(s:vimHelperServerJob, "FocusLost:".expand('%:p'))
 au BufEnter * call async#job#send(s:vimHelperServerJob, "BufEnter:".expand('%:p'))
 au BufWritePost * call async#job#send(s:vimHelperServerJob, "BufWritePost:".expand('%:p'))
+au VimLeavePre * call async#job#send(s:vimHelperServerJob, "VimLeavePre")
 
 " augroup ALEProgress
 "     autocmd!
