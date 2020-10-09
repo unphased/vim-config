@@ -535,7 +535,7 @@ endif
 
 call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tsserver', 'coc-vimlsp', 'coc-emmet', 'coc-eslint', 'coc-diagnostic', 'coc-prettier',  'coc-tabnine', 'coc-clangd', 'coc-sh', 'coc-tailwindcss', 'coc-svg')
 
-function! CheckBatteryTabNine()
+function! CheckBatteryTabNine(timer)
 	call system('onbatt')
 	echom 'ret'.v:shell_error
 	if v:shell_error
@@ -548,6 +548,8 @@ function! CheckBatteryTabNine()
 		call CocAction('deactivateExtension', 'coc-tabnine')
 	endif
 endfun
+
+autocmd VimEnter * call timer_start(200, "CheckBatteryTabNine")
 
 " autocmd VimEnter * call CheckBatteryTabNine()
 
