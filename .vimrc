@@ -3783,8 +3783,12 @@ if !has('nvim')
 	set <F32>=[6;3~
 	nmap <F32> :echo 'm-pgdn'<CR>
 else
-	nmap <C-PageUp> :echo 'c-pgup'<CR>
-	nmap <C-PageDown> :echo 'c-pgdn'<CR>
+	" nmap <C-PageUp> :echo 'c-pgup'<CR>
+	noremap! <C-PageUp> <ESC>:tabprev<CR>
+	noremap <C-PageUp> :tabprev<CR>
+	" nmap <C-PageDown> :echo 'c-pgdn'<CR>
+	noremap! <C-PageDown> <ESC>:tabnext<CR>
+	noremap <C-PageDown> :tabnext<CR>
 	nmap <S-PageUp> :echo 's-pgup'<CR>
 	nmap <S-PageDown> :echo 's-pgdn'<CR>
 	nmap <M-PageUp> :echo 'm-pgup'<CR>
