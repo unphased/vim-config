@@ -533,30 +533,23 @@ EOF
 
 endif
 
-call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tabnine', 'coc-tsserver', 'coc-vimlsp', 'coc-emmet', 'coc-eslint', 'coc-diagnostic', 'coc-prettier', 'coc-clangd', 'coc-sh', 'coc-tailwindcss', 'coc-svg')
+call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tsserver', 'coc-vimlsp', 'coc-emmet', 'coc-eslint', 'coc-diagnostic', 'coc-prettier',  'coc-tabnine', 'coc-clangd', 'coc-sh', 'coc-tailwindcss', 'coc-svg')
 
-let g:on_battery = 'zzzz'
 function! CheckBatteryTabNine()
 	call system('onbatt')
-	echom 'what '.g:on_battery
-	echom 'wtf '. (v:shell_error != g:on_battery)
-	if v:shell_error != g:on_battery
-		let g:on_battery = v:shell_error
-		if g:on_battery == 0
-			echom 'On battery: Disabling coc-tabnine when entering buffers.'
-			call CocAction('deactivateExtension', 'coc-tabnine')
-		else
-			echom 'Not on battery: Enabling coc-tabnine when entering buffers.'
-			" let l:z = CocAction('extensionStats')
-			" echo 'extensionStats: '.l:z
-			call CocAction('activeExtension', 'coc-tabnine')
-		endif
+	echom 'ret'.v:shell_error
+	if v:shell_error
+		echom 'Not on battery: Enabling coc-tabnine when entering buffers.'
+		" let l:z = CocAction('extensionStats')
+		" echo 'extensionStats: '.l:z
+		call CocAction('activeExtension', 'coc-tabnine')
 	else
-		echom 'no '.v:shell_error
+		echom 'On battery: Disabling coc-tabnine when entering buffers.'
+		call CocAction('deactivateExtension', 'coc-tabnine')
 	endif
 endfun
 
-" autocmd BufRead * call CheckBatteryTabNine()
+" autocmd VimEnter * call CheckBatteryTabNine()
 
 " TODO make this detect and use zeal for linux and dash on mac
 nnoremap <F5> :Dash!<CR>
@@ -1432,7 +1425,7 @@ EOF
 	endif
 
 	" call async#job#start(['bash', '-c', 'echo search | nc -U widget_socket -q 0'], {})
-	call async#job#send(s:vimHelperServerJob, "search")
+	call async#job#send(s:vimHelperServerJob, "search ".l:word)
 
 	" this shit flickers and sucks
 	" silent exec "!curl -s localhost:4000/ > /dev/null &"
