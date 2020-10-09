@@ -1,3 +1,5 @@
+#!/bin/bash
+
 echo Hello from aliases.sh
 # todo: make me a function
 # idempotent alias check (or prints existing alias -- might wanna suppress that 
@@ -159,3 +161,14 @@ export FZF_DEFAULT_COMMAND="fd --type file"
 # set PATH so it includes user's private bin directories
 export PATH=$HOME/util:$PATH
 export PATH="$HOME/.yarn/bin:$HOME/.cargo/bin:$HOME/bin:$HOME/.local/bin:$PATH"
+
+sourcertrsetup () {
+	CURRENTSHELL="$(ps -o cmd= -p $$ | sed -e 's/^-//' -e 's:.*/::' )"
+	WORKSPACE="$(catkin locate)/$1"
+	SETUPSCRIPT="$WORKSPACE/setup.$CURRENTSHELL"
+	echo sourcing "$SETUPSCRIPT"
+	source "$SETUPSCRIPT"
+}
+
+alias rtr='sourcertrsetup devel'
+alias rtrins='sourcertrsetup install'

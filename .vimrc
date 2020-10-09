@@ -226,7 +226,7 @@ Plug 'tpope/vim-afterimage'
 " Plug 'mattn/emmet-vim'
 " Plug 'unphased/git-time-lapse'
 Plug 'vim-scripts/yaifa.vim'
-" Plug 'nathanaelkane/vim-indent-guides'
+Plug 'nathanaelkane/vim-indent-guides'
 " Plug 'wellle/context.vim'
 Plug 'wellle/targets.vim'
 
@@ -239,7 +239,7 @@ Plug 'unphased/HiCursorWords'
 
 Plug 'dimasg/vim-mark', { 'on': '<Plug>MarkSet' }
 " Bundle 'kien/rainbow_parentheses.vim'
-" Plug 'mhinz/vim-signify'
+Plug 'mhinz/vim-signify'
 " Plug 'pangloss/vim-javascript'
 " Plug 'jelera/vim-javascript-syntax'
 Plug 'beyondmarc/glsl.vim'
