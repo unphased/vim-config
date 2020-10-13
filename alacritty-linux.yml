@@ -250,9 +250,7 @@ key_bindings:
   - { key: C,        mods: Command,       action: Copy             }
   - { key: Key0,     mods: Command,       action: ResetFontSize    }
   - { key: Equals,   mods: Command,       action: IncreaseFontSize }
-  - { key: Subtract, mods: Command,       action: DecreaseFontSize }
   - { key: Minus, mods: Command,       action: DecreaseFontSize }
-  - { key: Subtract,    mods: Control,       chars: "\x1f"            }
   - { key: Comma,    mods: Alt,           chars: "\x1b,"           }
   - { key: Comma,    mods: Command,       chars: "\x1b,"           }
   - { key: Comma,    mods: Control,       chars: "\x1bcomma]"      }
