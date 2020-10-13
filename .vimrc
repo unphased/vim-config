@@ -227,6 +227,10 @@ Plug 'tpope/vim-afterimage'
 " Plug 'unphased/git-time-lapse'
 Plug 'vim-scripts/yaifa.vim'
 Plug 'nathanaelkane/vim-indent-guides'
+
+au TermEnter * IndentGuidesDisable
+au TermLeave * IndentGuidesEnable
+
 " Plug 'wellle/context.vim'
 Plug 'wellle/targets.vim'
 
