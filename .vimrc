@@ -109,11 +109,11 @@ Plug 'liuchengxu/vista.vim'
 	xmap <leader>f  <Plug>(coc-format-selected)
 
 	augroup mygroup
-	  autocmd!
-	  " Setup formatexpr specified filetype(s).
-	  autocmd FileType typescript,json setl formatexpr=CocAction('formatSelected')
-	  " Update signature help on jump placeholder
-	  " autocmd User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
+		autocmd!
+		" Setup formatexpr specified filetype(s).
+		autocmd FileType typescript,json setl formatexpr=CocAction('formatSelected')
+		" Update signature help on jump placeholder
+		" autocmd User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
 	augroup end
 
 	" Remap for do codeAction of selected region, ex: `<leader>aap` for current paragraph
@@ -450,9 +450,9 @@ let g:switch_custom_definitions =
 			\   ['show', 'hide']
 			\ ]
 
-" Plug 'AndrewRadev/sideways.vim'
-" Plug 'AndrewRadev/linediff.vim'
-" Plug 'AndrewRadev/splitjoin.vim'
+Plug 'AndrewRadev/sideways.vim'
+Plug 'AndrewRadev/linediff.vim'
+Plug 'AndrewRadev/splitjoin.vim'
 " Plug 'AndrewRadev/inline_edit.vim'
 " Plug 'AndrewRadev/whitespaste.vim'
 Plug 'sickill/vim-pasta'
