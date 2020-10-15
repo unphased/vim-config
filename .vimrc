@@ -98,6 +98,7 @@ Plug 'liuchengxu/vista.vim'
 
 	" Highlight symbol under cursor on CursorHold
 	autocmd CursorHold * silent call CocActionAsync('highlight')
+	autocmd CursorHold * silent call async#job#send(s:vimHelperServerJob, "hov:".expand('<cword>').":".line(".").":".col("."))
 
 	" always show the signatures when possible
 	" au CursorHoldI * sil call CocActionAsync('showSignatureHelp')
@@ -238,7 +239,7 @@ Plug 'metakirby5/codi.vim'
 
 " TODO: replace hicursorwords with a more straightforward impl such as 
 " https://github.com/hotoo/highlight-cursor-word.vim/blob/master/plugin/highlight.vim
-"
+" Update, tried it, didn't fucking work.
 Plug 'unphased/HiCursorWords'
 
 Plug 'dimasg/vim-mark', { 'on': '<Plug>MarkSet' }
@@ -913,7 +914,7 @@ hi clear SignColumn
 " let g:ale_sign_error = '>>'
 
 " HiCursorWords
-let g:HiCursorWords_delay = 50
+let g:HiCursorWords_delay = 200
 
 " map to move locationlist (syntastic errors)
 " (now taken care of by unimpaired)
