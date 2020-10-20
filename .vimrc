@@ -98,7 +98,7 @@ Plug 'liuchengxu/vista.vim'
 
 	" Highlight symbol under cursor on CursorHold
 	autocmd CursorHold * silent call CocActionAsync('highlight')
-	autocmd CursorHold * silent call async#job#send(s:vimHelperServerJob, "hov:".expand('<cword>').":".line(".").":".col("."))
+	autocmd CursorHold * silent call async#job#send(s:vimHelperServerJob, "hov:".expand('<cword>')."#".line(".").":".col("."))
 
 	" always show the signatures when possible
 	" au CursorHoldI * sil call CocActionAsync('showSignatureHelp')
@@ -473,7 +473,13 @@ Plug 'elzr/vim-json'
 
 call plug#end()
 
-let s:vimHelperServerJob = async#job#start(["vimhelper_server.mjs", getpid()], {})
+function! s:async_job_handler(job_id, data, event_type)
+	echo 'Async job handler report:'
+	echo a:job_id . ' ' . a:event_type
+	echo join(a:data, "\n")
+endfunction
+
+let s:vimHelperServerJob = async#job#start(["vimhelper_server.mjs", getpid()], {'on_exit': function('s:async_job_handler')})
 
 " custom lightline palette fuckery (to make the inactive pane bars more readable)
 let s:palette =  g:lightline#colorscheme#powerline#palette
@@ -542,7 +548,7 @@ call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tsserver',
 
 function! CheckBatteryTabNine(timer)
 	call system('onbatt')
-	echom 'ret'.v:shell_error
+	echom 'cbtn: ret '.v:shell_error
 	if v:shell_error
 		echom 'Not on battery: Enabling coc-tabnine when entering buffers.'
 		" let l:z = CocAction('extensionStats')
@@ -3570,8 +3576,6 @@ set synmaxcol=1000
 " useful magic for making files executable if they look like they should be
 au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent execute "!chmod a+x <afile>" | endif | endif
 
-" au BufWritePost * call async#job#start(['bash', '-c', 'echo BufWritePost | nc -U widget_socket -q 0'], {})
-"
 au FocusGained * call async#job#send(s:vimHelperServerJob, "FocusGained:".expand('%:p'))
 au FocusLost * call async#job#send(s:vimHelperServerJob, "FocusLost:".expand('%:p'))
 au BufEnter * call async#job#send(s:vimHelperServerJob, "BufEnter:".expand('%:p'))
