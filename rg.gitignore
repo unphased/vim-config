@@ -31,4 +31,4 @@
 **/cdb_h.json
 **/CMakeCache.txt
 **/*.dae
-**/rapidplan*/build/*
+**/rapidplan*/build/**
