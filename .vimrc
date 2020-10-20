@@ -477,6 +477,9 @@ function! s:async_job_handler(job_id, data, event_type)
 	echo 'Async job handler report:'
 	echo a:job_id . ' ' . a:event_type
 	echo join(a:data, "\n")
+	if event_type == 'exit'
+		let s:vimHelperServerJobDead = 1
+	endif
 endfunction
 
 let s:vimHelperServerJob = async#job#start(["vimhelper_server.mjs", getpid()], {'on_exit': function('s:async_job_handler')})
@@ -1438,7 +1441,9 @@ EOF
 	endif
 
 	" call async#job#start(['bash', '-c', 'echo search | nc -U widget_socket -q 0'], {})
-	call async#job#send(s:vimHelperServerJob, "search ".l:word)
+	if exists(s:vimHelperServerJobDead)
+		call async#job#send(s:vimHelperServerJob, "search ".l:word)
+	endif
 
 	" this shit flickers and sucks
 	" silent exec "!curl -s localhost:4000/ > /dev/null &"
