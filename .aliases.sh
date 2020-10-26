@@ -142,7 +142,7 @@ export OSTYPE
 # # start to use (these may come back later when #4585 completes)
 alias gdc='git diff --cached'
 alias gap='git add --patch'
-alias gsl='git stash list -p --ext-diff'
+alias gsl="git stash list -p --ext-diff | sed -e 's/^stash@\\(.*\\)/[33m[7m\\1[m/'"
 
 alias grepc='grep --color=always --exclude=\*{.,-}min.\*'
 # alias cack='ack --color'

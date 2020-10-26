@@ -32,3 +32,4 @@
 **/CMakeCache.txt
 **/*.dae
 **/rapidplan*/build/**
+*.rtrbrep
