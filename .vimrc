@@ -229,8 +229,10 @@ Plug 'tpope/vim-afterimage'
 Plug 'vim-scripts/yaifa.vim'
 Plug 'nathanaelkane/vim-indent-guides'
 
-au TermEnter * IndentGuidesDisable
-au TermLeave * IndentGuidesEnable
+if has('nvim')
+	au TermEnter * IndentGuidesDisable
+	au TermLeave * IndentGuidesEnable
+endif
 
 " Plug 'wellle/context.vim'
 Plug 'wellle/targets.vim'
