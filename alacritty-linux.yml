@@ -252,6 +252,7 @@ key_bindings:
   - { key: Equals,   mods: Command,       action: IncreaseFontSize }
   - { key: Minus,    mods: Command,       action: DecreaseFontSize }
   - { key: Minus,    mods: Control,       chars: "\x1f" }
+  - { key: Plus,     mods: Control,       chars: "=" }
   - { key: Comma,    mods: Alt,           chars: "\x1b,"           }
   - { key: Comma,    mods: Command,       chars: "\x1b,"           }
   - { key: Comma,    mods: Control,       chars: "\x1bcomma]"      }
