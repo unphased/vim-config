@@ -98,7 +98,7 @@ Plug 'liuchengxu/vista.vim'
 
 	" Highlight symbol under cursor on CursorHold
 	autocmd CursorHold * silent call CocActionAsync('highlight')
-	autocmd CursorHold * silent if !exists('s:vimHelperServerJobDead') | call async#job#send(s:vimHelperServerJob, "hov:".expand('<cword>')."#".line(".").":".col(".")) | endif
+	autocmd CursorHold * silent if !exists('s:vimHelperServerJobDead') | call async#job#send(s:vimHelperServerJob, "hov:".expand('<cword>')."#".line(".").":".col(".")."\n") | endif
 
 	" always show the signatures when possible
 	" au CursorHoldI * sil call CocActionAsync('showSignatureHelp')
@@ -1451,7 +1451,7 @@ EOF
 	endif
 
 	if !exists('s:vimHelperServerJobDead')
-		call async#job#send(s:vimHelperServerJob, "search ".l:word)
+		call async#job#send(s:vimHelperServerJob, "search ".l:word."\n")
 	endif
 
 	" this shit flickers and sucks
@@ -3590,11 +3590,11 @@ set synmaxcol=1000
 " useful magic for making files executable if they look like they should be
 au BufWritePost * if getline(1) =~ "^#!" | if getline(1) =~ "/bin/" | silent execute "!chmod a+x <afile>" | endif | endif
 
-au FocusGained * if !exists('s:vimHelperServerJobDead') | call async#job#send(s:vimHelperServerJob, "FocusGained:".expand('%:p')) | endif
-au FocusLost * if !exists('s:vimHelperServerJobDead') | call async#job#send(s:vimHelperServerJob, "FocusLost:".expand('%:p')) | endif
-au BufEnter * if !exists('s:vimHelperServerJobDead') | call async#job#send(s:vimHelperServerJob, "BufEnter:".expand('%:p')) | endif
-au BufWritePost * if !exists('s:vimHelperServerJobDead') | call async#job#send(s:vimHelperServerJob, "BufWritePost:".expand('%:p')) | endif
-au VimLeavePre * if !exists('s:vimHelperServerJobDead') | call async#job#send(s:vimHelperServerJob, "VimLeavePre") | endif
+au FocusGained * if !exists('s:vimHelperServerJobDead') | call async#job#send(s:vimHelperServerJob, "FocusGained:".expand('%:p')."\n") | endif
+au FocusLost * if !exists('s:vimHelperServerJobDead') | call async#job#send(s:vimHelperServerJob, "FocusLost:".expand('%:p')."\n") | endif
+au BufEnter * if !exists('s:vimHelperServerJobDead') | call async#job#send(s:vimHelperServerJob, "BufEnter:".expand('%:p')."\n") | endif
+au BufWritePost * if !exists('s:vimHelperServerJobDead') | call async#job#send(s:vimHelperServerJob, "BufWritePost:".expand('%:p')."\n") | endif
+au VimLeavePre * if !exists('s:vimHelperServerJobDead') | call async#job#send(s:vimHelperServerJob, "VimLeavePre\n") | endif
 
 " augroup ALEProgress
 "     autocmd!
