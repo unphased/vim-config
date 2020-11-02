@@ -492,7 +492,7 @@ function! s:async_job_handler(job_id, data, event_type)
 	endif
 endfunction
 
-let s:vimHelperServerJob = async#job#start(["node", $HOME . "/util/vimhelper_server.js", getpid()], {'on_exit': function('s:async_job_handler')})
+let s:vimHelperServerJob = async#job#start(["bash", "-c", '(cd ~/util; ./node_modules/.bin/nodemon --exec "ts-node vimhelper_server.ts '.getpid().'")'], {'on_exit': function('s:async_job_handler')})
 
 " custom lightline palette fuckery (to make the inactive pane bars more readable)
 let s:palette =  g:lightline#colorscheme#powerline#palette
