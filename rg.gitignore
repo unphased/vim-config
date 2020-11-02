@@ -1,4 +1,5 @@
 !.vimrc
+!.aliases.sh
 !.vim/
 !.*tmux*.conf
 !.eslintrc.json
