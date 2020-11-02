@@ -451,7 +451,6 @@ Plug 'AndrewRadev/switch.vim'
 let g:switch_custom_definitions = 
 			\ [
 			\   ['show', 'hide'],
-			\   ['const', 'let'],
 			\   {
 			\     '\<\(\l\)\(\l\+\(\u\l\+\)\+\)\>': '\=toupper(submatch(1)) . submatch(2)',
 			\     '\<\(\u\l\+\)\(\u\l\+\)\+\>': "\\=tolower(substitute(submatch(0), '\\(\\l\\)\\(\\u\\)', '\\1_\\2', 'g'))",
