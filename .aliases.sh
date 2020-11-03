@@ -172,3 +172,5 @@ sourcertrsetup () {
 
 alias rtr='sourcertrsetup devel'
 alias rtrins='sourcertrsetup install'
+
+export EDITOR=vim
