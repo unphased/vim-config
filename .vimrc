@@ -201,7 +201,13 @@ Plug 'rhysd/clever-f.vim'
 
 " Plug 'editorconfig/editorconfig-vim'
 
-Plug 'rhysd/git-messenger.vim'
+" Plug 'rhysd/git-messenger.vim'
+" The below is a functional replacement for git-messenger, much simple, works only in vim for now 
+" tho. got from someone's comment on git-messenger github issues.
+if !has('nvim')
+	nmap <silent><Leader>b :call setbufvar(winbufnr(popup_atcursor(split(system("git log -n 1 -L " . line(".") . ",+1:" . expand("%:p")), "\n"), { "padding": [1,1,1,1], "pos": "botleft", "wrap": 0 })), "&filetype", "git")<CR>
+endif
+
 Plug 'leafgarland/typescript-vim'
 Plug 'peitalin/vim-jsx-typescript'
 
