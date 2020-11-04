@@ -34,3 +34,5 @@
 **/*.dae
 **/rapidplan*/build/**
 *.rtrbrep
+*.colorlog
+**/annotated/log
