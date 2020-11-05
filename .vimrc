@@ -489,7 +489,7 @@ Plug 'elzr/vim-json'
 call plug#end()
 
 function! s:async_job_handler(job_id, data, event_type)
-	echom 'Async job handler report:'
+	echom 'Async job handler report ========='
 	echom a:job_id . ' ' . a:event_type
 	echom join(a:data, "\n")
 	if a:event_type == 'exit'
@@ -497,12 +497,19 @@ function! s:async_job_handler(job_id, data, event_type)
 	endif
 endfunction
 
-function! s:async_job_stderr_handler(job_id, data, event_type)
-	echom 'Async job stderr:'
+function! s:async_job_stdout_handler(job_id, data, event_type)
+	echom 'Async job stdout ========='
+	echom a:job_id . ' ' . a:event_type
 	echom join(a:data, "\n")
 endfunction
 
-let s:vimHelperServerJob = async#job#start(["bash", "-c", '(>&2 echo "stderr"; cd ~/util; ./node_modules/.bin/nodemon --exec "ts-node vimhelper_server.ts '.getpid().'")'], {'on_exit': function('s:async_job_handler'), 'on_stderr': function('s:async_job_stderr_handler')})
+function! s:async_job_stderr_handler(job_id, data, event_type)
+	echom 'Async job stderr ========='
+	echom a:job_id . ' ' . a:event_type
+	echom join(a:data, "\n")
+endfunction
+
+let s:vimHelperServerJob = async#job#start(["bash", "-c", '(cd ~/util; ./node_modules/.bin/nodemon --watch vimhelper_server.ts --exec "ts-node vimhelper_server.ts '.getpid().'")'], {'on_exit': function('s:async_job_handler'), 'on_stderr': function('s:async_job_stderr_handler'), 'on_stdout': function('s:async_job_stdout_handler')})
 
 " custom lightline palette fuckery (to make the inactive pane bars more readable)
 let s:palette =  g:lightline#colorscheme#powerline#palette
