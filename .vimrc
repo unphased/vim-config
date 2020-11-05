@@ -1468,7 +1468,7 @@ EOF
 	endif
 
 	if !exists('s:vimHelperServerJobDead')
-		call async#job#send(s:vimHelperServerJob, "search ".l:word."\n")
+		call async#job#send(s:vimHelperServerJob, "search:".l:word."\n")
 	endif
 
 	" this shit flickers and sucks
