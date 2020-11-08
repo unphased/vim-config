@@ -3490,6 +3490,8 @@ hi Todo guibg=#484848
 "      \ 0,
 "      \ {'options': '--reverse --prompt "FLines> "'})
 
+let $FZF_DEFAULT_OPTS = '--keep-right'
+
 command! -bang -nargs=* FLineSearch call fzf#vim#grep("rg --color=never --line-number --column --no-heading --fixed-strings --hidden ".shellescape(<q-args>), 1, {'options': '--prompt "FLineSearch '.shellescape(<q-args>).'> "'})
 
 command! -bang FLines call fzf#vim#grep(
