@@ -3524,9 +3524,16 @@ function! s:build_quickfix_list(lines)
   cc
 endfunction
 
+" custom fzf handling lets me implement always going to the chosen file and 
+function! s:open_with_fzf(lines)
+	for l:line in getline()
+	echom 'abc: '.join(a:lines, ';')
+endfunction
+
 " add ctrlq to default maps
 let g:fzf_action = {
   \ 'ctrl-q': function('s:build_quickfix_list'),
+  \ 'enter': function('s:open_with_fzf'),
   \ 'ctrl-t': 'tab split',
   \ 'ctrl-s': 'split',
   \ 'ctrl-v': 'vsplit' }
