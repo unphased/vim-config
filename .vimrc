@@ -3526,7 +3526,7 @@ function! s:build_quickfix_list(lines)
   cc
 endfunction
 
-" custom fzf handling lets me implement always going to the chosen file and 
+" custom fzf handling lets me implement always jumping to the chosen file if already open somewhere
 function! s:open_with_fzf(lines)
 	for l:line in getline()
 	echom 'abc: '.join(a:lines, ';')
