@@ -14,6 +14,8 @@ Plug 'junegunn/fzf.vim'
 
 Plug 'prabirshrestha/async.vim'
 
+Plug 'powerman/vim-plugin-AnsiEsc'
+
 Plug 'fidian/hexmode'
 Plug 'rizzatti/dash.vim'
 Plug 'chrisbra/csv.vim'
