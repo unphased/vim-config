@@ -1479,9 +1479,6 @@ endfunction
 
 nnoremap <silent> <expr> <CR> &buftype == "" ? SearchForWord() : "<cr>"
 
-function! ChompCtrlM(string)
-    return substitute(a:string, '$', '', '')
-endfunction
 
 " proof of concept that i can chain something to occur after an eval-string 
 " providing function. dont think i achieved this before
@@ -3527,9 +3524,40 @@ function! s:build_quickfix_list(lines)
 endfunction
 
 " custom fzf handling lets me implement always jumping to the chosen file if already open somewhere
-function! s:open_with_fzf(lines)
-	for l:line in getline()
-	echom 'abc: '.join(a:lines, ';')
+function! s:open_with_fzf(files)
+	let x = split(execute('ls a'), "[\n\r]")
+	let alreadyOpened = []
+	for l:line in x
+		" these are open ("active") filenames
+		let filename = split(l:line, '"')[1]
+		let index = index(a:files, filename)
+		if index != -1
+			call add(alreadyOpened, [index, filename])
+		endif
+	endfor
+
+	" if multiple requested files are already opened, we end up going to the earliest one in the 
+	" buffer list
+	if len(alreadyOpened) > 0
+		execute("tab drop ".alreadyOpened[0][1])
+	else
+		" split (my personal perference), unless in empty buffer in which case replaces
+		if @% == ""
+			" was in empty buffer
+			" echom 'empty buf, making new'
+			let last = a:files->remove(-1)
+			execute("e ".last)
+		endif
+		" if greater than 3 items, open them all as tabs
+		for l:fileToOpen in a:files
+			if (len(a:files) > 3)
+				echom 'tabe '.l:fileToOpen
+				execute("tabe ".l:fileToOpen)
+			else
+				execute("split ".l:fileToOpen)
+			endif
+		endfor
+	endif
 endfunction
 
 " add ctrlq to default maps
