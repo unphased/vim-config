@@ -84,4 +84,5 @@
   , "snippets.priority": 50
   , "tabnine.priority": 5
   , "clangd.semanticHighlighting": true
+  , "coc.preferences.extensionUpdateCheck": "daily"
 }

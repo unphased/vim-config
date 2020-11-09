@@ -590,7 +590,7 @@ function! CheckBatteryTabNine(timer)
 	endif
 endfun
 
-autocmd VimEnter * call timer_start(200, "CheckBatteryTabNine")
+autocmd VimEnter * call timer_start(1000, "CheckBatteryTabNine")
 
 " autocmd VimEnter * call CheckBatteryTabNine()
 
@@ -3532,39 +3532,45 @@ function! s:open_with_fzf(files)
 		let filename = split(l:line, '"')[1]
 		let index = index(a:files, filename)
 		if index != -1
-			call add(alreadyOpened, [index, filename])
+			call add(alreadyOpened, filename)
+			call remove(a:files, index)
 		endif
 	endfor
 
 	" if multiple requested files are already opened, we end up going to the earliest one in the 
-	" buffer list
-	if len(alreadyOpened) > 0
-		execute("tab drop ".alreadyOpened[0][1])
-	else
-		" split (my personal perference), unless in empty buffer in which case replaces
-		if @% == ""
-			" was in empty buffer
-			" echom 'empty buf, making new'
-			let last = a:files->remove(-1)
-			execute("e ".last)
+	" buffer list, echoing a useful message showing what else was requested that's already open 
+	" (because we cannot jump to more than one place), and opening the remaining ones in the 
+	" background always as tabs.
+	" split (my personal perference), unless in empty buffer in which case replaces
+	if @% == ""
+		" was in empty buffer
+		" echom 'empty buf, making new'
+		let last = a:files->remove(-1)
+		execute("e ".last)
+	endif
+	" if greater than 3 items, open them all as tabs
+	for l:fileToOpen in a:files
+		if (len(a:files) > 3)
+			execute("tabe ".l:fileToOpen)
+		else
+			execute("split ".l:fileToOpen)
 		endif
-		" if greater than 3 items, open them all as tabs
-		for l:fileToOpen in a:files
-			if (len(a:files) > 3)
-				echom 'tabe '.l:fileToOpen
-				execute("tabe ".l:fileToOpen)
-			else
-				execute("split ".l:fileToOpen)
-			endif
-		endfor
+	endfor
+
+	if len(alreadyOpened) > 0
+		execute("tab drop ".alreadyOpened[0])
+		if len(alreadyOpened) > 1
+			call remove(alreadyOpened, 0)
+			echom "other already opened: ".string(alreadyOpened)
+		endif
 	endif
 endfunction
 
 " add ctrlq to default maps
 let g:fzf_action = {
   \ 'ctrl-q': function('s:build_quickfix_list'),
-  \ 'enter': function('s:open_with_fzf'),
-  \ 'ctrl-t': 'tab split',
+	\ 'enter': function('s:open_with_fzf'),
+  \ 'ctrl-t': 'tab drop',
   \ 'ctrl-s': 'split',
   \ 'ctrl-v': 'vsplit' }
 
