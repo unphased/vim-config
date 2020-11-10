@@ -3561,10 +3561,10 @@ function! s:open_with_fzf(files)
 
 	if len(alreadyOpened) > 0
 		execute("tab drop ".alreadyOpened[0])
-		if len(alreadyOpened) > 1
-			call remove(alreadyOpened, 0)
-			echom "other already opened: ".string(alreadyOpened)
-		endif
+		call remove(alreadyOpened, 0)
+	endif
+	if len(alreadyOpened) > 0
+		echom "other already opened: ".string(alreadyOpened)
 	endif
 endfunction
 
