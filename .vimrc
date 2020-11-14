@@ -3543,16 +3543,15 @@ function! s:open_with_fzf(files)
 	" buffer list, echoing a useful message showing what else was requested that's already open 
 	" (because we cannot jump to more than one place), and opening the remaining ones in the 
 	" background always as tabs.
-	" split (my personal perference), unless in empty buffer in which case replaces
-	if @% == ""
-		" was in empty buffer
-		" echom 'empty buf, making new'
-		let last = a:files->remove(-1)
-		execute("e ".last)
+
+	if len(a:files) > 0
+		let first = a:files->remove(0)
+		execute("e ".first)
 	endif
-	" if greater than 3 items, open them all as tabs
+
+	" if greater than 2 remaining items, open them all as tabs
 	for l:fileToOpen in a:files
-		if (len(a:files) > 3)
+		if (len(a:files) > 2)
 			execute("tabe ".l:fileToOpen)
 		else
 			execute("split ".l:fileToOpen)
@@ -3560,6 +3559,7 @@ function! s:open_with_fzf(files)
 	endfor
 
 	if len(alreadyOpened) > 0
+		echom "opening already opened buffer ".alreadyOpened[0]
 		execute("tab drop ".alreadyOpened[0])
 		call remove(alreadyOpened, 0)
 	endif
