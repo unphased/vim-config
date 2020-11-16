@@ -2409,7 +2409,7 @@ vnoremap <silent> x :<C-u>execute 'normal! vlF' . nr2char(getchar()) . 'of' . nr
 
 "   http://css-tricks.com/words-avoid-educational-writing/
 
-highlight TechWordsToAvoid ctermbg=52 guibg=#602020
+highlight TechWordsToAvoid ctermbg=52 guibg=#501010
 " 52 is the darkest red and it is a handy non-painful color
 
 " also highlight swears for +3 professionalism
@@ -2573,12 +2573,12 @@ nmap <leader>s :set spell!<CR>
 
 nmap <leader>S :saveas %%
 
-highlight SpellBad ctermbg=NONE ctermfg=NONE cterm=underline guifg=NONE guibg=NONE gui=underline term=NONE
-highlight SpellCap ctermbg=NONE ctermfg=NONE cterm=underline,bold guifg=NONE guibg=NONE gui=underline term=NONE
-highlight SpellRare ctermbg=NONE ctermfg=NONE cterm=underline guifg=NONE guibg=NONE gui=underline term=NONE
-highlight SpellLocal ctermbg=NONE ctermfg=NONE cterm=underline guifg=NONE guibg=NONE gui=underline term=NONE
+highlight SpellBad ctermfg=NONE ctermbg=58 guibg=#351500 guifg=NONE  term=underline
+highlight SpellCap ctermfg=NONE ctermbg=58 guibg=#351500 cterm=bold guifg=NONE term=bold
+highlight SpellRare ctermbg=NONE ctermfg=NONE guifg=NONE term=NONE term=underline
+highlight SpellLocal ctermbg=NONE ctermfg=NONE guifg=NONE term=NONE term=underline
 " There exist some other spelling related highlight styles but i'll just deal 
-" with them when i see them show up as I see fit. the capitalization one is 
+" with them when i see them show up as I see fit. The capitalization one is 
 " pretty acceptable for now also.
 
 " Macro meta commands. For editing macros to refine them. This is just brimming 
