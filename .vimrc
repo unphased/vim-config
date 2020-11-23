@@ -2792,27 +2792,27 @@ xmap <C-E>   <Plug>(textmanip-toggle-mode)
 " au BufWinLeave *.php mkview
 " au BufWinEnter *.php silent loadview
 
-" easy-align bindings
-" hit uppercase a in visual to align it. I thought it was unmapped but it is 
-" hella mapped and I use it a lot it turns out (say you want to wrap a string 
-" literal in parens... now the uppercase A is really only useful for adding 
-" characters along the right side of a block visual selection but that's easily
-" done with uppercase I. And I reckon virtual-edit for block helps though the 
-" any commented wrapping text will mess with it pretty hard. Oh well.
-vmap A <Plug>(LiveEasyAlign)
-" use ga such as gaip to align paragraph
-nmap ga <Plug>(LiveEasyAlign)
+" " easy-align bindings
+" " hit uppercase a in visual to align it. I thought it was unmapped but it is 
+" " hella mapped and I use it a lot it turns out (say you want to wrap a string 
+" " literal in parens... now the uppercase A is really only useful for adding 
+" " characters along the right side of a block visual selection but that's easily
+" " done with uppercase I. And I reckon virtual-edit for block helps though the 
+" " any commented wrapping text will mess with it pretty hard. Oh well.
+" vmap A <Plug>(LiveEasyAlign)
+" " use ga such as gaip to align paragraph
+" nmap ga <Plug>(LiveEasyAlign)
 
-" add easy-align delims that curiously were not included out of the box.
-let g:easy_align_delimiters = {
-  \ ';': { 'pattern': ';', 'left_margin': 0, 'stick_to_left': 1 },
-  \ '+': { 'pattern': '[+-]'},
-  \ '*': { 'pattern': '[*/]'},
-  \ '/': {
-  \     'pattern':         '//\+\|/\*\|\*/',
-  \     'delimiter_align': 'l',
-  \     'ignore_groups':   ['!Comment'] }
-  \ }
+" " add easy-align delims that curiously were not included out of the box.
+" let g:easy_align_delimiters = {
+"   \ ';': { 'pattern': ';', 'left_margin': 0, 'stick_to_left': 1 },
+"   \ '+': { 'pattern': '[+-]'},
+"   \ '*': { 'pattern': '[*/]'},
+"   \ '/': {
+"   \     'pattern':         '//\+\|/\*\|\*/',
+"   \     'delimiter_align': 'l',
+"   \     'ignore_groups':   ['!Comment'] }
+"   \ }
 
 " for the octol/vim-cpp-enhanced-highlight plugin
 " let g:cpp_experimental_template_highlight=1
