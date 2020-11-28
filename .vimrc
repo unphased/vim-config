@@ -2417,7 +2417,7 @@ highlight TechWordsToAvoid ctermbg=52 guibg=#501010
 function! MatchTechWordsToAvoid()
 	match TechWordsToAvoid /\c\<\(shit\|fuck\|crap\|ass\|obviously\|basically\|simply\|of\scourse\|clearly\|everyone\sknows\)\>/
 endfunction
-autocmd FileType vim,markdown,javascript,cpp,bash,zsh,sh call MatchTechWordsToAvoid()
+autocmd FileType vim,markdown,javascript,typescript,cpp,bash,zsh,sh call MatchTechWordsToAvoid()
 " autocmd BufWinEnter *.md call MatchTechWordsToAvoid()
 " autocmd InsertEnter *.md call MatchTechWordsToAvoid()
 " autocmd InsertLeave *.md call MatchTechWordsToAvoid()
