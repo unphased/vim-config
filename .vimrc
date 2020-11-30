@@ -2485,11 +2485,20 @@ set switchbuf=usetab,split
 " This clears the bgcolor set by the colorscheme, and inherits term background 
 " color provided helpfully by tmux. Quite nice and useful for bgcolor visual 
 " focus and it's free and performant.
-highlight Normal ctermbg=NONE
 
-" use with nvim with winhighlight for
-highlight HighlightNormal guibg=#003300
-highlight NormalNC guibg=#000033
+" can use these with nvim with winhighlight for extra state coloring
+" highlight HighlightNormal guibg=#003300
+
+highlight NormalNC guibg=#151515
+" enables NormalNC behavior for vim
+if !has('nvim')
+	au WinEnter * setl wincolor=
+	au WinLeave * setl wincolor=NormalNC
+endif
+
+" for nvim
+au FocusGained * highlight NormalNC guibg=#151515
+au FocusLost * highlight NormalNC guibg=NONE
 
 " now that focuslost works with iterm and tmux maybe this is just generally 
 " improved behavior. Do have to be careful, but it speeds shit up when rapidly 
