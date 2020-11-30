@@ -2487,6 +2487,10 @@ set switchbuf=usetab,split
 " focus and it's free and performant.
 highlight Normal ctermbg=NONE
 
+" use with nvim with winhighlight for
+highlight HighlightNormal guibg=#003300
+highlight NormalNC guibg=#000033
+
 " now that focuslost works with iterm and tmux maybe this is just generally 
 " improved behavior. Do have to be careful, but it speeds shit up when rapidly 
 " working
