@@ -114,7 +114,7 @@ Plug 'liuchengxu/vista.vim'
 	augroup mygroup
 		autocmd!
 		" Setup formatexpr specified filetype(s).
-		autocmd FileType typescript,json setl formatexpr=CocAction('formatSelected')
+		autocmd FileType typescriptreact,typescript,json setl formatexpr=CocAction('formatSelected')
 		" Update signature help on jump placeholder
 		" autocmd User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
 	augroup end
@@ -210,8 +210,8 @@ if !has('nvim')
 	nmap <silent><Leader>b :call setbufvar(winbufnr(popup_atcursor(split(system("git log -n 1 -L " . line(".") . ",+1:" . expand("%:p")), "\n"), { "padding": [1,1,1,1], "pos": "botleft", "wrap": 0 })), "&filetype", "git")<CR>
 endif
 
-Plug 'leafgarland/typescript-vim'
-Plug 'peitalin/vim-jsx-typescript'
+" Plug 'leafgarland/typescript-vim'
+" Plug 'peitalin/vim-jsx-typescript'
 
 " Plug 'neoclide/vim-jsx-improve'
 
