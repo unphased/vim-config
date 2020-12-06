@@ -1,7 +1,7 @@
 !.vimrc
 !.aliases.sh
 !.vim/
-!.*tmux*.conf
+!.*.conf
 !.eslintrc.json
 !.eslintrc.js
 !.github/
