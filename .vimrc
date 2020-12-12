@@ -3559,8 +3559,8 @@ function! s:open_with_fzf(files)
 	" background always as tabs.
 
 	if len(a:files) > 0
-		let first = a:files->remove(0)
-		execute("e ".first)
+		let l:first = a:files->remove(0)
+		execute("e ".l:first)
 	endif
 
 	" if greater than 2 remaining items, open them all as tabs
