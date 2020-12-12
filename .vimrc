@@ -3559,7 +3559,7 @@ function! s:open_with_fzf(files)
 	" background always as tabs.
 
 	if len(a:files) > 0
-		let l:first = a:files->remove(0)
+		let l:first = remove(a:files, 0)
 		execute("e ".l:first)
 	endif
 
