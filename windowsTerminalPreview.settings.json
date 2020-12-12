@@ -14,7 +14,7 @@
     // To learn more about global settings, visit https://aka.ms/terminal-global-settings
 
     // If enabled, selections are automatically copied to your clipboard.
-    "copyOnSelect": false,
+    "copyOnSelect": true,
 
     // If enabled, formatted data is also copied to your clipboard
     "copyFormatting": false,
@@ -29,6 +29,7 @@
         {
             // Put settings here that you want to apply to all profiles.
             "fontFace": "DejaVu Sans Mono for Powerline",
+            "cursorShape": "filledBox",
             "fontSize": 9
         },
         "list":
