@@ -3585,7 +3585,7 @@ endfunction
 " add ctrlq to default maps
 let g:fzf_action = {
   \ 'ctrl-q': function('s:build_quickfix_list'),
-	\ 'enter': function('s:open_with_fzf'),
+  \ 'enter': function('s:open_with_fzf'),
   \ 'ctrl-t': 'tab drop',
   \ 'ctrl-s': 'split',
   \ 'ctrl-v': 'vsplit' }
