@@ -32,7 +32,10 @@
             // Put settings here that you want to apply to all profiles.
             "fontFace": "DejaVu Sans Mono for Powerline",
             "cursorShape": "filledBox",
-            "fontSize": 9
+            "fontSize": 9,
+            "useAcrylic": true,
+            "acrylicOpacity": 0.8,
+            "background": "#000010"
         },
         "list":
         [
