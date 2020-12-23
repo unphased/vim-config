@@ -35,7 +35,10 @@
             "fontSize": 9,
             "useAcrylic": true,
             "acrylicOpacity": 0.8,
-            "background": "#000010"
+            "background": "#000010",
+            "padding": "0, 0",
+            "scrollbarState": "hidden",
+            "experimental.retroTerminalEffect": false
         },
         "list":
         [
