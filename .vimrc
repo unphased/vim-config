@@ -1780,6 +1780,8 @@ nmap ` %
 vmap ` %
 omap ` %
 
+au filetype markdown vmap ` S`
+
 " mapping normal mode Tab to swap to next window; saving the functionality of
 " tab (next jumplist position) to C-B (since PgUp serves that function well)
 nnoremap <C-B> <Tab>
