@@ -7,7 +7,7 @@
 // For documentation on these settings, see: https://aka.ms/terminal-documentation
 {
     "$schema": "https://aka.ms/terminal-profiles-schema",
-    
+
     "defaultProfile": "{07b52e3e-de2c-5db4-bd2d-ba144ed6c273}",
 
     // You can add more global application settings here.
@@ -19,7 +19,7 @@
     // If enabled, formatted data is also copied to your clipboard
     "copyFormatting": false,
 
-    "startOnUserLogin": true,
+    "startOnUserLogin": false,
 
     // A profile specifies a command to execute paired with information about how it should look and feel.
     // Each one of them will appear in the 'New Tab' dropdown,
