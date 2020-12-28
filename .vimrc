@@ -649,6 +649,7 @@ au! BufRead,BufNewFile CUDA*.in,*.cuda,*.cu,*.cuh set ft=cuda
 
 " customize it for my usual workflow
 autocmd FileType gitcommit setlocal nosmartindent | setlocal formatoptions-=tcl
+au filetype markdown setlocal nosmartindent | setlocal formatoptions-=a
 
 " this thing needs work
 " nnoremap <Leader>g :call TimeLapse()<CR>
@@ -3626,6 +3627,21 @@ let g:fzf_commits_log_options = '--graph --date-order --pretty=format:"%C(bold m
 
 command! -bang -nargs=? -complete=dir Files
   \ call fzf#vim#files(<q-args>, {'options': ['--preview', 'bat -p --color always {}']}, <bang>0)
+
+" Search pattern across repository files
+function! FzfExplore(...)
+    let inpath = substitute(a:1, "'", '', 'g')
+    if inpath == "" || matchend(inpath, '/') == strlen(inpath)
+        execute "cd" getcwd() . '/' . inpath
+        let cwpath = getcwd() . '/'
+        call fzf#run(fzf#wrap({'source': 'ls -1ap', 'dir': cwpath, 'sink': 'FZFExplore', 'options': ['--prompt', cwpath]}))
+    else
+        let file = getcwd() . '/' . inpath
+        execute "e" file
+    endif
+endfunction
+
+command! -nargs=* FZFExplore call FzfExplore(shellescape(<q-args>))
 
 " https://stackoverflow.com/a/6271254
 function! s:get_visual_selection()
