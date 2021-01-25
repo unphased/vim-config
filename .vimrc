@@ -650,6 +650,8 @@ au! BufRead,BufNewFile CUDA*.in,*.cuda,*.cu,*.cuh set ft=cuda
 " customize it for my usual workflow
 autocmd FileType gitcommit setlocal nosmartindent | setlocal formatoptions-=tcl
 au filetype markdown setlocal nosmartindent | setlocal formatoptions-=a
+au filetype markdown vmap ` S`
+au filetype crontab set formatoptions=
 
 " this thing needs work
 " nnoremap <Leader>g :call TimeLapse()<CR>
@@ -1781,7 +1783,6 @@ nmap ` %
 vmap ` %
 omap ` %
 
-au filetype markdown vmap ` S`
 
 " mapping normal mode Tab to swap to next window; saving the functionality of
 " tab (next jumplist position) to C-B (since PgUp serves that function well)
