@@ -593,7 +593,7 @@ function! CheckBatteryTabNine(timer)
 	endif
 endfun
 
-autocmd VimEnter * call timer_start(1000, "CheckBatteryTabNine")
+autocmd VimEnter * call timer_start(3000, "CheckBatteryTabNine")
 
 " autocmd VimEnter * call CheckBatteryTabNine()
 

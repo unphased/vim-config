@@ -1,5 +1,6 @@
 {
   // "coc.preferences.jumpCommand": "sp",
+  // "prettier.eslintIntegration": true,
   "suggest.triggerAfterInsertEnter": true,
   "suggest.snippetIndicator": "►",
   "list.normalMappings": {
