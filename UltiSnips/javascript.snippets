@@ -1,3 +1,7 @@
+snippet lg "console.log()" !w
+console.log('${VISUAL}$1:'${2:, ${VISUAL}$1});
+endsnippet
+
 snippet et "error throw" !w
 err => { if (err) { throw err; } }
 endsnippet
@@ -78,10 +82,6 @@ endsnippet
 
 snippet rerr "return if error" !b
 if (err) return cb(err);
-endsnippet
-
-snippet l "console.log()" !w
-console.log('${VISUAL}$1:'${2:, ${VISUAL}$1});
 endsnippet
 
 snippet i "console.info()" !w
