@@ -4,7 +4,6 @@
 	whitespace = cr-at-eol
 	excludesfile = ~/.gitignore
 	autocrlf = input
-	pager = diff-maybe-fancy | less --tabs=4 -RM
 [color]
 	ui = true
 [alias]
