@@ -85,5 +85,7 @@
   , "snippets.priority": 50
   , "tabnine.priority": -50
   , "clangd.semanticHighlighting": true
-  , "coc.preferences.extensionUpdateCheck": "daily"
+  ,
+  "coc.preferences.extensionUpdateCheck": "daily",
+  "clangd.path": "/home/slu/.config/coc/extensions/coc-clangd-data/install/11.0.0/clangd_11.0.0/bin/clangd"
 }

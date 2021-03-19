@@ -159,7 +159,7 @@ if has('nvim')
 endif
 
 Plug 'jackguo380/vim-lsp-cxx-highlight'
-let g:lsp_cxx_hl_log_file = '/tmp/vim-lsp-cxx-hl.log'
+" let g:lsp_cxx_hl_log_file = '/tmp/vim-lsp-cxx-hl.log'
 " let g:lsp_cxx_hl_verbose_log = 1
 let g:lsp_cxx_hl_use_text_props = 1
 
@@ -459,6 +459,7 @@ Plug 'AndrewRadev/switch.vim'
 let g:switch_custom_definitions = 
 			\ [
 			\   ['show', 'hide'],
+			\   ['public', 'private'],
 			\   ['error', 'warn', 'info'],
 			\   {
 			\     '\<\(\l\)\(\l\+\(\u\l\+\)\+\)\>': '\=toupper(submatch(1)) . submatch(2)',
