@@ -277,6 +277,16 @@ key_bindings:
   - { key: Key8,     mods: Command,       chars: "\x1b8"           }
   - { key: Key9,     mods: Command,       chars: "\x1b9"           }
   - { key: Key0,     mods: Command,       chars: "\x1b0"           }
+  - { key: Key1,     mods: Control,       chars: "\x1b[25~"        }
+  - { key: Key2,     mods: Control,       chars: "\x1b[26~"           }
+  - { key: Key3,     mods: Control,       chars: "\x1b[28~"           }
+  - { key: Key4,     mods: Control,       chars: "\x1b[29~"           }
+  - { key: Key5,     mods: Control,       chars: "\x1b[31~"           }
+  - { key: Key6,     mods: Control,       chars: "\x1b[32~"           }
+  - { key: Key7,     mods: Control,       chars: "\x1b[33~"           }
+  - { key: Key8,     mods: Control,       chars: "\x1b[34~"           }
+  - { key: Key9,     mods: Control,       chars: "Ctrl+9(unsure what the escape code is...)"           }
+  - { key: Key0,     mods: Control,       chars: "Ctrl+0(unsure what the escape code is...)"           }
   - { key: Numpad1,                       chars: "\x1b1"           }
   - { key: Numpad2,                       chars: "\x1b2"           }
   - { key: Numpad3,                       chars: "\x1b3"           }
