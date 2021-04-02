@@ -68,6 +68,10 @@ Plug 'liuchengxu/vista.vim'
 	" Or use `complete_info` if your vim support it, like:
 	" inoremap <expr> <cr> complete_info()["selected"] != "-1" ? "\<C-y>" : "\<C-g>u\<CR>"
 	"
+
+	let g:coc_enable_locationlist = 0
+	autocmd User CocLocationsChange CocList --normal location
+
 	" new way to complete on enter
 	inoremap <silent><expr> <cr> pumvisible() ? coc#_select_confirm()
 				\: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
