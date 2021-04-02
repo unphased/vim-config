@@ -37,7 +37,7 @@ let g:csv_highlight_column = 'y'
 
 Plug 'jreybert/vimagit'
 
-Plug 'liuchengxu/vista.vim'
+" Plug 'liuchengxu/vista.vim'
 
 " if !has('nvim')
 	Plug 'neoclide/coc.nvim', {'branch': 'release'}
