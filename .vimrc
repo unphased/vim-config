@@ -1294,10 +1294,6 @@ endfunc
 " <c-u> erases any numeric prefix to prevent numbers from accidentally DoS'ing tmux with vim
 nnoremap <silent> <F10> :<c-u>call EfTen('+')<CR>
 
-" I am not really sure what happened here but, tmux 2 seems to just have its 
-" own idea about how to send Shift F10 if TERM is screen-*. (before this used 
-" to set <S-F10> to \x1b[34~ but that seems to have no effect when I commented 
-" it out! Even under TERM=xterm-*!)
 set <S-F10>=[21;2~
 noremap <S-F10> <ESC>
 noremap! <S-F10> <ESC>
