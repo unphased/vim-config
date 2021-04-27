@@ -1571,6 +1571,7 @@ nnoremap Q :q<CR>
 nnoremap <F6> :History<CR>
 inoremap <F6> <ESC>:History<CR>
 nnoremap <c-p> :Files<CR>
+nnoremap <c-g> :GFiles?<CR>
 
 " opens the current buffer in nerdtree
 nnoremap <Leader>f :call SmartNERDTree()<CR>
