@@ -164,15 +164,6 @@ export FZF_DEFAULT_COMMAND="fd --type file"
 export PATH=$HOME/util:$PATH
 export PATH="$HOME/.yarn/bin:$HOME/.cargo/bin:$HOME/bin:$HOME/.local/bin:$PATH"
 
-sourcertrsetup () {
-	CURRENTSHELL="$(ps -o cmd= -p $$ | sed -e 's/^-//' -e 's:.*/::' )"
-	WORKSPACE="$(catkin locate)/$1"
-	SETUPSCRIPT="$WORKSPACE/setup.$CURRENTSHELL"
-	echo sourcing "$SETUPSCRIPT"
-	source "$SETUPSCRIPT"
-}
-
-alias rtr='sourcertrsetup devel'
-alias rtrins='sourcertrsetup install'
+source ${0%/*}/work/aliases/rtr.sh
 
 export EDITOR=vim
