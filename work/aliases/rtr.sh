@@ -9,6 +9,11 @@ sourcertrsetup () {
 sourcertrsetupfoxy() {
   echo sourcing /opt/ros/foxy/setup.sh
   source /opt/ros/foxy/setup.sh
+  CURRENTSHELL="$(ps -o cmd= -p $$ | sed -e 's/^-//' -e 's:.*/::' )"
+  if [ -f "install/setup.$CURRENTSHELL" ]; then
+    echo "sourcing install/setup.$CURRENTSHELL"
+    source install/setup.$CURRENTSHELL
+  fi
 }
 
 if lsb_release -a 2>&1 | grep -q bionic; then

@@ -164,6 +164,6 @@ export FZF_DEFAULT_COMMAND="fd --type file"
 export PATH=$HOME/util:$PATH
 export PATH="$HOME/.yarn/bin:$HOME/.cargo/bin:$HOME/bin:$HOME/.local/bin:$PATH"
 
-source ${0%/*}/work/aliases/rtr.sh
+source $HOME/.vim/work/aliases/rtr.sh
 
 export EDITOR=vim
