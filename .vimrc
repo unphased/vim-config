@@ -519,7 +519,12 @@ function! s:async_job_stderr_handler(job_id, data, event_type)
 	echom join(a:data, "\n")
 endfunction
 
-let s:vimHelperServerJob = async#job#start(["bash", "-c", '(cd ~/util; ./node_modules/.bin/nodemon --watch vimhelper_server.ts --exec "ts-node vimhelper_server.ts '.getpid().'")'], {'on_exit': function('s:async_job_handler'), 'on_stderr': function('s:async_job_stderr_handler'), 'on_stdout': function('s:async_job_stdout_handler')})
+ let s:vimHelperServerJob = async#job#start([ 
+			 \ "bash", "-c",
+			 \ "(cd ~/util; node -r ts-node/register vimhelper_server.ts " . getpid() . ")"],
+			 \ {'on_exit': 
+			 \ function('s:async_job_handler'), 'on_stderr': function('s:async_job_stderr_handler'), 
+			 \ 'on_stdout': function('s:async_job_stdout_handler')})
 
 " custom lightline palette fuckery (to make the inactive pane bars more readable)
 let s:palette =  g:lightline#colorscheme#powerline#palette
@@ -584,7 +589,8 @@ EOF
 
 endif
 
-call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tsserver', 'coc-vimlsp', 'coc-emmet', 'coc-eslint', 'coc-diagnostic', 'coc-prettier',  'coc-tabnine', 'coc-clangd', 'coc-sh', 'coc-tailwindcss', 'coc-svg')
+" dunno if i want to bring back tabnine.
+call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tsserver', 'coc-vimlsp', 'coc-emmet', 'coc-eslint', 'coc-diagnostic', 'coc-prettier',  'coc-clangd', 'coc-sh', 'coc-tailwindcss', 'coc-svg')
 
 function! CheckBatteryTabNine(timer)
 	call system('onbatt')
@@ -600,7 +606,7 @@ function! CheckBatteryTabNine(timer)
 	endif
 endfun
 
-autocmd VimEnter * call timer_start(3000, "CheckBatteryTabNine")
+" autocmd VimEnter * call timer_start(3000, "CheckBatteryTabNine")
 
 " autocmd VimEnter * call CheckBatteryTabNine()
 
