@@ -3704,6 +3704,13 @@ au BufEnter * if !exists('s:vimHelperServerJobDead') | call async#job#send(s:vim
 au BufWritePost * if !exists('s:vimHelperServerJobDead') | call async#job#send(s:vimHelperServerJob, "BufWritePost:".expand('%:p')."\n") | endif
 au VimLeavePre * if !exists('s:vimHelperServerJobDead') | call async#job#send(s:vimHelperServerJob, "VimLeavePre\n") | endif
 
+" Short navigation on the line in insert mode
+"
+" This makes it possible to use the cursor keys in Insert mode, without breaking
+" the undo sequence, therefore using `.` (redo) will work as expected.
+inoremap <Left>  <C-g>U<Left>
+inoremap <Right> <C-g>U<Right>
+
 " augroup ALEProgress
 "     autocmd!
 " 	" TODO FIX/FINISH THIS THING
