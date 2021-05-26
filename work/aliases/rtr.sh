@@ -7,12 +7,12 @@ sourcertrsetup () {
 }
 
 sourcertrsetupfoxy() {
-  echo sourcing /opt/ros/foxy/setup.sh
-  source /opt/ros/foxy/setup.sh
   CURRENTSHELL="$(ps -o cmd= -p $$ | sed -e 's/^-//' -e 's:.*/::' )"
+  echo "sourcing /opt/ros/foxy/setup.$CURRENTSHELL"
+  source "/opt/ros/foxy/setup.$CURRENTSHELL"
   if [ -f "install/setup.$CURRENTSHELL" ]; then
     echo "sourcing install/setup.$CURRENTSHELL"
-    source install/setup.$CURRENTSHELL
+    source "install/setup.$CURRENTSHELL"
   fi
 }
 
