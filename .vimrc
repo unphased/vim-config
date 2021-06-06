@@ -328,7 +328,7 @@ let g:lightline.active = {
 			\ 'left': [ [ 'modified', 'mode', 'paste' ],
 			\           [ 'relativepathtrunc', 'cocstatus', 'gitbranch', 'readonly'] ],
 			\ 'right': [ [ 'percent' ],
-			\            [ 'lineinfo', 'filesize', 'charvaluehex' ],
+			\            [ 'lineinfo', 'charposition', 'filesize', 'charvaluehex' ],
 			\            [ 'fileformatenc', 'filetype' ] ] }
 let g:lightline.inactive = {
 			\ 'left': [ [ 'modified' ], [ 'relativepathtrunc' ] ] }
@@ -362,6 +362,7 @@ let g:lightline.component = {
 			\ 'readonly': '%R',
 			\ 'charvalue': '%b',
 			\ 'charvaluehex': '0x%02B',
+			\ 'charposition': '%o',
 			\ 'fileencoding': '%{&fenc!=#""?&fenc:&enc}',
 			\ 'fileformat': '%{&ff}',
 			\ 'percent': '%2p%%%<',
@@ -592,19 +593,19 @@ endif
 " dunno if i want to bring back tabnine.
 call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tsserver', 'coc-vimlsp', 'coc-emmet', 'coc-eslint', 'coc-diagnostic', 'coc-prettier',  'coc-clangd', 'coc-sh', 'coc-tailwindcss', 'coc-svg')
 
-function! CheckBatteryTabNine(timer)
-	call system('onbatt')
-	echom 'cbtn: ret '.v:shell_error
-	if v:shell_error
-		echom 'Not on battery: Enabling coc-tabnine when entering buffers.'
-		" let l:z = CocAction('extensionStats')
-		" echo 'extensionStats: '.l:z
-		call CocAction('activeExtension', 'coc-tabnine')
-	else
-		echom 'On battery: Disabling coc-tabnine when entering buffers.'
-		call CocAction('deactivateExtension', 'coc-tabnine')
-	endif
-endfun
+" function! CheckBatteryTabNine(timer)
+" 	call system('onbatt')
+" 	echom 'cbtn: ret '.v:shell_error
+" 	if v:shell_error
+" 		echom 'Not on battery: Enabling coc-tabnine when entering buffers.'
+" 		" let l:z = CocAction('extensionStats')
+" 		" echo 'extensionStats: '.l:z
+" 		call CocAction('activeExtension', 'coc-tabnine')
+" 	else
+" 		echom 'On battery: Disabling coc-tabnine when entering buffers.'
+" 		call CocAction('deactivateExtension', 'coc-tabnine')
+" 	endif
+" endfun
 
 " autocmd VimEnter * call timer_start(3000, "CheckBatteryTabNine")
 
