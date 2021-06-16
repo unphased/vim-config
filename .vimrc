@@ -207,7 +207,7 @@ Plug 'maxbrunsfeld/vim-yankstack'
 Plug 'mbbill/undotree', { 'on': 'UndotreeToggle' }
 Plug 'rhysd/clever-f.vim'
 
-" Plug 'editorconfig/editorconfig-vim'
+Plug 'editorconfig/editorconfig-vim'
 
 " Plug 'rhysd/git-messenger.vim'
 " The below is a functional replacement for git-messenger, much simple, works only in vim for now 
@@ -240,7 +240,7 @@ Plug 'tpope/vim-afterimage'
 " Plug 'vim-perl/vim-perl'
 " Plug 'mattn/emmet-vim'
 " Plug 'unphased/git-time-lapse'
-Plug 'vim-scripts/yaifa.vim'
+" Plug 'vim-scripts/yaifa.vim'
 Plug 'nathanaelkane/vim-indent-guides'
 
 if has('nvim')
