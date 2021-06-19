@@ -464,18 +464,19 @@ Plug 'Ron89/thesaurus_query.vim'
 Plug 'AndrewRadev/switch.vim'
 
 let g:switch_custom_definitions = 
-			\ [
-			\   ['show', 'hide'],
-			\   ['public', 'private'],
-			\   ['error', 'warn', 'info'],
-			\   {
-			\     '\<\(\l\)\(\l\+\(\u\l\+\)\+\)\>': '\=toupper(submatch(1)) . submatch(2)',
-			\     '\<\(\u\l\+\)\(\u\l\+\)\+\>': "\\=tolower(substitute(submatch(0), '\\(\\l\\)\\(\\u\\)', '\\1_\\2', 'g'))",
-			\     '\<\(\l\+\)\(_\l\+\)\+\>': '\U\0',
-			\     '\<\(\u\+\)\(_\u\+\)\+\>': "\\=tolower(substitute(submatch(0), '_', '-', 'g'))",
-			\     '\<\(\l\+\)\(-\l\+\)\+\>': "\\=substitute(submatch(0), '-\\(\\l\\)', '\\u\\1', 'g')",
-			\   }
-			\ ]
+      \ [
+        \   ['show', 'hide'],
+        \   ['public', 'private'],
+        \   ['first', 'second'],
+        \   ['error', 'warn', 'info'],
+        \   {
+          \     '\<\(\l\)\(\l\+\(\u\l\+\)\+\)\>': '\=toupper(submatch(1)) . submatch(2)',
+          \     '\<\(\u\l\+\)\(\u\l\+\)\+\>': "\\=tolower(substitute(submatch(0), '\\(\\l\\)\\(\\u\\)', '\\1_\\2', 'g'))",
+          \     '\<\(\l\+\)\(_\l\+\)\+\>': '\U\0',
+          \     '\<\(\u\+\)\(_\u\+\)\+\>': "\\=tolower(substitute(submatch(0), '_', '-', 'g'))",
+          \     '\<\(\l\+\)\(-\l\+\)\+\>': "\\=substitute(submatch(0), '-\\(\\l\\)', '\\u\\1', 'g')",
+        \   }
+      \ ]
 
 Plug 'AndrewRadev/sideways.vim'
 Plug 'AndrewRadev/linediff.vim'
