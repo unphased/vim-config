@@ -206,6 +206,7 @@ Plug 'maxbrunsfeld/vim-yankstack'
 
 Plug 'mbbill/undotree', { 'on': 'UndotreeToggle' }
 Plug 'rhysd/clever-f.vim'
+Plug 'rhysd/conflict-marker.vim'
 
 Plug 'editorconfig/editorconfig-vim'
 
@@ -3940,3 +3941,16 @@ autocmd User targets#mappings#user call targets#mappings#extend({
 			\ 'a': {'argument': [{'o': '[{([]', 'c': '[])}]', 's': '[,;]'}]},
 			\ })
 
+
+" disable the default highlight group
+let g:conflict_marker_highlight_group = ''
+
+" Include text after begin and end markers
+let g:conflict_marker_begin = '^<<<<<<< .*$'
+let g:conflict_marker_end   = '^>>>>>>> .*$'
+
+highlight ConflictMarkerBegin guibg=#2f7366
+highlight ConflictMarkerOurs guibg=#2e5049
+highlight ConflictMarkerTheirs guibg=#344f69
+highlight ConflictMarkerEnd guibg=#2f628e
+highlight ConflictMarkerCommonAncestorsHunk guibg=#754a81
