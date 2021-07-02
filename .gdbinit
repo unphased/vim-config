@@ -1,3 +1,5 @@
+set history save on
+set history remove-duplicates 3
 define printqs5static
   set $d=$arg0.d
   printf "(Qt5 QString)0x%x length=%i: \"",&$arg0,$d->size
