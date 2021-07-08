@@ -675,6 +675,7 @@ au filetype crontab set formatoptions=
 " nnoremap <Leader>e :silent !p4 edit %:p<CR>:redraw!<CR>
 nnoremap <Leader>R :silent redraw!<CR>
 
+" noequalalways somehow breaks coc.nvim references menu under clangd. very emphatic &shrug;
 " set noequalalways
 
 " let g:neocomplete#enable_at_startup = 1
