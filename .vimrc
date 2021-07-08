@@ -675,7 +675,7 @@ au filetype crontab set formatoptions=
 " nnoremap <Leader>e :silent !p4 edit %:p<CR>:redraw!<CR>
 nnoremap <Leader>R :silent redraw!<CR>
 
-set noequalalways
+" set noequalalways
 
 " let g:neocomplete#enable_at_startup = 1
 " let g:neocomplete#min_keyword_length = 3
