@@ -20,6 +20,12 @@ Plug 'fidian/hexmode'
 Plug 'rizzatti/dash.vim'
 Plug 'chrisbra/csv.vim'
 
+Plug 'chamindra/marvim'
+
+let g:marvim_store = $HOME . '/.vim/marvim'
+let g:marvim_find_key = '<F1>'
+let g:marvim_store_key = 'ms'     " change store key from <F3> to 'ms'
+
 Plug 'martinda/Jenkinsfile-vim-syntax'
 
 Plug 'godlygeek/tabular'
@@ -1770,9 +1776,6 @@ inoremap <C-F> <ESC>/\v
 vnoremap <C-F> /\v
 nnoremap / /\v
 vnoremap / /\v
-
-" pull up last search, usually for in case you typoed it or something
-nnoremap <F1> /<c-u><up>
 
 " Finding % to be highly powerful so I map to high traffic area single key
 " This mostly alleviates the want for matching highlights for surrounding
