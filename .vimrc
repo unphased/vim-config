@@ -494,10 +494,8 @@ call plug#end()
 
 let g:switch_custom_definitions = 
       \ [
-        \   switch#Words(['show', 'hide']),
-        \   ['public', 'private'],
-        \   ['first', 'second'],
-        \   ['error', 'warn', 'info'],
+        \   switch#NormalizedCaseWords(['show', 'hide']),
+        \   switch#NormalizedCaseWords(['error', 'warn', 'info']),
         \   {
           \     '\<\(\l\)\(\l\+\(\u\l\+\)\+\)\>': '\=toupper(submatch(1)) . submatch(2)',
           \     '\<\(\u\l\+\)\(\u\l\+\)\+\>': "\\=tolower(substitute(submatch(0), '\\(\\l\\)\\(\\u\\)', '\\1_\\2', 'g'))",
@@ -507,6 +505,14 @@ let g:switch_custom_definitions =
         \   }
       \ ]
 
+au FileType cpp let g:switch_custom_definitions = [ 
+        \   switch#Words(['public', 'private']),
+        \   switch#Words(['first', 'second']),
+        \ {
+          \  'const \(.*\)&': '\1'
+          \ 
+        \ }
+      \ ] + g:switch_custom_definitions
 
 function! s:async_job_handler(job_id, data, event_type)
 	echom 'Async job handler report ========='
