@@ -329,6 +329,11 @@ key_bindings:
   - { key: Down,     mods: Control|Shift, chars: "\x1b[1;6B"    }
   - { key: Down,     mods: Alt,           chars: "\x1b[1;3B"    }
   - { key: F11,      action: ToggleFullscreen }
+
+# Take note, currently dealing with a problem with tmux reinterpreting shift F keys in a way that 
+# is changing the codes. Anyway, this link will be useful: 
+# https://invisible-island.net/xterm/xterm-function-keys.html
+#
 # After reverting to defaults we see the modifiers work like this for F keys:
 # Shift: ;2
 # Alt: ;3
@@ -342,7 +347,7 @@ key_bindings:
 # Shift+Super as ;10
 # Ctrl+Super as ;11
 # Alt+Super as ;12
-# We can add more as necessary
+
   - { key: F1,       mods: Super,   chars: "\x1b[1;9P"                   }
   - { key: F2,       mods: Super,   chars: "\x1b[1;9Q"                   }
   - { key: F3,       mods: Super,   chars: "\x1b[1;9R"                   }

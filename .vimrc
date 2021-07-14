@@ -1714,7 +1714,8 @@ nnoremap m<F2> :tabmove -1<CR>
 " 	endif
 " endfunc
 
-nnoremap <F7> :Buffers<CR>
+nnoremap <S-F7> :Buffers<CR>
+nnoremap <F7> :Windows<CR>
 " nnoremap <S-F7> :YcmCompleter GoToDefinition<CR>
 
 " This insert mapping is for pasting; it appears that YCM only takes over the
