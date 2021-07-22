@@ -1646,10 +1646,11 @@ endif
 " nnoremap <ESC>[4~ g$
 " inoremap <ESC>[4~ <C-o>g$
 
+"" I dont know what the fuck happend but this seems necessary again
 " Remapping home and end because Vim gets these wrong (w.r.t. the terms I
 " use and tmux doesn't translate them either)
-" set t_kh=[1~
-" set t_@7=[4~
+set t_kh=[1~
+set t_@7=[4~
 " nnoremap <Home> :echo('pressed Home')<CR>
 " inoremap <Home> <C-O>g^
 " nnoremap <End> :echo('pressed End')<CR>
@@ -1716,6 +1717,7 @@ nnoremap m<F2> :tabmove -1<CR>
 " 	endif
 " endfunc
 
+set <S-F7>=[33~
 nnoremap <S-F7> :Buffers<CR>
 nnoremap <F7> :Windows<CR>
 " nnoremap <S-F7> :YcmCompleter GoToDefinition<CR>
