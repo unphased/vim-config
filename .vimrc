@@ -509,10 +509,10 @@ au FileType cpp let g:switch_custom_definitions = [
         \   switch#Words(['public', 'private']),
         \   switch#Words(['first', 'second']),
         \ {
-          \  'const \([A-Za-z][A-Za-z0-9_:]*\)&': '\1'
+          \  'const \([A-Za-z][A-Za-z0-9_:<>]*\)&': '\1'
         \ },
         \ {
-          \  '\([A-Za-z][A-Za-z0-9_:]*\)' : 'const \1&'
+          \  '\([A-Za-z][A-Za-z0-9_:<>]*\)' : 'const \1&'
         \ }
       \ ] + g:switch_custom_definitions
 
