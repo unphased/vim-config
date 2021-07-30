@@ -495,6 +495,7 @@ call plug#end()
 let g:switch_custom_definitions = 
       \ [
         \   switch#NormalizedCaseWords(['show', 'hide']),
+        \   switch#NormalizedCaseWords(['yes', 'no']),
         \   switch#NormalizedCaseWords(['error', 'warn', 'info']),
         \   {
           \     '\<\(\l\)\(\l\+\(\u\l\+\)\+\)\>': '\=toupper(submatch(1)) . submatch(2)',
@@ -2924,7 +2925,7 @@ let g:AutoPairsOnlyWhitespace = 1
 " make html files pair up brackets
 au Filetype html let b:AutoPairs = {'`': '`', '"': '"', '{': '}', '''': '''', '(': ')', '[': ']', '<':'>'}
 
-let g:AutoPairsMapCR=0
+" let g:AutoPairsMapCR=0
 " imap <silent><CR> <CR><Plug>AutoPairsReturn
 
 " bind Alt+P in insert mode to paste (for nvim)..
