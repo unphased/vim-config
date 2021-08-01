@@ -36,3 +36,4 @@
 *.rtrbrep
 *.colorlog
 **/annotated/log
+**/doxygen_out/**
