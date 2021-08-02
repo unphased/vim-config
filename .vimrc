@@ -492,11 +492,8 @@ Plug 'elzr/vim-json'
 
 call plug#end()
 
-let g:switch_custom_definitions = 
+let g:switch_custom_definitions =
       \ [
-        \   switch#NormalizedCaseWords(['show', 'hide']),
-        \   switch#NormalizedCaseWords(['yes', 'no']),
-        \   switch#NormalizedCaseWords(['error', 'warn', 'info']),
         \   {
           \     '\<\(\l\)\(\l\+\(\u\l\+\)\+\)\>': '\=toupper(submatch(1)) . submatch(2)',
           \     '\<\(\u\l\+\)\(\u\l\+\)\+\>': "\\=tolower(substitute(submatch(0), '\\(\\l\\)\\(\\u\\)', '\\1_\\2', 'g'))",
@@ -506,16 +503,23 @@ let g:switch_custom_definitions =
         \   }
       \ ]
 
-au FileType cpp let g:switch_custom_definitions = [ 
+" This entry duplicates builtins (true <-> false), but being here gives it an appropriate priority
+au FileType cpp let g:switch_custom_definitions = [
         \   switch#Words(['public', 'private']),
         \   switch#Words(['first', 'second']),
+        \   switch#Words(['true', 'false']),
         \ {
-          \  'const \([A-Za-z][A-Za-z0-9_:<>]*\)&': '\1'
-        \ },
-        \ {
-          \  '\([A-Za-z][A-Za-z0-9_:<>]*\)' : 'const \1&'
+          \  'const \([A-Za-z][A-Za-z0-9_:<>]*\)&': '\1',
+          \  '\%(const \)\@!\([A-Za-z][A-Za-z0-9_:<>]*\)' : 'const \1&'
         \ }
       \ ] + g:switch_custom_definitions
+
+" highest priority defs are prepended last here
+let g:switch_custom_definitions = [
+  \   switch#NormalizedCaseWords(['show', 'hide']),
+  \   switch#NormalizedCaseWords(['yes', 'no']),
+  \   switch#NormalizedCaseWords(['error', 'warn', 'info']),
+  \ ] + g:switch_custom_definitions
 
 let g:switch_find_smallest_match = 0
 
@@ -632,7 +636,10 @@ call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tsserver',
 " autocmd VimEnter * call CheckBatteryTabNine()
 
 " TODO make this detect and use zeal for linux and dash on mac
-nnoremap <F5> :Dash!<CR>
+" nnoremap <F5> :Dash!<CR>
+" we can talk about bringing the dash/zeal hotkey back but it's just not used that much
+" Unfortunately header to source direction does not seem to work that well here either, weird.
+au filetype cpp nnoremap <F5> :CocCommand clangd.switchSourceHeader<CR>
 
 " ensures (from vim) that tmux config works right for title
 if &term == "tmux-256color-italic"
