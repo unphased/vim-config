@@ -1169,8 +1169,8 @@ nnoremap <Down> <C-E>g<Down>
 " to overdo the effect as well.
 " vnoremap <Left> 2zhh
 " vnoremap <Right> 2zll
-nnoremap <Left> 3zhh
-nnoremap <Right> 3zll
+nnoremap <Left> zhh
+nnoremap <Right> zll
 
 " Have to override the shift and ctrl + arrow keys in insert and normal mode, 
 " these do aggravating things by default
