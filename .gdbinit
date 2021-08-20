@@ -46,7 +46,10 @@ define pqts
     printf "\"\n"
 end
 
-echo done loading ~/.gdbinit
+source ~/qt_printers_kdevelop/gdbinit
+set print pretty 1
+
+echo done loading ~/.gdbinit\n
 
 # python
 # import sys
