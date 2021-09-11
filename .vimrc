@@ -20,6 +20,14 @@ Plug 'fidian/hexmode'
 Plug 'rizzatti/dash.vim'
 Plug 'chrisbra/csv.vim'
 
+Plug 'chamindra/marvim'
+
+let g:marvim_store = $HOME . '/.vim/marvim'
+let g:marvim_find_key = '<F1>'
+let g:marvim_store_key = 'ms'     " change store key from <F3> to 'ms'
+
+Plug 'martinda/Jenkinsfile-vim-syntax'
+
 Plug 'godlygeek/tabular'
 Plug 'plasticboy/vim-markdown'
 Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': [ 'markdown', 'vim-plug' ] }
@@ -37,7 +45,7 @@ let g:csv_highlight_column = 'y'
 
 Plug 'jreybert/vimagit'
 
-Plug 'liuchengxu/vista.vim'
+" Plug 'liuchengxu/vista.vim'
 
 " if !has('nvim')
 	Plug 'neoclide/coc.nvim', {'branch': 'release'}
@@ -68,6 +76,10 @@ Plug 'liuchengxu/vista.vim'
 	" Or use `complete_info` if your vim support it, like:
 	" inoremap <expr> <cr> complete_info()["selected"] != "-1" ? "\<C-y>" : "\<C-g>u\<CR>"
 	"
+
+	" let g:coc_enable_locationlist = 0
+	" autocmd User CocLocationsChange CocList --normal location
+
 	" new way to complete on enter
 	inoremap <silent><expr> <cr> pumvisible() ? coc#_select_confirm()
 				\: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
@@ -159,7 +171,7 @@ if has('nvim')
 endif
 
 Plug 'jackguo380/vim-lsp-cxx-highlight'
-let g:lsp_cxx_hl_log_file = '/tmp/vim-lsp-cxx-hl.log'
+" let g:lsp_cxx_hl_log_file = '/tmp/vim-lsp-cxx-hl.log'
 " let g:lsp_cxx_hl_verbose_log = 1
 let g:lsp_cxx_hl_use_text_props = 1
 
@@ -200,8 +212,9 @@ Plug 'maxbrunsfeld/vim-yankstack'
 
 Plug 'mbbill/undotree', { 'on': 'UndotreeToggle' }
 Plug 'rhysd/clever-f.vim'
+Plug 'rhysd/conflict-marker.vim'
 
-" Plug 'editorconfig/editorconfig-vim'
+Plug 'editorconfig/editorconfig-vim'
 
 " Plug 'rhysd/git-messenger.vim'
 " The below is a functional replacement for git-messenger, much simple, works only in vim for now 
@@ -234,7 +247,7 @@ Plug 'tpope/vim-afterimage'
 " Plug 'vim-perl/vim-perl'
 " Plug 'mattn/emmet-vim'
 " Plug 'unphased/git-time-lapse'
-Plug 'vim-scripts/yaifa.vim'
+" Plug 'vim-scripts/yaifa.vim'
 Plug 'nathanaelkane/vim-indent-guides'
 
 if has('nvim')
@@ -322,7 +335,7 @@ let g:lightline.active = {
 			\ 'left': [ [ 'modified', 'mode', 'paste' ],
 			\           [ 'relativepathtrunc', 'cocstatus', 'gitbranch', 'readonly'] ],
 			\ 'right': [ [ 'percent' ],
-			\            [ 'lineinfo', 'filesize', 'charvaluehex' ],
+			\            [ 'lineinfo', 'charposition', 'filesize', 'charvaluehex' ],
 			\            [ 'fileformatenc', 'filetype' ] ] }
 let g:lightline.inactive = {
 			\ 'left': [ [ 'modified' ], [ 'relativepathtrunc' ] ] }
@@ -356,6 +369,7 @@ let g:lightline.component = {
 			\ 'readonly': '%R',
 			\ 'charvalue': '%b',
 			\ 'charvaluehex': '0x%02B',
+			\ 'charposition': '%o',
 			\ 'fileencoding': '%{&fenc!=#""?&fenc:&enc}',
 			\ 'fileformat': '%{&ff}',
 			\ 'percent': '%2p%%%<',
@@ -456,19 +470,6 @@ Plug 'unphased/vim-html-escape' " my master has gdefault detecting tweak
 Plug 'Ron89/thesaurus_query.vim'
 Plug 'AndrewRadev/switch.vim'
 
-let g:switch_custom_definitions = 
-			\ [
-			\   ['show', 'hide'],
-			\   ['error', 'warn', 'info'],
-			\   {
-			\     '\<\(\l\)\(\l\+\(\u\l\+\)\+\)\>': '\=toupper(submatch(1)) . submatch(2)',
-			\     '\<\(\u\l\+\)\(\u\l\+\)\+\>': "\\=tolower(substitute(submatch(0), '\\(\\l\\)\\(\\u\\)', '\\1_\\2', 'g'))",
-			\     '\<\(\l\+\)\(_\l\+\)\+\>': '\U\0',
-			\     '\<\(\u\+\)\(_\u\+\)\+\>': "\\=tolower(substitute(submatch(0), '_', '-', 'g'))",
-			\     '\<\(\l\+\)\(-\l\+\)\+\>': "\\=substitute(submatch(0), '-\\(\\l\\)', '\\u\\1', 'g')",
-			\   }
-			\ ]
-
 Plug 'AndrewRadev/sideways.vim'
 Plug 'AndrewRadev/linediff.vim'
 Plug 'AndrewRadev/splitjoin.vim'
@@ -491,6 +492,37 @@ Plug 'elzr/vim-json'
 
 call plug#end()
 
+let g:switch_custom_definitions =
+      \ [
+        \   {
+          \     '\<\(\l\)\(\l\+\(\u\l\+\)\+\)\>': '\=toupper(submatch(1)) . submatch(2)',
+          \     '\<\(\u\l\+\)\(\u\l\+\)\+\>': "\\=tolower(substitute(submatch(0), '\\(\\l\\)\\(\\u\\)', '\\1_\\2', 'g'))",
+          \     '\<\(\l\+\)\(_\l\+\)\+\>': '\U\0',
+          \     '\<\(\u\+\)\(_\u\+\)\+\>': "\\=tolower(substitute(submatch(0), '_', '-', 'g'))",
+          \     '\<\(\l\+\)\(-\l\+\)\+\>': "\\=substitute(submatch(0), '-\\(\\l\\)', '\\u\\1', 'g')",
+        \   }
+      \ ]
+
+" This entry duplicates builtins (true <-> false), but being here gives it an appropriate priority
+au FileType cpp let g:switch_custom_definitions = [
+        \   switch#Words(['public', 'private']),
+        \   switch#Words(['first', 'second']),
+        \   switch#Words(['true', 'false']),
+        \ {
+          \  'const \([A-Za-z][A-Za-z0-9_:<>]*\)&': '\1',
+          \  '\%(const \)\@!\([A-Za-z][A-Za-z0-9_:<>]*\)' : 'const \1&'
+        \ }
+      \ ] + g:switch_custom_definitions
+
+" highest priority defs are prepended last here
+let g:switch_custom_definitions = [
+  \   switch#NormalizedCaseWords(['show', 'hide']),
+  \   switch#NormalizedCaseWords(['yes', 'no']),
+  \   switch#NormalizedCaseWords(['error', 'warn', 'info']),
+  \ ] + g:switch_custom_definitions
+
+let g:switch_find_smallest_match = 0
+
 function! s:async_job_handler(job_id, data, event_type)
 	echom 'Async job handler report ========='
 	echom a:job_id . ' ' . a:event_type
@@ -512,7 +544,12 @@ function! s:async_job_stderr_handler(job_id, data, event_type)
 	echom join(a:data, "\n")
 endfunction
 
-let s:vimHelperServerJob = async#job#start(["bash", "-c", '(cd ~/util; ./node_modules/.bin/nodemon --watch vimhelper_server.ts --exec "ts-node vimhelper_server.ts '.getpid().'")'], {'on_exit': function('s:async_job_handler'), 'on_stderr': function('s:async_job_stderr_handler'), 'on_stdout': function('s:async_job_stdout_handler')})
+ let s:vimHelperServerJob = async#job#start([ 
+			 \ "bash", "-c",
+			 \ "(cd ~/util; node -r ts-node/register vimhelper_server.ts " . getpid() . ")"],
+			 \ {'on_exit': 
+			 \ function('s:async_job_handler'), 'on_stderr': function('s:async_job_stderr_handler'), 
+			 \ 'on_stdout': function('s:async_job_stdout_handler')})
 
 " custom lightline palette fuckery (to make the inactive pane bars more readable)
 let s:palette =  g:lightline#colorscheme#powerline#palette
@@ -577,28 +614,32 @@ EOF
 
 endif
 
-call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tsserver', 'coc-vimlsp', 'coc-emmet', 'coc-eslint', 'coc-diagnostic', 'coc-prettier',  'coc-tabnine', 'coc-clangd', 'coc-sh', 'coc-tailwindcss', 'coc-svg')
+" dunno if i want to bring back tabnine.
+call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tsserver', 'coc-vimlsp', 'coc-emmet', 'coc-eslint', 'coc-diagnostic', 'coc-prettier',  'coc-clangd', 'coc-sh', 'coc-tailwindcss', 'coc-svg')
 
-function! CheckBatteryTabNine(timer)
-	call system('onbatt')
-	echom 'cbtn: ret '.v:shell_error
-	if v:shell_error
-		echom 'Not on battery: Enabling coc-tabnine when entering buffers.'
-		" let l:z = CocAction('extensionStats')
-		" echo 'extensionStats: '.l:z
-		call CocAction('activeExtension', 'coc-tabnine')
-	else
-		echom 'On battery: Disabling coc-tabnine when entering buffers.'
-		call CocAction('deactivateExtension', 'coc-tabnine')
-	endif
-endfun
+" function! CheckBatteryTabNine(timer)
+" 	call system('onbatt')
+" 	echom 'cbtn: ret '.v:shell_error
+" 	if v:shell_error
+" 		echom 'Not on battery: Enabling coc-tabnine when entering buffers.'
+" 		" let l:z = CocAction('extensionStats')
+" 		" echo 'extensionStats: '.l:z
+" 		call CocAction('activeExtension', 'coc-tabnine')
+" 	else
+" 		echom 'On battery: Disabling coc-tabnine when entering buffers.'
+" 		call CocAction('deactivateExtension', 'coc-tabnine')
+" 	endif
+" endfun
 
-autocmd VimEnter * call timer_start(3000, "CheckBatteryTabNine")
+" autocmd VimEnter * call timer_start(3000, "CheckBatteryTabNine")
 
 " autocmd VimEnter * call CheckBatteryTabNine()
 
 " TODO make this detect and use zeal for linux and dash on mac
-nnoremap <F5> :Dash!<CR>
+" nnoremap <F5> :Dash!<CR>
+" we can talk about bringing the dash/zeal hotkey back but it's just not used that much
+" Unfortunately header to source direction does not seem to work that well here either, weird.
+au filetype cpp nnoremap <F5> :CocCommand clangd.switchSourceHeader<CR>
 
 " ensures (from vim) that tmux config works right for title
 if &term == "tmux-256color-italic"
@@ -659,7 +700,8 @@ au filetype crontab set formatoptions=
 " nnoremap <Leader>e :silent !p4 edit %:p<CR>:redraw!<CR>
 nnoremap <Leader>R :silent redraw!<CR>
 
-set noequalalways
+" noequalalways somehow breaks coc.nvim references menu under clangd. very emphatic &shrug;
+" set noequalalways
 
 " let g:neocomplete#enable_at_startup = 1
 " let g:neocomplete#min_keyword_length = 3
@@ -1127,8 +1169,8 @@ nnoremap <Down> <C-E>g<Down>
 " to overdo the effect as well.
 " vnoremap <Left> 2zhh
 " vnoremap <Right> 2zll
-nnoremap <Left> 3zhh
-nnoremap <Right> 3zll
+nnoremap <Left> zhh
+nnoremap <Right> zll
 
 " Have to override the shift and ctrl + arrow keys in insert and normal mode, 
 " these do aggravating things by default
@@ -1287,10 +1329,6 @@ endfunc
 " <c-u> erases any numeric prefix to prevent numbers from accidentally DoS'ing tmux with vim
 nnoremap <silent> <F10> :<c-u>call EfTen('+')<CR>
 
-" I am not really sure what happened here but, tmux 2 seems to just have its 
-" own idea about how to send Shift F10 if TERM is screen-*. (before this used 
-" to set <S-F10> to \x1b[34~ but that seems to have no effect when I commented 
-" it out! Even under TERM=xterm-*!)
 set <S-F10>=[21;2~
 noremap <S-F10> <ESC>
 noremap! <S-F10> <ESC>
@@ -1568,6 +1606,7 @@ nnoremap Q :q<CR>
 nnoremap <F6> :History<CR>
 inoremap <F6> <ESC>:History<CR>
 nnoremap <c-p> :Files<CR>
+nnoremap <c-g> :GFiles?<CR>
 
 " opens the current buffer in nerdtree
 nnoremap <Leader>f :call SmartNERDTree()<CR>
@@ -1617,10 +1656,11 @@ endif
 " nnoremap <ESC>[4~ g$
 " inoremap <ESC>[4~ <C-o>g$
 
+"" I dont know what the fuck happend but this seems necessary again
 " Remapping home and end because Vim gets these wrong (w.r.t. the terms I
 " use and tmux doesn't translate them either)
-" set t_kh=[1~
-" set t_@7=[4~
+set t_kh=[1~
+set t_@7=[4~
 " nnoremap <Home> :echo('pressed Home')<CR>
 " inoremap <Home> <C-O>g^
 " nnoremap <End> :echo('pressed End')<CR>
@@ -1687,7 +1727,9 @@ nnoremap m<F2> :tabmove -1<CR>
 " 	endif
 " endfunc
 
-nnoremap <F7> :Buffers<CR>
+set <S-F7>=[33~
+nnoremap <S-F7> :Buffers<CR>
+nnoremap <F7> :Windows<CR>
 " nnoremap <S-F7> :YcmCompleter GoToDefinition<CR>
 
 " This insert mapping is for pasting; it appears that YCM only takes over the
@@ -1756,9 +1798,6 @@ inoremap <C-F> <ESC>/\v
 vnoremap <C-F> /\v
 nnoremap / /\v
 vnoremap / /\v
-
-" pull up last search, usually for in case you typoed it or something
-nnoremap <F1> /<c-u><up>
 
 " Finding % to be highly powerful so I map to high traffic area single key
 " This mostly alleviates the want for matching highlights for surrounding
@@ -2893,7 +2932,7 @@ let g:AutoPairsOnlyWhitespace = 1
 " make html files pair up brackets
 au Filetype html let b:AutoPairs = {'`': '`', '"': '"', '{': '}', '''': '''', '(': ')', '[': ']', '<':'>'}
 
-let g:AutoPairsMapCR=0
+" let g:AutoPairsMapCR=0
 " imap <silent><CR> <CR><Plug>AutoPairsReturn
 
 " bind Alt+P in insert mode to paste (for nvim)..
@@ -3694,6 +3733,13 @@ au BufEnter * if !exists('s:vimHelperServerJobDead') | call async#job#send(s:vim
 au BufWritePost * if !exists('s:vimHelperServerJobDead') | call async#job#send(s:vimHelperServerJob, "BufWritePost:".expand('%:p')."\n") | endif
 au VimLeavePre * if !exists('s:vimHelperServerJobDead') | call async#job#send(s:vimHelperServerJob, "VimLeavePre\n") | endif
 
+" Short navigation on the line in insert mode
+"
+" This makes it possible to use the cursor keys in Insert mode, without breaking
+" the undo sequence, therefore using `.` (redo) will work as expected.
+inoremap <Left>  <C-g>U<Left>
+inoremap <Right> <C-g>U<Right>
+
 " augroup ALEProgress
 "     autocmd!
 " 	" TODO FIX/FINISH THIS THING
@@ -3921,3 +3967,16 @@ autocmd User targets#mappings#user call targets#mappings#extend({
 			\ 'a': {'argument': [{'o': '[{([]', 'c': '[])}]', 's': '[,;]'}]},
 			\ })
 
+
+" disable the default highlight group
+let g:conflict_marker_highlight_group = ''
+
+" Include text after begin and end markers
+let g:conflict_marker_begin = '^<<<<<<< .*$'
+let g:conflict_marker_end   = '^>>>>>>> .*$'
+
+highlight ConflictMarkerBegin guibg=#2f7366
+highlight ConflictMarkerOurs guibg=#2e5049
+highlight ConflictMarkerTheirs guibg=#344f69
+highlight ConflictMarkerEnd guibg=#2f628e
+highlight ConflictMarkerCommonAncestorsHunk guibg=#754a81

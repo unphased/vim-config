@@ -246,8 +246,8 @@ scrolling:
 # then run `showkey -a` to get the sequence associated to a key combination.
 key_bindings:
   - { key: N,        mods: Alt, action: SpawnNewInstance }
-  - { key: V,        mods: Alt,       action: Paste            }
-  - { key: C,        mods: Command,       action: Copy             }
+  # - { key: V,        mods: Alt,       action: Paste            }
+  # - { key: C,        mods: Command,       action: Copy             }
   - { key: Key0,     mods: Command,       action: ResetFontSize    }
   - { key: Equals,   mods: Command,       action: IncreaseFontSize }
   - { key: Minus,    mods: Command,       action: DecreaseFontSize }
@@ -277,6 +277,16 @@ key_bindings:
   - { key: Key8,     mods: Command,       chars: "\x1b8"           }
   - { key: Key9,     mods: Command,       chars: "\x1b9"           }
   - { key: Key0,     mods: Command,       chars: "\x1b0"           }
+  - { key: Key1,     mods: Control,       chars: "\x1b[25~"        }
+  - { key: Key2,     mods: Control,       chars: "\x1b[26~"        }
+  - { key: Key3,     mods: Control,       chars: "\x1b[28~"        }
+  - { key: Key4,     mods: Control,       chars: "\x1b[29~"        }
+  - { key: Key5,     mods: Control,       chars: "\x1b[31~"        }
+  - { key: Key6,     mods: Control,       chars: "\x1b[32~"        }
+  - { key: Key7,     mods: Control,       chars: "\x1b[33~"        }
+  - { key: Key8,     mods: Control,       chars: "\x1b[34~"        }
+  - { key: Key9,     mods: Control,       chars: "\x1b[35~"        }
+  - { key: Key0,     mods: Control,       chars: "\x1b[36~"        }
   - { key: Numpad1,                       chars: "\x1b1"           }
   - { key: Numpad2,                       chars: "\x1b2"           }
   - { key: Numpad3,                       chars: "\x1b3"           }
@@ -287,52 +297,6 @@ key_bindings:
   - { key: Numpad8,                       chars: "\x1b8"           }
   - { key: Numpad9,                       chars: "\x1b9"           }
   - { key: Numpad0,                       chars: "\x1b0"           }
-  - { key: P,        mods: Command,       chars: "\x1bp"           }
-  - { key: P,        mods: Alt,           chars: "\x1bp"           }
-  - { key: B,        mods: Command,       chars: "\x1bb"           }
-  - { key: B,        mods: Alt,           chars: "\x1bb"           }
-  - { key: C,        mods: Command,       chars: "\x1bc"           }
-  - { key: C,        mods: Shift|Command, chars: "\x1bC"           }
-  - { key: C,        mods: Alt,           chars: "\x1bc"           }
-  - { key: C,        mods: Shift|Alt,     chars: "\x1bC"           }
-  - { key: D,        mods: Shift|Command, chars: "\x1bD"           }
-  - { key: D,        mods: Shift|Alt,     chars: "\x1bD"           }
-  - { key: D,        mods: Command,       chars: "\x1bd"           }
-  - { key: D,        mods: Alt,           chars: "\x1bd"           }
-  - { key: R,        mods: Command,       chars: "\x1br"           }
-  - { key: R,        mods: Alt,           chars: "\x1br"           }
-  - { key: F,        mods: Command,       chars: "\x1bf"           }
-  - { key: F,        mods: Alt,           chars: "\x1bf"           }
-  - { key: S,        mods: Command,       chars: "\x1bs"           }
-  - { key: S,        mods: Alt,           chars: "\x1bs"           }
-  - { key: U,        mods: Command,       chars: "\x1bu"           }
-  - { key: I,        mods: Command,       chars: "\x1bi"           }
-  - { key: U,        mods: Alt,           chars: "\x1bu"           }
-  - { key: I,        mods: Alt,           chars: "\x1bi"           }
-  - { key: H,        mods: Command,       chars: "\x1bh"           }
-  - { key: H,        mods: Alt,           chars: "\x1bh"           }
-  - { key: H,        mods: Command|Shift, chars: "\x1bH"           }
-  - { key: J,        mods: Command,       chars: "\x1bj"           }
-  - { key: J,        mods: Alt,           chars: "\x1bj"           }
-  - { key: J,        mods: Command|Shift, chars: "\x1bJ"           }
-  - { key: K,        mods: Command,       chars: "\x1bk"           }
-  - { key: K,        mods: Alt,           chars: "\x1bk"           }
-  - { key: K,        mods: Command|Shift, chars: "\x1bK"           }
-  - { key: L,        mods: Command,       chars: "\x1bl"           }
-  - { key: L,        mods: Alt,           chars: "\x1bl"           }
-  - { key: L,        mods: Command|Shift, chars: "\x1bL"           }
-  - { key: Y,        mods: Command,       chars: "\x1by"           }
-  - { key: Y,        mods: Alt,           chars: "\x1by"           }
-  - { key: O,        mods: Command,       chars: "\x1bo"           }
-  - { key: O,        mods: Alt,           chars: "\x1bo"           }
-  - { key: M,        mods: Command,       chars: "\x1bm"           }
-  - { key: M,        mods: Alt,           chars: "\x1bm"        }
-  - { key: M,        mods: Command|Shift, chars: "\x1bM"        }
-  - { key: W,        mods: Alt,           chars: "\x1bw"        }
-  - { key: W,        mods: Command,       chars: "\x1bw"        }
-  - { key: Z,        mods: Alt,           chars: "\x1bz"        }
-  - { key: Z,        mods: Alt|Shift, chars: ""            }
-  - { key: Z,        mods: Command,       chars: "\x1bz"        }
   - { key: Tab,      mods: Shift,         chars: "\x1b[Z"       }
   - { key: Tab,      mods: Control,       chars: "\x1b[27;5;9~" }
   - { key: Tab,      mods: Control|Shift, chars: "\x1b[27;6;9~" }
@@ -364,65 +328,74 @@ key_bindings:
   - { key: Down,     mods: Control,       chars: "\x1b[1;5B"    }
   - { key: Down,     mods: Control|Shift, chars: "\x1b[1;6B"    }
   - { key: Down,     mods: Alt,           chars: "\x1b[1;3B"    }
-  - { key: F1,       chars: "\x1bOP"                            }
-  - { key: F2,       chars: "\x1bOQ"                            }
-  - { key: F3,       chars: "\x1bOR"                            }
-  - { key: F4,       chars: "\x1bOS"                            }
-  - { key: F5,       chars: "\x1b[15~"                          }
-  - { key: F6,       chars: "\x1b[17~"                          }
-  - { key: F7,       chars: "\x1b[18~"                          }
-  - { key: F8,       chars: "\x1b[19~"                          }
-  - { key: F9,       chars: "\x1b[20~"                          }
-  - { key: F10,      chars: "\x1b[21~"                          }
   - { key: F11,      action: ToggleFullscreen }
-  - { key: F12,      chars: "\x1b[24~"                          }
-  - { key: F1,       mods: Shift,   chars: "\x1b[1;2P"          }
-  - { key: F2,       mods: Shift,   chars: "\x1b[1;2Q"          }
-  - { key: F3,       mods: Shift,   chars: "\x1b[1;2R"          }
-  - { key: F4,       mods: Shift,   chars: "\x1b[1;2S"          }
-  - { key: F5,       mods: Shift,   chars: "\x1b[15;2~"         }
-  - { key: F6,       mods: Shift,   chars: "\x1b[17;2~"         }
-  - { key: F7,       mods: Shift,   chars: "\x1b[18;2~"         }
-  - { key: F8,       mods: Shift,   chars: "\x1b[19;2~"         }
-  - { key: F9,       mods: Shift,   chars: "\x1b[20;2~"         }
-  - { key: F10,      mods: Shift,   chars: "\x1b[34~"           }
-  - { key: F11,      mods: Shift,   chars: "\x1b[23;2~"         }
-  - { key: F12,      mods: Shift,   chars: "\x1b[24;2~"         }
-  - { key: F1,       mods: Control, chars: "\x1b[1;5P"          }
-  - { key: F2,       mods: Control, chars: "\x1b[1;5Q"          }
-  - { key: F3,       mods: Control, chars: "\x1b[1;5R"          }
-  - { key: F4,       mods: Control, chars: "\x1b[1;5S"          }
-  - { key: F5,       mods: Control, chars: "\x1b[15;5~"         }
-  - { key: F6,       mods: Control, chars: "\x1b[17;5~"         }
-  - { key: F7,       mods: Control, chars: "\x1b[18;5~"         }
-  - { key: F8,       mods: Control, chars: "\x1b[19;5~"         }
-  - { key: F9,       mods: Control, chars: "\x1b[20;5~"         }
-  - { key: F10,      mods: Control, chars: "\x1b[44~"           }
-  - { key: F11,      mods: Control, chars: "\x1b[23;5~"         }
-  - { key: F12,      mods: Control, chars: "\x1b[24;5~"         }
-  - { key: F1,       mods: Alt,     chars: "\x1b[1;6P"          }
-  - { key: F2,       mods: Alt,     chars: "\x1b[1;6Q"          }
-  - { key: F3,       mods: Alt,     chars: "\x1b[1;6R"          }
-  - { key: F4,       mods: Alt,     chars: "\x1b[1;6S"          }
-  - { key: F5,       mods: Alt,     chars: "\x1b[15;6~"         }
-  - { key: F6,       mods: Alt,     chars: "\x1b[17;6~"         }
-  - { key: F7,       mods: Alt,     chars: "\x1b[18;6~"         }
-  - { key: F8,       mods: Alt,     chars: "\x1b[19;6~"                  }
-  - { key: F9,       mods: Alt,     chars: "\x1b[20;6~"                  }
-  - { key: F10,      mods: Alt,     chars: "\x1b[21;6~"                  }
-  - { key: F11,      mods: Alt,     chars: "\x1b[23;6~"                  }
-  - { key: F12,      mods: Alt,     chars: "\x1b[24;6~"                  }
-  - { key: F10,      mods: Alt|Shift,     chars: "\x1b[21;7~"                  }
-  - { key: F1,       mods: Super,   chars: "\x1b[1;3P"                   }
-  - { key: F2,       mods: Super,   chars: "\x1b[1;3Q"                   }
-  - { key: F3,       mods: Super,   chars: "\x1b[1;3R"                   }
-  - { key: F4,       mods: Super,   chars: "\x1b[1;3S"                   }
-  - { key: F5,       mods: Super,   chars: "\x1b[15;3~"                  }
-  - { key: F6,       mods: Super,   chars: "\x1b[17;3~"                  }
-  - { key: F7,       mods: Super,   chars: "\x1b[18;3~"                  }
-  - { key: F8,       mods: Super,   chars: "\x1b[19;3~"                  }
-  - { key: F9,       mods: Super,   chars: "\x1b[20;3~"                  }
-  - { key: F10,      mods: Super,   chars: "\x1b\x1b[21~"                }
-  - { key: F11,      mods: Super,   chars: "\x1b[23;3~"                  }
-  - { key: F12,      mods: Super,   chars: "\x1b[24;3~"                  }
-  - { key: F10,      mods: Super|Shift,   chars: "\x1b\x1b[34~"          }
+
+# Take note, currently dealing with a problem with tmux reinterpreting shift F keys in a way that 
+# is changing the codes. Anyway, this link will be useful: 
+# https://invisible-island.net/xterm/xterm-function-keys.html
+#
+# After reverting to defaults we see the modifiers work like this for F keys:
+# Shift: ;2
+# Alt: ;3
+# Shift+Alt: ;4
+# Ctrl: ;5
+# Shift+Ctrl: ;6
+# Ctrl+Alt is off limits due to virtual console, would be ;7
+# Shift+Ctrl+Alt: ;8
+# Super and combos are ignored, so we'll add:
+# Super as ;9
+# Shift+Super as ;10
+# Ctrl+Super as ;11
+# Alt+Super as ;12
+
+  - { key: F1,       mods: Super,   chars: "\x1b[1;9P"                   }
+  - { key: F2,       mods: Super,   chars: "\x1b[1;9Q"                   }
+  - { key: F3,       mods: Super,   chars: "\x1b[1;9R"                   }
+  - { key: F4,       mods: Super,   chars: "\x1b[1;9S"                   }
+  - { key: F5,       mods: Super,   chars: "\x1b[15;9~"                  }
+  - { key: F6,       mods: Super,   chars: "\x1b[17;9~"                  }
+  - { key: F7,       mods: Super,   chars: "\x1b[18;9~"                  }
+  - { key: F8,       mods: Super,   chars: "\x1b[19;9~"                  }
+  - { key: F9,       mods: Super,   chars: "\x1b[20;9~"                  }
+  - { key: F10,      mods: Super,   chars: "\x1b[21;9~"                  }
+  - { key: F11,      mods: Super,   chars: "\x1b[23;9~"                  }
+  - { key: F12,      mods: Super,   chars: "\x1b[24;9~"                  }
+
+  - { key: F1,       mods: Super|Shift,   chars: "\x1b[1;10P"             }
+  - { key: F2,       mods: Super|Shift,   chars: "\x1b[1;10Q"             }
+  - { key: F3,       mods: Super|Shift,   chars: "\x1b[1;10R"             }
+  - { key: F4,       mods: Super|Shift,   chars: "\x1b[1;10S"             }
+  - { key: F5,       mods: Super|Shift,   chars: "\x1b[15;10~"            }
+  - { key: F6,       mods: Super|Shift,   chars: "\x1b[17;10~"            }
+  - { key: F7,       mods: Super|Shift,   chars: "\x1b[18;10~"            }
+  - { key: F8,       mods: Super|Shift,   chars: "\x1b[19;10~"            }
+  - { key: F9,       mods: Super|Shift,   chars: "\x1b[20;10~"            }
+  - { key: F10,      mods: Super|Shift,   chars: "\x1b[21;10~"            }
+  - { key: F11,      mods: Super|Shift,   chars: "\x1b[23;10~"            }
+  - { key: F12,      mods: Super|Shift,   chars: "\x1b[24;10~"            }
+
+  - { key: F1,       mods: Super|Control,   chars: "\x1b[1;11P"             }
+  - { key: F2,       mods: Super|Control,   chars: "\x1b[1;11Q"             }
+  - { key: F3,       mods: Super|Control,   chars: "\x1b[1;11R"             }
+  - { key: F4,       mods: Super|Control,   chars: "\x1b[1;11S"             }
+  - { key: F5,       mods: Super|Control,   chars: "\x1b[15;11~"            }
+  - { key: F6,       mods: Super|Control,   chars: "\x1b[17;11~"            }
+  - { key: F7,       mods: Super|Control,   chars: "\x1b[18;11~"            }
+  - { key: F8,       mods: Super|Control,   chars: "\x1b[19;11~"            }
+  - { key: F9,       mods: Super|Control,   chars: "\x1b[20;11~"            }
+  - { key: F10,      mods: Super|Control,   chars: "\x1b[21;11~"            }
+  - { key: F11,      mods: Super|Control,   chars: "\x1b[23;11~"            }
+  - { key: F12,      mods: Super|Control,   chars: "\x1b[24;11~"            }
+
+  - { key: F1,       mods: Super|Alt,   chars: "\x1b[1;12P"             }
+  - { key: F2,       mods: Super|Alt,   chars: "\x1b[1;12Q"             }
+  - { key: F3,       mods: Super|Alt,   chars: "\x1b[1;12R"             }
+  - { key: F4,       mods: Super|Alt,   chars: "\x1b[1;12S"             }
+  - { key: F5,       mods: Super|Alt,   chars: "\x1b[15;12~"            }
+  - { key: F6,       mods: Super|Alt,   chars: "\x1b[17;12~"            }
+  - { key: F7,       mods: Super|Alt,   chars: "\x1b[18;12~"            }
+  - { key: F8,       mods: Super|Alt,   chars: "\x1b[19;12~"            }
+  - { key: F9,       mods: Super|Alt,   chars: "\x1b[20;12~"            }
+  - { key: F10,      mods: Super|Alt,   chars: "\x1b[21;12~"            }
+  - { key: F11,      mods: Super|Alt,   chars: "\x1b[23;12~"            }
+  - { key: F12,      mods: Super|Alt,   chars: "\x1b[24;12~"            }

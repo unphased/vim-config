@@ -14,21 +14,6 @@ alias ls 2>/dev/null >/dev/null || alias ls="ls --color=always"
 # 	alias htop="sudo htop"
 # fi
 
-# stub pbcopy and pbpaste for linux, for getting a little closer to copypaste 
-# holy grail for my usual envs. Still not gonna have direct vim clipboard 
-# compatibility (that's vim-specific, and can interact with this), but it def 
-# makes life easier in the shell.
-# removing this because starting a shell is not a good place to limit xclip from working -- the 
-# impl of actual pbcopy and pbpaste can actually attempt both methods
-# if [ "$(uname)" = Linux ] && ! [[ "$PATH" = *"/linux_pb"* ]] && ! xset q &>/dev/null; then
-# 	# This ensures that these fallback filesystem clipboard programs become 
-# 	# available for vim to use if X is not running, regardless of whether 
-# 	# X exists on the system. In particular we insert linux_pb earlier in the 
-# 	# path than /usr/local/bin should be, and the environment will control 
-# 	# which program is pulled on a system.
-# 	PATH="$HOME/util/linux_pb:$PATH"
-# fi
-
 if [ "$(uname)" = Linux ] && lsb_release -i | grep Ubuntu; then
 	alias open="xdg-open"
 fi
@@ -164,15 +149,6 @@ export FZF_DEFAULT_COMMAND="fd --type file"
 export PATH=$HOME/util:$PATH
 export PATH="$HOME/.yarn/bin:$HOME/.cargo/bin:$HOME/bin:$HOME/.local/bin:$PATH"
 
-sourcertrsetup () {
-	CURRENTSHELL="$(ps -o cmd= -p $$ | sed -e 's/^-//' -e 's:.*/::' )"
-	WORKSPACE="$(catkin locate)/$1"
-	SETUPSCRIPT="$WORKSPACE/setup.$CURRENTSHELL"
-	echo sourcing "$SETUPSCRIPT"
-	source "$SETUPSCRIPT"
-}
-
-alias rtr='sourcertrsetup devel'
-alias rtrins='sourcertrsetup install'
+source $HOME/.vim/work/aliases/rtr.sh
 
 export EDITOR=vim

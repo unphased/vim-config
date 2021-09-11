@@ -1,74 +1,78 @@
 [user]
 [core]
-	editor = vim
-	whitespace = cr-at-eol
-	excludesfile = ~/.gitignore
-	autocrlf = input
+  editor = vim
+  whitespace = cr-at-eol
+  excludesfile = ~/.gitignore
+  autocrlf = input
 [color]
-	ui = true
+  ui = true
 [alias]
-	lg = log --graph --date-order --pretty=format:'%C(bold magenta)%h%Creset -%C(auto)%d%Creset %s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
-	s = "!f() { git status --short; ignored=$(git ignored); [ -n \"$ignored\" ] && echo \"$ignored\"; };f"
-	unadd = reset HEAD
-	d = difftool
-	ignore = update-index --skip-worktree
-	unignore = update-index --no-skip-worktree
-	ignored = !git ls-files -v | grep "^S"
-	status-with-ignored = "!f() { git status -uno; ignored=$(git ignored | cut -d ' ' -f 2 | sed -e s/^/[31m/ -e s/$/[m/); [ -n \"$ignored\" ] && echo \"git skip-worktree (ignored):\n$ignored\"; };f"
-	diff-with-ignored = "!f() { git diff --no-ext-diff; ignored=$(git ignored | cut -d ' ' -f 2); [ -n \"$ignored\" ] && echo \"git skip-worktree (ignored):\" && for var in $ignored; do echo [31m$var[m; git show HEAD:$var | diff -u - $var; done };f"
-	diff-with-ignored-ext = "!f() { git diff --ext-diff | cat; ignored=$(git ignored | cut -d ' ' -f 2); [ -n \"$ignored\" ] && echo \"git skip-worktree (ignored):\" && for var in $ignored; do echo [31m$var[m; git show HEAD:$var | sift - $var; done };f"
+  lg = log --graph --date-order --pretty=format:'%C(bold magenta)%h%Creset -%C(auto)%d%Creset %s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+  s = "!f() { git status --short; ignored=$(git ignored); [ -n \"$ignored\" ] && echo \"$ignored\"; };f"
+  unadd = reset HEAD
+  d = difftool
+  ignore = update-index --skip-worktree
+  unignore = update-index --no-skip-worktree
+  ignored = !git ls-files -v | grep "^S"
+  status-with-ignored = "!f() { git status -uno; ignored=$(git ignored | cut -d ' ' -f 2 | sed -e s/^/[31m/ -e s/$/[m/); [ -n \"$ignored\" ] && echo \"git skip-worktree (ignored):\n$ignored\"; };f"
+  diff-with-ignored = "!f() { git diff --no-ext-diff; ignored=$(git ignored | cut -d ' ' -f 2); [ -n \"$ignored\" ] && echo \"git skip-worktree (ignored):\" && for var in $ignored; do echo [31m$var[m; git show HEAD:$var | diff -u - $var; done };f"
+  diff-with-ignored-ext = "!f() { git diff --ext-diff | cat; ignored=$(git ignored | cut -d ' ' -f 2); [ -n \"$ignored\" ] && echo \"git skip-worktree (ignored):\" && for var in $ignored; do echo [31m$var[m; git show HEAD:$var | sift - $var; done };f"
 
-	commit-push = "!f() { git commit-message \"$*\" && git push; };f"
-	commit-message = "!f() { [ -z \"$*\" ] && git commit -am \"- old bugs fixed\n- new bugs added\" || git commit -am \"$*\"; };f"
-	alias = "!f() { git config --get-regexp ^alias\\. | sed -e s/^alias\\.// -e s/\\ /\\ =\\ / | grep $1; };f"
+  commit-push = "!f() { git commit-message \"$*\" && git push; };f"
+  commit-message = "!f() { [ -z \"$*\" ] && git commit -am \"- old bugs fixed\n- new bugs added\" || git commit -am \"$*\"; };f"
+  alias-search = "!f() { git config --get-regexp ^alias\\. | sed -e s/^alias\\.// -e s/\\ /\\ =\\ / | grep $1; };f"
+  stash-working = "!f() { \
+    git commit --quiet --no-verify -m \"temp for stash-working\" && \
+    git stash push \"$@\" && \
+    git reset --quiet --soft HEAD~1; }; f"
 [difftool]
-	prompt = false
+  prompt = false
 [diff]
-	mnemonicprefix = true
-	external = sift
-	# tool = pydifflib
-	tool = opendiff
+  mnemonicprefix = true
+  external = sift
+  # tool = pydifflib
+  tool = opendiff
 [color]
-	branch = auto
-	#diff = always
-	status = always
+  branch = auto
+  #diff = always
+  status = always
 [color "branch"]
-	current = yellow reverse
-	local = yellow
-	remote = green
+  current = yellow reverse
+  local = yellow
+  remote = green
 [color "diff"]
-	meta = blue
-	frag = magenta
-	old = red
-	new = green
-	whitespace = blue reverse
+  meta = blue
+  frag = magenta
+  old = red
+  new = green
+  whitespace = blue reverse
 [color "status"]
-	added = yellow
-	changed = green
-	untracked = cyan
+  added = yellow
+  changed = green
+  untracked = cyan
 [rerere]
-	enabled = true
+  enabled = true
 [merge]
-	stat = true
-	conflictStyle = diff3
+  stat = true
+  conflictStyle = diff3
 [difftool "sourcetree"]
-	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path = 
+  cmd = opendiff \"$LOCAL\" \"$REMOTE\"
+  path = 
 [mergetool "sourcetree"]
-	cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
-	trustExitCode = true
+  cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+  trustExitCode = true
 [push]
-	default = simple
+  default = simple
 [filter "lfs"]
-	clean = git-lfs clean -- %f
-	smudge = git-lfs smudge -- %f
-	process = git-lfs filter-process
-	required = true
+  clean = git-lfs clean -- %f
+  smudge = git-lfs smudge -- %f
+  process = git-lfs filter-process
+  required = true
 [status]
-	submoduleSummary = true
+  submoduleSummary = true
 [credential]
-	helper = store
+  helper = store
 [config]
-	helper = store
+  helper = store
 [pull]
-	rebase = false
+  rebase = false
