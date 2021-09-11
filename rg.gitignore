@@ -17,7 +17,6 @@
 **/.git
 .cache/neocomplete
 **/.discrim.log
-**/hardware-specific/machine_shell_logs/*
 **/zxcvbn.js
 **/.ccls-cache/*
 .ccls-cache
