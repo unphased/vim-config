@@ -770,29 +770,29 @@ let g:indent_guides_guide_size = 1
 let g:signify_sign_overwrite = 0
 let g:signify_update_on_focusgained = 1
 
-" customizing the vim-signature bindings (to un-delay the backtick)
+" " customizing the vim-signature bindings (to un-delay the backtick)
 
-let g:SignatureMap = {
-	\ 'Leader'             :  "m",
-	\ 'PlaceNextMark'      :  "m,",
-	\ 'ToggleMarkAtLine'   :  "m.",
-	\ 'PurgeMarksAtLine'   :  "m-",
-	\ 'DeleteMark'         :  "dm",
-	\ 'PurgeMarks'         :  "m<Space>",
-	\ 'PurgeMarkers'       :  "m<BS>",
-	\ 'GotoNextSpotAlpha'  :  "']",
-	\ 'GotoPrevSpotAlpha'  :  "'[",
-	\ 'GotoNextLineByPos'  :  "]'",
-	\ 'GotoPrevLineByPos'  :  "['",
-	\ 'GotoNextSpotByPos'  :  "]`",
-	\ 'GotoPrevSpotByPos'  :  "[`",
-	\ 'GotoNextMarker'     :  "[+",
-	\ 'GotoPrevMarker'     :  "[-",
-	\ 'GotoNextMarkerAny'  :  "]=",
-	\ 'GotoPrevMarkerAny'  :  "[=",
-	\ 'ListLocalMarks'     :  "m/",
-	\ 'ListLocalMarkers'   :  "m?"
-	\ }
+" let g:SignatureMap = {
+" 	\ 'Leader'             :  "m",
+" 	\ 'PlaceNextMark'      :  "m,",
+" 	\ 'ToggleMarkAtLine'   :  "m.",
+" 	\ 'PurgeMarksAtLine'   :  "m-",
+" 	\ 'DeleteMark'         :  "dm",
+" 	\ 'PurgeMarks'         :  "m<Space>",
+" 	\ 'PurgeMarkers'       :  "m<BS>",
+" 	\ 'GotoNextSpotAlpha'  :  "']",
+" 	\ 'GotoPrevSpotAlpha'  :  "'[",
+" 	\ 'GotoNextLineByPos'  :  "]'",
+" 	\ 'GotoPrevLineByPos'  :  "['",
+" 	\ 'GotoNextSpotByPos'  :  "]`",
+" 	\ 'GotoPrevSpotByPos'  :  "[`",
+" 	\ 'GotoNextMarker'     :  "[+",
+" 	\ 'GotoPrevMarker'     :  "[-",
+" 	\ 'GotoNextMarkerAny'  :  "]=",
+" 	\ 'GotoPrevMarkerAny'  :  "[=",
+" 	\ 'ListLocalMarks'     :  "m/",
+" 	\ 'ListLocalMarkers'   :  "m?"
+" 	\ }
 
 nnoremap <F4> :UndotreeToggle<CR>
 inoremap <F4> <ESC>:UndotreeToggle<CR>
