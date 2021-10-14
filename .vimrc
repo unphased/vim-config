@@ -615,7 +615,7 @@ EOF
 endif
 
 " dunno if i want to bring back tabnine.
-call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tsserver', 'coc-vimlsp', 'coc-emmet', 'coc-eslint', 'coc-diagnostic', 'coc-prettier',  'coc-clangd', 'coc-sh', 'coc-tailwindcss', 'coc-svg')
+call coc#add_extension('coc-json', 'coc-snippets', 'coc-pyright', 'coc-tsserver', 'coc-vimlsp', 'coc-emmet', 'coc-eslint', 'coc-diagnostic', 'coc-prettier',  'coc-clangd', 'coc-sh', 'coc-tailwindcss', 'coc-svg')
 
 " function! CheckBatteryTabNine(timer)
 " 	call system('onbatt')
