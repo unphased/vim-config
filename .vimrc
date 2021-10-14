@@ -449,6 +449,7 @@ Plug 'unphased/vim-unimpaired'
 Plug 'vim-scripts/camelcasemotion'
 Plug 'vim-scripts/ingo-library' " needed for EnhancedJumps
 Plug 'vim-scripts/EnhancedJumps'
+Plug 'inkarkat/vim-IndentConsistencyCop'
 
 Plug 't9md/vim-textmanip', { 'on': [ '<Plug>(textmanip-move-down)', '<Plug>(textmanip-move-up)', '<Plug>(textmanip-move-left)', '<Plug>(textmanip-move-right)', '<Plug>(textmanip-toggle-mode)', '<Plug>(textmanip-toggle-mode)', ] }
 
@@ -796,6 +797,7 @@ let g:signify_update_on_focusgained = 1
 
 nnoremap <F4> :UndotreeToggle<CR>
 inoremap <F4> <ESC>:UndotreeToggle<CR>
+let g:undotree_RelativeTimestamp = 0
 
 " These C-V and C-C mappings are for fakeclip, but fakeclip doesn't work on
 " OSX and I never really seem to do much copying and pasting
@@ -868,13 +870,20 @@ set smartcase
 
 set gdefault " Reverses meaning of /g in regex
 
-" I took out smartindent
-" au! FileType python setl nosmartindent
+" I took out smartindent but this does not hurt (?) to make sure it never is on for python
+au! FileType python setl nosmartindent
 
+" my preferred defaults but we are using ingo's vim-IndentConsistencyCop and it seems best so far
 set shiftwidth=2
 set tabstop=2
+
+" 4 spaces can be argued (2 encourages nesting code too much, 3 is insanity)
+" and sometimes we work with code using tabs &shrug;
+
 set expandtab
 set smarttab
+
+
 
 set autoread
 augroup checktime_augroup
