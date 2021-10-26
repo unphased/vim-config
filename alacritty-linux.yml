@@ -297,7 +297,7 @@ key_bindings:
   - { key: Numpad8,                       chars: "\x1b8"           }
   - { key: Numpad9,                       chars: "\x1b9"           }
   - { key: Numpad0,                       chars: "\x1b0"           }
-  - { key: Tab,      mods: Shift,         chars: "\x1b[Z"       }
+  # - { key: Tab,      mods: Shift,         chars: "\x1b[Z"       }
   - { key: Tab,      mods: Control,       chars: "\x1b[27;5;9~" }
   - { key: Tab,      mods: Control|Shift, chars: "\x1b[27;6;9~" }
   - { key: Tab,      mods: Alt,           chars: "\x1b[27;5;9~" }
