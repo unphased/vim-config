@@ -449,6 +449,7 @@ Plug 'unphased/vim-unimpaired'
 Plug 'vim-scripts/camelcasemotion'
 Plug 'vim-scripts/ingo-library' " needed for EnhancedJumps
 Plug 'vim-scripts/EnhancedJumps'
+Plug 'inkarkat/vim-IndentConsistencyCop'
 
 Plug 't9md/vim-textmanip', { 'on': [ '<Plug>(textmanip-move-down)', '<Plug>(textmanip-move-up)', '<Plug>(textmanip-move-left)', '<Plug>(textmanip-move-right)', '<Plug>(textmanip-toggle-mode)', '<Plug>(textmanip-toggle-mode)', ] }
 
@@ -615,7 +616,7 @@ EOF
 endif
 
 " dunno if i want to bring back tabnine.
-call coc#add_extension('coc-json', 'coc-snippets', 'coc-python', 'coc-tsserver', 'coc-vimlsp', 'coc-emmet', 'coc-eslint', 'coc-diagnostic', 'coc-prettier',  'coc-clangd', 'coc-sh', 'coc-tailwindcss', 'coc-svg')
+call coc#add_extension('coc-json', 'coc-snippets', 'coc-pyright', 'coc-tsserver', 'coc-vimlsp', 'coc-emmet', 'coc-eslint', 'coc-diagnostic', 'coc-prettier',  'coc-clangd', 'coc-sh', 'coc-tailwindcss', 'coc-svg')
 
 " function! CheckBatteryTabNine(timer)
 " 	call system('onbatt')
@@ -770,32 +771,33 @@ let g:indent_guides_guide_size = 1
 let g:signify_sign_overwrite = 0
 let g:signify_update_on_focusgained = 1
 
-" customizing the vim-signature bindings (to un-delay the backtick)
+" " customizing the vim-signature bindings (to un-delay the backtick)
 
-let g:SignatureMap = {
-	\ 'Leader'             :  "m",
-	\ 'PlaceNextMark'      :  "m,",
-	\ 'ToggleMarkAtLine'   :  "m.",
-	\ 'PurgeMarksAtLine'   :  "m-",
-	\ 'DeleteMark'         :  "dm",
-	\ 'PurgeMarks'         :  "m<Space>",
-	\ 'PurgeMarkers'       :  "m<BS>",
-	\ 'GotoNextSpotAlpha'  :  "']",
-	\ 'GotoPrevSpotAlpha'  :  "'[",
-	\ 'GotoNextLineByPos'  :  "]'",
-	\ 'GotoPrevLineByPos'  :  "['",
-	\ 'GotoNextSpotByPos'  :  "]`",
-	\ 'GotoPrevSpotByPos'  :  "[`",
-	\ 'GotoNextMarker'     :  "[+",
-	\ 'GotoPrevMarker'     :  "[-",
-	\ 'GotoNextMarkerAny'  :  "]=",
-	\ 'GotoPrevMarkerAny'  :  "[=",
-	\ 'ListLocalMarks'     :  "m/",
-	\ 'ListLocalMarkers'   :  "m?"
-	\ }
+" let g:SignatureMap = {
+" 	\ 'Leader'             :  "m",
+" 	\ 'PlaceNextMark'      :  "m,",
+" 	\ 'ToggleMarkAtLine'   :  "m.",
+" 	\ 'PurgeMarksAtLine'   :  "m-",
+" 	\ 'DeleteMark'         :  "dm",
+" 	\ 'PurgeMarks'         :  "m<Space>",
+" 	\ 'PurgeMarkers'       :  "m<BS>",
+" 	\ 'GotoNextSpotAlpha'  :  "']",
+" 	\ 'GotoPrevSpotAlpha'  :  "'[",
+" 	\ 'GotoNextLineByPos'  :  "]'",
+" 	\ 'GotoPrevLineByPos'  :  "['",
+" 	\ 'GotoNextSpotByPos'  :  "]`",
+" 	\ 'GotoPrevSpotByPos'  :  "[`",
+" 	\ 'GotoNextMarker'     :  "[+",
+" 	\ 'GotoPrevMarker'     :  "[-",
+" 	\ 'GotoNextMarkerAny'  :  "]=",
+" 	\ 'GotoPrevMarkerAny'  :  "[=",
+" 	\ 'ListLocalMarks'     :  "m/",
+" 	\ 'ListLocalMarkers'   :  "m?"
+" 	\ }
 
 nnoremap <F4> :UndotreeToggle<CR>
 inoremap <F4> <ESC>:UndotreeToggle<CR>
+let g:undotree_RelativeTimestamp = 0
 
 " These C-V and C-C mappings are for fakeclip, but fakeclip doesn't work on
 " OSX and I never really seem to do much copying and pasting
@@ -868,13 +870,20 @@ set smartcase
 
 set gdefault " Reverses meaning of /g in regex
 
-" I took out smartindent
-" au! FileType python setl nosmartindent
+" I took out smartindent but this does not hurt (?) to make sure it never is on for python
+au! FileType python setl nosmartindent
 
+" my preferred defaults but we are using ingo's vim-IndentConsistencyCop and it seems best so far
 set shiftwidth=2
 set tabstop=2
+
+" 4 spaces can be argued (2 encourages nesting code too much, 3 is insanity)
+" and sometimes we work with code using tabs &shrug;
+
 set expandtab
 set smarttab
+
+
 
 set autoread
 augroup checktime_augroup
@@ -3956,10 +3965,10 @@ else
 	" nmap <C-PageDown> :echo 'c-pgdn'<CR>
 	noremap! <C-PageDown> <ESC>:tabnext<CR>
 	noremap <C-PageDown> :tabnext<CR>
-	nmap <S-PageUp> :echo 's-pgup'<CR>
-	nmap <S-PageDown> :echo 's-pgdn'<CR>
-	nmap <M-PageUp> :echo 'm-pgup'<CR>
-	nmap <M-PageDown> :echo 'm-pgdn'<CR>
+	nmap <S-PageUp> :echom 's-pgup'<CR>
+	nmap <S-PageDown> :echom 's-pgdn'<CR>
+	nmap <M-PageUp> :echom 'm-pgup'<CR>
+	nmap <M-PageDown> :echom 'm-pgdn'<CR>
 endif
 
 autocmd User targets#mappings#user call targets#mappings#extend({
@@ -3980,3 +3989,8 @@ highlight ConflictMarkerOurs guibg=#2e5049
 highlight ConflictMarkerTheirs guibg=#344f69
 highlight ConflictMarkerEnd guibg=#2f628e
 highlight ConflictMarkerCommonAncestorsHunk guibg=#754a81
+
+augroup filetype_settings " {
+  autocmd!
+  autocmd BufNewFile,BufRead Dockerfile.* set ft=dockerfile
+augroup END " }

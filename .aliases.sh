@@ -152,3 +152,8 @@ export PATH="$HOME/.yarn/bin:$HOME/.cargo/bin:$HOME/bin:$HOME/.local/bin:$PATH"
 source $HOME/.vim/work/aliases/rtr.sh
 
 export EDITOR=vim
+
+# for when tmux panes lose the ssh agent env vars
+fixssh() {
+  eval $(tmux show-env -s |grep '^SSH_')
+}
