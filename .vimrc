@@ -475,7 +475,7 @@ Plug 'AndrewRadev/linediff.vim'
 Plug 'AndrewRadev/splitjoin.vim'
 " Plug 'AndrewRadev/inline_edit.vim'
 " Plug 'AndrewRadev/whitespaste.vim'
-Plug 'sickill/vim-pasta'
+" Plug 'sickill/vim-pasta'
 
 " superceded by Colorizer
 " Plug 'ap/vim-css-color'
