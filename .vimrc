@@ -3965,10 +3965,10 @@ else
 	" nmap <C-PageDown> :echo 'c-pgdn'<CR>
 	noremap! <C-PageDown> <ESC>:tabnext<CR>
 	noremap <C-PageDown> :tabnext<CR>
-	nmap <S-PageUp> :echo 's-pgup'<CR>
-	nmap <S-PageDown> :echo 's-pgdn'<CR>
-	nmap <M-PageUp> :echo 'm-pgup'<CR>
-	nmap <M-PageDown> :echo 'm-pgdn'<CR>
+	nmap <S-PageUp> :echom 's-pgup'<CR>
+	nmap <S-PageDown> :echom 's-pgdn'<CR>
+	nmap <M-PageUp> :echom 'm-pgup'<CR>
+	nmap <M-PageDown> :echom 'm-pgdn'<CR>
 endif
 
 autocmd User targets#mappings#user call targets#mappings#extend({
