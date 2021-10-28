@@ -4003,3 +4003,6 @@ augroup filetype_settings " {
   autocmd!
   autocmd BufNewFile,BufRead Dockerfile.* set ft=dockerfile
 augroup END " }
+
+" to allow pasting not to break repeats when done from an insert session started by c
+vmap p c<C-r>0<Esc>
