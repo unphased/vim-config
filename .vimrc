@@ -345,7 +345,7 @@ let g:lightline.tab_component_function = {
 			\ 'tabmod': 'TabAnyModified'
 			\ }
 let g:lightline.component_function = {
-			\ 'gitbranch': 'fugitive#head',
+			\ 'gitbranch': 'GitBranch',
 			\ 'filesize': 'FileSize',
 			\ 'filetype': 'FileTypeFun',
 			\ 'cocstatus': 'coc#status',
@@ -385,6 +385,20 @@ let g:lightline#bufferline#clickable = 1
 let g:lightline#bufferline#show_number = 2
 let g:lightline#bufferline#right_aligned = 1
 let g:lightline#bufferline#more_buffers = '…'
+
+function! GitBranch()
+  let branch = FugitiveHead()
+  if len(branch) > 0
+    return " " . branch " powerline branch glyph prepended when on actual branch
+  else
+    let describe = system("git describe --tags")
+    if v:shell_error
+      return trim(system("git rev-parse --short HEAD")) " plainly show raw short commit hash when no tags are available for git describe
+    else
+      return trim(describe) " detached head should just display output of git describe --tags
+    endif
+  endif
+endfun
 
 function! TabWinCt(n) abort
   let n = tabpagewinnr(a:n, '$')
