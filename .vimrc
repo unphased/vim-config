@@ -391,12 +391,7 @@ function! GitBranch()
   if len(branch) > 0
     return " " . branch " powerline branch glyph prepended when on actual branch
   else
-    let describe = system("git describe --tags")
-    if v:shell_error
-      return trim(system("git rev-parse --short HEAD")) " plainly show raw short commit hash when no tags are available for git describe
-    else
-      return trim(describe) " detached head should just display output of git describe --tags
-    endif
+    return "Detached " . FugitiveHead(7)
   endif
 endfun
 
