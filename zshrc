@@ -27,10 +27,15 @@ setopt HIST_VERIFY
 # set emacs key mode so it doesnt eat ctrl+R
 bindkey -e
 
+# allows carat to work for git stuff
+setopt NO_NOMATCH
+
 # allow ctrl+s to work
 stty -ixon
 stty -ixoff
 
+bindkey "\e[3~" delete-char
+bindkey "\e[3;5~" kill-word
 bindkey "\e" backward-delete-word
 
 bindkey "\eOc" forward-word
