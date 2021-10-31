@@ -24,4 +24,12 @@ style = "yellow"
 threshold = 70
 style = "green"
 
+[nodejs]
+symbol = "node "
 
+[time]
+disabled = false
+style = "yellow"
+
+[git_metrics]
+disabled = false
