@@ -4,12 +4,10 @@ echo Hi from ~/.zshrc
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
 . $HOME/.aliases.sh
-echo path after aliases:
-
-echo "$(echo ${PATH} | tr : '\n')"
 
 export PATH="/opt/homebrew/opt/node@16/bin:$PATH"
 
+# enable completions
 autoload -Uz compinit && compinit
 
 eval "$(starship init zsh)"
