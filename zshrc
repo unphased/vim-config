@@ -1,4 +1,4 @@
-Hi from ~/.zshrc
+echo Hi from ~/.zshrc
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
 . $HOME/.aliases.sh
@@ -54,3 +54,7 @@ bindkey "\e\e[D" backward-word
 # home/end
 bindkey "\e[1~" beginning-of-line
 bindkey "\e[4~" end-of-line
+
+# ignore filepaths used for corrections.
+# See https://unix.stackexchange.com/a/422451/12497
+CORRECT_IGNORE_FILE='.*'
