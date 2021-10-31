@@ -1,8 +1,11 @@
 echo Hi from ~/.zshrc
+
+. "$HOME/.cargo/env"
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
 . $HOME/.aliases.sh
 echo path after aliases:
+
 echo "$(echo ${PATH} | tr : '\n')"
 
 export PATH="/opt/homebrew/opt/node@16/bin:$PATH"
@@ -57,4 +60,7 @@ bindkey "\e[4~" end-of-line
 
 # ignore filepaths used for corrections.
 # See https://unix.stackexchange.com/a/422451/12497
-CORRECT_IGNORE_FILE='.*'
+export CORRECT_IGNORE_FILE='.*'
+
+bindkey "^[[A" history-beginning-search-backward
+bindkey "^[[B" history-beginning-search-forward
