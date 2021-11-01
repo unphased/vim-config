@@ -733,6 +733,7 @@ nnoremap <Leader>R :silent redraw!<CR>
 " repertoire, but skipping F24 and F25 because the actual vitality plugin uses 
 " this method specifically on F24 and F25
 if !has('nvim')
+  set <F24>=/
 	" c-tab
 	set <F23>=[27;5;9~
 	" s-c-tab
@@ -4006,3 +4007,5 @@ augroup END " }
 
 " to allow pasting not to break repeats when done from an insert session started by c
 vmap p c<C-r>0<Esc>
+nnoremap <F24> :%s/\<<c-r><c-w>\>//g<left><left>
+
