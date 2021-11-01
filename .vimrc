@@ -526,12 +526,13 @@ au FileType cpp let g:switch_custom_definitions = [
 
 " highest priority defs are prepended last here
 let g:switch_custom_definitions = [
-  \   switch#NormalizedCaseWords(['show', 'hide']),
+  \   switch#NormalizedCase(['show', 'hide']),
+  \   switch#NormalizedCase(['before', 'after']),
   \   switch#NormalizedCaseWords(['yes', 'no']),
   \   switch#NormalizedCaseWords(['error', 'warn', 'info']),
   \ ] + g:switch_custom_definitions
 
-let g:switch_find_smallest_match = 0
+" let g:switch_find_smallest_match = 1
 
 function! s:async_job_handler(job_id, data, event_type)
 	echom 'Async job handler report ========='

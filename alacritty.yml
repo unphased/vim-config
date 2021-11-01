@@ -19,6 +19,7 @@ env:
 # Falls back to size specified by window manager if set to 0x0.
 # (changes require restart)
 window:
+  opacity: 0.95
   dimensions:
     columns: 120
     lines: 90
@@ -50,17 +51,17 @@ draw_bold_text_with_bright_colors: false
 font:
   # The normal (roman) font face to use.
   normal:
-    family: "Meslo LG S DZ for Powerline" # should be "Menlo" or something on macOS.
+    family: "SF Mono Powerline" # should be "Menlo" or something on macOS.
     style: Regular
 
   # The bold font face
   bold:
-    family: "Meslo LG S DZ for Powerline" # should be "Menlo" or something on macOS.
+    family: "SF Mono Powerline" # should be "Menlo" or something on macOS.
     style: Bold
 
   # The italic font face
   italic:
-    family: "Meslo LG S DZ for Powerline" # should be "Menlo" or something on macOS.
+    family: "SF Mono Powerline" # should be "Menlo" or something on macOS.
     style: Italic
 
   antialias: true
@@ -148,16 +149,13 @@ colors:
 #
 # To completely disable the visual bell, set its duration to 0.
 #
-bell:
-  command:
-    program: afplay
-    args: ["/System/Library/Sounds/Funk.aiff"]
+# bell:
+  # command:
+  #   program: afplay
+  #   args: ["/System/Library/Sounds/Funk.aiff"]
   # animation: EaseOutExpo
   # duration: 20
   # color: '0x101010'
-
-# Background opacity
-background_opacity: 0.97
 
 # Mouse bindings
 #

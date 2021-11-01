@@ -146,10 +146,10 @@ export FZF_DEFAULT_COMMAND="fd --type file"
 # my only way to dedupe a sane config across OS's, bash & omz & prezto.
 
 # set PATH so it includes user's private bin directories
-export PATH=$HOME/util:$PATH
 export PATH="$HOME/.yarn/bin:$HOME/.cargo/bin:$HOME/bin:$HOME/.local/bin:$PATH"
+export PATH=$HOME/util:$PATH
 
-source $HOME/.vim/work/aliases/rtr.sh
+# source $HOME/.vim/work/aliases/rtr.sh
 
 export EDITOR=vim
 

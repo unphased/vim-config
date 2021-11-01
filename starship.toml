@@ -1,0 +1,35 @@
+add_newline = false
+
+[battery]
+full_symbol = ""
+charging_symbol = "⚡️"
+discharging_symbol = "🔋"
+unknown_symbol = "battery status unknown!"
+empty_symbol = "🔋💀"
+format = "[$symbol$percentage ]($style)"
+
+[[battery.display]]
+threshold = 9
+style = "bold white bg:red"
+[[battery.display]]
+threshold = 15
+style = "red"
+[[battery.display]]
+threshold = 30
+style = "bold orange"
+[[battery.display]]
+threshold = 50
+style = "yellow"
+[[battery.display]]
+threshold = 70
+style = "green"
+
+[nodejs]
+symbol = "node "
+
+[time]
+disabled = false
+style = "yellow"
+
+[git_metrics]
+disabled = false
