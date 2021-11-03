@@ -12,6 +12,9 @@ autoload -Uz compinit && compinit
 
 eval "$(starship init zsh)"
 
+# set emacs key mode so it doesnt eat ctrl+R
+bindkey -e
+
 setopt NO_CASE_GLOB
 setopt AUTO_CD
 setopt CORRECT
@@ -23,9 +26,6 @@ setopt HIST_EXPIRE_DUPS_FIRST
 setopt HIST_FIND_NO_DUPS
 setopt HIST_REDUCE_BLANKS
 setopt HIST_VERIFY
-
-# set emacs key mode so it doesnt eat ctrl+R
-bindkey -e
 
 # allows carat to work for git stuff
 setopt NO_NOMATCH
@@ -68,3 +68,8 @@ export CORRECT_IGNORE_FILE='.*'
 
 bindkey "^[[A" history-beginning-search-backward
 bindkey "^[[B" history-beginning-search-forward
+
+# black magic to implement helpful path completion
+# https://stackoverflow.com/a/24237590/340947
+zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+
