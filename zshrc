@@ -1,11 +1,12 @@
 echo Hi from ~/.zshrc
 
 . "$HOME/.cargo/env"
-eval "$(/opt/homebrew/bin/brew shellenv)"
 
 . $HOME/.aliases.sh
 
-export PATH="/opt/homebrew/opt/node@16/bin:$PATH"
+# Note, the following is insufficient to set homebrew env vars in the proper spots.
+eval "$(/opt/homebrew/bin/brew shellenv)"
+export PATH="/opt/homebrew/opt/node@16/bin:/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
 
 # enable completions
 autoload -Uz compinit && compinit
@@ -66,10 +67,13 @@ bindkey "\e[4~" end-of-line
 # See https://unix.stackexchange.com/a/422451/12497
 export CORRECT_IGNORE_FILE='.*'
 
-bindkey "^[[A" history-beginning-search-backward
-bindkey "^[[B" history-beginning-search-forward
+# bindkey "^[[A" history-beginning-search-backward
+# bindkey "^[[B" history-beginning-search-forward
 
 # black magic to implement helpful path completion
 # https://stackoverflow.com/a/24237590/340947
 zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+
+# https://apple.stackexchange.com/a/27272/13465
+export PAGER=/opt/homebrew/bin/less
 
