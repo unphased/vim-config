@@ -19,7 +19,7 @@ env:
 # Falls back to size specified by window manager if set to 0x0.
 # (changes require restart)
 window:
-  opacity: 0.95
+  opacity: 0.92
   dimensions:
     columns: 120
     lines: 90

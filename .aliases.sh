@@ -71,6 +71,7 @@ alias gcb='git checkout -b'
 alias gp="git push"
 alias gst="git status-with-ignored"
 alias ga="git add"
+alias gb="git branch"
 
 alias ds="dirs -v | head -10"
 alias d="gde"
