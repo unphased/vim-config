@@ -1,10 +1,10 @@
 add_newline = false
 
 [battery]
-full_symbol = ""
-charging_symbol = "⚡️"
+full_symbol = "🔌👍"
+charging_symbol = "🔌⚡️"
 discharging_symbol = "🔋"
-unknown_symbol = "battery status unknown!"
+unknown_symbol = "🔌🍝"
 empty_symbol = "🔋💀"
 format = "[$symbol$percentage ]($style)"
 
@@ -21,7 +21,7 @@ style = "bold orange"
 threshold = 50
 style = "yellow"
 [[battery.display]]
-threshold = 70
+threshold = 100
 style = "green"
 
 [nodejs]

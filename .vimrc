@@ -30,7 +30,8 @@ Plug 'martinda/Jenkinsfile-vim-syntax'
 
 Plug 'godlygeek/tabular'
 Plug 'plasticboy/vim-markdown'
-Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': [ 'markdown', 'vim-plug' ] }
+" Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': [ 'markdown', 'vim-plug' ] }
+Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && yarn install' }
 
 let $NVIM_MKDP_LOG_FILE = $HOME . '/.tmp/mkdp-log.log'
 let $NVIM_MKDP_LOG_LEVEL = 'debug'
