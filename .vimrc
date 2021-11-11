@@ -18,7 +18,7 @@ Plug 'powerman/vim-plugin-AnsiEsc'
 
 Plug 'fidian/hexmode'
 Plug 'rizzatti/dash.vim'
-Plug 'chrisbra/csv.vim'
+" Plug 'chrisbra/csv.vim'
 
 Plug 'chamindra/marvim'
 
@@ -241,7 +241,9 @@ Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-obsession'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-abolish' " this is the plug that does crc,crm,crs,cru (convert variable case e.g. camelCase MixedCase snake_case)
-Plug 'tpope/vim-afterimage'
+Plug 'mi60dev/image.vim'
+
+" Plug 'tpope/vim-afterimage'
 " Plug 'rust-lang/rust.vim'
 " Plug 'tpope/vim-endwise'
 " Plug 'vim-perl/vim-perl'
