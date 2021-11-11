@@ -13,10 +13,10 @@ threshold = 9
 style = "bold white bg:red"
 [[battery.display]]
 threshold = 15
-style = "red"
+style = "bold red"
 [[battery.display]]
-threshold = 30
-style = "bold orange"
+threshold = 20
+style = "red"
 [[battery.display]]
 threshold = 50
 style = "yellow"
