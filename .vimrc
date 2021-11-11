@@ -30,7 +30,8 @@ Plug 'martinda/Jenkinsfile-vim-syntax'
 
 Plug 'godlygeek/tabular'
 Plug 'plasticboy/vim-markdown'
-Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': [ 'markdown', 'vim-plug' ] }
+" Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': [ 'markdown', 'vim-plug' ] }
+Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && yarn install' }
 
 let $NVIM_MKDP_LOG_FILE = $HOME . '/.tmp/mkdp-log.log'
 let $NVIM_MKDP_LOG_LEVEL = 'debug'
@@ -465,6 +466,7 @@ Plug 'inkarkat/vim-IndentConsistencyCop'
 Plug 't9md/vim-textmanip', { 'on': [ '<Plug>(textmanip-move-down)', '<Plug>(textmanip-move-up)', '<Plug>(textmanip-move-left)', '<Plug>(textmanip-move-right)', '<Plug>(textmanip-toggle-mode)', '<Plug>(textmanip-toggle-mode)', ] }
 
 " Plug 'junegunn/vim-easy-align'
+Plug 'vim-scripts/Align'
 
 " Plug 'octol/vim-cpp-enhanced-highlight' " this broke way too often on modern c++ files. Really problematic angle bracket handling. Trying it again.
 
@@ -531,6 +533,7 @@ let g:switch_custom_definitions = [
   \   switch#NormalizedCase(['show', 'hide']),
   \   switch#NormalizedCase(['before', 'after']),
   \   switch#NormalizedCaseWords(['yes', 'no']),
+  \   switch#NormalizedCaseWords(['on', 'off']),
   \   switch#NormalizedCaseWords(['error', 'warn', 'info']),
   \ ] + g:switch_custom_definitions
 

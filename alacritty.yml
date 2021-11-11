@@ -19,7 +19,7 @@ env:
 # Falls back to size specified by window manager if set to 0x0.
 # (changes require restart)
 window:
-  opacity: 0.95
+  opacity: 0.92
   dimensions:
     columns: 120
     lines: 90
@@ -62,7 +62,7 @@ font:
   # The italic font face
   italic:
     family: "SF Mono Powerline" # should be "Menlo" or something on macOS.
-    style: Italic
+    style: Regular Italic
 
   antialias: true
 
@@ -73,14 +73,14 @@ font:
   # as modifying the linespacing, and offset.x as modifying the letter spacing.
   offset:
     x: 0
-    y: 1
+    y: -1
 
   # Glyph offset determines the locations of the glyphs within their cells with
   # the default being at the bottom. Increase the x offset to move the glyph to
   # the right, increase the y offset to move the glyph upward.
   glyph_offset:
     x: 0
-    y: 1
+    y: 0
 
   # OS X only: use thin stroke font rendering. Thin strokes are suitable
   # for retina displays, but for non-retina you probably want this set to
@@ -149,10 +149,10 @@ colors:
 #
 # To completely disable the visual bell, set its duration to 0.
 #
-# bell:
-  # command:
-  #   program: afplay
-  #   args: ["/System/Library/Sounds/Funk.aiff"]
+bell:
+  command:
+    program: afplay
+    args: ["/System/Library/Sounds/Tink.aiff"]
   # animation: EaseOutExpo
   # duration: 20
   # color: '0x101010'
@@ -249,6 +249,9 @@ key_bindings:
     # cannot bind to cmmand because of macos window default functionality stupidity
   - { key: Grave,    mods: Alt, command: { program: "/Users/slu/util/macos-open-next-program.sh", args: ["alacritty"] } }
   - { key: Grave,    mods: Shift|Alt, command: { program: "/Users/slu/util/macos-open-next-program.sh", args: ["alacritty", "prev"] } }
+  # cmd+` isn't going to work due to system behavior
+  # - { key: Grave,    mods: Command, command: { program: "/Users/slu/util/macos-open-next-program.sh", args: ["alacritty"] } }
+  # - { key: Grave,    mods: Shift|Command, command: { program: "/Users/slu/util/macos-open-next-program.sh", args: ["alacritty", "prev"] } }
   - { key: V,        mods: Command,       action: Paste            }
   - { key: C,        mods: Command,       action: Copy             }
   - { key: Key0,     mods: Command,       action: ResetFontSize    }
@@ -347,12 +350,15 @@ key_bindings:
   - { key: Back,     mods: Command,       chars: "\x15"         }
   - { key: Insert,   mods: Shift,         action: Paste         }
   - { key: Insert,   chars: "\x1b[2~"                           }
-  - { key: Delete,   chars: "\x1b[3~"                           }
+  # - { key: Delete,   chars: "\x1b[3~"                           }
+  # home
   - { key: Left,     mods: Command,       chars: "\x1b[1~"      }
-  - { key: Left,     mods: Shift,         chars: "\x1b[1;2D"    }
-  - { key: Left,     mods: Control,       chars: "\x1b[1;5D"    }
-  - { key: Left,     mods: Control|Shift, chars: "\x1b[1;6D"    }
-  - { key: Left,     mods: Alt,           chars: "\x1b[1;3D"    }
+  - { key: Left,     mods: Command|Shift, chars: "\x1b[1;9D"     }
+  - { key: Left,     mods: Control|Alt, chars: "\x1b[1;7D"     }
+  # - { key: Left,     mods: Shift,         chars: "\x1b[1;2D"    }
+  # - { key: Left,     mods: Control,       chars: "\x1b[1;5D"    }
+  # - { key: Left,     mods: Control|Shift, chars: "\x1b[1;6D"    }
+  # - { key: Left,     mods: Alt,           chars: "\x1b[1;3D"    }
   - { key: Right,    mods: Command,       chars: "\x1b[4~"      }
   - { key: Right,    mods: Shift,         chars: "\x1b[1;2C"    }
   - { key: Right,    mods: Control,       chars: "\x1b[1;5C"    }
@@ -406,6 +412,7 @@ key_bindings:
   - { key: F10,      mods: Command|Shift,   chars: "\x1b[21;4~"            }
   - { key: F11,      mods: Command|Shift,   chars: "\x1b[23;4~"            }
   - { key: F12,      mods: Command|Shift,   chars: "\x1b[24;4~"            }
+  - { key: Slash,    mods: Alt,             chars: "\x1b/"  }
 
   # - { key: F1,       mods: Super|Control,   chars: "\x1b[1;11P"             }
   # - { key: F2,       mods: Super|Control,   chars: "\x1b[1;11Q"             }
