@@ -9,13 +9,13 @@ empty_symbol = "🔋💀"
 format = "[$symbol$percentage ]($style)"
 
 [[battery.display]]
-threshold = 9
+threshold = 10
 style = "bold white bg:red"
 [[battery.display]]
-threshold = 15
+threshold = 20
 style = "bold red"
 [[battery.display]]
-threshold = 20
+threshold = 30
 style = "red"
 [[battery.display]]
 threshold = 50

@@ -62,7 +62,7 @@ font:
   # The italic font face
   italic:
     family: "SF Mono Powerline" # should be "Menlo" or something on macOS.
-    style: Italic
+    style: Regular Italic
 
   antialias: true
 
