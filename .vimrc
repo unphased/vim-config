@@ -1204,6 +1204,12 @@ vnoremap <S-Left> b
 nnoremap <S-Right> e
 vnoremap <S-Right> e
 
+" Don't know why this is now necessary maybe some change in tmux lately.
+set <C-Left>=[1;5D
+set <C-Right>=[1;5C
+" set <C-Up>=[1;5A
+" set <C-Down>=[1;5B
+
 nnoremap <C-Left> B
 vnoremap <C-Left> B
 nnoremap <C-Right> E
