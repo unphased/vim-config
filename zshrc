@@ -1,5 +1,7 @@
 echo Hi from ~/.zshrc
 
+emulate -LR zsh
+
 . "$HOME/.cargo/env"
 
 . $HOME/.aliases.sh

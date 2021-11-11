@@ -464,6 +464,7 @@ Plug 'inkarkat/vim-IndentConsistencyCop'
 Plug 't9md/vim-textmanip', { 'on': [ '<Plug>(textmanip-move-down)', '<Plug>(textmanip-move-up)', '<Plug>(textmanip-move-left)', '<Plug>(textmanip-move-right)', '<Plug>(textmanip-toggle-mode)', '<Plug>(textmanip-toggle-mode)', ] }
 
 " Plug 'junegunn/vim-easy-align'
+Plug 'vim-scripts/Align'
 
 " Plug 'octol/vim-cpp-enhanced-highlight' " this broke way too often on modern c++ files. Really problematic angle bracket handling. Trying it again.
 
@@ -530,6 +531,7 @@ let g:switch_custom_definitions = [
   \   switch#NormalizedCase(['show', 'hide']),
   \   switch#NormalizedCase(['before', 'after']),
   \   switch#NormalizedCaseWords(['yes', 'no']),
+  \   switch#NormalizedCaseWords(['on', 'off']),
   \   switch#NormalizedCaseWords(['error', 'warn', 'info']),
   \ ] + g:switch_custom_definitions
 
