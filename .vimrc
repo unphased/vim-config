@@ -18,7 +18,7 @@ Plug 'powerman/vim-plugin-AnsiEsc'
 
 Plug 'fidian/hexmode'
 Plug 'rizzatti/dash.vim'
-Plug 'chrisbra/csv.vim'
+" Plug 'chrisbra/csv.vim'
 
 Plug 'chamindra/marvim'
 
@@ -242,7 +242,9 @@ Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-obsession'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-abolish' " this is the plug that does crc,crm,crs,cru (convert variable case e.g. camelCase MixedCase snake_case)
-Plug 'tpope/vim-afterimage'
+Plug 'mi60dev/image.vim'
+
+" Plug 'tpope/vim-afterimage'
 " Plug 'rust-lang/rust.vim'
 " Plug 'tpope/vim-endwise'
 " Plug 'vim-perl/vim-perl'
@@ -1201,6 +1203,12 @@ nnoremap <S-Left> b
 vnoremap <S-Left> b
 nnoremap <S-Right> e
 vnoremap <S-Right> e
+
+" Don't know why this is now necessary maybe some change in tmux lately.
+set <C-Left>=[1;5D
+set <C-Right>=[1;5C
+" set <C-Up>=[1;5A
+" set <C-Down>=[1;5B
 
 nnoremap <C-Left> B
 vnoremap <C-Left> B
