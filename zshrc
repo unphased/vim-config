@@ -79,5 +79,6 @@ zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 
 # https://apple.stackexchange.com/a/27272/13465
 export PAGER=/opt/homebrew/bin/less
 
+export LESS='-i -J -M -R -W -x4 -z-4'
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
