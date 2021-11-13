@@ -60,7 +60,7 @@
   # external = sift
   tool = sift
   # tool = opendiff
-  colorMoved = plain
+  colorMoved = default
   colormovedws = allow-indentation-change
 [blame]
   coloring = highlightRecent
