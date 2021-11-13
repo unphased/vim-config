@@ -60,8 +60,9 @@
   # external = sift
   tool = sift
   # tool = opendiff
-  colorMoved = default
+  colorMoved = dimmed-zebra
   colormovedws = allow-indentation-change
+  algorithm = patience
 [blame]
   coloring = highlightRecent
 [color]
