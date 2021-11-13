@@ -39,13 +39,12 @@
   lg = log --graph --date-order --pretty=format:'%C(bold magenta)%h%Creset -%C(auto)%d%Creset %s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
   s = "!f() { git status --short; ignored=$(git ignored); [ -n \"$ignored\" ] && echo \"$ignored\"; };f"
   unadd = reset HEAD
-  d = difftool
   ignore = update-index --skip-worktree
   unignore = update-index --no-skip-worktree
   ignored = !git ls-files -v | grep "^S"
   status-with-ignored = "!f() { git status -uno; ignored=$(git ignored | cut -d ' ' -f 2 | sed -e s/^/[31m/ -e s/$/[m/); [ -n \"$ignored\" ] && echo \"git skip-worktree (ignored):\n$ignored\"; };f"
   diff-with-ignored = "!f() { git diff ; ignored=$(git ignored | cut -d ' ' -f 2); [ -n \"$ignored\" ] && echo \"git skip-worktree (ignored):\" && for var in $ignored; do echo [31m$var[m; git show HEAD:$var | diff -u - $var; done };f"
-  ; diff-with-ignored-ext = "!f() { git diff --ext-diff | cat; ignored=$(git ignored | cut -d ' ' -f 2); [ -n \"$ignored\" ] && echo \"git skip-worktree (ignored):\" && for var in $ignored; do echo [31m$var[m; git show HEAD:$var | sift - $var; done };f"
+  # diff-with-ignored-ext = "!f() { git diff --ext-diff | cat; ignored=$(git ignored | cut -d ' ' -f 2); [ -n \"$ignored\" ] && echo \"git skip-worktree (ignored):\" && for var in $ignored; do echo [31m$var[m; git show HEAD:$var | sift - $var; done };f"
 
   commit-push = "!f() { git commit-message \"$*\" && git push; };f"
   commit-message = "!f() { [ -z \"$*\" ] && git commit -am \"- old bugs fixed\n- new bugs added\" || git commit -am \"$*\"; };f"
@@ -58,10 +57,13 @@
   prompt = false
 [diff]
   mnemonicprefix = true
-  external = sift
-  # tool = pydifflib
-  tool = opendiff
-  colormoved = default
+  # external = sift
+  tool = sift
+  # tool = opendiff
+  colorMoved = plain
+  colormovedws = allow-indentation-change
+[blame]
+  coloring = highlightRecent
 [color]
   branch = auto
   #diff = always
@@ -88,6 +90,8 @@
 [difftool "sourcetree"]
   cmd = opendiff \"$LOCAL\" \"$REMOTE\"
   path = 
+[difftool "sift"]
+  cmd = sift \"$LOCAL\" \"$REMOTE\"
 [mergetool "sourcetree"]
   cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
   trustExitCode = true

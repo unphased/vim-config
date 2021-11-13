@@ -26,19 +26,22 @@ alias ssht="TERM=xterm ssh"
 alias g="git"
 alias gs="git s" # short status 
 alias gco="git checkout"
-alias glpo="git --no-pager log -p --no-ext-diff --color=always | less"
+alias glpo="git --no-pager log -p --color=always | less"
 alias glpa="git log -p --all"
 alias glpf="git log -p --follow"
-alias glp="git log -p --no-ext-diff"
-alias glpe="git log -p --ext-diff"
-alias glpen="git --no-pager log -p --ext-diff --color=always | less"
+alias glp="git log -p"
+alias glpe="git log -p"
+alias glpen="git --no-pager log -p --color=always | less"
 # alias glpes="git log -p --ext-diff --stat"
-alias gd="git --no-pager diff --no-ext-diff --color=always | less"
+alias gd="git --no-pager diff --color=always | less"
 alias gf='git fetch'
 alias gds="git diff --stat"
 alias di="git diff-with-ignored"
 alias gc!="git commit --amend"
-alias gde="git diff --ext-diff"
+
+# unfortunately the mnemonic of ext is sticking, so even though difftool is used to run sift 
+# i will keep using the "e"
+alias gde="git difftool"
 alias gdc="gd --cached"
 #unalias gg # some git gui thing from ohmyzsh
 alias gg="git lg --all"
