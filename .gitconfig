@@ -41,7 +41,6 @@
   whitespace = cr-at-eol
   excludesfile = ~/.gitignore
   autocrlf = input
-	; pager = less -+X -+F
   pager = sed 's/\t/▶╌╌╌/g' | delta
 [color]
   ui = true
