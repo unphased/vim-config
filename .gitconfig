@@ -3,29 +3,38 @@
 [delta]
   features = side-by-side line-numbers decorations
   syntax-theme = Dracula
-  plus-style = syntax "#003800"
-  minus-style = syntax "#3f0001"
+  plus-style = bold syntax "#004800"
+  plus-non-emph-style = syntax "#002800"
+  plus-emph-style = bold syntax "#006000"
+  minus-style = bold syntax "#480000"
+  minus-non-emph-style = syntax "#280000"
+  minus-emph-style = bold syntax "#600000"
 
 [delta "decorations"]
-  commit-decoration-style = bold yellow box ul
-  file-style = bold yellow ul
+  commit-style = yellow bold
+  file-style = omit
   file-decoration-style = none
-  hunk-header-decoration-style = cyan box ul
+  hunk-header-decoration-style = omit
+  hunk-header-line-number-style = magenta
+  hunk-header-style = file line-number syntax
 
 [delta "line-numbers"]
-  line-numbers-left-style = cyan
-  line-numbers-right-style = cyan
-  line-numbers-minus-style = 124
-  line-numbers-plus-style = 28
+  line-numbers-left-style = red
+  line-numbers-right-style = green
+  line-numbers-minus-style = "#7f0000"
+  line-numbers-plus-style = "#007800"
+  line-numbers-left-format = "{nm:>3}¦"
+  line-numbers-right-format = "{np:>3}│"
 
-[pager]
-  diff = delta
-  log = delta
-  reflog = delta
-  show = delta
+; [pager]
+;   diff = delta
+;   log = delta
+;   reflog = delta
+;   show = delta
+;   blame = delta
 
 [interactive]
-      diffFilter = delta --color-only --features=interactive
+  diffFilter = delta --color-only --features=interactive
 
 [core]
   editor = vim
@@ -33,6 +42,7 @@
   excludesfile = ~/.gitignore
   autocrlf = input
 	; pager = less -+X -+F
+  pager = sed 's/\t/▶╌╌╌/g' | delta
 [color]
   ui = true
 [alias]
@@ -60,7 +70,7 @@
   # external = sift
   tool = sift
   # tool = opendiff
-  colorMoved = dimmed-zebra
+  colorMoved = zebra
   colormovedws = allow-indentation-change
   algorithm = patience
 [blame]
@@ -79,6 +89,10 @@
   old = red
   new = green
   whitespace = blue reverse
+  oldMoved = 7 "#180028"
+  oldMovedAlternative = 7 "#200020"
+  newMoved = 7 "#001828"
+  newMovedAlternative = 7 "#001030"
 [color "status"]
   added = yellow
   changed = green

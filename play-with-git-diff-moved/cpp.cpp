@@ -65,6 +65,22 @@ std::string[] ss = {
   "abc", // abc
   "def", // def
   "def1", // def
+  "def27", // def
+  "def28", // def
+  "def29", // def
+  "def30", // def
+  "def31", // def
+  "def33", // def
+  "def34", // def
+  "def35", // def
+  "def36", // def
+  "def37", // def
+  new String(),
+  "def38", // def
+  "def39", // def
+  "def40", // def
+  "def41", // def
+  "def42", // def
   "def2", // def
   "def3", // def
   "def4", // def
@@ -85,27 +101,17 @@ std::string[] ss = {
   "def19", // def
   "def20", // def
   "def21", // def
-  "def22", // def
+  "def22", // def 
   "def23", // def
   "def24", // def
   "def25", // def
   "def26", // def
-  "def27", // def
-  "def28", // def
-  "def29", // def
-  "def30", // def
-  "def31", // def
-  "def32", // def
-  "def33", // def
-  "def34", // def
-  "def35", // def
-  "def36", // def
-  "def37", // def
-  "def38", // def
-  "def39", // def
-  "def40", // def
-  "def41", // def
-  "def42", // def
   "def43", // def
-  "def44", // def
+  	"def44", // def
 };
+
+abc::def::
+ghi { "abc
+
+  def"
+}
