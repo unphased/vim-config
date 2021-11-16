@@ -48,7 +48,7 @@ int i[] = {
   24,  // comment
   25,  // comment
   26,  // comment
-  27,  // comment
+  27,  // comment, this is a very long comment, very long indeed
   28,  // comment
   29,  // comment
   30,  // comment
