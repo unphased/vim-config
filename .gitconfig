@@ -88,10 +88,10 @@
   old = red
   new = green
   whitespace = blue reverse
-  oldMoved = 7 "#180028"
-  oldMovedAlternative = 7 "#200020"
-  newMoved = 7 "#001828"
-  newMovedAlternative = 7 "#001030"
+  oldMoved = 7 "#180030"
+  oldMovedAlternative = 7 "#100038"
+  newMoved = 7 "#001830"
+  newMovedAlternative = 7 "#001038"
 [color "status"]
   added = yellow
   changed = green
