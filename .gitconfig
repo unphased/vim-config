@@ -1,14 +1,14 @@
 [user]
 
 [delta]
-  features = side-by-side line-numbers decorations
-  syntax-theme = Dracula
-  plus-style = bold syntax "#004800"
-  plus-non-emph-style = syntax "#002800"
-  plus-emph-style = bold syntax "#006000"
-  minus-style = bold syntax "#480000"
-  minus-non-emph-style = syntax "#280000"
-  minus-emph-style = bold syntax "#600000"
+  features = line-numbers decorations
+  syntax-theme = zenburn
+  plus-style = bold syntax "#004000"
+  plus-non-emph-style = syntax "#002000"
+  plus-emph-style = bold syntax "#006800"
+  minus-style = bold syntax "#400000"
+  minus-non-emph-style = syntax "#200000"
+  minus-emph-style = bold syntax "#680000"
 
 [delta "decorations"]
   commit-style = yellow bold
