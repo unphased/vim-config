@@ -29,7 +29,7 @@ symbol = "node "
 
 [time]
 disabled = false
-style = "yellow"
+style = "green"
 
 [git_metrics]
 disabled = false
