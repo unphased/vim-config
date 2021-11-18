@@ -83,10 +83,12 @@
   //, "tsserver.log": "verbose"
   , "coc.preferences.formatOnSaveFiletypes": [ "javascript", "typescript", "javascriptreact", "typescriptreact", "typescript.tsx", "javascript.jsx" ]
   , "snippets.priority": 50
-  , "tabnine.priority": -50
-  , "clangd.semanticHighlighting": true
+  // , "tabnine.priority": -50
+  // , "clangd.semanticHighlighting": true
   //, "coc.preferences.semanticTokensHighlights": false
-  , "coc.preferences.extensionUpdateCheck": "daily",
-  "clangd.path": "/home/slu/.config/coc/extensions/coc-clangd-data/install/12.0.0/clangd_12.0.0/bin/clangd",
-  // "clangd.trace": "/tmp/clangd.trace"
+  ,
+  "coc.preferences.extensionUpdateCheck": "daily",
+  "clangd.path": "~/.config/coc/extensions/coc-clangd-data/install/13.0.0/clangd_13.0.0/bin/clangd",
+  // "clangd.trace.file": "/tmp/clangd.trace",
+  // "clangd.trace.server": "verbose"
 }
