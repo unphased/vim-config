@@ -72,6 +72,13 @@ export CORRECT_IGNORE_FILE='.*'
 # bindkey "^[[A" history-beginning-search-backward
 # bindkey "^[[B" history-beginning-search-forward
 
+# use with alt+period which is enabled by default (it fetches the last arg of previous command and 
+# repeating hops back in history)
+# this is supposed to cycle back through the cmd in history. It fails to cycle for me on macos
+autoload -Uz copy-earlier-word
+zle -N copy-earlier-word
+bindkey "\e," copy-earlier-word
+
 # black magic to implement helpful path completion
 # https://stackoverflow.com/a/24237590/340947
 zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
