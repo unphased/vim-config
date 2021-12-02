@@ -11,7 +11,9 @@
   minus-emph-style = bold syntax "#680000"
 
 [delta "decorations"]
-  commit-style = yellow bold
+  ; commit-style = raw
+  ; commit-decoration-style = bold yellow box ul
+  ; commit-style = yellow bold
   file-style = omit
   file-decoration-style = none
   hunk-header-decoration-style = omit
