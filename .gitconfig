@@ -107,7 +107,7 @@
   cmd = opendiff \"$LOCAL\" \"$REMOTE\"
   path = 
 [difftool "sift"]
-  cmd = sift \"$LOCAL\" \"$REMOTE\"
+  cmd = sift \"$LOCAL\" \"$REMOTE\" | less
 [mergetool "sourcetree"]
   cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
   trustExitCode = true
