@@ -15,42 +15,42 @@
   "diagnostic-languageserver.filetypes": {
     "sh": "shellcheck"
   },
-  "diagnostic-languageserver.linters": {
-    "shellcheck": {
-      "command": "shellcheck",
-      "debounce": 100,
-      "args": [
-        "--format",
-        "json",
-        "-x",
-        "-"
-      ],
-      "sourceName": "shellcheck",
-      "parseJson": {
-        "line": "line",
-        "column": "column",
-        "endLine": "endLine",
-        "endColumn": "endColumn",
-        "message": "${message} [${code}]",
-        "security": "level"
-      },
-      "securities": {
-        "error": "error",
-        "warning": "warning",
-        "info": "info",
-        "style": "hint"
-      }
-    }
-  },
-  "diagnostic-languageserver.formatFiletypes": {
-    "sh": "shfmt"
-  },
-  "diagnostic-languageserver.formatters": {
-    "shfmt": {
-      "command": "shfmt",
-      "args": ["-i", "4", "-bn", "-ci"]
-    }
-  },
+  // "diagnostic-languageserver.linters": {
+  //   "shellcheck": {
+  //     "command": "shellcheck",
+  //     "debounce": 100,
+  //     "args": [
+  //       "--format",
+  //       "json",
+  //       "-x",
+  //       "-"
+  //     ],
+  //     "sourceName": "shellcheck",
+  //     "parseJson": {
+  //       "line": "line",
+  //       "column": "column",
+  //       "endLine": "endLine",
+  //       "endColumn": "endColumn",
+  //       "message": "${message} [${code}]",
+  //       "security": "level"
+  //     },
+  //     "securities": {
+  //       "error": "error",
+  //       "warning": "warning",
+  //       "info": "info",
+  //       "style": "hint"
+  //     }
+  //   }
+  // },
+  // "diagnostic-languageserver.formatFiletypes": {
+  //   "sh": "shfmt"
+  // },
+  // "diagnostic-languageserver.formatters": {
+  //   "shfmt": {
+  //     "command": "shfmt",
+  //     "args": ["-i", "4", "-bn", "-ci"]
+  //   }
+  // },
   "languageserver": {
     // "ccls": {
     //   "command": "/snap/ccls/current/bin/ccls",
@@ -88,7 +88,7 @@
   //, "coc.preferences.semanticTokensHighlights": false
   ,
   "coc.preferences.extensionUpdateCheck": "daily",
-  "clangd.path": "~/.config/coc/extensions/coc-clangd-data/install/13.0.0/clangd_13.0.0/bin/clangd",
+  "clangd.path": "~/.config/coc/extensions/coc-clangd-data/install/13.0.0/clangd_13.0.0/bin/clangd"
   // "clangd.trace.file": "/tmp/clangd.trace",
   // "clangd.trace.server": "verbose"
 }
