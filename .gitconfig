@@ -65,11 +65,11 @@
     git stash push \"$@\" && \
     git reset --quiet --soft HEAD~1; }; f"
 [difftool]
-  prompt = false
+  ; prompt = false
 [diff]
   mnemonicprefix = true
   # external = sift
-  tool = sift
+  ; tool = sift
   # tool = opendiff
   colorMoved = zebra
   colormovedws = allow-indentation-change
@@ -107,7 +107,7 @@
   cmd = opendiff \"$LOCAL\" \"$REMOTE\"
   path = 
 [difftool "sift"]
-  cmd = sift \"$LOCAL\" \"$REMOTE\" | less
+  cmd = sift \"$LOCAL\" \"$REMOTE\"
 [mergetool "sourcetree"]
   cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
   trustExitCode = true
