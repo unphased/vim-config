@@ -22,7 +22,7 @@ alias l="ls -lart"
 alias sl="ls"
 alias ll="l -l"
 alias la="ll -a"
-alias ssht="TERM=xterm ssh"
+alias ssht="TERM=xterm-256color ssh"
 alias g="git"
 alias gs="git s" # short status 
 alias gco="git checkout"
@@ -41,7 +41,7 @@ alias gc!="git commit --amend"
 
 # unfortunately the mnemonic of ext is sticking, so even though difftool is used to run sift 
 # i will keep using the "e"
-alias gde="GIT_EXTERNAL_DIFF=sift git diff --ext-diff"
+alias gde="GIT_EXTERNAL_DIFF=sift GIT_PAGER=less git diff --ext-diff"
 alias de="gde"
 alias gdc="gd --cached"
 #unalias gg # some git gui thing from ohmyzsh
