@@ -1249,10 +1249,16 @@ noremap <S-L> 7l
 " navigation works as my brain expects it to, i.e. same as in a buffer. Except 
 " that with BufEnter this doesnt work on the first open for NERDTree.
 
-" this happens to also defer the bind for all buffer opens, but it shouldnt 
-" matter, really.
-au BufEnter * noremap <buffer> <silent> K 5gk
-au BufEnter * noremap <buffer> <silent> J 5gj
+" this happens to also defer the bind for all buffer opens (which can make it apply in other 
+" plugins like that as well), but it shouldnt matter, really.
+nnoremap K 5gk
+nnoremap J 5gj
+vnoremap K 5gk
+vnoremap J 5gj
+" use my bind to allow joining in visual mode (cannot believe i lived without this. I usually just 
+" did some chain repeat operation for this)
+vnoremap <c-n> J
+
 
 " and now to provide a new binding for GoDoc using au instead of after/ because 
 " of maintainability
