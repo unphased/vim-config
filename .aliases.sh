@@ -141,6 +141,11 @@ alias grepc='grep --color=always --exclude=\*{.,-}min.\*'
 # alias agc='ag --color'
 alias mkae='make'
 
+# only for macos
+if [[ "$(uname -a)" =~ "Darwin Kernel" ]]; then
+  alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
+fi
+
 # to make fzf's file finding usage (mainly when using vim but should work for 
 # non-vim) work like i want, which is let me comb through all the files ever. 
 # Except for git repoes.
@@ -150,7 +155,7 @@ export FZF_DEFAULT_COMMAND="fd --type file"
 # my only way to dedupe a sane config across OS's, bash & omz & prezto.
 
 # set PATH so it includes user's private bin directories
-export PATH="$HOME/.yarn/bin:$HOME/.cargo/bin:$HOME/bin:$HOME/.local/bin:$PATH"
+export PATH="$HOME/.cargo/bin:$HOME/bin:$HOME/.local/bin:$PATH"
 export PATH=$HOME/util:$PATH
 
 # source $HOME/.vim/work/aliases/rtr.sh
