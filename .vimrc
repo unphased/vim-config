@@ -4,6 +4,8 @@ set showcmd
 
 set autoindent
 
+" set foldmethod=indent
+
 filetype plugin indent on
 
 call plug#begin('~/.vim/plugged')
@@ -461,6 +463,7 @@ Plug 'unphased/vim-unimpaired'
 Plug 'vim-scripts/camelcasemotion'
 Plug 'vim-scripts/ingo-library' " needed for EnhancedJumps
 Plug 'vim-scripts/EnhancedJumps'
+Plug 'inkarkat/vim-SyntaxRange'
 Plug 'inkarkat/vim-IndentConsistencyCop'
 
 Plug 't9md/vim-textmanip', { 'on': [ '<Plug>(textmanip-move-down)', '<Plug>(textmanip-move-up)', '<Plug>(textmanip-move-left)', '<Plug>(textmanip-move-right)', '<Plug>(textmanip-toggle-mode)', '<Plug>(textmanip-toggle-mode)', ] }
@@ -979,6 +982,8 @@ hi Exception ctermfg=211
 
 hi FoldColumn guibg=black
 hi Folded guibg=#151515
+
+"set foldcolumn=1
 
 highlight DiffAdd term=reverse ctermbg=156 ctermfg=black guibg=#304930
 highlight DiffChange term=reverse ctermbg=33 ctermfg=black guibg=#114048

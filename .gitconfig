@@ -23,8 +23,8 @@
 [delta "line-numbers"]
   line-numbers-left-style = red
   line-numbers-right-style = green
-  line-numbers-minus-style = "#7f0000"
-  line-numbers-plus-style = "#007800"
+  line-numbers-minus-style = "bold #7f0000"
+  line-numbers-plus-style = "bold #007800"
   line-numbers-left-format = "{nm:>3}¦"
   line-numbers-right-format = "{np:>3}│"
 
