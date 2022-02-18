@@ -3,7 +3,6 @@ set encoding=utf-8
 set showcmd
 
 set autoindent
-
 " set foldmethod=indent
 
 filetype plugin indent on
