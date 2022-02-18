@@ -162,6 +162,10 @@ export PATH=$HOME/util:$PATH
 
 export EDITOR=vim
 
+# for pip3 on macos (ehhhh)
+# [[ -d $HOME/Library/Python/3.8/bin && ! "$PATH" =~ $HOME/Library/Python/3.8/bin ]] && export 
+# PATH=$HOME/Library/Python/3.8/bin:$PATH
+
 # for when tmux panes lose the ssh agent env vars
 fixssh() {
   eval $(tmux show-env -s |grep '^SSH_')

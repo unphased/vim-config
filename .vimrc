@@ -4029,6 +4029,8 @@ augroup filetype_settings " {
 augroup END " }
 
 " to allow pasting not to break repeats when done from an insert session started by c
-vmap p c<C-r>0<Esc>
+" UPDATE! THIS SEEMS TO BREAK SOMETHING
+" vmap p c<C-r>0<Esc>
+
 nnoremap <F24> :%s/\<<c-r><c-w>\>//g<left><left>
 
