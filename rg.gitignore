@@ -6,6 +6,7 @@
 !.eslintrc.json
 !.eslintrc.js
 !.github/
+!.dockerignore
 **/node_modules
 **/*.min.js
 **/*.svg

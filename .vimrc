@@ -3,7 +3,6 @@ set encoding=utf-8
 set showcmd
 
 set autoindent
-
 " set foldmethod=indent
 
 filetype plugin indent on
@@ -255,10 +254,10 @@ Plug 'tpope/vim-abolish' " this is the plug that does crc,crm,crs,cru (convert v
 " Plug 'vim-scripts/yaifa.vim'
 Plug 'nathanaelkane/vim-indent-guides'
 
-if has('nvim')
-	au TermEnter * IndentGuidesDisable
-	au TermLeave * IndentGuidesEnable
-endif
+" if has('nvim')
+" 	au TermEnter * IndentGuidesDisable
+" 	au TermLeave * IndentGuidesEnable
+" endif
 
 " Plug 'wellle/context.vim'
 Plug 'wellle/targets.vim'
@@ -4034,3 +4033,5 @@ augroup END " }
 
 nnoremap <F24> :%s/\<<c-r><c-w>\>//g<left><left>
 
+" To disable the old vim version warning via coc
+let g:coc_disable_startup_warning = 1
