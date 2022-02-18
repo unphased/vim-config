@@ -4032,3 +4032,5 @@ augroup END " }
 vmap p c<C-r>0<Esc>
 nnoremap <F24> :%s/\<<c-r><c-w>\>//g<left><left>
 
+" To disable the old vim version warning via coc
+let g:coc_disable_startup_warning = 1
