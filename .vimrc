@@ -254,10 +254,10 @@ Plug 'tpope/vim-abolish' " this is the plug that does crc,crm,crs,cru (convert v
 " Plug 'vim-scripts/yaifa.vim'
 Plug 'nathanaelkane/vim-indent-guides'
 
-if has('nvim')
-	au TermEnter * IndentGuidesDisable
-	au TermLeave * IndentGuidesEnable
-endif
+" if has('nvim')
+" 	au TermEnter * IndentGuidesDisable
+" 	au TermLeave * IndentGuidesEnable
+" endif
 
 " Plug 'wellle/context.vim'
 Plug 'wellle/targets.vim'
