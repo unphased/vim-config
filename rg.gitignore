@@ -27,6 +27,7 @@
 **/compile_commands.json
 **/*.o
 **/*.log
+!*flash*.log
 **/*.stderr
 **/*.stdout
 **/cdb/**
