@@ -19,7 +19,7 @@ Plug 'powerman/vim-plugin-AnsiEsc'
 
 Plug 'fidian/hexmode'
 Plug 'rizzatti/dash.vim'
-" Plug 'chrisbra/csv.vim'
+Plug 'chrisbra/csv.vim'
 
 Plug 'chamindra/marvim'
 
