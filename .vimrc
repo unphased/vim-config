@@ -238,6 +238,7 @@ Plug 'scrooloose/nerdtree', { 'on': ['NERDTreeFind', 'NERDTreeToggle'] }
 Plug 'vim-scripts/diffchanges.vim'
 Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-surround'
+Plug 'tpope/vim-sleuth'
 Plug 'tpope/vim-speeddating'
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-obsession'
@@ -273,6 +274,7 @@ Plug 'dimasg/vim-mark', { 'on': '<Plug>MarkSet' }
 " Bundle 'kien/rainbow_parentheses.vim'
 Plug 'mhinz/vim-signify'
 Plug 'pangloss/vim-javascript'
+Plug 'othree/html5.vim'
 " Plug 'jelera/vim-javascript-syntax'
 Plug 'beyondmarc/glsl.vim'
 "Bundle 'kana/vim-smartinput'
@@ -900,8 +902,6 @@ set tabstop=2
 
 set expandtab
 set smarttab
-
-
 
 set autoread
 augroup checktime_augroup

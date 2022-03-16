@@ -19,6 +19,8 @@
         "define": true,
         "_": true,
         "moment": true,
+        "require": true,
+        "process": true,
         "vex": true,
         "THREE": true
     },
