@@ -421,6 +421,10 @@ key_bindings:
   - { key: F11,      mods: Command|Shift,   chars: "\x1b[23;4~"            }
   - { key: F12,      mods: Command|Shift,   chars: "\x1b[24;4~"            }
   - { key: Slash,    mods: Alt,             chars: "\x1b/"  }
+  # These are to make it so i dont have to define custom binds in BTT, I could do that of course,
+  # but this is a lot less work setting up!
+  - { key: RBracket,    mods: Command|Shift,             chars: "\x1b[21;3~"  }
+  - { key: LBracket,    mods: Command|Shift,             chars: "\x1b[21;4~"  }
 
   # - { key: F1,       mods: Super|Control,   chars: "\x1b[1;11P"             }
   # - { key: F2,       mods: Super|Control,   chars: "\x1b[1;11Q"             }
