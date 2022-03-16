@@ -87,9 +87,9 @@
   // , "tabnine.priority": -50
   // , "clangd.semanticHighlighting": true
   //, "coc.preferences.semanticTokensHighlights": false
-  ,
-  "coc.preferences.extensionUpdateCheck": "daily",
-  "clangd.path": "~/.config/coc/extensions/coc-clangd-data/install/13.0.0/clangd_13.0.0/bin/clangd"
+  , "coc.preferences.extensionUpdateCheck": "daily"
+  , "clangd.path": "~/.config/coc/extensions/coc-clangd-data/install/13.0.0/clangd_13.0.0/bin/clangd"
   // ,"clangd.trace.file": "/tmp/clangd.trace"
   // ,"clangd.trace.server": "verbose"
+  , "eslint.options": { "configFile": "~/.eslintrc.json"  }
 }
