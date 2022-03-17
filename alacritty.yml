@@ -425,6 +425,8 @@ key_bindings:
   # but this is a lot less work setting up!
   - { key: RBracket,    mods: Command|Shift,             chars: "\x1b[21;3~"  }
   - { key: LBracket,    mods: Command|Shift,             chars: "\x1b[21;4~"  }
+  - { key: RBracket,    mods: Command,             chars: "\x1b]"  }
+  - { key: LBracket,    mods: Command,             chars: "\x1b["  }
 
   # - { key: F1,       mods: Super|Control,   chars: "\x1b[1;11P"             }
   # - { key: F2,       mods: Super|Control,   chars: "\x1b[1;11Q"             }
