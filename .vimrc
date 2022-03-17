@@ -2,6 +2,11 @@ set nocompatible
 set encoding=utf-8
 set showcmd
 
+" Tried to set this up here but vim-sleuth fails to pick this up
+set tabstop=4
+" 4 spaces can be argued (2 encourages nesting code too much, 3 is insanity)
+" and sometimes we work with code using tabs &shrug;
+
 set autoindent
 " set foldmethod=indent
 
@@ -466,7 +471,7 @@ Plug 'vim-scripts/camelcasemotion'
 Plug 'vim-scripts/ingo-library' " needed for EnhancedJumps
 Plug 'vim-scripts/EnhancedJumps'
 Plug 'inkarkat/vim-SyntaxRange'
-Plug 'inkarkat/vim-IndentConsistencyCop'
+" Plug 'inkarkat/vim-IndentConsistencyCop'
 
 Plug 't9md/vim-textmanip', { 'on': [ '<Plug>(textmanip-move-down)', '<Plug>(textmanip-move-up)', '<Plug>(textmanip-move-left)', '<Plug>(textmanip-move-right)', '<Plug>(textmanip-toggle-mode)', '<Plug>(textmanip-toggle-mode)', ] }
 
@@ -893,13 +898,6 @@ set gdefault " Reverses meaning of /g in regex
 
 " I took out smartindent but this does not hurt (?) to make sure it never is on for python
 au! FileType python setl nosmartindent
-
-" my preferred defaults but we are using ingo's vim-IndentConsistencyCop and it seems best so far
-set shiftwidth=2
-set tabstop=2
-
-" 4 spaces can be argued (2 encourages nesting code too much, 3 is insanity)
-" and sometimes we work with code using tabs &shrug;
 
 set expandtab
 set smarttab
