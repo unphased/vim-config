@@ -4005,11 +4005,27 @@ else
 	nmap <M-PageDown> :echom 'm-pgdn'<CR>
 endif
 
+" -- 'x': A remapping of the targets' built in smart 'b' one for all kind of brackets over to use 
+"  'x', this is just to preserve my muscle memory for 'b' being parens because I'm not sure I can 
+"  fully commit to targets just yet.
+" -- 'b': Reimplementation of standard vim behavior to clobber the targets' provided 'b'
+" -- 'a': Mine, custom flexible argument textobject that grabs an item in a list of any kind. Since 
+"  it doesn't seem to parse nesting properly, we're very ok with matching more indiscriminately 
+"  without regard for matching the brackets because choosing less content is the less surprising 
+"  behavior.
+" -- 'l': Mine, for logical operator clause manipulation; safe to constrain to paren surrounders. 
+"  Test: if (isSomething && call(var) || call(var))
 autocmd User targets#mappings#user call targets#mappings#extend({
-			\ 'b': {'pair': [{'o':'(', 'c':')'}]},
-			\ 'a': {'argument': [{'o': '[{([]', 'c': '[])}]', 's': '[,;]'}]},
-			\ })
-
+            \ 'x': {'pair': [{'o':'(', 'c':')'}, {'o':'[', 'c':']'}, {'o':'{', 'c':'}'}]},
+            \ 'b': {'pair': [{'o':'(', 'c':')'}]},
+            \ 'a': {'argument': [
+            \        {'o': '[{([]', 'c': '[])}]', 's': '[,;]'}
+            \      ]},
+            \ 'l': {'argument': [
+            \        {'o': '(', 'c': ')', 's': '||'},
+            \        {'o': '(', 'c': ')', 's': '&&'}
+            \      ]}
+            \ })
 
 " disable the default highlight group
 let g:conflict_marker_highlight_group = ''
