@@ -9,6 +9,7 @@ filetype plugin indent on
 
 call plug#begin('~/.vim/plugged')
 
+Plug 'github/copilot.vim'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 
 Plug 'junegunn/fzf.vim'
@@ -449,7 +450,7 @@ endfunction
 " Plug 'derekwyatt/vim-fswitch'
 " Plug 'wakatime/vim-wakatime'
 " Plug 'kshenoy/vim-signature'
-Plug 'jiangmiao/auto-pairs'
+" Plug 'jiangmiao/auto-pairs'
 " Plug 'Raimondi/delimitMate'
 "Plug 'mxw/vim-jsx'
 "Plug 'rstacruz/vim-closer'
@@ -2964,14 +2965,17 @@ endif
 
 " Override the default which uses m-p which conflicts with my paste mode 
 " binding
-let g:AutoPairsShortcutToggle = '<M-z>'
-let g:AutoPairsShortcutBackInsert = '<M-x>'
-let g:AutoPairsShortcutJump = '<M-a>'
-let g:AutoPairsCenterLine = 0
-let g:AutoPairsOnlyWhitespace = 1
+" let g:AutoPairsShortcutToggle = '<M-z>'
+" let g:AutoPairsShortcutBackInsert = '<M-x>'
+" let g:AutoPairsShortcutJump = '<M-a>'
+" let g:AutoPairsCenterLine = 0
+" let g:AutoPairsOnlyWhitespace = 1
+" " cannot fathom utility of this feature, disable to allow copilot default bind to work (update: 
+" no way to disable...)
+" let g:AutopairsMoveCharacter = 0
 
-" make html files pair up brackets
-au Filetype html let b:AutoPairs = {'`': '`', '"': '"', '{': '}', '''': '''', '(': ')', '[': ']', '<':'>'}
+" " make html files pair up brackets
+" au Filetype html let b:AutoPairs = {'`': '`', '"': '"', '{': '}', '''': '''', '(': ')', '[': ']', '<':'>'}
 
 " let g:AutoPairsMapCR=0
 " imap <silent><CR> <CR><Plug>AutoPairsReturn
