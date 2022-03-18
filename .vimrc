@@ -4013,7 +4013,7 @@ endif
 "  it doesn't seem to parse nesting properly, we're very ok with matching more indiscriminately 
 "  without regard for matching the brackets because choosing less content is the less surprising 
 "  behavior.
-" -- 'l': Mine, for logical operator clause manipulation; safe to constrain to paren surrounders. 
+" -- 'L': Mine, for logical operator clause manipulation; safe to constrain to paren surrounders. 
 "  Test: if (isSomething && call(var) || call(var))
 autocmd User targets#mappings#user call targets#mappings#extend({
             \ 'x': {'pair': [{'o':'(', 'c':')'}, {'o':'[', 'c':']'}, {'o':'{', 'c':'}'}]},
@@ -4021,11 +4021,12 @@ autocmd User targets#mappings#user call targets#mappings#extend({
             \ 'a': {'argument': [
             \        {'o': '[{([]', 'c': '[])}]', 's': '[,;]'}
             \      ]},
-            \ 'L': {'argument': [
-            \        {'o': '(', 'c': ')', 's': '||'},
-            \        {'o': '(', 'c': ')', 's': '&&'}
-            \      ]}
             \ })
+
+            " \ 'L': {'argument': [
+            " \        {'o': '(', 'c': ')', 's': '||'},
+            " \        {'o': '(', 'c': ')', 's': '&&'}
+            " \      ]}
 
 " disable the default highlight group
 let g:conflict_marker_highlight_group = ''
