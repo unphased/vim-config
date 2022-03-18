@@ -4021,7 +4021,7 @@ autocmd User targets#mappings#user call targets#mappings#extend({
             \ 'a': {'argument': [
             \        {'o': '[{([]', 'c': '[])}]', 's': '[,;]'}
             \      ]},
-            \ 'l': {'argument': [
+            \ 'L': {'argument': [
             \        {'o': '(', 'c': ')', 's': '||'},
             \        {'o': '(', 'c': ')', 's': '&&'}
             \      ]}
