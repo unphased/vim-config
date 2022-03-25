@@ -12,7 +12,7 @@ autoload -Uz compinit && compinit
 eval "$(starship init zsh)"
 
 # set emacs key mode so it doesnt eat ctrl+R
-bindkey -e
+bindkey -v
 
 setopt NO_CASE_GLOB
 setopt AUTO_CD

@@ -42,3 +42,8 @@ set completion-ignore-case on
 $if Bash
      Space: magic-space
 $endif
+
+# Note these require bash 4.4 or later but seem harmless on ancient bashs
+set show-mode-in-prompt on
+set vi-ins-mode-string "\1\e[6 q\2[INSERT] "
+set vi-cmd-mode-string "\1\e[2 q\2[NORMAL] "
