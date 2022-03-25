@@ -9,8 +9,6 @@ emulate -LR zsh
 # enable completions
 autoload -Uz compinit && compinit
 
-eval "$(starship init zsh)"
-
 # set emacs key mode so it doesnt eat ctrl+R
 bindkey -v
 
@@ -83,5 +81,7 @@ zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 
 export PAGER=/opt/homebrew/bin/less
 
 export LESS='-i -M -R -x4 -z-4'
+
+eval "$(starship init zsh)"
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
