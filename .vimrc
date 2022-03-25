@@ -4053,5 +4053,5 @@ augroup END " }
 nnoremap <F24> :%s/\<<c-r><c-w>\>//g<left><left>
 
 " To disable the old vim version warning via coc
-let g:coc_disable_startup_warning = 1
+" let g:coc_disable_startup_warning = 1
 let g:coc_disable_transparent_cursor = 1
