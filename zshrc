@@ -82,6 +82,22 @@ export PAGER=/opt/homebrew/bin/less
 
 export LESS='-i -M -R -x4 -z-4'
 
-eval "$(starship init zsh)"
+# Download Znap, if it's not there yet.
+[[ -f ~/Git/zsh-snap/znap.zsh ]] ||
+    git clone --depth 1 -- \
+        https://github.com/marlonrichert/zsh-snap.git ~/Git/zsh-snap
+
+source ~/Git/zsh-snap/znap.zsh  # Start Znap
+
+znap eval starship 'starship init zsh --print-full-init'
+prompt_starship_precmd
+znap prompt # sindresorhus/pure
+
+# `znap source` automatically downloads and starts your plugins.
+znap source marlonrichert/zsh-autocomplete
+znap source zsh-users/zsh-autosuggestions
+znap source z-shell/fast-syntax-highlighting
+# znap source zsh-users/zsh-syntax-highlighting
+# znap source jeffreytse/zsh-vi-mode
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
