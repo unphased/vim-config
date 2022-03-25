@@ -793,10 +793,6 @@ let g:indent_guides_auto_colors = 0
 let g:indent_guides_start_level = 1
 let g:indent_guides_guide_size = 1
 
-" signify
-let g:signify_sign_overwrite = 0
-let g:signify_update_on_focusgained = 1
-
 " " customizing the vim-signature bindings (to un-delay the backtick)
 
 " let g:SignatureMap = {
@@ -987,6 +983,10 @@ highlight DiffAdd term=reverse ctermbg=156 ctermfg=black guibg=#304930
 highlight DiffChange term=reverse ctermbg=33 ctermfg=black guibg=#114048
 highlight DiffText term=reverse ctermbg=blue ctermfg=16 guibg=#452250
 highlight DiffDelete term=reverse ctermbg=red ctermfg=white guibg=#58252e
+
+" signify
+" let g:signify_sign_overwrite = 0
+" let g:signify_update_on_focusgained = 1
 
 highlight SignifySignAdd    cterm=bold ctermbg=none ctermfg=119 guifg=#99ee99
 highlight SignifySignDelete cterm=bold ctermbg=none ctermfg=167 guifg=#f255ba
@@ -2017,13 +2017,13 @@ function! SetPaste()
 		set nonumber
 		set nolist
 		let &showbreak=''
-		sign unplace *
-		" Not going to use elaborate way to track signs in order to toggle 
-		" sign column. can just :e to bring them back...
+        "sign unplace *
+        :SignifyDisable
 	else
 		set number
 		set list
 		let &showbreak="→ "
+        :SignifyEnable
 	endif
 endf
 
