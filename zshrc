@@ -33,6 +33,7 @@ stty -ixoff
 
 bindkey "\e[3~" delete-char
 bindkey "\e[3;5~" kill-word
+bindkey "\e[3;3~" kill-word
 bindkey "\e" backward-delete-word
 
 bindkey "\eOc" forward-word
@@ -95,6 +96,8 @@ znap prompt # sindresorhus/pure
 
 zstyle ':autocomplete:*' min-input 3
 zstyle ':autocomplete:*' widget-style menu-select
+
+bindkey -M viins '\e.' insert-last-word
 
 # `znap source` automatically downloads and starts your plugins.
 znap source marlonrichert/zsh-autocomplete
