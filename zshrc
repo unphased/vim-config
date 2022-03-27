@@ -93,6 +93,9 @@ znap eval starship 'starship init zsh --print-full-init'
 prompt_starship_precmd
 znap prompt # sindresorhus/pure
 
+zstyle ':autocomplete:*' min-input 3
+zstyle ':autocomplete:*' widget-style menu-select
+
 # `znap source` automatically downloads and starts your plugins.
 znap source marlonrichert/zsh-autocomplete
 znap source zsh-users/zsh-autosuggestions
