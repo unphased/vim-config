@@ -105,6 +105,7 @@ znap prompt # sindresorhus/pure
 zstyle ':autocomplete:*' min-input 3
 zstyle ':autocomplete:*' widget-style menu-select
 
+bindkey -M vicmd '\e.' insert-last-word
 bindkey -M viins '\e.' insert-last-word
 
 # `znap source` automatically downloads and starts your plugins.
