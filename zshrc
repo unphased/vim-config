@@ -39,13 +39,21 @@ bindkey "\e" backward-delete-word
 bindkey "\eOc" forward-word
 bindkey "\eOd" backward-word
 
-# ctrl
+# ctrl left/right
 bindkey "\e[1;5C" forward-word
 bindkey "\e[1;5D" backward-word
+
+# ctrl up/down
+bindkey "\e[1;5A" beginning-of-line
+bindkey "\e[1;5B" end-of-line
 
 # alt
 bindkey "\e[1;3C" forward-word
 bindkey "\e[1;3D" backward-word
+
+# alt up/down
+bindkey "\e[1;3A" beginning-of-line
+bindkey "\e[1;3B" end-of-line
 
 # shift
 bindkey "\e[1;2C" forward-word
