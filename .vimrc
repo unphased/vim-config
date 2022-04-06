@@ -542,6 +542,7 @@ au FileType cpp let g:switch_custom_definitions = [
 let g:switch_custom_definitions = [
   \   switch#NormalizedCase(['show', 'hide']),
   \   switch#NormalizedCase(['before', 'after']),
+  \   switch#NormalizedCase(['begin', 'end']),
   \   switch#NormalizedCaseWords(['yes', 'no']),
   \   switch#NormalizedCaseWords(['on', 'off']),
   \   switch#NormalizedCaseWords(['error', 'warn', 'info']),
