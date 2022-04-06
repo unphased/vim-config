@@ -310,6 +310,7 @@ key_bindings:
   - { key: F,        mods: Alt,           chars: "\x1bf"           }
   - { key: S,        mods: Command,       chars: "\x1bs"           }
   - { key: S,        mods: Alt,           chars: "\x1bs"           }
+  - { key: S,        mods: Command|Control, chars: "\x1b\x13"           }
   - { key: U,        mods: Command,       chars: "\x1bu"           }
   - { key: I,        mods: Command,       chars: "\x1bi"           }
   - { key: U,        mods: Alt,           chars: "\x1bu"           }
