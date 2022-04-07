@@ -760,7 +760,13 @@ if !has('nvim')
 	set <F19>=,
 	set <F16>=>
 	set <F14>=<
+    " ctrl+del
+	set <F13>=[3;5~
+    inoremap <F13> <C-o>de
+else
+    inoremap <C-Del> <C-o>de
 endif
+
 
 " " Ultisnips settings (to have it work together with YCM)
 " if has('nvim')
