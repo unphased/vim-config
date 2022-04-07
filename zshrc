@@ -24,6 +24,9 @@ setopt HIST_FIND_NO_DUPS
 setopt HIST_REDUCE_BLANKS
 setopt HIST_VERIFY
 
+export HISTSIZE=100000
+export SAVEHIST=100000
+
 # allows carat to work for git stuff
 setopt NO_NOMATCH
 
@@ -109,7 +112,7 @@ bindkey -M vicmd '\e.' insert-last-word
 bindkey -M viins '\e.' insert-last-word
 
 # `znap source` automatically downloads and starts your plugins.
-znap source marlonrichert/zsh-autocomplete
+# znap source marlonrichert/zsh-autocomplete
 znap source zsh-users/zsh-autosuggestions
 znap source z-shell/fast-syntax-highlighting
 # znap source zsh-users/zsh-syntax-highlighting
