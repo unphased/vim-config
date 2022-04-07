@@ -542,6 +542,7 @@ au FileType cpp let g:switch_custom_definitions = [
 let g:switch_custom_definitions = [
   \   switch#NormalizedCase(['show', 'hide']),
   \   switch#NormalizedCase(['before', 'after']),
+  \   switch#NormalizedCase(['begin', 'end']),
   \   switch#NormalizedCaseWords(['yes', 'no']),
   \   switch#NormalizedCaseWords(['on', 'off']),
   \   switch#NormalizedCaseWords(['error', 'warn', 'info']),
@@ -759,7 +760,22 @@ if !has('nvim')
 	set <F19>=,
 	set <F16>=>
 	set <F14>=<
+    " ctrl+del
+	set <F13>=[3;5~
+    inoremap <F13> <C-o>de
+    set <F21>=
+    nnoremap <F21> B
+else
+    " nvim gets more nuanced binds
+    inoremap <C-Del> <C-o>de
+    inoremap <S-Del> <C-o>dw
+    inoremap <M-Del> <C-o>dW
+    nnoremap <C-Del> de
+    nnoremap <S-Del> dw
+    nnoremap <M-Del> dW
+    nnoremap <M-BS> B
 endif
+
 
 " " Ultisnips settings (to have it work together with YCM)
 " if has('nvim')
