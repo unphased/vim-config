@@ -763,8 +763,17 @@ if !has('nvim')
     " ctrl+del
 	set <F13>=[3;5~
     inoremap <F13> <C-o>de
+    set <F21>=
+    nnoremap <F21> B
 else
+    " nvim gets more nuanced binds
     inoremap <C-Del> <C-o>de
+    inoremap <S-Del> <C-o>dw
+    inoremap <M-Del> <C-o>dW
+    nnoremap <C-Del> de
+    nnoremap <S-Del> dw
+    nnoremap <M-Del> dW
+    nnoremap <M-BS> B
 endif
 
 
