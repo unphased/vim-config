@@ -9,11 +9,36 @@ emulate -LR zsh
 # enable completions
 autoload -Uz compinit && compinit
 
+# Download Znap, if it's not there yet.
+[[ -f ~/Git/zsh-snap/znap.zsh ]] ||
+    git clone --depth 1 -- \
+        https://github.com/marlonrichert/zsh-snap.git ~/Git/zsh-snap
+
+source ~/Git/zsh-snap/znap.zsh  # Start Znap
+
+znap eval starship 'starship init zsh --print-full-init'
+prompt_starship_precmd
+znap prompt # sindresorhus/pure
+
+# for autocomplete
+# zstyle ':autocomplete:*' min-input 3
+# zstyle ':autocomplete:*' widget-style menu-select
+
+bindkey -M vicmd '\e.' insert-last-word
+bindkey -M viins '\e.' insert-last-word
+
+# `znap source` automatically downloads and starts your plugins.
+# znap source marlonrichert/zsh-autocomplete
+znap source zsh-users/zsh-autosuggestions
+znap source z-shell/fast-syntax-highlighting
+# znap source zsh-users/zsh-syntax-highlighting
+# znap source jeffreytse/zsh-vi-mode
 # set emacs key mode so it doesnt eat ctrl+R
+
 bindkey -v
 
 setopt NO_CASE_GLOB
-setopt AUTO_CD
+setopt AUTO_PUSHD
 setopt CORRECT
 setopt CORRECT_ALL
 setopt APPEND_HISTORY
@@ -29,6 +54,8 @@ export SAVEHIST=100000
 
 # allows carat to work for git stuff
 setopt NO_NOMATCH
+
+setopt AUTO_CD
 
 # allow ctrl+s to work
 stty -ixon
@@ -93,29 +120,5 @@ zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 
 export PAGER=/opt/homebrew/bin/less
 
 export LESS='-i -M -R -x4 -z-4'
-
-# Download Znap, if it's not there yet.
-[[ -f ~/Git/zsh-snap/znap.zsh ]] ||
-    git clone --depth 1 -- \
-        https://github.com/marlonrichert/zsh-snap.git ~/Git/zsh-snap
-
-source ~/Git/zsh-snap/znap.zsh  # Start Znap
-
-znap eval starship 'starship init zsh --print-full-init'
-prompt_starship_precmd
-znap prompt # sindresorhus/pure
-
-zstyle ':autocomplete:*' min-input 3
-zstyle ':autocomplete:*' widget-style menu-select
-
-bindkey -M vicmd '\e.' insert-last-word
-bindkey -M viins '\e.' insert-last-word
-
-# `znap source` automatically downloads and starts your plugins.
-# znap source marlonrichert/zsh-autocomplete
-znap source zsh-users/zsh-autosuggestions
-znap source z-shell/fast-syntax-highlighting
-# znap source zsh-users/zsh-syntax-highlighting
-# znap source jeffreytse/zsh-vi-mode
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
