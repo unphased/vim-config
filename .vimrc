@@ -541,6 +541,7 @@ au FileType cpp let g:switch_custom_definitions = [
 " highest priority defs are prepended last here
 let g:switch_custom_definitions = [
   \   switch#NormalizedCase(['show', 'hide']),
+  \   switch#NormalizedCase(['add', 'remove']),
   \   switch#NormalizedCase(['before', 'after']),
   \   switch#NormalizedCase(['begin', 'end']),
   \   switch#NormalizedCaseWords(['yes', 'no']),
