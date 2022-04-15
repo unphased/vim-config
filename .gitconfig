@@ -1,7 +1,7 @@
 [user]
 
 [delta]
-  side-by-side = true
+  # side-by-side = true
   max-line-length = 2048
   wrap-max-lines = 10
   features = line-numbers decorations
