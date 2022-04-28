@@ -25,6 +25,7 @@
         "THREE": true
     },
     "rules": {
+          "array-callback-return": 1,
         "eqeqeq": 1,
         "quotes": 0,
         "strict": [0, "never"],
