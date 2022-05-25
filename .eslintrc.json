@@ -25,7 +25,10 @@
         "THREE": true
     },
     "rules": {
-          "array-callback-return": 1,
+        "array-callback-return": [
+            "warn",
+            { "allowImplicit": true }
+        ],
         "eqeqeq": 1,
         "quotes": 0,
         "strict": [0, "never"],
