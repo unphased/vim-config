@@ -15,7 +15,6 @@
     "plugins": [
     ],
     "globals": {
-        "mapboxgl": true,
         "define": true,
         "_": true,
         "moment": true,
