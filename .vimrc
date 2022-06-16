@@ -757,9 +757,7 @@ if !has('nvim')
 	" s-c-tab
 	set <F22>=[27;6;9~
 
-	set <F20>=.
 	set <F19>=,
-	set <F16>=>
 	set <F14>=<
     " ctrl+del
 	set <F13>=[3;5~
@@ -2830,6 +2828,8 @@ if has('nvim')
 	nnoremap <m->> :<C-u>call EnhancedDot('')<CR>
 	nnoremap <m-.> :<C-u>call EnhancedDot(v:count1)<CR>
 else
+	set <F20>=.
+	set <F16>=>
 	nnoremap <F16> :<C-u>call EnhancedDot('')<CR>
 	nnoremap <F20> :<C-u>call EnhancedDot(v:count1)<CR>
 endif

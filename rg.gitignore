@@ -40,3 +40,4 @@
 *.colorlog
 **/annotated/log
 **/doxygen_out/**
+**/sm/*.map
