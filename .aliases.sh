@@ -18,11 +18,12 @@ if [ "$(uname)" = Linux ] && lsb_release -i | grep Ubuntu; then
 	alias open="xdg-open"
 fi
 
-alias l="ls -lart"
+alias l="ls -larth"
 alias sl="ls"
 alias ll="l -l"
 alias la="ll -a"
 alias ssht="TERM=xterm-256color ssh"
+alias v="nvim"
 alias g="git"
 alias gs="git s" # short status 
 alias gco="git checkout"
