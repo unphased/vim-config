@@ -92,4 +92,6 @@
   // ,"clangd.trace.file": "/tmp/clangd.trace"
   // ,"clangd.trace.server": "verbose"
   //, "eslint.options": { "overrideConfigFile": "~/.eslintrc.json"  }
+  //, "javascript.suggest.classMemberSnippets.enabled": false // damn i wish i could remember what the fuck this was for
+  , "snippets.excludePatterns": ["**/*jquery.snippets"]
 }
