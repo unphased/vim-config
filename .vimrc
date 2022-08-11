@@ -907,6 +907,9 @@ set smartcase
 
 set gdefault " Reverses meaning of /g in regex
 
+" Bringing this back because it helps in some files. lets see what it breaks
+set smartindent
+
 " I took out smartindent but this does not hurt (?) to make sure it never is on for python
 au! FileType python setl nosmartindent
 
