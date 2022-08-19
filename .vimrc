@@ -1927,38 +1927,40 @@ function! NextWindowOrTabOrBuffer()
 		wincmd w "next window
 	endif
 
-	" also provide a user friendly treatment: When this command lands us into 
-	" a non-regular-file window, we will re-evaluate and push to next tab or 
-	" window or buffer as appropriate. With the new behavior of leaving cursor 
-	" where it lies, it slightly complicates this, but not by much.
-	if (&bufhidden == 'wipe' || &bufhidden == 'hide')
-		if (tabpagenr('$') == 1)
-			" determine for sure whether we're looking at a single-openfile-tab
-			while winnr() != startWindowIndex
-				if (&bufhidden == 'wipe' || &bufhidden == 'hide')
-					" ensure to not list any buffer like this (this may be 
-					" a bad hack -- but i see no consequences yet)
-					set nobuflisted
-					wincmd w
-				else
-					return
-					" actually our job is done
-				endif
-			endwhile
-			bnext
-		else
-			" step forward while bufhidden, if end, scan back and then tabnext.
-			while (winnr() != startWindowIndex && (&bufhidden == 'wipe' || &bufhidden == 'hide'))
-				if (winnr() == winnr('$'))
-					while (winnr() != startWindowIndex && (&bufhidden == 'wipe' || &bufhidden == 'hide'))
-						wincmd W
-					endwhile
-					tabnext
-				endif
-				wincmd w
-			endwhile
-		endif
-	endif
+" the following is being removed temporarily because it is incorrect and causes infinite loops.
+"
+" 	" also provide a user friendly treatment: When this command lands us into 
+" 	" a non-regular-file window, we will re-evaluate and push to next tab or 
+" 	" window or buffer as appropriate. With the new behavior of leaving cursor 
+" 	" where it lies, it slightly complicates this, but not by much.
+" 	if (&bufhidden == 'wipe' || &bufhidden == 'hide')
+" 		if (tabpagenr('$') == 1)
+" 			" determine for sure whether we're looking at a single-openfile-tab
+" 			while winnr() != startWindowIndex
+" 				if (&bufhidden == 'wipe' || &bufhidden == 'hide')
+" 					" ensure to not list any buffer like this (this may be 
+" 					" a bad hack -- but i see no consequences yet)
+" 					set nobuflisted
+" 					wincmd w
+" 				else
+" 					return
+" 					" actually our job is done
+" 				endif
+" 			endwhile
+" 			bnext
+" 		else
+" 			" step forward while bufhidden, if end, scan back and then tabnext.
+" 			while (winnr() != startWindowIndex && (&bufhidden == 'wipe' || &bufhidden == 'hide'))
+" 				if (winnr() == winnr('$'))
+" 					while (winnr() != startWindowIndex && (&bufhidden == 'wipe' || &bufhidden == 'hide'))
+" 						wincmd W
+" 					endwhile
+" 					tabnext
+" 				endif
+" 				wincmd w
+" 			endwhile
+" 		endif
+" 	endif
 endfunc
 
 function! PrevWindowOrTabOrBuffer()
