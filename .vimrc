@@ -751,19 +751,26 @@ nnoremap <Leader>R :silent redraw!<CR>
 " repertoire, but skipping F24 and F25 because the actual vitality plugin uses 
 " this method specifically on F24 and F25
 if !has('nvim')
-  set <F24>=/
-	" c-tab
-	set <F23>=[27;5;9~
-	" s-c-tab
-	set <F22>=[27;6;9~
+        set <F24>=/
+        " this is something i found and is cool but forgot to use. It takes word under the cursor and 
+        " makes a s-expression to replace it with something that you can immediately start typing. TODO: 
+        " Use this method for the smart logic i use for enter key and such things. i think its more 
+        " convoluted than this.
+        nnoremap <F24> :%s/\<<c-r><c-w>\>//g<left><left>
 
-	set <F19>=,
-	set <F14>=<
-    " ctrl+del
-	set <F13>=[3;5~
-    inoremap <F13> <C-o>de
-    set <F21>=
-    nnoremap <F21> B
+        " c-tab
+        set <F23>=[27;5;9~
+        " s-c-tab
+        set <F22>=[27;6;9~
+
+        set <F19>=,
+        set <F14>=<
+        " ctrl+del
+        set <F13>=[3;5~
+        inoremap <F13> <C-o>de
+        set <F21>=
+        nnoremap <F21> B
+        inoremap <F21> <C-\><C-o>db
 else
     " nvim gets more nuanced binds
     inoremap <C-Del> <C-o>de
@@ -773,8 +780,8 @@ else
     nnoremap <S-Del> dw
     nnoremap <M-Del> dW
     nnoremap <M-BS> B
+    nnoremap <M-/> :%s/\<<c-r><c-w>\>//g<left><left>
 endif
-
 
 " " Ultisnips settings (to have it work together with YCM)
 " if has('nvim')
@@ -1810,6 +1817,9 @@ if &term == 'xterm-256color-italic' || &term == 'nvim' || &term == 'tmux-256colo
 endif
 
 " bind ctrl W to always work on windows from insert mode
+" Update: UHHHHH i'm not so sure about this one but i do not use ctrlw so i guess i'm ok with 
+" this behavior which allows for window commands to immediately take place from insert mode 
+" instead of deleting back a word.
 inoremap <C-W> <ESC><C-W>
 
 " Convenient command to see the difference between the current buffer and the
@@ -4070,7 +4080,6 @@ augroup END " }
 " UPDATE! THIS SEEMS TO BREAK SOMETHING
 " vmap p c<C-r>0<Esc>
 
-nnoremap <F24> :%s/\<<c-r><c-w>\>//g<left><left>
 
 " To disable the old vim version warning via coc
 " let g:coc_disable_startup_warning = 1

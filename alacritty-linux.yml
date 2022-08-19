@@ -306,7 +306,6 @@ key_bindings:
   - { key: Back,     mods: Shift,         chars: "\x7f"         }
   - { key: Back,     mods: Alt,           chars: "\x1b\x7f"     }
   - { key: Back,     mods: Control,       chars: "\x1b\x7f"     }
-  - { key: Back,     mods: Command,       chars: "\x15"         }
   - { key: Insert,   mods: Shift,         action: Paste         }
   - { key: Insert,   chars: "\x1b[2~"                           }
   - { key: Delete,   chars: "\x1b[3~"                           }
