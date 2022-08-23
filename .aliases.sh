@@ -161,7 +161,7 @@ export PATH=$HOME/util:$PATH
 
 # source $HOME/.vim/work/aliases/rtr.sh
 
-export EDITOR=vim
+export EDITOR=nvim
 
 # for pip3 on macos (ehhhh)
 # [[ -d $HOME/Library/Python/3.8/bin && ! "$PATH" =~ $HOME/Library/Python/3.8/bin ]] && export 
