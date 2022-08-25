@@ -151,8 +151,8 @@ colors:
 #
 bell:
   command:
-    program: afplay
-    args: ["/System/Library/Sounds/Tink.aiff"]
+    program: /opt/homebrew/bin/flock 
+    args: ["-n", "/tmp/alacritty_bell.lock", "osascript", "-e", "beep"]
   # animation: EaseOutExpo
   # duration: 20
   # color: '0x101010'
@@ -379,10 +379,12 @@ key_bindings:
   - { key: Up,       mods: Control,       chars: "\x1b[1;5A"    }
   - { key: Up,       mods: Control|Shift, chars: "\x1b[1;6A"    }
   - { key: Up,       mods: Alt,           chars: "\x1b[1;3A"    }
+  # - { key: Up,       mods: Command,           chars: "\x1b[6~"    }
   - { key: Down,     mods: Shift,         chars: "\x1b[1;2B"    }
   - { key: Down,     mods: Control,       chars: "\x1b[1;5B"    }
   - { key: Down,     mods: Control|Shift, chars: "\x1b[1;6B"    }
   - { key: Down,     mods: Alt,           chars: "\x1b[1;3B"    }
+  # - { key: Down,     mods: Command,           chars: "\x1b[5~"    }
   - { key: F11,      action: ToggleSimpleFullscreen   }
 # After reverting to defaults we see the modifiers work like this for F keys:
 # Shift: ;2
