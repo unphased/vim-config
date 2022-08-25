@@ -1728,8 +1728,7 @@ set t_kh=[1~
 set t_@7=[4~
 " nnoremap <Home> :echo('pressed Home')<CR>
 " inoremap <Home> <C-O>g^
-" nnoremap <End> :echo('pressed End')<CR>
-" g<End>
+" nnoremap <End> :echo('pressed End')<CR> g<End>
 " inoremap <End> <C-O>g<End>
 
 " This is for making the alternate backspace delete an entire word.
