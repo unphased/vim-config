@@ -751,19 +751,26 @@ nnoremap <Leader>R :silent redraw!<CR>
 " repertoire, but skipping F24 and F25 because the actual vitality plugin uses 
 " this method specifically on F24 and F25
 if !has('nvim')
-  set <F24>=/
-	" c-tab
-	set <F23>=[27;5;9~
-	" s-c-tab
-	set <F22>=[27;6;9~
+        set <F24>=/
+        " this is something i found and is cool but forgot to use. It takes word under the cursor and 
+        " makes a s-expression to replace it with something that you can immediately start typing. TODO: 
+        " Use this method for the smart logic i use for enter key and such things. i think its more 
+        " convoluted than this.
+        nnoremap <F24> :%s/\<<c-r><c-w>\>//g<left><left>
 
-	set <F19>=,
-	set <F14>=<
-    " ctrl+del
-	set <F13>=[3;5~
-    inoremap <F13> <C-o>de
-    set <F21>=
-    nnoremap <F21> B
+        " c-tab
+        set <F23>=[27;5;9~
+        " s-c-tab
+        set <F22>=[27;6;9~
+
+        set <F19>=,
+        set <F14>=<
+        " ctrl+del
+        set <F13>=[3;5~
+        inoremap <F13> <C-o>de
+        set <F21>=
+        nnoremap <F21> B
+        inoremap <F21> <C-\><C-o>db
 else
     " nvim gets more nuanced binds
     inoremap <C-Del> <C-o>de
@@ -773,8 +780,8 @@ else
     nnoremap <S-Del> dw
     nnoremap <M-Del> dW
     nnoremap <M-BS> B
+    nnoremap <M-/> :%s/\<<c-r><c-w>\>//g<left><left>
 endif
-
 
 " " Ultisnips settings (to have it work together with YCM)
 " if has('nvim')
@@ -906,6 +913,9 @@ set ignorecase
 set smartcase
 
 set gdefault " Reverses meaning of /g in regex
+
+" Bringing this back because it helps in some files. lets see what it breaks
+set smartindent
 
 " I took out smartindent but this does not hurt (?) to make sure it never is on for python
 au! FileType python setl nosmartindent
@@ -1718,8 +1728,7 @@ set t_kh=[1~
 set t_@7=[4~
 " nnoremap <Home> :echo('pressed Home')<CR>
 " inoremap <Home> <C-O>g^
-" nnoremap <End> :echo('pressed End')<CR>
-" g<End>
+" nnoremap <End> :echo('pressed End')<CR> g<End>
 " inoremap <End> <C-O>g<End>
 
 " This is for making the alternate backspace delete an entire word.
@@ -1807,6 +1816,9 @@ if &term == 'xterm-256color-italic' || &term == 'nvim' || &term == 'tmux-256colo
 endif
 
 " bind ctrl W to always work on windows from insert mode
+" Update: UHHHHH i'm not so sure about this one but i do not use ctrlw so i guess i'm ok with 
+" this behavior which allows for window commands to immediately take place from insert mode 
+" instead of deleting back a word.
 inoremap <C-W> <ESC><C-W>
 
 " Convenient command to see the difference between the current buffer and the
@@ -1914,38 +1926,40 @@ function! NextWindowOrTabOrBuffer()
 		wincmd w "next window
 	endif
 
-	" also provide a user friendly treatment: When this command lands us into 
-	" a non-regular-file window, we will re-evaluate and push to next tab or 
-	" window or buffer as appropriate. With the new behavior of leaving cursor 
-	" where it lies, it slightly complicates this, but not by much.
-	if (&bufhidden == 'wipe' || &bufhidden == 'hide')
-		if (tabpagenr('$') == 1)
-			" determine for sure whether we're looking at a single-openfile-tab
-			while winnr() != startWindowIndex
-				if (&bufhidden == 'wipe' || &bufhidden == 'hide')
-					" ensure to not list any buffer like this (this may be 
-					" a bad hack -- but i see no consequences yet)
-					set nobuflisted
-					wincmd w
-				else
-					return
-					" actually our job is done
-				endif
-			endwhile
-			bnext
-		else
-			" step forward while bufhidden, if end, scan back and then tabnext.
-			while (winnr() != startWindowIndex && (&bufhidden == 'wipe' || &bufhidden == 'hide'))
-				if (winnr() == winnr('$'))
-					while (winnr() != startWindowIndex && (&bufhidden == 'wipe' || &bufhidden == 'hide'))
-						wincmd W
-					endwhile
-					tabnext
-				endif
-				wincmd w
-			endwhile
-		endif
-	endif
+" the following is being removed temporarily because it is incorrect and causes infinite loops.
+"
+" 	" also provide a user friendly treatment: When this command lands us into 
+" 	" a non-regular-file window, we will re-evaluate and push to next tab or 
+" 	" window or buffer as appropriate. With the new behavior of leaving cursor 
+" 	" where it lies, it slightly complicates this, but not by much.
+" 	if (&bufhidden == 'wipe' || &bufhidden == 'hide')
+" 		if (tabpagenr('$') == 1)
+" 			" determine for sure whether we're looking at a single-openfile-tab
+" 			while winnr() != startWindowIndex
+" 				if (&bufhidden == 'wipe' || &bufhidden == 'hide')
+" 					" ensure to not list any buffer like this (this may be 
+" 					" a bad hack -- but i see no consequences yet)
+" 					set nobuflisted
+" 					wincmd w
+" 				else
+" 					return
+" 					" actually our job is done
+" 				endif
+" 			endwhile
+" 			bnext
+" 		else
+" 			" step forward while bufhidden, if end, scan back and then tabnext.
+" 			while (winnr() != startWindowIndex && (&bufhidden == 'wipe' || &bufhidden == 'hide'))
+" 				if (winnr() == winnr('$'))
+" 					while (winnr() != startWindowIndex && (&bufhidden == 'wipe' || &bufhidden == 'hide'))
+" 						wincmd W
+" 					endwhile
+" 					tabnext
+" 				endif
+" 				wincmd w
+" 			endwhile
+" 		endif
+" 	endif
 endfunc
 
 function! PrevWindowOrTabOrBuffer()
@@ -4067,8 +4081,11 @@ augroup END " }
 " UPDATE! THIS SEEMS TO BREAK SOMETHING
 " vmap p c<C-r>0<Esc>
 
-nnoremap <F24> :%s/\<<c-r><c-w>\>//g<left><left>
 
 " To disable the old vim version warning via coc
 " let g:coc_disable_startup_warning = 1
 let g:coc_disable_transparent_cursor = 1
+
+let g:copilot_filetypes = {
+   \ 'markdown': v:true,
+   \ }

@@ -23,7 +23,7 @@ alias sl="ls"
 alias ll="l -l"
 alias la="ll -a"
 alias ssht="TERM=xterm-256color ssh"
-alias v="nvim"
+alias v="TERM=screen-256color nvim"
 alias g="git"
 alias gs="git s" # short status 
 alias gco="git checkout"
@@ -161,7 +161,7 @@ export PATH=$HOME/util:$PATH
 
 # source $HOME/.vim/work/aliases/rtr.sh
 
-export EDITOR=vim
+export EDITOR=nvim
 
 # for pip3 on macos (ehhhh)
 # [[ -d $HOME/Library/Python/3.8/bin && ! "$PATH" =~ $HOME/Library/Python/3.8/bin ]] && export 
