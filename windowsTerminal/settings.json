@@ -1,10 +1,12 @@
+
 {
     "$help": "https://aka.ms/terminal-documentation",
     "$schema": "https://aka.ms/terminal-profiles-schema",
+    "comments": "I used mklink to create a regular symlink from the default location to the location i've stored this in msys home tracked by git",
     "actions": 
     [
-		{ "command": { "action": "sendInput", "input": "\u007f" }, "keys": "backspace" },
-		{ "command": { "action": "sendInput", "input": "\u001b\u007f" }, "keys": "ctrl+backspace" },
+        { "command": { "action": "sendInput", "input": "\u007f" }, "keys": "backspace" },
+        { "command": { "action": "sendInput", "input": "\u001b\u007f" }, "keys": "ctrl+backspace" },
         {
             "command": "paste",
             "keys": "ctrl+v"
