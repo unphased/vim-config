@@ -3,6 +3,8 @@
     "$schema": "https://aka.ms/terminal-profiles-schema",
     "actions": 
     [
+		{ "command": { "action": "sendInput", "input": "\u007f" }, "keys": "backspace" },
+		{ "command": { "action": "sendInput", "input": "\u001b\u007f" }, "keys": "ctrl+backspace" },
         {
             "command": "paste",
             "keys": "ctrl+v"
