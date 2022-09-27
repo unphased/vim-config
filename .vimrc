@@ -4080,7 +4080,8 @@ augroup END " }
 " to allow pasting not to break repeats when done from an insert session started by c
 " UPDATE! THIS SEEMS TO BREAK SOMETHING
 " vmap p c<C-r>0<Esc>
-
+" UPDATE!! Newly suggested impl from Vi.SE
+xmap p c<c-r><c-r>0<esc>
 
 " To disable the old vim version warning via coc
 " let g:coc_disable_startup_warning = 1
