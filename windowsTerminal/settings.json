@@ -21,7 +21,7 @@
         },
         {
             "command": "paste",
-            "keys": "ctrl+v"
+            "keys": "ctrl+shift+v"
         },
         {
             "command": 
@@ -29,7 +29,7 @@
                 "action": "copy",
                 "singleLine": false
             },
-            "keys": "ctrl+c"
+            "keys": "ctrl+shift+c"
         },
         {
             "command": "find",
