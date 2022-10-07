@@ -19,6 +19,8 @@ Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 
 Plug 'junegunn/fzf.vim'
 
+Plug 'ojroques/vim-oscyank', {'branch': 'main'}
+
 Plug 'prabirshrestha/async.vim'
 
 Plug 'powerman/vim-plugin-AnsiEsc'
@@ -3968,25 +3970,17 @@ hi Title guifg=#f4f4f4 cterm=italic,bold gui=italic,bold
 " paste the global search
 nnoremap <Leader>P :.-1read $HOME/.vim/.search<CR>
 
-" dont like this: this slurps entire line instead of what your visual selection 
-" was
-" vnoremap <silent> <Leader>y :w !pbcopy<CR><CR>
-function! YankVisual()
-	normal! gvy
-	echom "running YankVisual pbcopy"
-	let poscursor=getpos('.')
-	" to debug -- make sure to keep it consistent with the below
-	echom "exec !echo '" . substitute(escape(substitute(@@, "'", "'\"'\"'", 'g'), '!\#%'), '\n', '\\n', 'g') . "' | perl -pe 's/(?<\\!\\\\)\\\\n/\\n/g' | pbcopy"
-	" Here's a quick summary. The exec body here has to be escaped for vim 
-	" single quote strings, so single quotes are replaced with "'" and newlines 
-	" are replaced with \n and converted back, except that \\n must be not be 
-	" escaped (hence perl negative lookbehind).
-	exec "!echo '" . substitute(escape(substitute(@@, "'", "'\"'\"'", 'g'), '!\#%'), '\n', '\\n', 'g') . "' | perl -pe 's/(?<\\!\\\\)\\\\n/\\n/g' | pbcopy"
-endfun
-vnoremap <Leader>y :<C-U> call YankVisual()<CR>:redraw!<CR>
+" keep in mind that regular yank stays local to vim which is nice since this gives a way to do 
+" quick manipulation operations without worrying about screwing up the clipboard on any system. 
+" Though it may on the server if vim is set up to do that. Nbd though.
 
-" the leader y works like normal yy (but for my clipboard)
-nnoremap <silent> <Leader>y :.w !pbcopy<CR><CR>
+" Implement vim/nvim yanking to client clipboard via OSCYank, a godsend really since it gives 
+" a bunch of vimmy sugar behaviors
+vnoremap <leader>y :OSCYank<CR>
+nmap <leader>y <Plug>OSCYank
+
+" We can explicitly use the server's own clipboard or fallback clipboard file if we somehow know 
+" that we want the buffer that's in there.
 nnoremap <Leader>p :read !pbpaste<CR>
 
 " do not use read here so that the selected stuff gets slurped.
