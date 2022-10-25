@@ -23,6 +23,8 @@ Plug 'ojroques/vim-oscyank', {'branch': 'main'}
 
 Plug 'prabirshrestha/async.vim'
 
+Plug 'andymass/vim-visput'
+
 Plug 'powerman/vim-plugin-AnsiEsc'
 
 Plug 'fidian/hexmode'
@@ -4074,8 +4076,9 @@ augroup END " }
 " to allow pasting not to break repeats when done from an insert session started by c
 " UPDATE! THIS SEEMS TO BREAK SOMETHING
 " vmap p c<C-r>0<Esc>
-" UPDATE!! Newly suggested impl from Vi.SE
-xmap p c<c-r><c-r>0<esc>
+" UPDATE!! Newly suggested impl from Vi.SE. It's https://vi.stackexchange.com/a/34860/390
+" UPDATE2! It still has problems. indentation is screwed up.
+" xmap p c<c-r><c-r>0<esc>
 
 " To disable the old vim version warning via coc
 " let g:coc_disable_startup_warning = 1
