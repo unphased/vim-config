@@ -61,11 +61,17 @@ setopt AUTO_CD
 stty -ixon
 stty -ixoff
 
+# delete
 bindkey "\e[3~" delete-char
+# ctrl delete
 bindkey "\e[3;5~" kill-word
+# shift delete
 bindkey "\e[3;3~" kill-word
+
+# opt? backspace
 bindkey "\e" backward-delete-word
 
+# I think this is ctrl application keypad mode or something????
 bindkey "\eOc" forward-word
 bindkey "\eOd" backward-word
 
