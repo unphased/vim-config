@@ -19,7 +19,11 @@ Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 
 Plug 'junegunn/fzf.vim'
 
+" annoying that i need to set this but this makes it work from tmux
+let g:oscyank_term = 'default'
+
 Plug 'ojroques/vim-oscyank', {'branch': 'main'}
+" Plug 'ojroques/nvim-osc52'
 
 Plug 'prabirshrestha/async.vim'
 
