@@ -37,8 +37,6 @@
 **/cdb_h.json
 **/CMakeCache.txt
 **/*.dae
-**/rapidplan*/build/**
-*.rtrbrep
 *.colorlog
 **/annotated/log
 **/doxygen_out/**
