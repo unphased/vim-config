@@ -53,11 +53,20 @@ vim.keymap.set('n', 'P', 'P`[')
 -- turn F10 into escape
 vim.keymap.set({'i', 's', 'c'}, '<F10>', '<esc>')
 
+vim.cmd([[
+  noremap <C-S> :update<CR>
+  vnoremap <C-S> <ESC>:update<CR>
+  cnoremap <C-S> <C-C>:update<CR>
+  inoremap <C-S> <ESC>:update<CR>
+]])
+
 -- settings
 
+vim.o.title = true
 vim.o.number = true
 vim.o.undofile = true
 vim.o.undodir = vim.env.HOME .. "/.tmp"
 
-print ("undodir: " .. vim.o.undodir)
-
+-- autocmds
+-- autocmd BufEnter * let &titlestring = "NVIM " . expand("%:t")
+vim.opt.titlestring = "NVIM %f %h%m%r%w (%{tabpagenr()} of %{tabpagenr('$')})"
