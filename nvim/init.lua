@@ -9,7 +9,6 @@ vim.o.undofile = true
 vim.o.undodir = vim.env.HOME .. "/.tmp"
 vim.o.termguicolors = true
 
-
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
   vim.fn.system({
@@ -79,6 +78,7 @@ vim.opt.titlestring = "NVIM %f %h%m%r%w (%{tabpagenr()} of %{tabpagenr('$')})"
 
 -- plugin settings
 require('feline').setup()
+require('feline').winbar.setup()
 
 require('gitsigns').setup({
   current_line_blame = true, -- Toggle with `:Gitsigns toggle_current_line_blame`
