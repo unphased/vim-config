@@ -15,5 +15,8 @@ return {
   'AndrewRadev/switch.vim',
   'junegunn/fzf.vim',
   'github/copilot.vim',
-  'ethanholz/nvim-lastplace'
+  'ethanholz/nvim-lastplace',
+  {
+    'dundalek/lazy-lsp.nvim', dependencies = { 'neovim/nvim-lspconfig' }
+  }
 }
