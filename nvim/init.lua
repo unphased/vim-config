@@ -53,11 +53,16 @@ vim.keymap.set('n', 'P', 'P`[')
 -- turn F10 into escape
 vim.keymap.set({'i', 's', 'c'}, '<F10>', '<esc>')
 
+-- example of vimL code didnt bother porting
 vim.cmd([[
   noremap <C-S> :update<CR>
   vnoremap <C-S> <ESC>:update<CR>
   cnoremap <C-S> <C-C>:update<CR>
   inoremap <C-S> <ESC>:update<CR>
+  noremap <m-s> :update<CR>
+  vnoremap <m-s> <ESC>:update<CR>
+  cnoremap <m-s> <C-C>:update<CR>
+  inoremap <m-s> <ESC>:update<CR>
 ]])
 
 -- settings
