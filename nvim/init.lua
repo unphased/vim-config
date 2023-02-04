@@ -7,6 +7,7 @@ vim.o.title = true
 vim.o.number = true
 vim.o.undofile = true
 vim.o.undodir = vim.env.HOME .. "/.tmp"
+vim.o.termguicolors = true
 
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
@@ -77,6 +78,8 @@ vim.cmd([[
 vim.opt.titlestring = "NVIM %f %h%m%r%w (%{tabpagenr()} of %{tabpagenr('$')})"
 
 -- plugin settings
+require('feline').setup()
+
 require('gitsigns').setup({
   current_line_blame = true, -- Toggle with `:Gitsigns toggle_current_line_blame`
   current_line_blame_opts = {
