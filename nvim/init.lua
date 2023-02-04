@@ -38,10 +38,10 @@ vim.keymap.set('n', 'L', '7l')
 
 -- Joining lines with Ctrl+N
 vim.keymap.set('n', '<c-n>', function()
-  line, col = unpack(vim.fn.getpos("."))
+  local line, col = unpack(vim.api.nvim_win_get_cursor(0))
   print("line: " .. line .. " col: " .. col)
   vim.cmd('normal! J')
-  vim.fn.setpos(".", {line , col})
+  vim.api.nvim_win_set_cursor(0, { line, col })
 end)
 
 -- settings
