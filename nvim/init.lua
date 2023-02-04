@@ -36,12 +36,20 @@ vim.keymap.set('n', 'J', '5gj')
 vim.keymap.set('n', 'H', '7h')
 vim.keymap.set('n', 'L', '7l')
 
+-- Joining lines with Ctrl+N
 vim.keymap.set('n', '<c-n>', function()
-
+line, col = unpack(vim.fn.getpos("."))
+print("line: " .. line .. " col: " .. col)
+vim.cmd('normal! J')
+vim.fn.setpos(".", {line , col})
 end
 )
 
 -- settings
 
 vim.o.number = true
+vim.o.undofile = true
+vim.o.undodir = vim.env.HOME .. "/.tmp"
+
+print ("undodir: " .. vim.o.undodir)
 

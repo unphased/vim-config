@@ -11,8 +11,9 @@ return {
   "tpope/vim-surround",
   "tpope/vim-sleuth",
   "tpope/vim-repeat",
-  "tpope/vim-commentary",
+  "numToStr/Comment.nvim",
   'AndrewRadev/switch.vim',
   'junegunn/fzf.vim',
-  'github/copilot.vim'
+  'github/copilot.vim',
+  'ethanholz/nvim-lastplace'
 }
