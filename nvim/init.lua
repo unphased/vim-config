@@ -44,6 +44,15 @@ vim.keymap.set('n', '<c-n>', function()
   vim.api.nvim_win_set_cursor(0, { line, col })
 end)
 
+-- make it easier to type a colon
+vim.keymap.set('n', ';' , ':')
+
+-- make paste not move the cursor
+vim.keymap.set('n', 'P', 'P`[')
+
+-- turn F10 into escape
+vim.keymap.set({'i', 's', 'c'}, '<F10>', '<esc>')
+
 -- settings
 
 vim.o.number = true
