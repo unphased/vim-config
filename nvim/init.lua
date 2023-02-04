@@ -1,4 +1,13 @@
+
+-- settings
+
 vim.cmd([[ colorscheme habamax ]])
+
+vim.o.title = true
+vim.o.number = true
+vim.o.undofile = true
+vim.o.undodir = vim.env.HOME .. "/.tmp"
+
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
@@ -65,18 +74,19 @@ vim.cmd([[
   inoremap <m-s> <ESC>:update<CR>
 ]])
 
--- settings
-
-vim.o.title = true
-vim.o.number = true
-vim.o.undofile = true
-vim.o.undodir = vim.env.HOME .. "/.tmp"
-
--- autocmds
--- autocmd BufEnter * let &titlestring = "NVIM " . expand("%:t")
 vim.opt.titlestring = "NVIM %f %h%m%r%w (%{tabpagenr()} of %{tabpagenr('$')})"
 
 -- plugin settings
+require('gitsigns').setup({
+  current_line_blame = true, -- Toggle with `:Gitsigns toggle_current_line_blame`
+  current_line_blame_opts = {
+    virt_text = true,
+    virt_text_pos = 'eol', -- 'eol' | 'overlay' | 'right_align'
+    delay = 400,
+    ignore_whitespace = false,
+  },
+})
+
 require('lazy-lsp').setup {
   -- By default all available servers are set up. Exclude unwanted or misbehaving servers.
   excluded_servers = {
