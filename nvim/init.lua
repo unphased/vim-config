@@ -16,21 +16,7 @@ vim.opt.rtp:prepend(lazypath)
 
 -- plugins
 
-require("lazy").setup({
-  {
-     "nvim-neo-tree/neo-tree.nvim",
-     branch = "v2.x",
-     dependencies = { 
-       "nvim-lua/plenary.nvim",
-       "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
-       "MunifTanjim/nui.nvim",
-     }
-  },
-  "tpope/vim-surround",
-  "tpope/vim-sleuth",
-  'AndrewRadev/switch.vim',
-  'junegunn/fzf.vim'
-}, {
+require("lazy").setup("plugins", {
   change_detection = {
     -- automatically check for config file changes and reload the ui
     enabled = true,
@@ -44,6 +30,11 @@ vim.keymap.set('n', 'k', 'gk')
 vim.keymap.set('n', 'j', 'gj')
 vim.keymap.set('n', 'gk', 'k')
 vim.keymap.set('n', 'gj', 'j')
+
+vim.keymap.set('n', 'K', '5gk')
+vim.keymap.set('n', 'J', '5gj')
+vim.keymap.set('n', 'H', '7h')
+vim.keymap.set('n', 'L', '7l')
 
 vim.keymap.set('n', '<c-n>', function()
 
