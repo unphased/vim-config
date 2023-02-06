@@ -14,6 +14,7 @@ return {
   "numToStr/Comment.nvim",
   'AndrewRadev/switch.vim',
   'junegunn/fzf.vim',
+  'junegunn/fzf',
   'github/copilot.vim',
   'ethanholz/nvim-lastplace',
   {
