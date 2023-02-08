@@ -1,7 +1,7 @@
 
 -- settings
 
-vim.cmd([[ colorscheme habamax ]])
+-- vim.cmd([[ colorscheme habamax ]])
 
 vim.o.title = true
 vim.o.number = true
