@@ -33,5 +33,6 @@ return {
   }, -- show nerd font icons for LSP types in completion menu
   "onsails/lspkind-nvim", -- status line plugin
   "feline-nvim/feline.nvim",
-  'lewis6991/gitsigns.nvim'
+  'lewis6991/gitsigns.nvim',
+  'lambdalisue/suda.vim'
 }
