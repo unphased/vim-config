@@ -1532,9 +1532,6 @@ vnoremap <C-S> <ESC>:update<CR>
 cnoremap <C-S> <C-C>:update<CR>
 inoremap <C-S> <ESC>:update<CR>
 
-" helper bind http://stackoverflow.com/a/7078429/340947
-cmap w!! w !sudo tee > /dev/null %
-
 " bind CTRL-ALT-S for saving as root (run sudo tee)
 " SHIFT-CTRL is not possible on terminals (same as CTRL-S)
 if !has('nvim') " regular vim doesn't understand c-a-s for whatever reason
