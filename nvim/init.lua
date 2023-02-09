@@ -65,9 +65,9 @@ vim.keymap.set({'i', 's', 'c'}, '<F10>', '<esc>')
 
 -- normal and visual mode backspace does what b does
 vim.keymap.set({'n', 'v'}, '<bs>', 'b')
-
 -- consistency with pagers in normal mode
 vim.keymap.set({'n', 'v'}, ' ', '<c-d>')
+vim.keymap.set({'n', 'v'}, 'b', '<c-u>')
 
 -- dumping vimL code that I didnt bother porting yet here for expedient bringup
 vim.cmd([[
@@ -227,10 +227,10 @@ vim.keymap.set('x', '<leader>y', require('osc52').copy_visual)
 
 -- lspconfig
 local opts = { noremap=true, silent=true }
-vim.keymap.set('n', '<space>e', vim.diagnostic.open_float, opts)
+vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, opts)
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
-vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, opts)
+vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, opts)
 
 -- helper
 function string:split(delimiter)
