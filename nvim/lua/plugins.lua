@@ -31,8 +31,15 @@ return {
       "JoosepAlviste/nvim-ts-context-commentstring"
     }
   }, -- show nerd font icons for LSP types in completion menu
+  "nvim-treesitter/nvim-treesitter-context",
   "onsails/lspkind-nvim", -- status line plugin
   "feline-nvim/feline.nvim",
   'lewis6991/gitsigns.nvim',
-  'lambdalisue/suda.vim'
+  'lambdalisue/suda.vim',
+  ---- Not sure about this one because i am trying to stick to treesitter for stuff like this at the moment
+  -- {
+  --   "SmiteshP/nvim-navic",
+  --   dependencies = { "neovim/nvim-lspconfig" }
+  -- }
+  "RRethy/nvim-base16"
 }

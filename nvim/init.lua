@@ -1,7 +1,7 @@
 
 -- settings
 
-vim.cmd([[ colorscheme Tomorrow-Night-Eighties ]])
+vim.cmd([[colorscheme Tomorrow-Night-Eighties]])
 
 vim.o.title = true
 vim.o.number = true
@@ -9,6 +9,7 @@ vim.o.undofile = true
 vim.o.undodir = vim.env.HOME .. "/.tmp"
 vim.o.termguicolors = true
 
+-- init lazy.nvim plugin loader
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
   vim.fn.system({
@@ -61,6 +62,9 @@ vim.keymap.set('n', 'P', 'P`[')
 
 -- turn F10 into escape
 vim.keymap.set({'i', 's', 'c'}, '<F10>', '<esc>')
+
+-- normal and visual mode backspace does what b does
+vim.keymap.set({'n', 'v'}, '<bs>', 'b')
 
 -- dumping vimL code that I didnt bother porting yet here for expedient bringup
 vim.cmd([[
