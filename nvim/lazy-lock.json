@@ -1,5 +1,7 @@
 {
   "Comment.nvim": { "branch": "master", "commit": "eab2c83a0207369900e92783f56990808082eac2" },
+  "awesome-vim-colorschemes": { "branch": "master", "commit": "9f96bbdef5cb19daf58449f0fbb597af6fc4c2eb" },
+  "colorSchemeExplorer": { "branch": "master", "commit": "5e8e763264af1142f2310894206ccfb2456e99c3" },
   "copilot.vim": { "branch": "release", "commit": "c7d166ebda265370f38cec374e33f02eeec2f857" },
   "feline.nvim": { "branch": "master", "commit": "d48b6f92c6ccdd6654c956f437be49ea160b5b0c" },
   "fzf": { "branch": "master", "commit": "f7447aece12f9b95133b803d5c4f71815bee8ca6" },

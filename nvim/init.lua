@@ -1,7 +1,4 @@
-
--- settings
-
-vim.cmd([[colorscheme Tomorrow-Night-Eighties]])
+-- traditional settings
 
 vim.o.title = true
 vim.o.number = true
@@ -33,6 +30,9 @@ require("lazy").setup("plugins", {
     notify = true, -- get a notification when changes are found
   },
 })
+
+-- settings that may require some loader stuff
+vim.cmd('colorscheme deus')
 
 -- mappings
 
@@ -243,4 +243,3 @@ function table:print()
       print(key, value)
   end
 end
-
