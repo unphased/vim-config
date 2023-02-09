@@ -23,7 +23,7 @@ alias sl="ls"
 alias ll="l -lh"
 alias la="ll -a"
 alias ssht="TERM=xterm-256color ssh"
-alias v="TERM=screen-256color-italic nvim"
+alias v="nvim"
 alias g="git"
 alias gs="git s" # short status 
 alias gco="git checkout"
