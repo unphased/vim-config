@@ -123,6 +123,8 @@ vim.cmd([[
   let g:surround_{char2nr("*")} = "/* \r */"
   vmap * S*
 
+  vmap S<CR> S<C-J>V2j=
+
 ]])
 
 vim.opt.titlestring = "NVIM %f %h%m%r%w (%{tabpagenr()} of %{tabpagenr('$')})"
@@ -219,6 +221,19 @@ require'nvim-treesitter.configs'.setup {
 --     },
 --   },
 -- }
+
+require('nvim-cursorline').setup {
+  cursorline = {
+    enable = true,
+    timeout = 20,
+    number = false,
+  },
+  cursorword = {
+    enable = true,
+    min_length = 2,
+    hl = { underline = true },
+  }
+}
 
 -- general plugin specific binds (TODO: put together when refactoring the plugin configs into files)
 vim.keymap.set('n', '<leader>y', require('osc52').copy_operator, {expr = true})

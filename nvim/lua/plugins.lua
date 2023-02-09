@@ -44,5 +44,6 @@ return {
   "RRethy/nvim-base16",
   "rafi/awesome-vim-colorschemes",
   "jlanzarotta/colorSchemeExplorer",
-  "ojroques/nvim-osc52"
+  "ojroques/nvim-osc52",
+  "yamatsum/nvim-cursorline"
 }
