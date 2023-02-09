@@ -86,15 +86,35 @@ vim.cmd([[
     endif
   endfun
 
-noremap <silent> <C-H> :<c-u>call TmuxWindow('h')<CR>
-noremap <silent> <C-J> :<c-u>call TmuxWindow('j')<CR>
-noremap <silent> <C-K> :<c-u>call TmuxWindow('k')<CR>
-noremap <silent> <C-L> :<c-u>call TmuxWindow('l')<CR>
+  noremap <silent> <C-H> :<c-u>call TmuxWindow('h')<CR>
+  noremap <silent> <C-J> :<c-u>call TmuxWindow('j')<CR>
+  noremap <silent> <C-K> :<c-u>call TmuxWindow('k')<CR>
+  noremap <silent> <C-L> :<c-u>call TmuxWindow('l')<CR>
 
-noremap! <silent> <C-H> <ESC>:call TmuxWindow('h')<CR>
-noremap! <silent> <C-J> <ESC>:call TmuxWindow('j')<CR>
-noremap! <silent> <C-K> <ESC>:call TmuxWindow('k')<CR>
-noremap! <silent> <C-L> <ESC>:call TmuxWindow('l')<CR>
+  noremap! <silent> <C-H> <ESC>:call TmuxWindow('h')<CR>
+  noremap! <silent> <C-J> <ESC>:call TmuxWindow('j')<CR>
+  noremap! <silent> <C-K> <ESC>:call TmuxWindow('k')<CR>
+  noremap! <silent> <C-L> <ESC>:call TmuxWindow('l')<CR>
+
+  nmap ` %
+  vmap ` %
+  omap ` %
+
+  vmap ' S'
+  vmap " S"
+  vmap { S{
+  vmap } S}
+  vmap ( S(
+  vmap ) S)
+  vmap [ S[
+  vmap ] S]
+  " This is way too cool (auto lets you enter tags)
+  vmap < S<
+  vmap > S>
+
+  " Set up c-style surround using * key. Useful in C/C++/JS
+  let g:surround_{char2nr("*")} = "/* \r */"
+  vmap * S*
 
 ]])
 
@@ -199,7 +219,6 @@ vim.keymap.set('n', '<space>e', vim.diagnostic.open_float, opts)
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
 vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, opts)
-
 
 -- helper
 function string:split(delimiter)
