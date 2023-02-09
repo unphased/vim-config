@@ -225,7 +225,7 @@ require'nvim-treesitter.configs'.setup {
 require('nvim-cursorline').setup {
   cursorline = {
     enable = true,
-    timeout = 20,
+    timeout = 5,
     number = false,
   },
   cursorword = {
