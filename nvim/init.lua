@@ -35,10 +35,10 @@ require("lazy").setup("plugins", {
 
 -- mappings
 
-vim.keymap.set('n', 'k', 'gk')
-vim.keymap.set('n', 'j', 'gj')
-vim.keymap.set('n', 'gk', 'k')
-vim.keymap.set('n', 'gj', 'j')
+vim.keymap.set({'n', 'v'}, 'k', 'gk')
+vim.keymap.set({'n', 'v'}, 'j', 'gj')
+vim.keymap.set({'n', 'v'}, 'gk', 'k')
+vim.keymap.set({'n', 'v'}, 'gj', 'j')
 
 vim.keymap.set({'v', 'n'}, 'K', '5gk')
 vim.keymap.set({'v', 'n'}, 'J', '5gj')
