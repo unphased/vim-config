@@ -1,7 +1,7 @@
 
 -- settings
 
--- vim.cmd([[ colorscheme habamax ]])
+vim.cmd([[ colorscheme Tomorrow-Night-Eighties ]])
 
 vim.o.title = true
 vim.o.number = true
@@ -62,8 +62,9 @@ vim.keymap.set('n', 'P', 'P`[')
 -- turn F10 into escape
 vim.keymap.set({'i', 's', 'c'}, '<F10>', '<esc>')
 
--- example of vimL code didnt bother porting
+-- dumping vimL code that I didnt bother porting yet here for expedient bringup
 vim.cmd([[
+
   noremap <C-S> :update<CR>
   vnoremap <C-S> <ESC>:update<CR>
   cnoremap <C-S> <C-C>:update<CR>
@@ -72,6 +73,29 @@ vim.cmd([[
   vnoremap <m-s> <ESC>:update<CR>
   cnoremap <m-s> <C-C>:update<CR>
   inoremap <m-s> <ESC>:update<CR>
+
+  " If cannot move in a direction, attempt to forward the directive to tmux
+  function! TmuxWindow(dir)
+  let nr=winnr()
+  silent! exe 'wincmd ' . a:dir
+  let newnr=winnr()
+  if newnr == nr && !has("gui_macvim")
+    let cmd = 'tmux select-pane -' . tr(a:dir, 'hjkl', 'LDUR')
+    call system(cmd)
+    " echo 'Executed ' . cmd
+    endif
+  endfun
+
+noremap <silent> <C-H> :<c-u>call TmuxWindow('h')<CR>
+noremap <silent> <C-J> :<c-u>call TmuxWindow('j')<CR>
+noremap <silent> <C-K> :<c-u>call TmuxWindow('k')<CR>
+noremap <silent> <C-L> :<c-u>call TmuxWindow('l')<CR>
+
+noremap! <silent> <C-H> <ESC>:call TmuxWindow('h')<CR>
+noremap! <silent> <C-J> <ESC>:call TmuxWindow('j')<CR>
+noremap! <silent> <C-K> <ESC>:call TmuxWindow('k')<CR>
+noremap! <silent> <C-L> <ESC>:call TmuxWindow('l')<CR>
+
 ]])
 
 vim.opt.titlestring = "NVIM %f %h%m%r%w (%{tabpagenr()} of %{tabpagenr('$')})"
