@@ -18,9 +18,9 @@ if [ "$(uname)" = Linux ] && lsb_release -i | grep Ubuntu; then
 	alias open="xdg-open"
 fi
 
-alias l="ls -larth"
+alias l="ls -rta"
 alias sl="ls"
-alias ll="l -l"
+alias ll="l -lh"
 alias la="ll -a"
 alias ssht="TERM=xterm-256color ssh"
 alias v="nvim"
