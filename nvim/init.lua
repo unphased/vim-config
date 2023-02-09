@@ -32,7 +32,7 @@ require("lazy").setup("plugins", {
 })
 
 -- settings that may require some loader stuff
-vim.cmd('colorscheme deus')
+vim.cmd('colorscheme sierra')
 
 -- mappings
 

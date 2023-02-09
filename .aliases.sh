@@ -18,6 +18,8 @@ if [ "$(uname)" = Linux ] && lsb_release -i | grep Ubuntu; then
 	alias open="xdg-open"
 fi
 
+alias vv="v ~/.vim/nvim/init.lua"
+alias vp="v ~/.vim/nvim/lua/plugins.lua"
 alias l="ls -rta"
 alias sl="ls"
 alias ll="l -lh"
