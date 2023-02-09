@@ -88,7 +88,7 @@
   // , "clangd.semanticHighlighting": true
   //, "coc.preferences.semanticTokensHighlights": false
   , "coc.preferences.extensionUpdateCheck": "daily"
-  , "clangd.path": "~/.config/coc/extensions/coc-clangd-data/install/15.0.3/clangd_15.0.3/bin/clangd"
+  , "clangd.path": "~/.config/coc/extensions/coc-clangd-data/install/15.0.6/clangd_15.0.6/bin/clangd"
   // ,"clangd.trace.file": "/tmp/clangd.trace"
   // ,"clangd.trace.server": "verbose"
   //, "eslint.options": { "overrideConfigFile": "~/.eslintrc.json"  }
