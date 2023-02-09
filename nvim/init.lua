@@ -66,6 +66,9 @@ vim.keymap.set({'i', 's', 'c'}, '<F10>', '<esc>')
 -- normal and visual mode backspace does what b does
 vim.keymap.set({'n', 'v'}, '<bs>', 'b')
 
+-- consistency with pagers in normal mode
+vim.keymap.set({'n', 'v'}, ' ', '<c-d>')
+
 -- dumping vimL code that I didnt bother porting yet here for expedient bringup
 vim.cmd([[
 
@@ -216,6 +219,11 @@ require'nvim-treesitter.configs'.setup {
 --     },
 --   },
 -- }
+
+-- general plugin specific binds (TODO: put together when refactoring the plugin configs into files)
+vim.keymap.set('n', '<leader>y', require('osc52').copy_operator, {expr = true})
+vim.keymap.set('n', '<leader>yy', '<leader>c_', {remap = true})
+vim.keymap.set('x', '<leader>y', require('osc52').copy_visual)
 
 -- lspconfig
 local opts = { noremap=true, silent=true }
