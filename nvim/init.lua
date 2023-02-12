@@ -61,13 +61,20 @@ vim.keymap.set('n', ';' , ':')
 vim.keymap.set('n', 'P', 'P`[')
 
 -- turn F10 into escape
-vim.keymap.set({'i', 's', 'c'}, '<F10>', '<esc>')
+vim.keymap.set({'i', 's', 'v'}, '<F10>', '<esc>')
+vim.keymap.set({'c'}, '<F10>', '<c-c>')
 
 -- normal and visual mode backspace does what b does
 vim.keymap.set({'n', 'v'}, '<bs>', 'b')
 -- consistency with pagers in normal mode
 vim.keymap.set({'n', 'v'}, ' ', '<c-d>')
 vim.keymap.set({'n', 'v'}, 'b', '<c-u>')
+
+-- ctrl+b to go back forward in jumplist
+vim.keymap.set('n', '<c-b>', '<tab>')
+
+-- hoping to automate entering visual mode
+vim.keymap.set('n', '<cr>', 'v<cr>', {remap = true})
 
 -- dumping vimL code that I didnt bother porting yet here for expedient bringup
 vim.cmd([[
@@ -126,6 +133,13 @@ vim.cmd([[
   vmap S<CR> S<C-J>V2j=
 
 ]])
+
+function _G.overwrite_file(filename, payload)
+  local log_file_path = vim.env.HOME..'/'..filename
+  local log_file = io.open(log_file_path, "w")
+  log_file:write(payload)
+  log_file:close()
+end
 
 vim.opt.titlestring = "NVIM %f %h%m%r%w (%{tabpagenr()} of %{tabpagenr('$')})"
 
@@ -187,6 +201,30 @@ require'nvim-treesitter.configs'.setup {
     -- Instead of true it can also be a list of languages
     additional_vim_regex_highlighting = false,
   },
+  indent = {
+    enable = true,
+    disable = {"python", "lua"}
+  },
+  incremental_selection = {
+    enable = true,
+    keymaps = {
+      init_selection = '<CR>',
+      --scope_incremental = '<TAB>',
+      node_incremental = '<CR>',
+      --node_decremental = '<S-TAB>',
+    },
+  },
+
+  -- let's see if textsubjects works well enough for my needs. so far seems like whitespace heuristics may be nice to have.
+  -- textsubjects = {
+  --   enable = true,
+  --   prev_selection = ',', -- (Optional) keymap to select the previous selection
+  --   keymaps = {
+  --     ['<cr>'] = 'textsubjects-smart',
+  --     ["'"] = 'textsubjects-container-outer',
+  --     [';'] = 'textsubjects-container-inner',
+  --   },
+  -- },
 }
 
 -- require('lazy-lsp').setup {
@@ -240,8 +278,17 @@ vim.keymap.set('n', '<leader>y', require('osc52').copy_operator, {expr = true})
 vim.keymap.set('n', '<leader>yy', '<leader>c_', {remap = true})
 vim.keymap.set('x', '<leader>y', require('osc52').copy_visual)
 
+-- We can explicitly use the server's own clipboard or fallback clipboard file if we somehow know 
+-- that we want the buffer that's in there.
+-- nnoremap <Leader>p :read !pbpaste<CR>
+vim.keymap.set('n', '<leader>p', ':read !pbpaste<CR>')
+vim.keymap.set('v', '<leader>p', ':!pbpaste<CR>')
+
+-- do not use read here so that the selected stuff gets slurped.
+-- vnoremap <Leader>p :!pbpaste<CR>
+
 -- lspconfig
-local opts = { noremap=true, silent=true }
+local opts = {}
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, opts)
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)

@@ -45,5 +45,6 @@ return {
   "rafi/awesome-vim-colorschemes",
   "jlanzarotta/colorSchemeExplorer",
   "ojroques/nvim-osc52",
-  "yamatsum/nvim-cursorline"
+  "yamatsum/nvim-cursorline",
+  "RRethy/nvim-treesitter-textsubjects"
 }
