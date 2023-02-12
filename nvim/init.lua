@@ -61,7 +61,7 @@ vim.keymap.set('n', ';' , ':')
 vim.keymap.set('n', 'P', 'P`[')
 
 -- turn F10 into escape
-vim.keymap.set({'i', 's', 'v'}, '<F10>', '<esc>')
+vim.keymap.set({'', '!'}, '<F10>', '<esc>')
 vim.keymap.set({'c'}, '<F10>', '<c-c>')
 
 -- normal and visual mode backspace does what b does
@@ -211,7 +211,7 @@ require'nvim-treesitter.configs'.setup {
       init_selection = '<CR>',
       --scope_incremental = '<TAB>',
       node_incremental = '<CR>',
-      --node_decremental = '<S-TAB>',
+      node_decremental = '<S-TAB>',
     },
   },
 
