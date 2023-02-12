@@ -263,6 +263,6 @@ end
 
 function table:print()
   for key, value in pairs(self) do
-      print(key, value)
+    print(key, value)
   end
 end
