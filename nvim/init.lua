@@ -90,13 +90,13 @@ vim.cmd([[
 
   " If cannot move in a direction, attempt to forward the directive to tmux
   function! TmuxWindow(dir)
-  let nr=winnr()
-  silent! exe 'wincmd ' . a:dir
-  let newnr=winnr()
-  if newnr == nr && !has("gui_macvim")
-    let cmd = 'tmux select-pane -' . tr(a:dir, 'hjkl', 'LDUR')
-    call system(cmd)
-    " echo 'Executed ' . cmd
+    let nr=winnr()
+    silent! exe 'wincmd ' . a:dir
+    let newnr=winnr()
+    if newnr == nr && !has("gui_macvim")
+      let cmd = 'tmux select-pane -' . tr(a:dir, 'hjkl', 'LDUR')
+      call system(cmd)
+      " echo 'Executed ' . cmd
     endif
   endfun
 
@@ -133,6 +133,9 @@ vim.cmd([[
   vmap S<CR> S<C-J>V2j=
 
 ]])
+
+-- gvar settings for plugins
+vim.g.matchup_matchparen_offscreen = { method = "popup" }
 
 function _G.overwrite_file(filename, payload)
   local log_file_path = vim.env.HOME..'/'..filename
@@ -213,6 +216,10 @@ require'nvim-treesitter.configs'.setup {
       node_incremental = '<CR>',
       node_decremental = '<S-TAB>',
     },
+  },
+  matchup = {
+    enable = true, -- mandatory, false will disable the whole extension
+    disable = {},  -- optional, list of language that will be disabled
   },
 
   -- let's see if textsubjects works well enough for my needs. so far seems like whitespace heuristics may be nice to have.

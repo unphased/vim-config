@@ -46,5 +46,6 @@ return {
   "jlanzarotta/colorSchemeExplorer",
   "ojroques/nvim-osc52",
   "yamatsum/nvim-cursorline",
-  "RRethy/nvim-treesitter-textsubjects"
+  "RRethy/nvim-treesitter-textsubjects",
+  "andymass/vim-matchup"
 }
