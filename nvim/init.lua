@@ -76,6 +76,9 @@ vim.keymap.set('n', '<c-b>', '<tab>')
 -- hoping to automate entering visual mode
 vim.keymap.set('n', '<cr>', 'v<cr>', {remap = true})
 
+-- allow backtick to do the same thing as percent
+vim.keymap.set({'n', 'v', 'o'}, '`', '%')
+
 -- dumping vimL code that I didnt bother porting yet here for expedient bringup
 vim.cmd([[
 
@@ -147,6 +150,9 @@ vim.cmd([[
 
 -- gvar settings for plugins
 vim.g.matchup_matchparen_offscreen = { method = "popup" }
+vim.g.matchup_surround_enabled = 1
+vim.g.matchup_matchparen_deferred = 1
+vim.g.matchup_matchparen_hi_surround_always = 1
 
 function _G.overwrite_file(filename, payload)
   local log_file_path = vim.env.HOME..'/'..filename
