@@ -164,6 +164,8 @@ end
 vim.opt.titlestring = "NVIM %f %h%m%r%w (%{tabpagenr()} of %{tabpagenr('$')})"
 
 -- plugin settings
+require("nvim-lastplace").setup {}
+require("nvim-autopairs").setup {}
 require('Comment').setup()
 
 require('feline').setup()
