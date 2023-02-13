@@ -100,6 +100,17 @@ vim.cmd([[
     endif
   endfun
 
+"   function Blah()
+"   python3 << EOF
+" from os.path import expanduser
+" f = open(expanduser('~') + '/.vim/.search', 'w')
+" # print f
+" w = vim.eval("l:word")
+" f.write(w)
+" f.close()
+" EOF
+" endfunction
+
   noremap <silent> <C-H> :<c-u>call TmuxWindow('h')<CR>
   noremap <silent> <C-J> :<c-u>call TmuxWindow('j')<CR>
   noremap <silent> <C-K> :<c-u>call TmuxWindow('k')<CR>
