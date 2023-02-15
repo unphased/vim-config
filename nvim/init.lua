@@ -144,10 +144,30 @@ vim.cmd([[
   let g:surround_{char2nr("*")} = "/* \r */"
   vmap * S*
 
+  " shortcut for visual mode space wrapping makes it more reasonable than using 
+  " default vim surround space maps which require hitting space twice or 
+  " modifying wrap actions by prepending space to their triggers -- i am guiding 
+  " the default workflow toward being more visualmode centric which involves less 
+  " cognitive frontloading.
+  vmap <Space> S<Space><Space>
+
+  " restore the functions for shifting selections
+  vnoremap << <
+  vnoremap >> >
+
   vmap S<CR> S<C-J>V2j=
 
   " Note gui=italic is what modern nvim seems to take, NOT cterm. likely related to 24bit color
   hi Comment cterm=italic gui=italic
+
+  " file search
+  xmap <C-P> <ESC><C-P>
+  omap <C-P> <ESC><C-P>
+
+  nnoremap <F6> :History<CR>
+  inoremap <F6> <ESC>:History<CR>
+  nnoremap <c-p> :Files<CR>
+  nnoremap <c-g> :GFiles?<CR>
 
 ]])
 
