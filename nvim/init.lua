@@ -298,7 +298,7 @@ require('nvim-cursorline').setup {
   cursorword = {
     enable = true,
     min_length = 2,
-    hl = { bold = true, underline = false, strikethrough = true },
+    hl = { bold = true, underline = false, strikethrough = true, undercurl = true, italic = true, sp = "red" },
   }
 }
 
