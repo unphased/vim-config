@@ -6,6 +6,17 @@ vim.o.undofile = true
 vim.o.undodir = vim.env.HOME .. "/.tmp"
 vim.o.termguicolors = true
 
+-- settings that may require inclusion prior to Lazy loader
+
+-- season to taste
+vim.cmd([[
+  function! Adjust_habamax_highlights()
+    echom "Adjusting habamax highlights"
+    hi MatchParen gui=NONE guifg=NONE guibg=#403040
+  endfunction
+  autocmd ColorScheme habamax call Adjust_habamax_highlights()
+]])
+
 -- init lazy.nvim plugin loader
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
@@ -30,9 +41,6 @@ require("lazy").setup("plugins", {
     notify = true, -- get a notification when changes are found
   },
 })
-
--- settings that may require some loader stuff
-vim.cmd('colorscheme habamax')
 
 -- mappings
 
@@ -81,6 +89,7 @@ vim.keymap.set({'n', 'v', 'o'}, '`', '%')
 
 -- dumping vimL code that I didnt bother porting yet here for expedient bringup
 vim.cmd([[
+  colorscheme habamax
 
   noremap <C-S> :update<CR>
   vnoremap <C-S> <ESC>:update<CR>
@@ -323,7 +332,7 @@ require('nvim-cursorline').setup {
   cursorword = {
     enable = true,
     min_length = 2,
-    hl = { bold = true, underline = false, strikethrough = true, undercurl = true, italic = true, sp = "red" },
+    hl = { bg = "#304030", underline = false },
   }
 }
 

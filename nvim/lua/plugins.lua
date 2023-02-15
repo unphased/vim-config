@@ -48,5 +48,5 @@ return {
   "yamatsum/nvim-cursorline",
   "andymass/vim-matchup",
   "AndrewRadev/splitjoin.vim",
-  "windwp/nvim-autopairs"
+  "windwp/nvim-autopairs",
 }
