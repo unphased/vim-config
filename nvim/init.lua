@@ -32,7 +32,7 @@ require("lazy").setup("plugins", {
 })
 
 -- settings that may require some loader stuff
-vim.cmd('colorscheme sierra')
+vim.cmd('colorscheme habamax')
 
 -- mappings
 
