@@ -22,6 +22,7 @@ window:
   dimensions:
     columns: 120
     lines: 90
+  opacity: 0.95
   dynamic_padding: true
   decorations: "full" # awkward, but i need the real estate. also 18.04 keeps things decent
   startup_mode: Fullscreen
@@ -81,11 +82,6 @@ font:
   glyph_offset:
     x: 0
     y: 0
-
-  # OS X only: use thin stroke font rendering. Thin strokes are suitable
-  # for retina displays, but for non-retina you probably want this set to
-  # false.
-  use_thin_strokes: false
 
 # Should display the render timer
 # render_timer: false
@@ -153,9 +149,6 @@ bell:
   animation: EaseOutExpo
   duration: 0
   color: '0x303030'
-
-# Background opacity
-background_opacity: 0.95
 
 # Mouse bindings
 #
