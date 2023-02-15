@@ -146,6 +146,9 @@ vim.cmd([[
 
   vmap S<CR> S<C-J>V2j=
 
+  " Note gui=italic is what modern nvim seems to take, NOT cterm. likely related to 24bit color
+  hi Comment cterm=italic gui=italic
+
 ]])
 
 -- gvar settings for plugins
@@ -288,14 +291,14 @@ require'nvim-treesitter.configs'.setup {
 
 require('nvim-cursorline').setup {
   cursorline = {
-    enable = true,
+    enable = false,
     timeout = 5,
-    number = false,
+    number = true,
   },
   cursorword = {
     enable = true,
     min_length = 2,
-    hl = { underline = true },
+    hl = { bold = true, underline = false },
   }
 }
 
