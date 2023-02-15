@@ -169,6 +169,11 @@ vim.cmd([[
   nnoremap <c-p> :Files<CR>
   nnoremap <c-g> :GFiles?<CR>
 
+  nnoremap <tab> gt
+  nnoremap <s-tab> gT
+
+  nnoremap <leader>f :NeoTreeShowToggle<CR>
+
 ]])
 
 -- gvar settings for plugins
