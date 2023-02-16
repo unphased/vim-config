@@ -183,6 +183,8 @@ vim.cmd([[
 
   nnoremap <leader>f :NeoTreeShowToggle<CR>
 
+  nnoremap <c-m-s> :SudaWrite<CR>
+
 ]])
 
 -- gvar settings for plugins
