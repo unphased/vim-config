@@ -15,7 +15,7 @@ return {
   'AndrewRadev/switch.vim',
   -- 'junegunn/fzf.vim',
   -- 'junegunn/fzf',
-  { 'nvim-telescope/telescope.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
+  { 'nvim-telescope/telescope.nvim', dependencies = { 'nvim-lua/plenary.nvim' }, branch = "v0.1.x" },
   { 'nvim-telescope/telescope-fzf-native.nvim', build = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build' },
   'norcalli/nvim-colorizer.lua',
   'github/copilot.vim',

@@ -12,7 +12,7 @@ vim.o.termguicolors = true
 vim.cmd([[
   function! Adjust_habamax_highlights()
     echom "Adjusting habamax highlights"
-    hi MatchParen gui=NONE guifg=NONE guibg=#503050
+    hi MatchParen gui=NONE guifg=NONE guibg=#504050
   endfunction
   autocmd ColorScheme habamax call Adjust_habamax_highlights()
 ]])
