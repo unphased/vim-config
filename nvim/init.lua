@@ -124,9 +124,11 @@ vim.cmd([[
   " endfunction
 
   highlight DiffAdd guibg=#203520 guifg=NONE
-  highlight DiffChange guibg=#132924 guifg=NONE
+  highlight DiffChange guibg=#13292e guifg=NONE
   " highlight DiffText guibg=#452250 guifg=NONE
   highlight DiffDelete guibg=#30181a guifg=NONE
+  highlight GitSignsChangeInline guibg=#30582e guifg=NONE
+  highlight GitSignsDeleteInline guibg=#68221a guifg=NONE
 
   noremap <silent> <C-H> :<c-u>call TmuxWindow('h')<CR>
   noremap <silent> <C-J> :<c-u>call TmuxWindow('j')<CR>
@@ -181,7 +183,7 @@ vim.cmd([[
   nnoremap <F6> :History<CR>
   inoremap <F6> <ESC>:History<CR>
   nnoremap <c-p> :Files<CR>
-  nnoremap <c-g> :GFiles?<CR>
+  " nnoremap <c-g> :GFiles?<CR>
 
   nnoremap <tab> gt
   nnoremap <s-tab> gT
@@ -249,7 +251,7 @@ require('gitsigns').setup{
   },
   show_deleted = true,
   numhl      = true, -- Toggle with `:Gitsigns toggle_numhl`
-  linehl     = true, -- Toggle with `:Gitsigns toggle_linehl`
+  linehl     = false, -- Toggle with `:Gitsigns toggle_linehl`
   word_diff  = true, -- Toggle with `:Gitsigns toggle_word_diff`
   current_line_blame = true, -- Toggle with `:Gitsigns toggle_current_line_blame`
   current_line_blame_opts = {
