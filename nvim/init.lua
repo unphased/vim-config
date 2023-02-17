@@ -12,7 +12,7 @@ vim.o.termguicolors = true
 vim.cmd([[
   function! Adjust_habamax_highlights()
     echom "Adjusting habamax highlights"
-    hi MatchParen gui=NONE guifg=NONE guibg=#403040
+    hi MatchParen gui=NONE guifg=NONE guibg=#503050
   endfunction
   autocmd ColorScheme habamax call Adjust_habamax_highlights()
 ]])
@@ -112,16 +112,21 @@ vim.cmd([[
     endif
   endfun
 
-"   function Blah()
-"   python3 << EOF
-" from os.path import expanduser
-" f = open(expanduser('~') + '/.vim/.search', 'w')
-" # print f
-" w = vim.eval("l:word")
-" f.write(w)
-" f.close()
-" EOF
-" endfunction
+  "   function Blah()
+  "   python3 << EOF
+  " from os.path import expanduser
+  " f = open(expanduser('~') + '/.vim/.search', 'w')
+  " # print f
+  " w = vim.eval("l:word")
+  " f.write(w)
+  " f.close()
+  " EOF
+  " endfunction
+
+  highlight DiffAdd guibg=#203520 guifg=NONE
+  highlight DiffChange guibg=#132924 guifg=NONE
+  " highlight DiffText guibg=#452250 guifg=NONE
+  highlight DiffDelete guibg=#30181a guifg=NONE
 
   noremap <silent> <C-H> :<c-u>call TmuxWindow('h')<CR>
   noremap <silent> <C-J> :<c-u>call TmuxWindow('j')<CR>
@@ -202,7 +207,14 @@ end
 
 vim.opt.titlestring = "NVIM %f %h%m%r%w (%{tabpagenr()} of %{tabpagenr('$')})"
 
--- plugin settings
+-- plugin settings what
+
+local telescope_builtin = require('telescope.builtin')
+vim.keymap.set('n', '<leader>ff', telescope_builtin.find_files, {})
+vim.keymap.set('n', '<leader>fg', telescope_builtin.live_grep, {})
+vim.keymap.set('n', '<leader>fb', telescope_builtin.buffers, {})
+vim.keymap.set('n', '<leader>fh', telescope_builtin.help_tags, {})
+
 require("nvim-lastplace").setup {}
 require("nvim-autopairs").setup {}
 require('Comment').setup()
@@ -210,7 +222,35 @@ require('Comment').setup()
 require('feline').setup()
 require('feline').winbar.setup()
 
-require('gitsigns').setup({
+require('gitsigns').setup{
+  diff_opts = {
+    internal = true,
+    -- linematch = 1
+  },
+  count_chars = {
+    [1]   = '₁',
+    [2]   = '₂',
+    [3]   = '₃',
+    [4]   = '₄',
+    [5]   = '₅',
+    [6]   = '₆',
+    [7]   = '₇',
+    [8]   = '₈',
+    [9]   = '₉',
+    ['+'] = '₊',
+  },
+  signs = {
+    add          = { text = '+', show_count = true },
+    change       = { text = '│', show_count = true },
+    delete       = { text = '_', show_count = true },
+    topdelete    = { text = '‾', show_count = true },
+    changedelete = { text = '~', show_count = true },
+    untracked    = { text = '┆' },
+  },
+  show_deleted = true,
+  numhl      = true, -- Toggle with `:Gitsigns toggle_numhl`
+  linehl     = true, -- Toggle with `:Gitsigns toggle_linehl`
+  word_diff  = true, -- Toggle with `:Gitsigns toggle_word_diff`
   current_line_blame = true, -- Toggle with `:Gitsigns toggle_current_line_blame`
   current_line_blame_opts = {
     virt_text = true,
@@ -218,7 +258,7 @@ require('gitsigns').setup({
     delay = 400,
     ignore_whitespace = false,
   },
-})
+}
 
 require'nvim-treesitter.configs'.setup {
   -- A list of parser names, or "all" (the four listed parsers should always be installed)
@@ -324,6 +364,8 @@ require'nvim-treesitter.configs'.setup {
 --     },
 --   },
 -- }
+
+require'colorizer'.setup()
 
 require('nvim-cursorline').setup {
   cursorline = {

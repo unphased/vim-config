@@ -13,8 +13,10 @@ return {
   "tpope/vim-repeat",
   "numToStr/Comment.nvim",
   'AndrewRadev/switch.vim',
-  'junegunn/fzf.vim',
-  'junegunn/fzf',
+  -- 'junegunn/fzf.vim',
+  -- 'junegunn/fzf',
+  { 'nvim-telescope/telescope.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
+  'norcalli/nvim-colorizer.lua',
   'github/copilot.vim',
   'ethanholz/nvim-lastplace',
   {
