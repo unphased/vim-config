@@ -20,7 +20,7 @@ fi
 
 alias vv="v ~/.vim/nvim/init.lua"
 alias vp="v ~/.vim/nvim/lua/plugins.lua"
-alias l="ls -rta"
+alias l="ls -rt"
 alias sl="ls"
 alias ll="l -lh"
 alias la="ll -a"
