@@ -5,13 +5,15 @@ vim.o.number = true
 vim.o.undofile = true
 vim.o.undodir = vim.env.HOME .. "/.tmp"
 vim.o.termguicolors = true
+vim.o.ignorecase = true
+vim.o.smartcase = true
 
 -- settings that may require inclusion prior to Lazy loader
 
 -- season to taste
 vim.cmd([[
   function! Adjust_habamax_highlights()
-    echom "Adjusting habamax highlights"
+    " echom "Adjusting habamax highlights"
     hi MatchParen gui=NONE guifg=NONE guibg=#504050
     hi CursorLine guibg=#262626
   endfunction
@@ -44,6 +46,7 @@ require("lazy").setup("plugins", {
 
 -- mappings
 
+vim.keymap.set({'n', 'v'}, '/', '/\\v')
 vim.keymap.set({'n', 'v'}, 'k', 'gk')
 vim.keymap.set({'n', 'v'}, 'j', 'gj')
 vim.keymap.set({'n', 'v'}, 'gk', 'k')
@@ -263,8 +266,6 @@ require("nvim-lastplace").setup {}
 require("nvim-autopairs").setup {}
 require('Comment').setup()
 
-require('feline').setup()
-require('feline').winbar.setup()
 
 require'nvim-treesitter.configs'.setup {
   -- A list of parser names, or "all" (the four listed parsers should always be installed)
@@ -370,6 +371,12 @@ require'nvim-treesitter.configs'.setup {
 --     },
 --   },
 -- }
+
+require("trouble").setup {
+  -- your configuration comes here
+  -- or leave it empty to use the default settings
+  -- refer to the configuration section below
+}
 
 require('nvim-cursorline').setup {
   cursorline = {
