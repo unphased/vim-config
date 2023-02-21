@@ -251,14 +251,14 @@ require('gitsigns').setup{
   },
   show_deleted = true,
   numhl      = true, -- Toggle with `:Gitsigns toggle_numhl`
-  linehl     = false, -- Toggle with `:Gitsigns toggle_linehl`
+  linehl     = true, -- Toggle with `:Gitsigns toggle_linehl`
   word_diff  = true, -- Toggle with `:Gitsigns toggle_word_diff`
   current_line_blame = true, -- Toggle with `:Gitsigns toggle_current_line_blame`
   current_line_blame_opts = {
     virt_text = true,
     virt_text_pos = 'eol', -- 'eol' | 'overlay' | 'right_align'
     delay = 400,
-    ignore_whitespace = false,
+    ignore_whitespace = true,
   },
 }
 
@@ -371,7 +371,7 @@ require'colorizer'.setup()
 
 require('nvim-cursorline').setup {
   cursorline = {
-    enable = false,
+    enable = true,
     timeout = 5,
     number = true,
   },
@@ -402,6 +402,17 @@ vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, opts)
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, opts)
+
+-- indent-blankline
+vim.opt.list = true
+vim.opt.listchars:append "space:⋅"
+vim.opt.listchars:append "eol:↴"
+
+require("indent_blankline").setup {
+    space_char_blankline = " ",
+    show_current_context = true,
+    show_current_context_start = true,
+}
 
 -- helper
 function string:split(delimiter)

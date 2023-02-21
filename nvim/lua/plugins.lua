@@ -52,4 +52,5 @@ return {
   "andymass/vim-matchup",
   "AndrewRadev/splitjoin.vim",
   "windwp/nvim-autopairs",
+   "lukas-reineke/indent-blankline.nvim",
 }
