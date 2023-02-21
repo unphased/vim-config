@@ -409,17 +409,22 @@ vim.opt.list = true
 -- "eol:↴"
 vim.opt.listchars = "tab:→ ,extends:»,precedes:«,trail:·,nbsp:◆"
 
+vim.cmd("highlight IndentBlanklineContextChar guifg=#664466 gui=nocombine")
+vim.cmd("highlight IndentBlanklineContextStart cterm=underdouble gui=underdouble guisp=#664466")
+vim.cmd("highlight IndentBlanklineIndent1 gui=nocombine guifg=#303030")
+vim.cmd("highlight IndentBlanklineIndent2 gui=nocombine guifg=#444444")
 require("indent_blankline").setup {
   char='▏',
+  char_highlight_list = {
+    "IndentBlanklineIndent1",
+    "IndentBlanklineIndent2",
+  },
   context_char='▏',
   space_char_blankline=' ',
   show_end_of_line = true, -- no effect while eof not put in listchars.
   show_current_context = true,
   show_current_context_start = true,
 }
-vim.cmd("highlight IndentBlanklineContextChar guifg=#644 gui=nocombine")
-vim.cmd("highlight IndentBlanklineContextStart cterm=underdouble guisp=#644")
-vim.cmd("highlight IndentBlanklineChar gui=nocombine guifg=#555")
 
 -- helper
 function string:split(delimiter)
