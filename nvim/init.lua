@@ -13,6 +13,7 @@ vim.cmd([[
   function! Adjust_habamax_highlights()
     echom "Adjusting habamax highlights"
     hi MatchParen gui=NONE guifg=NONE guibg=#504050
+    hi CursorLine guibg=#262626
   endfunction
   autocmd ColorScheme habamax call Adjust_habamax_highlights()
 ]])
@@ -128,6 +129,7 @@ vim.cmd([[
   highlight DiffDelete guibg=#30181a guifg=NONE
   highlight GitSignsChangeInline guibg=#30582e guifg=NONE
   highlight GitSignsDeleteInline guibg=#68221a guifg=NONE
+  highlight GitSignsAddInline guibg=#30582e guifg=NONE
 
   noremap <silent> <C-H> :<c-u>call TmuxWindow('h')<CR>
   noremap <silent> <C-J> :<c-u>call TmuxWindow('j')<CR>
@@ -368,11 +370,12 @@ require('nvim-cursorline').setup {
     enable = true,
     timeout = 5,
     number = true,
+    hl = { bg = "#262626" }, -- seems to be overridden by at least a few CSs but worth specifying?
   },
   cursorword = {
     enable = true,
     min_length = 2,
-    hl = { bg = "#304030", underline = false},
+    hl = { bg = "#303050", underline = false},
   }
 }
 
