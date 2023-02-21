@@ -405,8 +405,7 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, opts)
 
 -- indent-blankline
 vim.opt.list = true
-vim.opt.listchars:append "space:⋅"
-vim.opt.listchars:append "eol:↴"
+vim.opt.listchars = "eol:↴,tab:→ ,extends:»,precedes:«,trail:·,nbsp:◆"
 
 require("indent_blankline").setup {
     space_char_blankline = " ",
