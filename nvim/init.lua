@@ -86,6 +86,10 @@ vim.keymap.set('n', '<cr>', 'v<cr>', {remap = true})
 
 -- allow backtick to do the same thing as percent
 vim.keymap.set({'n', 'v', 'o'}, '`', '%')
+vim.keymap.set('n', "<c-\\>", ':vsplit<cr>')
+vim.keymap.set('v', "<c-\\>", '<esc>:vsplit<cr>')
+vim.keymap.set('n', "<c-_>", ':split<cr>')
+vim.keymap.set('v', "<c-_>", '<esc>:split<cr>')
 
 -- dumping vimL code that I didnt bother porting yet here for expedient bringup
 vim.cmd([[
