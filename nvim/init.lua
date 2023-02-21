@@ -375,7 +375,7 @@ require('nvim-cursorline').setup {
   cursorword = {
     enable = true,
     min_length = 2,
-    hl = { bg = "#304030", underline = false },
+    hl = { bg = "#304030", underdouble = true },
   }
 }
 
