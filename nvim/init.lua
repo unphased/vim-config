@@ -33,7 +33,6 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 -- plugins
-
 require("lazy").setup("plugins", {
   change_detection = {
     -- automatically check for config file changes and reload the ui
@@ -209,21 +208,7 @@ end
 
 vim.opt.titlestring = "NVIM %f %h%m%r%w (%{tabpagenr()} of %{tabpagenr('$')})"
 
--- plugin settings what
-
-local telescope_builtin = require('telescope.builtin')
-vim.keymap.set('n', '<leader>ff', telescope_builtin.find_files, {})
-vim.keymap.set('n', '<leader>fg', telescope_builtin.live_grep, {})
-vim.keymap.set('n', '<leader>fb', telescope_builtin.buffers, {})
-vim.keymap.set('n', '<leader>fh', telescope_builtin.help_tags, {})
-
-require("nvim-lastplace").setup {}
-require("nvim-autopairs").setup {}
-require('Comment').setup()
-
-require('feline').setup()
-require('feline').winbar.setup()
-
+-- plugin settings
 require('gitsigns').setup{
   diff_opts = {
     internal = true,
@@ -261,6 +246,20 @@ require('gitsigns').setup{
     ignore_whitespace = true,
   },
 }
+
+
+local telescope_builtin = require('telescope.builtin')
+vim.keymap.set('n', '<leader>ff', telescope_builtin.find_files, {})
+vim.keymap.set('n', '<leader>fg', telescope_builtin.live_grep, {})
+vim.keymap.set('n', '<leader>fb', telescope_builtin.buffers, {})
+vim.keymap.set('n', '<leader>fh', telescope_builtin.help_tags, {})
+
+require("nvim-lastplace").setup {}
+require("nvim-autopairs").setup {}
+require('Comment').setup()
+
+require('feline').setup()
+require('feline').winbar.setup()
 
 require'nvim-treesitter.configs'.setup {
   -- A list of parser names, or "all" (the four listed parsers should always be installed)
@@ -367,8 +366,6 @@ require'nvim-treesitter.configs'.setup {
 --   },
 -- }
 
-require'colorizer'.setup()
-
 require('nvim-cursorline').setup {
   cursorline = {
     enable = true,
@@ -381,6 +378,8 @@ require('nvim-cursorline').setup {
     hl = { bg = "#304030", underline = false },
   }
 }
+
+-- require'colorizer'.setup()
 
 -- general plugin specific binds (TODO: put together when refactoring the plugin configs into files)
 vim.keymap.set('n', '<leader>y', require('osc52').copy_operator, {expr = true})
@@ -404,6 +403,7 @@ vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, opts)
 
 -- indent-blankline
+
 vim.opt.list = true
 -- opting to not use eol since it's too noisy looking imo
 -- "eol:↴"
@@ -413,9 +413,12 @@ require("indent_blankline").setup {
   char='▏',
   context_char='▏',
   space_char_blankline=' ',
+  show_end_of_line = true, -- no effect while eof not put in listchars.
   show_current_context = true,
   show_current_context_start = true,
 }
+vim.cmd("highlight IndentBlanklineContextChar guifg=#00FF00 gui=nocombine")
+vim.cmd("highlight IndentBlanklineContextStart gui=underline guisp=#ff0000")
 
 -- helper
 function string:split(delimiter)
