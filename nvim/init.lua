@@ -409,6 +409,9 @@ vim.opt.list = true
 -- "eol:↴"
 vim.opt.listchars = "tab:→ ,extends:»,precedes:«,trail:·,nbsp:◆"
 
+vim.cmd("highlight IndentBlanklineContextChar guifg=#644 gui=nocombine")
+vim.cmd("highlight IndentBlanklineContextStart gui=underdouble guisp=#644")
+vim.cmd("highlight IndentBlanklineChar gui=nocombine guifg=#555")
 require("indent_blankline").setup {
   char='▏',
   context_char='▏',
@@ -417,8 +420,6 @@ require("indent_blankline").setup {
   show_current_context = true,
   show_current_context_start = true,
 }
-vim.cmd("highlight IndentBlanklineContextChar guifg=#00FF00 gui=nocombine")
-vim.cmd("highlight IndentBlanklineContextStart gui=underline guisp=#ff0000")
 
 -- helper
 function string:split(delimiter)
