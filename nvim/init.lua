@@ -175,9 +175,10 @@ vim.cmd([[
   " Note gui=italic is what modern nvim seems to take, NOT cterm. likely related to 24bit color
   hi Comment cterm=italic gui=italic
 
-  " file search
-  xmap <C-P> <ESC><C-P>
-  omap <C-P> <ESC><C-P>
+  nnoremap = :vertical res +5<CR>
+  nnoremap - :vertical res -5<CR>
+  nnoremap + :res +4<CR>
+  nnoremap _ :res -4<CR>
 
   nnoremap <F6> :History<CR>
   inoremap <F6> <ESC>:History<CR>
@@ -249,10 +250,10 @@ require('gitsigns').setup{
 
 
 local telescope_builtin = require('telescope.builtin')
-vim.keymap.set('n', '<leader>ff', telescope_builtin.find_files, {})
-vim.keymap.set('n', '<leader>fg', telescope_builtin.live_grep, {})
-vim.keymap.set('n', '<leader>fb', telescope_builtin.buffers, {})
-vim.keymap.set('n', '<leader>fh', telescope_builtin.help_tags, {})
+vim.keymap.set('n', '<leader>p', telescope_builtin.find_files, {})
+vim.keymap.set('n', '<leader>g', telescope_builtin.live_grep, {})
+vim.keymap.set('n', '<leader>m', telescope_builtin.man_pages, {})
+vim.keymap.set('n', '<f6>', telescope_builtin.oldfiles, {})
 
 require("nvim-lastplace").setup {}
 require("nvim-autopairs").setup {}
