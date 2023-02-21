@@ -246,7 +246,7 @@ require('gitsigns').setup{
 
 
 local telescope_builtin = require('telescope.builtin')
-vim.keymap.set('n', '<leader>p', telescope_builtin.find_files, {})
+vim.keymap.set('n', '<c-p>', telescope_builtin.find_files, {})
 vim.keymap.set('n', '<leader>g', telescope_builtin.live_grep, {})
 vim.keymap.set('n', '<leader>m', telescope_builtin.man_pages, {})
 vim.keymap.set('n', '<f6>', telescope_builtin.oldfiles, {})
