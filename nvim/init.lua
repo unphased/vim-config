@@ -180,10 +180,6 @@ vim.cmd([[
   nnoremap + :res +4<CR>
   nnoremap _ :res -4<CR>
 
-  nnoremap <F6> :History<CR>
-  inoremap <F6> <ESC>:History<CR>
-  nnoremap <c-p> :Files<CR>
-  " nnoremap <c-g> :GFiles?<CR>
 
   nnoremap <tab> gt
   nnoremap <s-tab> gT
