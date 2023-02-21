@@ -236,7 +236,7 @@ require('gitsigns').setup{
   },
   show_deleted = true,
   numhl      = true, -- Toggle with `:Gitsigns toggle_numhl`
-  linehl     = true, -- Toggle with `:Gitsigns toggle_linehl`
+  linehl     = false, -- Toggle with `:Gitsigns toggle_linehl`
   word_diff  = true, -- Toggle with `:Gitsigns toggle_word_diff`
   current_line_blame = true, -- Toggle with `:Gitsigns toggle_current_line_blame`
   current_line_blame_opts = {
@@ -375,11 +375,11 @@ require('nvim-cursorline').setup {
   cursorword = {
     enable = true,
     min_length = 2,
-    hl = { bg = "#304030", undercurl = true },
+    hl = { bg = "#304030", underline = false},
   }
 }
 
--- require'colorizer'.setup()
+require'colorizer'.setup()
 
 -- general plugin specific binds (TODO: put together when refactoring the plugin configs into files)
 vim.keymap.set('n', '<leader>y', require('osc52').copy_operator, {expr = true})
