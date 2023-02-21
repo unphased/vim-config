@@ -246,9 +246,10 @@ scrolling:
 # then run `showkey -a` to get the sequence associated to a key combination.
 key_bindings:
   - { key: N,        mods: Command, action: SpawnNewInstance }
-    # cannot bind to cmmand because of macos window default functionality stupidity
-  - { key: Grave,    mods: Alt, command: { program: "/Users/slu/util/macos-open-next-program.sh", args: ["alacritty"] } }
-  - { key: Grave,    mods: Shift|Alt, command: { program: "/Users/slu/util/macos-open-next-program.sh", args: ["alacritty", "prev"] } }
+  # NOTE NOTE we are currently using BTT to bind this in an app specific way and it works well.
+    # cannot bind to cmmand because of macos window default functionality stupidity.
+  - { key: Grave,    mods: Control|Alt, command: { program: "/Users/slu/util/macos-open-next-program.sh", args: ["alacritty"] } }
+  - { key: Grave,    mods: Shift|Control|Alt, command: { program: "/Users/slu/util/macos-open-next-program.sh", args: ["alacritty", "prev"] } }
   # cmd+` isn't going to work due to system behavior
   # - { key: Grave,    mods: Command, command: { program: "/Users/slu/util/macos-open-next-program.sh", args: ["alacritty"] } }
   # - { key: Grave,    mods: Shift|Command, command: { program: "/Users/slu/util/macos-open-next-program.sh", args: ["alacritty", "prev"] } }
