@@ -11,6 +11,14 @@ vim.o.numberwidth = 3
 
 -- settings that may require inclusion prior to Lazy loader
 
+vim.cmd([[
+  function! AdjustColors()
+    echom "adjusting colors"
+    hi MatchParen gui=NONE guifg=NONE guibg=#504050
+    hi CursorWord guibg=#404050 cterm=NONE gui=NONE
+  endfunction
+  autocmd! ColorScheme zephyr call AdjustColors()
+]])
 
 -- init lazy.nvim plugin loader
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
@@ -37,19 +45,6 @@ require("lazy").setup("plugins", {
 })
 
 -- colorscheme bullshit i am very tired of fiddling with it to make it load right
-
-vim.cmd([[
-
-  function! AdjustColors()
-    echom "adjusting colors"
-    hi MatchParen gui=NONE guifg=NONE guibg=#504050
-    hi CursorWord guibg=#404050 cterm=NONE gui=NONE
-  endfunction
-  autocmd ColorScheme zephyr call AdjustColors()
-
-  colorscheme zephyr
-
-]])
 
 -- mappings
 vim.keymap.set('n', '<leader>w', ':set wrap!<cr>')
@@ -594,4 +589,3 @@ function table:print()
   end
 end
 
--- giving up and putting this colorscheme modification stuff at the bottom (not that that helps...)
