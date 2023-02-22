@@ -13,11 +13,11 @@ vim.o.smartcase = true
 -- season to taste
 vim.cmd([[
   function! Adjust_habamax_highlights()
-    " echom "Adjusting habamax highlights"
+    echom "Adjusting highlights"
     hi MatchParen gui=NONE guifg=NONE guibg=#504050
-    hi CursorLine guibg=#262626
+    " hi CursorLine guibg=#262626
   endfunction
-  autocmd ColorScheme habamax call Adjust_habamax_highlights()
+  autocmd ColorScheme zephyr call Adjust_habamax_highlights()
 ]])
 
 -- init lazy.nvim plugin loader
@@ -45,6 +45,7 @@ require("lazy").setup("plugins", {
 })
 
 -- mappings
+vim.keymap.set('n', '<leader>w', ':set wrap!<cr>')
 
 vim.keymap.set({'n', 'v'}, '/', '/\\v')
 vim.keymap.set({'n', 'v'}, 'k', 'gk')
@@ -96,7 +97,7 @@ vim.keymap.set('v', "<c-_>", '<esc>:split<cr>')
 
 -- dumping vimL code that I didnt bother porting yet here for expedient bringup
 vim.cmd([[
-  colorscheme habamax
+  colorscheme zephyr
 
   noremap <C-S> :update<CR>
   vnoremap <C-S> <ESC>:update<CR>
@@ -265,6 +266,7 @@ vim.keymap.set('n', '<c-p>', telescope_builtin.find_files, {})
 vim.keymap.set('n', '<leader>g', telescope_builtin.live_grep, {})
 vim.keymap.set('n', '<leader>m', telescope_builtin.man_pages, {})
 vim.keymap.set('n', '<f6>', telescope_builtin.oldfiles, {})
+vim.keymap.set('n', '<leader>b', telescope_builtin.buffers, {})
 
 require("nvim-lastplace").setup {}
 require("nvim-autopairs").setup {}

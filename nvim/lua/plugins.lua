@@ -44,9 +44,8 @@ return {
   --   "SmiteshP/nvim-navic",
   --   dependencies = { "neovim/nvim-lspconfig" }
   -- }
-  "RRethy/nvim-base16",
-  "rafi/awesome-vim-colorschemes",
-  "jlanzarotta/colorSchemeExplorer",
+  -- "rafi/awesome-vim-colorschemes",
+  -- "jlanzarotta/colorSchemeExplorer",
   "ojroques/nvim-osc52",
   "yamatsum/nvim-cursorline",
   "andymass/vim-matchup",
@@ -69,5 +68,6 @@ return {
       --Please make sure you install markdown and markdown_inline parser
       {"nvim-treesitter/nvim-treesitter"}
     }
-  }
+  },
+  'glepnir/zephyr-nvim',
 }
