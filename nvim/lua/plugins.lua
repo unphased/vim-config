@@ -56,19 +56,19 @@ return {
     "folke/trouble.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
   },
-  {
-    "glepnir/lspsaga.nvim",
-    event = "BufRead",
-    config = function()
-      require("lspsaga").setup({})
-    end,
-    dependencies = {
-      { 'neovim/nvim-lspconfig' },
-      {"nvim-tree/nvim-web-devicons"},
-      --Please make sure you install markdown and markdown_inline parser
-      {"nvim-treesitter/nvim-treesitter"}
-    }
-  },
+  -- {
+  --   "glepnir/lspsaga.nvim",
+  --   event = "BufRead",
+  --   config = function()
+  --     require("lspsaga").setup({})
+  --   end,
+  --   dependencies = {
+  --     { 'neovim/nvim-lspconfig' },
+  --     {"nvim-tree/nvim-web-devicons"},
+  --     --Please make sure you install markdown and markdown_inline parser
+  --     {"nvim-treesitter/nvim-treesitter"}
+  --   }
+  -- },
   'glepnir/zephyr-nvim',
   {
     "hrsh7th/nvim-cmp",
@@ -86,6 +86,7 @@ return {
       -- ...
     end,
   },
+  'neovim/nvim-lspconfig',
   "williamboman/mason.nvim",
   "williamboman/mason-lspconfig.nvim",
 }
