@@ -13,11 +13,11 @@ vim.o.smartcase = true
 -- season to taste
 vim.cmd([[
   function! Adjust_habamax_highlights()
-    " echom "Adjusting habamax highlights"
+    echom "Adjusting highlights"
     hi MatchParen gui=NONE guifg=NONE guibg=#504050
-    hi CursorLine guibg=#262626
+    " hi CursorLine guibg=#262626
   endfunction
-  autocmd ColorScheme habamax call Adjust_habamax_highlights()
+  autocmd ColorScheme zephyr call Adjust_habamax_highlights()
 ]])
 
 -- init lazy.nvim plugin loader
