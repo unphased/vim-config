@@ -97,7 +97,7 @@ vim.keymap.set('v', "<c-_>", '<esc>:split<cr>')
 
 -- dumping vimL code that I didnt bother porting yet here for expedient bringup
 vim.cmd([[
-  colorscheme habamax
+  colorscheme zephyr
 
   noremap <C-S> :update<CR>
   vnoremap <C-S> <ESC>:update<CR>
