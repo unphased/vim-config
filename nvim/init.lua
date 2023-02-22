@@ -7,17 +7,17 @@ vim.o.undodir = vim.env.HOME .. "/.tmp"
 vim.o.termguicolors = true
 vim.o.ignorecase = true
 vim.o.smartcase = true
+vim.o.numberwidth = 3
 
 -- settings that may require inclusion prior to Lazy loader
 
--- season to taste
 vim.cmd([[
-  function! Adjust_habamax_highlights()
-    echom "Adjusting highlights"
+  function! AdjustColors()
+    echom "adjusting colors"
     hi MatchParen gui=NONE guifg=NONE guibg=#504050
-    " hi CursorLine guibg=#262626
+    hi CursorWord guibg=#404050 cterm=NONE gui=NONE
   endfunction
-  autocmd ColorScheme zephyr call Adjust_habamax_highlights()
+  autocmd! ColorScheme zephyr call AdjustColors()
 ]])
 
 -- init lazy.nvim plugin loader
@@ -44,6 +44,8 @@ require("lazy").setup("plugins", {
   },
 })
 
+-- colorscheme bullshit i am very tired of fiddling with it to make it load right
+
 -- mappings
 vim.keymap.set('n', '<leader>w', ':set wrap!<cr>')
 
@@ -60,7 +62,7 @@ vim.keymap.set({'v', 'n'}, 'L', '7l')
 
 -- Joining lines with Ctrl+N. Keep cursor stationary.
 vim.keymap.set('n', '<c-n>', function()
-  local line, col = unpack(vim.api.nvim_win_get_cursor(0))
+  local line, col = vim.inspect(vim.api.nvim_win_get_cursor(0))
   print("line: " .. line .. " col: " .. col)
   vim.cmd('normal! J')
   vim.api.nvim_win_set_cursor(0, { line, col })
@@ -97,7 +99,6 @@ vim.keymap.set('v', "<c-_>", '<esc>:split<cr>')
 
 -- dumping vimL code that I didnt bother porting yet here for expedient bringup
 vim.cmd([[
-  colorscheme zephyr
 
   noremap <C-S> :update<CR>
   vnoremap <C-S> <ESC>:update<CR>
@@ -144,6 +145,10 @@ vim.cmd([[
   highlight GitSignsDeleteLnInline gui=underdouble guisp=#800000 guibg=NONE guifg=NONE
   " highlight GitSignsDeleteVirtLn guibg=NONE guifg=NONE
   highlight GitSignsDeleteVirtLnInLine guibg=#800000
+
+  echom "adjusting colors 2"
+  hi MatchParen gui=NONE guifg=NONE guibg=#504050
+  hi CursorWord guibg=#404050 cterm=NONE gui=NONE
 
   noremap <silent> <C-H> :<c-u>call TmuxWindow('h')<CR>
   noremap <silent> <C-J> :<c-u>call TmuxWindow('j')<CR>
@@ -445,93 +450,128 @@ require("indent_blankline").setup {
   show_current_context_start = true,
 }
 
-local keymap = vim.keymap.set
+-- nvim-lsp via cmp
 
--- LSP finder - Find the symbol's definition
--- If there is no definition, it will instead be hidden
--- When you use an action in finder like "open vsplit",
--- you can use <C-t> to jump back
-keymap("n", "gh", "<cmd>Lspsaga lsp_finder<CR>")
+local cmp = require'cmp'
+local lspkind = require('lspkind')
 
--- Code action
-keymap({"n","v"}, "<leader>ca", "<cmd>Lspsaga code_action<CR>")
+cmp.setup({
+  formatting = {
+    format = lspkind.cmp_format({
+      mode = 'symbol', -- show only symbol annotations
+      maxwidth = 50, -- prevent the popup from showing more than provided characters (e.g 50 will not show more than 50 characters)
+      ellipsis_char = '…', -- when popup menu exceed maxwidth, the truncated part would show ellipsis_char instead (must define maxwidth first)
 
--- Rename all occurrences of the hovered word for the entire file
-keymap("n", "gr", "<cmd>Lspsaga rename<CR>")
+      -- The function below will be called before any actual modifications from lspkind
+      -- so that you can provide more controls on popup customization. (See [#30](https://github.com/onsails/lspkind-nvim/pull/30))
+      -- before = function (entry, vim_item)
+      --   ...
+      --   return vim_item
+      -- end
+    })
+  },
 
--- Rename all occurrences of the hovered word for the selected files
-keymap("n", "gr", "<cmd>Lspsaga rename ++project<CR>")
+  snippet = {
+    -- REQUIRED - you must specify a snippet engine
+    expand = function(args)
+      -- vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
+      -- require('luasnip').lsp_expand(args.body) -- For `luasnip` users.
+      -- require('snippy').expand_snippet(args.body) -- For `snippy` users.
+      -- vim.fn["UltiSnips#Anon"](args.body) -- For `ultisnips` users.
+    end,
+  },
+  window = {
+    -- completion = cmp.config.window.bordered(),
+    -- documentation = cmp.config.window.bordered(),
+  },
+  mapping = cmp.mapping.preset.insert({
+    ['<C-b>'] = cmp.mapping.scroll_docs(-4),
+    ['<C-f>'] = cmp.mapping.scroll_docs(4),
+    ['<C-Space>'] = cmp.mapping.complete(),
+    ['<C-e>'] = cmp.mapping.abort(),
+    ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+  }),
+  sources = cmp.config.sources({
+    { name = 'nvim_lsp' },
+    -- { name = 'vsnip' }, -- For vsnip users.
+    -- { name = 'luasnip' }, -- For luasnip users.
+    { name = 'ultisnips' }, -- For ultisnips users.
+    -- { name = 'snippy' }, -- For snippy users.
+  }, {
+    { name = 'buffer' },
+  })
+})
 
--- Peek definition
--- You can edit the file containing the definition in the floating window
--- It also supports open/vsplit/etc operations, do refer to "definition_action_keys"
--- It also supports tagstack
--- Use <C-t> to jump back
-keymap("n", "gd", "<cmd>Lspsaga peek_definition<CR>")
+-- Set configuration for specific filetype.
+cmp.setup.filetype('gitcommit', {
+  sources = cmp.config.sources({
+    { name = 'cmp_git' }, -- You can specify the `cmp_git` source if you were installed it.
+  }, {
+    { name = 'buffer' },
+  })
+})
 
--- Go to definition
-keymap("n","gd", "<cmd>Lspsaga goto_definition<CR>")
+-- Use buffer source for `/` and `?` (if you enabled `native_menu`, this won't work anymore).
+cmp.setup.cmdline({ '/', '?' }, {
+  mapping = cmp.mapping.preset.cmdline(),
+  sources = {
+    { name = 'buffer' }
+  }
+})
 
--- Peek type definition
--- You can edit the file containing the type definition in the floating window
--- It also supports open/vsplit/etc operations, do refer to "definition_action_keys"
--- It also supports tagstack
--- Use <C-t> to jump back
-keymap("n", "gt", "<cmd>Lspsaga peek_type_definition<CR>")
+-- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
+cmp.setup.cmdline(':', {
+  mapping = cmp.mapping.preset.cmdline(),
+  sources = cmp.config.sources({
+    { name = 'path' }
+  }, {
+    { name = 'cmdline' }
+  })
+})
 
--- Go to type definition
-keymap("n","gt", "<cmd>Lspsaga goto_type_definition<CR>")
+-- Set up lspconfig.
+-- local capabilities = require('cmp_nvim_lsp').default_capabilities()
+-- Replace <YOUR_LSP_SERVER> with each lsp server you've enabled.
+-- require('lspconfig')['clangd'].setup {
+--   capabilities = capabilities
+-- }
 
+require("mason").setup({})
+require("mason-lspconfig").setup({
+  -- A list of servers to automatically install if they're not already installed. Example: { "rust_analyzer@nightly", "lua_ls" }
+  -- This setting has no relation with the `automatic_installation` setting.
+  ensure_installed = {},
 
--- Show line diagnostics
--- You can pass argument ++unfocus to
--- unfocus the show_line_diagnostics floating window
-keymap("n", "<leader>sl", "<cmd>Lspsaga show_line_diagnostics<CR>")
-
--- Show cursor diagnostics
--- Like show_line_diagnostics, it supports passing the ++unfocus argument
-keymap("n", "<leader>sc", "<cmd>Lspsaga show_cursor_diagnostics<CR>")
-
--- Show buffer diagnostics
-keymap("n", "<leader>sb", "<cmd>Lspsaga show_buf_diagnostics<CR>")
-
--- Diagnostic jump
--- You can use <C-o> to jump back to your previous location
-keymap("n", "[e", "<cmd>Lspsaga diagnostic_jump_prev<CR>")
-keymap("n", "]e", "<cmd>Lspsaga diagnostic_jump_next<CR>")
-
--- Diagnostic jump with filters such as only jumping to an error
-keymap("n", "[E", function()
-  require("lspsaga.diagnostic"):goto_prev({ severity = vim.diagnostic.severity.ERROR })
-end)
-keymap("n", "]E", function()
-  require("lspsaga.diagnostic"):goto_next({ severity = vim.diagnostic.severity.ERROR })
-end)
-
--- Toggle outline
-keymap("n","<leader>o", "<cmd>Lspsaga outline<CR>")
-
--- Hover Doc
--- If there is no hover doc,
--- there will be a notification stating that
--- there is no information available.
--- To disable it just use ":Lspsaga hover_doc ++quiet"
--- Pressing the key twice will enter the hover window
-keymap("n", "?", "<cmd>Lspsaga hover_doc<CR>")
-
--- If you want to keep the hover window in the top right hand corner,
--- you can pass the ++keep argument
--- Note that if you use hover with ++keep, pressing this key again will
--- close the hover window. If you want to jump to the hover window
--- you should use the wincmd command "<C-w>w"
-keymap("n", "?", "<cmd>Lspsaga hover_doc ++keep<CR>")
-
--- Call hierarchy
-keymap("n", "<Leader>ci", "<cmd>Lspsaga incoming_calls<CR>")
-keymap("n", "<Leader>co", "<cmd>Lspsaga outgoing_calls<CR>")
-
--- Floating terminal
-keymap({"n", "t"}, "<A-d>", "<cmd>Lspsaga term_toggle<CR>")
+  -- Whether servers that are set up (via lspconfig) should be automatically installed if they're not already installed.
+  -- This setting has no relation with the `ensure_installed` setting.
+  -- Can either be:
+  --   - false: Servers are not automatically installed.
+  --   - true: All servers set up via lspconfig are automatically installed.
+  --   - { exclude: string[] }: All servers set up via lspconfig, except the ones provided in the list, are automatically installed.
+  --       Example: automatic_installation = { exclude = { "rust_analyzer", "solargraph" } }
+  automatic_installation = true,
+})
+require("mason-lspconfig").setup_handlers {
+  -- The first entry (without a key) will be the default handler
+  -- and will be called for each installed server that doesn't have
+  -- a dedicated handler.
+  function (server_name) -- default handler (optional)
+    require("lspconfig")[server_name].setup {}
+  end,
+  -- Next, you can provide a dedicated handler for specific servers.
+  -- For example, a handler override for the `rust_analyzer`:
+  ["lua_ls"] = function ()
+    require("lspconfig")["lua_ls"].setup {
+      settings = {
+        Lua = {
+          diagnostics = {
+            globals = { 'vim' }
+          }
+        }
+      }
+    }
+  end
+}
 
 -- helper
 function string:split(delimiter)
@@ -552,3 +592,4 @@ function table:print()
     print(key, value)
   end
 end
+

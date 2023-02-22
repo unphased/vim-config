@@ -1,5 +1,15 @@
 return {
   {
+    'glepnir/zephyr-nvim',
+    lazy = false,
+    priority = 1000,
+    config = function ()
+      vim.cmd([[
+        colorscheme zephyr
+      ]])
+    end
+  },
+  {
      "nvim-neo-tree/neo-tree.nvim",
      branch = "v2.x",
      dependencies = {
@@ -56,18 +66,37 @@ return {
     "folke/trouble.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
   },
+  "onsails/lspkind-nvim",
+  -- {
+  --   "glepnir/lspsaga.nvim",
+  --   event = "BufRead",
+  --   config = function()
+  --     require("lspsaga").setup({})
+  --   end,
+  --   dependencies = {
+  --     { 'neovim/nvim-lspconfig' },
+  --     {"nvim-tree/nvim-web-devicons"},
+  --     --Please make sure you install markdown and markdown_inline parser
+  --     {"nvim-treesitter/nvim-treesitter"}
+  --   }
+  -- },
   {
-    "glepnir/lspsaga.nvim",
-    event = "BufRead",
-    config = function()
-      require("lspsaga").setup({})
-    end,
+    "hrsh7th/nvim-cmp",
+    -- load cmp on InsertEnter
+    event = "InsertEnter",
+    -- these dependencies will only be loaded when cmp loads
+    -- dependencies are always lazy-loaded unless specified otherwise
     dependencies = {
-      { 'neovim/nvim-lspconfig' },
-      {"nvim-tree/nvim-web-devicons"},
-      --Please make sure you install markdown and markdown_inline parser
-      {"nvim-treesitter/nvim-treesitter"}
-    }
+      "hrsh7th/cmp-nvim-lsp",
+      "hrsh7th/cmp-buffer",
+      "hrsh7th/cmp-path",
+      "hrsh7th/cmp-cmdline",
+    },
+    config = function()
+      -- ...
+    end,
   },
-  'glepnir/zephyr-nvim',
+  'neovim/nvim-lspconfig',
+  "williamboman/mason.nvim",
+  "williamboman/mason-lspconfig.nvim",
 }
