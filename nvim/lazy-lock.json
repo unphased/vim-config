@@ -8,6 +8,7 @@
   "lazy-lsp.nvim": { "branch": "master", "commit": "d22d54c7558415faf6f518db1e00d995d595a99d" },
   "lazy.nvim": { "branch": "main", "commit": "8077428e63feb0f3bf795d53b23ba1695b28ab0e" },
   "lspkind-nvim": { "branch": "master", "commit": "c68b3a003483cf382428a43035079f78474cd11e" },
+  "lspsaga.nvim": { "branch": "main", "commit": "688a3d835a4533ebd2c1ebb7e7c22d53385975d5" },
   "neo-tree.nvim": { "branch": "v2.x", "commit": "245cf1e68840defcc75a16297740f6203f5a045d" },
   "nougat.nvim": { "branch": "main", "commit": "75ad4e98a9275a595d1136fa1b19a39ab2e235fd" },
   "nui.nvim": { "branch": "main", "commit": "d147222a1300901656f3ebd5b95f91732785a329" },

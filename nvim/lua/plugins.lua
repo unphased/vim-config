@@ -20,9 +20,9 @@ return {
   'norcalli/nvim-colorizer.lua',
   'github/copilot.vim',
   'ethanholz/nvim-lastplace',
-  {
-    'dundalek/lazy-lsp.nvim', dependencies = { 'neovim/nvim-lspconfig' }
-  },
+  -- {
+  --   'dundalek/lazy-lsp.nvim', dependencies = { 'neovim/nvim-lspconfig' }
+  -- },
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
@@ -35,7 +35,7 @@ return {
     }
   }, -- show nerd font icons for LSP types in completion menu
   "nvim-treesitter/nvim-treesitter-context",
-  "onsails/lspkind-nvim", -- status line plugin
+  -- "onsails/lspkind-nvim", -- status line plugin
   "MunifTanjim/nougat.nvim",
   'lewis6991/gitsigns.nvim',
   'lambdalisue/suda.vim',
@@ -56,5 +56,18 @@ return {
   {
     "folke/trouble.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
+  },
+  {
+    "glepnir/lspsaga.nvim",
+    event = "BufRead",
+    config = function()
+      require("lspsaga").setup({})
+    end,
+    dependencies = {
+      { 'neovim/nvim-lspconfig' },
+      {"nvim-tree/nvim-web-devicons"},
+      --Please make sure you install markdown and markdown_inline parser
+      {"nvim-treesitter/nvim-treesitter"}
+    }
   }
 }
