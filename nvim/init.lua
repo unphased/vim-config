@@ -7,19 +7,10 @@ vim.o.undodir = vim.env.HOME .. "/.tmp"
 vim.o.termguicolors = true
 vim.o.ignorecase = true
 vim.o.smartcase = true
+vim.o.numberwidth = 3
 
 -- settings that may require inclusion prior to Lazy loader
 
--- season to taste
-vim.cmd([[
-  function! Adjust_colorscheme()
-    echom "Adjusting highlights"
-    hi MatchParen gui=NONE guifg=NONE guibg=#504050
-    set numberwidth=2
-    " hi CursorLine guibg=#262626
-  endfunction
-  autocmd ColorScheme zephyr call Adjust_colorscheme()
-]])
 
 -- init lazy.nvim plugin loader
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
@@ -44,6 +35,21 @@ require("lazy").setup("plugins", {
     notify = true, -- get a notification when changes are found
   },
 })
+
+-- colorscheme bullshit i am very tired of fiddling with it to make it load right
+
+vim.cmd([[
+
+  function! AdjustColors()
+    echom "adjusting colors"
+    hi MatchParen gui=NONE guifg=NONE guibg=#504050
+    hi CursorWord guibg=#404050 cterm=NONE gui=NONE
+  endfunction
+  autocmd ColorScheme zephyr call AdjustColors()
+
+  colorscheme zephyr
+
+]])
 
 -- mappings
 vim.keymap.set('n', '<leader>w', ':set wrap!<cr>')
@@ -98,7 +104,6 @@ vim.keymap.set('v', "<c-_>", '<esc>:split<cr>')
 
 -- dumping vimL code that I didnt bother porting yet here for expedient bringup
 vim.cmd([[
-  colorscheme zephyr
 
   noremap <C-S> :update<CR>
   vnoremap <C-S> <ESC>:update<CR>
@@ -446,16 +451,31 @@ require("indent_blankline").setup {
   show_current_context_start = true,
 }
 
-
 -- nvim-lsp via cmp
 
 local cmp = require'cmp'
+local lspkind = require('lspkind')
 
 cmp.setup({
+  formatting = {
+    format = lspkind.cmp_format({
+      mode = 'symbol', -- show only symbol annotations
+      maxwidth = 50, -- prevent the popup from showing more than provided characters (e.g 50 will not show more than 50 characters)
+      ellipsis_char = '…', -- when popup menu exceed maxwidth, the truncated part would show ellipsis_char instead (must define maxwidth first)
+
+      -- The function below will be called before any actual modifications from lspkind
+      -- so that you can provide more controls on popup customization. (See [#30](https://github.com/onsails/lspkind-nvim/pull/30))
+      -- before = function (entry, vim_item)
+      --   ...
+      --   return vim_item
+      -- end
+    })
+  },
+
   snippet = {
     -- REQUIRED - you must specify a snippet engine
     expand = function(args)
-      vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
+      -- vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
       -- require('luasnip').lsp_expand(args.body) -- For `luasnip` users.
       -- require('snippy').expand_snippet(args.body) -- For `snippy` users.
       -- vim.fn["UltiSnips#Anon"](args.body) -- For `ultisnips` users.
@@ -474,9 +494,9 @@ cmp.setup({
   }),
   sources = cmp.config.sources({
     { name = 'nvim_lsp' },
-    { name = 'vsnip' }, -- For vsnip users.
+    -- { name = 'vsnip' }, -- For vsnip users.
     -- { name = 'luasnip' }, -- For luasnip users.
-    -- { name = 'ultisnips' }, -- For ultisnips users.
+    { name = 'ultisnips' }, -- For ultisnips users.
     -- { name = 'snippy' }, -- For snippy users.
   }, {
     { name = 'buffer' },
@@ -573,3 +593,5 @@ function table:print()
     print(key, value)
   end
 end
+
+-- giving up and putting this colorscheme modification stuff at the bottom (not that that helps...)

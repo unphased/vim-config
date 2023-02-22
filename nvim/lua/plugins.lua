@@ -1,5 +1,10 @@
 return {
   {
+    'glepnir/zephyr-nvim',
+    lazy = false,
+    priority = 1000,
+  },
+  {
      "nvim-neo-tree/neo-tree.nvim",
      branch = "v2.x",
      dependencies = {
@@ -56,6 +61,7 @@ return {
     "folke/trouble.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
   },
+  "onsails/lspkind-nvim",
   -- {
   --   "glepnir/lspsaga.nvim",
   --   event = "BufRead",
@@ -69,7 +75,6 @@ return {
   --     {"nvim-treesitter/nvim-treesitter"}
   --   }
   -- },
-  'glepnir/zephyr-nvim',
   {
     "hrsh7th/nvim-cmp",
     -- load cmp on InsertEnter
