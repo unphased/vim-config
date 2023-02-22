@@ -266,6 +266,7 @@ vim.keymap.set('n', '<c-p>', telescope_builtin.find_files, {})
 vim.keymap.set('n', '<leader>g', telescope_builtin.live_grep, {})
 vim.keymap.set('n', '<leader>m', telescope_builtin.man_pages, {})
 vim.keymap.set('n', '<f6>', telescope_builtin.oldfiles, {})
+vim.keymap.set('n', '<leader>b', telescope_builtin.buffers, {})
 
 require("nvim-lastplace").setup {}
 require("nvim-autopairs").setup {}
