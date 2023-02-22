@@ -146,6 +146,10 @@ vim.cmd([[
   " highlight GitSignsDeleteVirtLn guibg=NONE guifg=NONE
   highlight GitSignsDeleteVirtLnInLine guibg=#800000
 
+  echom "adjusting colors 2"
+  hi MatchParen gui=NONE guifg=NONE guibg=#504050
+  hi CursorWord guibg=#404050 cterm=NONE gui=NONE
+
   noremap <silent> <C-H> :<c-u>call TmuxWindow('h')<CR>
   noremap <silent> <C-J> :<c-u>call TmuxWindow('j')<CR>
   noremap <silent> <C-K> :<c-u>call TmuxWindow('k')<CR>
