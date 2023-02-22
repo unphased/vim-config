@@ -200,7 +200,7 @@ vim.cmd([[
   nnoremap <tab> gt
   nnoremap <s-tab> gT
 
-  nnoremap <leader>f :NeoTreeShowToggle<CR>
+  nnoremap <leader>f :NeoTreeRevealToggle<CR>
 
   nnoremap <c-m-s> :SudaWrite<CR>
 
