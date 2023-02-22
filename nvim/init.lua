@@ -45,6 +45,7 @@ require("lazy").setup("plugins", {
 })
 
 -- mappings
+vim.keymap.set('n', '<leader>w', ':set wrap!<cr>')
 
 vim.keymap.set({'n', 'v'}, '/', '/\\v')
 vim.keymap.set({'n', 'v'}, 'k', 'gk')
