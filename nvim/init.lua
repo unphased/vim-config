@@ -11,14 +11,6 @@ vim.o.numberwidth = 3
 
 -- settings that may require inclusion prior to Lazy loader
 
-vim.cmd([[
-  function! AdjustColors()
-    echom "adjusting colors"
-    hi MatchParen gui=NONE guifg=NONE guibg=#504050
-    hi CursorWord guibg=#404050 cterm=NONE gui=NONE
-  endfunction
-  autocmd! ColorScheme zephyr call AdjustColors()
-]])
 
 -- init lazy.nvim plugin loader
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
@@ -44,8 +36,6 @@ require("lazy").setup("plugins", {
   },
 })
 
--- colorscheme bullshit i am very tired of fiddling with it to make it load right
-
 -- mappings
 vim.keymap.set('n', '<leader>w', ':set wrap!<cr>')
 
@@ -63,7 +53,7 @@ vim.keymap.set({'v', 'n'}, 'L', '7l')
 -- Joining lines with Ctrl+N. Keep cursor stationary.
 vim.keymap.set('n', '<c-n>', function()
   local line, col = vim.inspect(vim.api.nvim_win_get_cursor(0))
-  print("line: " .. line .. " col: " .. col)
+  -- print("line: " .. line .. " col: " .. col)
   vim.cmd('normal! J')
   vim.api.nvim_win_set_cursor(0, { line, col })
 end)
@@ -145,10 +135,6 @@ vim.cmd([[
   highlight GitSignsDeleteLnInline gui=underdouble guisp=#800000 guibg=NONE guifg=NONE
   " highlight GitSignsDeleteVirtLn guibg=NONE guifg=NONE
   highlight GitSignsDeleteVirtLnInLine guibg=#800000
-
-  echom "adjusting colors 2"
-  hi MatchParen gui=NONE guifg=NONE guibg=#504050
-  hi CursorWord guibg=#404050 cterm=NONE gui=NONE
 
   noremap <silent> <C-H> :<c-u>call TmuxWindow('h')<CR>
   noremap <silent> <C-J> :<c-u>call TmuxWindow('j')<CR>
@@ -593,3 +579,10 @@ function table:print()
   end
 end
 
+log = function(message)
+    local log_file_path = '/tmp/lua-zephyr.log'
+    local log_file = io.open(log_file_path, "a")
+    io.output(log_file)
+    io.write(message.."\n")
+    io.close(log_file)
+end

@@ -1,6 +1,6 @@
 return {
   {
-    'glepnir/zephyr-nvim',
+    'unphased/zephyr-nvim',
     lazy = false,
     priority = 1000,
     config = function ()
