@@ -12,12 +12,13 @@ vim.o.smartcase = true
 
 -- season to taste
 vim.cmd([[
-  function! Adjust_highlights()
+  function! Adjust_colorscheme()
     echom "Adjusting highlights"
     hi MatchParen gui=NONE guifg=NONE guibg=#504050
+    set numberwidth=2
     " hi CursorLine guibg=#262626
   endfunction
-  autocmd ColorScheme zephyr call Adjust_highlights()
+  autocmd ColorScheme zephyr call Adjust_colorscheme()
 ]])
 
 -- init lazy.nvim plugin loader
