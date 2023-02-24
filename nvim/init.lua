@@ -78,7 +78,7 @@ vim.keymap.set({'n', 'v'}, 'b', '<c-u>')
 vim.keymap.set('n', '<c-b>', '<tab>')
 
 -- hoping to automate entering visual mode
-vim.keymap.set('n', '<cr>', 'v<cr>', {remap = true})
+-- vim.keymap.set('n', '<cr>', 'v<cr>', {remap = true})
 
 -- allow backtick to do the same thing as percent
 vim.keymap.set({'n', 'v', 'o'}, '`', '%')
@@ -310,15 +310,15 @@ require'nvim-treesitter.configs'.setup {
     enable = true,
     disable = {"python", "lua"}
   },
-  incremental_selection = {
-    enable = true,
-    keymaps = {
-      init_selection = '<CR>',
-      --scope_incremental = '<TAB>',
-      node_incremental = '<CR>',
-      node_decremental = '<S-TAB>',
-    },
-  },
+  -- incremental_selection = {
+  --   enable = true,
+  --   keymaps = {
+  --     init_selection = '<CR>',
+  --     --scope_incremental = '<TAB>',
+  --     node_incremental = '<CR>',
+  --     node_decremental = '<S-TAB>',
+  --   },
+  -- },
   matchup = {
     enable = true, -- mandatory, false will disable the whole extension
     disable = {},  -- optional, list of language that will be disabled
