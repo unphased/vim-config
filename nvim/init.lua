@@ -475,15 +475,20 @@ cmp.setup({
     ['<C-f>'] = cmp.mapping.scroll_docs(4),
     ['<C-Space>'] = cmp.mapping.complete(),
     ['<C-e>'] = cmp.mapping.abort(),
-    ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+    ["<CR>"] = cmp.mapping.confirm({
+      behavior = cmp.ConfirmBehavior.Replace,
+      select = false,
+    }),
+    ["<Tab>"] = cmp.mapping(cmp.mapping.select_next_item(), { "i", "s" }),
+    ["<S-Tab>"] = cmp.mapping(cmp.mapping.select_prev_item(), { "i", "s" }),
   }),
   sources = cmp.config.sources({
     { name = 'nvim_lsp' },
+    { name = 'copilot' },
     -- { name = 'vsnip' }, -- For vsnip users.
     -- { name = 'luasnip' }, -- For luasnip users.
-    { name = 'ultisnips' }, -- For ultisnips users.
+    -- { name = 'ultisnips' }, -- For ultisnips users.
     -- { name = 'snippy' }, -- For snippy users.
-  }, {
     { name = 'buffer' },
   })
 })
@@ -547,7 +552,6 @@ require("mason-lspconfig").setup_handlers {
     require("lspconfig")[server_name].setup {}
   end,
   -- Next, you can provide a dedicated handler for specific servers.
-  -- For example, a handler override for the `rust_analyzer`:
   ["lua_ls"] = function ()
     require("lspconfig")["lua_ls"].setup {
       settings = {
@@ -571,14 +575,34 @@ require("mason-lspconfig").setup_handlers {
 --     null_ls.builtins.diagnostics.selene,
 --   }
 -- })
-
-require('null-ls').setup()
+local null_ls = require 'null-ls'
 
 require("mason-null-ls").setup({
     ensure_installed = { "shellcheck" },
     automatic_setup = true
 })
-require'mason-null-ls'.setup_handlers()
+require 'mason-null-ls'.setup_handlers {
+    function(source_name, methods)
+      print("mason-null-ls-handler: source_name:" .. source_name)
+      print("mason-null-ls-handler: methods:" .. vim.inspect(methods))
+      -- all sources with no handler get passed here
+
+      -- To keep the original functionality of `automatic_setup = true`,
+      -- please add the below.
+      require("mason-null-ls.automatic_setup")(source_name, methods)
+    end,
+    -- stylua = function(source_name, methods)
+    --   null_ls.register(null_ls.builtins.formatting.stylua)
+    -- end,
+}
+
+null_ls.setup()
+
+require("copilot").setup({
+  suggestion = { enabled = false },
+  panel = { enabled = false },
+})
+require("copilot_cmp").setup()
 
 -- helper
 function string:split(delimiter)
