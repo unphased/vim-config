@@ -526,7 +526,9 @@ require("mason").setup({})
 require("mason-lspconfig").setup({
   -- A list of servers to automatically install if they're not already installed. Example: { "rust_analyzer@nightly", "lua_ls" }
   -- This setting has no relation with the `automatic_installation` setting.
-  ensure_installed = {},
+  ensure_installed = {
+    "clangd", "lua_ls"
+  },
 
   -- Whether servers that are set up (via lspconfig) should be automatically installed if they're not already installed.
   -- This setting has no relation with the `ensure_installed` setting.
@@ -559,6 +561,25 @@ require("mason-lspconfig").setup_handlers {
   end
 }
 
+-- local null_ls = require('null-ls')
+--
+-- null_ls.setup({
+--   sources = {
+--     null_ls.builtins.diagnostics.shellcheck,
+--     null_ls.builtins.diagnostics.hadolint,
+--     null_ls.builtins.diagnostics.yamllint,
+--     null_ls.builtins.diagnostics.selene,
+--   }
+-- })
+
+require('null-ls').setup()
+
+require("mason-null-ls").setup({
+    ensure_installed = { "shellcheck" },
+    automatic_setup = true
+})
+require'mason-null-ls'.setup_handlers()
+
 -- helper
 function string:split(delimiter)
   local result = { }
@@ -579,7 +600,7 @@ function table:print()
   end
 end
 
-log = function(message)
+local log = function(message)
     local log_file_path = '/tmp/lua-zephyr.log'
     local log_file = io.open(log_file_path, "a")
     io.output(log_file)
