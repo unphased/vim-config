@@ -583,8 +583,8 @@ require("mason-null-ls").setup({
 })
 require 'mason-null-ls'.setup_handlers {
     function(source_name, methods)
-      print("mason-null-ls-handler: source_name:" .. source_name)
-      print("mason-null-ls-handler: methods:" .. vim.inspect(methods))
+      -- print("mason-null-ls-handler: source_name:" .. source_name)
+      -- print("mason-null-ls-handler: methods:" .. vim.inspect(methods))
       -- all sources with no handler get passed here
 
       -- To keep the original functionality of `automatic_setup = true`,
