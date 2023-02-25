@@ -105,5 +105,7 @@ return {
   { "jose-elias-alvarez/null-ls.nvim", dependencies = { 'nvim-lua/plenary.nvim' } },
   "jay-babu/mason-null-ls.nvim",
   "inkarkat/vim-ingo-library",
-  "inkarkat/vim-SearchHighlighting",
+  { "inkarkat/vim-SearchHighlighting", init = function ()
+    vim.keymap.set('n', '<CR>', '<Plug>SearchHighlightingStar')
+  end },
 }
