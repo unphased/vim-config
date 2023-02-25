@@ -62,7 +62,7 @@ font:
   # The italic font face
   italic:
     family: "BitstreamVeraSansMono Nerd Font Mono" # should be "Menlo" or something on macOS.
-    style: Regular Italic
+    style: Oblique
 
   antialias: true
 
