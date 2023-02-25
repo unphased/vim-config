@@ -53,9 +53,9 @@ vim.keymap.set({'v', 'n'}, 'L', '7l')
 -- Joining lines with Ctrl+N. Keep cursor stationary.
 vim.keymap.set('n', '<c-n>', function()
   local line, col = unpack(vim.api.nvim_win_get_cursor(0))
-  print("win_get_cursor: "..vim.inspect(vim.api.nvim_win_get_cursor(0)).. " Unpacks to "..line..","..col)
-  -- vim.cmd('normal! J')
-  -- vim.api.nvim_win_set_cursor(0, { line, col })
+  -- print("win_get_cursor: "..vim.inspect(vim.api.nvim_win_get_cursor(0)).. " Unpacks to "..line..","..col)
+  vim.cmd('normal! J')
+  vim.api.nvim_win_set_cursor(0, { line, col })
 end)
 
 -- make it easier to type a colon

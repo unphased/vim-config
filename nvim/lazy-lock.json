@@ -38,6 +38,7 @@
   "telescope.nvim": { "branch": "0.1.x", "commit": "766a45a972408f67e793a3b63e3c419ff5458753" },
   "trouble.nvim": { "branch": "main", "commit": "3b754285635a66a93aeb15fa71a23417d8997217" },
   "vim-SearchHighlighting": { "branch": "master", "commit": "cecb38b64071e7db1219e27de5612dd6c4b89bf9" },
+  "vim-ingo-library": { "branch": "master", "commit": "097b1c729ee0f334a40eddfbd84d77161287f2f1" },
   "vim-matchup": { "branch": "master", "commit": "3a48818a8113a502f245c29d894201421727577a" },
   "vim-repeat": { "branch": "master", "commit": "24afe922e6a05891756ecf331f39a1f6743d3d5a" },
   "vim-sleuth": { "branch": "master", "commit": "1cc4557420f215d02c4d2645a748a816c220e99b" },
