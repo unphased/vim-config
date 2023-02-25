@@ -613,10 +613,12 @@ require 'mason-null-ls'.setup_handlers {
 null_ls.setup()
 
 require("copilot").setup({
-  suggestion = { enabled = false },
-  panel = { enabled = false },
+  -- suggestion = { enabled = false },
+  -- panel = { enabled = false },
 })
-require("copilot_cmp").setup()
+require("copilot_cmp").setup({
+  method = "getCompletionsCycling",
+})
 
 -- helper
 function string:split(delimiter)
