@@ -605,12 +605,27 @@ require 'mason-null-ls'.setup_handlers {
       -- please add the below.
       require("mason-null-ls.automatic_setup")(source_name, methods)
     end,
+
     -- stylua = function(source_name, methods)
     --   null_ls.register(null_ls.builtins.formatting.stylua)
     -- end,
+
+    ---- Semgrep is cool but takes way long to run (need to find out how to extend timeout) and also does not commonly emit much output. So I'm not really interested in it right now.
+    -- semgrep = function(source_name, methods)
+    --   null_ls.register(null_ls.builtins.diagnostics.semgrep.with({
+    --     extra_args = { "--config", "auto" },
+    --   }))
+    -- end,
+    --
+    -- print("semgrep obtained as:", vim.inspect(null_ls.builtins.diagnostics.semgrep)),
+    -- print("semgrep prospective:", vim.inspect(null_ls.builtins.diagnostics.semgrep.with({
+    --   extra_args = { "--config", "auto" },
+    -- })))
 }
 
-null_ls.setup()
+null_ls.setup({
+  debug = true,
+})
 
 require("copilot").setup({
   -- suggestion = { enabled = false },
