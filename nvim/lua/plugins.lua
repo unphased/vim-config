@@ -35,7 +35,7 @@ return {
   'ethanholz/nvim-lastplace',
   { 'github/copilot.vim', init = function()
     vim.cmd([[
-      imap <silent><script><expr> <CR> copilot#Accept("\<CR>")
+      imap <silent><script><expr> <c-space> copilot#Accept("\<CR>")
       let g:copilot_no_tab_map = v:true
     ]])
   end },
@@ -75,9 +75,9 @@ return {
     "folke/trouble.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
   },
-  "onsails/lspkind-nvim",
-  -- { "jose-elias-alvarez/null-ls.nvim", dependencies = { 'nvim-lua/plenary.nvim' } },
-  -- "jay-babu/mason-null-ls.nvim",
+  -- "onsails/lspkind-nvim",
+  { "jose-elias-alvarez/null-ls.nvim", dependencies = { 'nvim-lua/plenary.nvim' } },
+  "jay-babu/mason-null-ls.nvim",
   "inkarkat/vim-ingo-library",
   { "inkarkat/vim-SearchHighlighting", init = function ()
     vim.keymap.set('n', '<CR>', '<Plug>SearchHighlightingStar')

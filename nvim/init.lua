@@ -11,7 +11,6 @@ vim.o.numberwidth = 3
 
 -- settings that may require inclusion prior to Lazy loader
 
-
 -- init lazy.nvim plugin loader
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
@@ -253,7 +252,6 @@ require('gitsigns').setup{
     ignore_whitespace = true,
   },
 }
-
 
 local telescope_builtin = require('telescope.builtin')
 vim.keymap.set('n', '<c-p>', telescope_builtin.find_files, {})
@@ -579,6 +577,80 @@ require("indent_blankline").setup {
 -- require("copilot_cmp").setup({
 --   method = "getCompletionsCycling",
 -- })
+
+-- LSP via lsp-zero
+---
+-- Configure LSP servers
+---
+
+require('lsp-zero').extend_lspconfig({
+  set_lsp_keymaps = false,
+  on_attach = function(client, bufnr)
+    print("lsp zero lspconfig extend client", vim.inspect(client))
+    local opts = {buffer = bufnr}
+
+    vim.keymap.set('n', '?', vim.lsp.buf.hover, opts)
+    vim.keymap.set('n', '<leader>r', vim.lsp.buf.rename, opts)
+    ---
+    -- and many more...
+    --- 
+  end
+})
+
+require('mason').setup()
+require('mason-lspconfig').setup()
+
+require('mason-lspconfig').setup_handlers({
+  function(server_name)
+    require('lspconfig')[server_name].setup({})
+  end,
+  ['lua_ls'] = function ()
+    require('lspconfig')['lua_ls'].setup({
+      settings = {
+        Lua = {
+          diagnostics = {
+            enable = true,
+            globals = { 'vim' }
+          },
+          runtime = {
+            version = 'LuaJIT',
+          },
+        }
+      }
+    })
+  end
+})
+
+---
+-- Diagnostic config
+---
+
+require('lsp-zero').set_sign_icons()
+--- Not sure -- the next line disables/interferes w/ Trouble inline virtual text stuff
+-- vim.diagnostic.config(require('lsp-zero').defaults.diagnostics({}))
+
+---
+-- Snippet config
+---
+
+require('luasnip').config.set_config({
+  region_check_events = 'InsertEnter',
+  delete_check_events = 'InsertLeave'
+})
+
+require('luasnip.loaders.from_vscode').lazy_load()
+
+---
+-- Autocompletion
+---
+
+vim.opt.completeopt = {'menu', 'menuone'}
+
+local cmp = require('cmp')
+local cmp_config = require('lsp-zero').defaults.cmp_config({})
+cmp_config.completion.completeopt = "menu,menuone"
+-- print("cmp_config", vim.inspect(cmp_config))
+cmp.setup(cmp_config)
 
 -- helper
 function string:split(delimiter)
