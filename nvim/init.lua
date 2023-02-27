@@ -263,9 +263,8 @@ vim.keymap.set('n', '<f6>', telescope_builtin.oldfiles, {})
 vim.keymap.set('n', '<leader>b', telescope_builtin.buffers, {})
 
 require("nvim-lastplace").setup {}
-require("nvim-autopairs").setup {}
+require("nvim-autopairs").setup{ map_cr = false }
 require('Comment').setup()
-
 
 require'nvim-treesitter.configs'.setup {
   -- A list of parser names, or "all" (the four listed parsers should always be installed)
