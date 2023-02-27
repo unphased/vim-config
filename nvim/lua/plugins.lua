@@ -70,40 +70,8 @@ return {
     dependencies = { "nvim-tree/nvim-web-devicons" },
   },
   "onsails/lspkind-nvim",
-  -- {
-  --   "glepnir/lspsaga.nvim",
-  --   event = "BufRead",
-  --   config = function()
-  --     require("lspsaga").setup({})
-  --   end,
-  --   dependencies = {
-  --     { 'neovim/nvim-lspconfig' },
-  --     {"nvim-tree/nvim-web-devicons"},
-  --     --Please make sure you install markdown and markdown_inline parser
-  --     {"nvim-treesitter/nvim-treesitter"}
-  --   }
-  -- },
-  {
-    "hrsh7th/nvim-cmp",
-    -- load cmp on InsertEnter
-    event = "InsertEnter",
-    -- these dependencies will only be loaded when cmp loads
-    -- dependencies are always lazy-loaded unless specified otherwise
-    dependencies = {
-      "hrsh7th/cmp-nvim-lsp",
-      "hrsh7th/cmp-buffer",
-      "hrsh7th/cmp-path",
-      "hrsh7th/cmp-cmdline",
-    },
-    config = function()
-      -- ...
-    end,
-  },
-  'neovim/nvim-lspconfig',
-  "williamboman/mason.nvim",
-  "williamboman/mason-lspconfig.nvim",
-  { "jose-elias-alvarez/null-ls.nvim", dependencies = { 'nvim-lua/plenary.nvim' } },
-  "jay-babu/mason-null-ls.nvim",
+  -- { "jose-elias-alvarez/null-ls.nvim", dependencies = { 'nvim-lua/plenary.nvim' } },
+  -- "jay-babu/mason-null-ls.nvim",
   "inkarkat/vim-ingo-library",
   { "inkarkat/vim-SearchHighlighting", init = function ()
     vim.keymap.set('n', '<CR>', '<Plug>SearchHighlightingStar')
