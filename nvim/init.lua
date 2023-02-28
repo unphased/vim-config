@@ -14,25 +14,25 @@ vim.o.numberwidth = 3
 -- init lazy.nvim plugin loader
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
-	vim.fn.system({
-		"git",
-		"clone",
-		"--filter=blob:none",
-		"https://github.com/folke/lazy.nvim.git",
-		"--branch=stable", -- latest stable release
-		lazypath,
-	})
+  vim.fn.system({
+    "git",
+    "clone",
+    "--filter=blob:none",
+    "https://github.com/folke/lazy.nvim.git",
+    "--branch=stable", -- latest stable release
+    lazypath,
+  })
 end
 
 vim.opt.rtp:prepend(lazypath)
 
 -- plugins
 require("lazy").setup("plugins", {
-	change_detection = {
-		-- automatically check for config file changes and reload the ui
-		enabled = true,
-		notify = true, -- get a notification when changes are found
-	},
+  change_detection = {
+    -- automatically check for config file changes and reload the ui
+    enabled = true,
+    notify = true, -- get a notification when changes are found
+  },
 })
 
 -- mappings
@@ -51,10 +51,10 @@ vim.keymap.set({ "v", "n" }, "L", "7l")
 
 -- Joining lines with Ctrl+N. Keep cursor stationary.
 vim.keymap.set("n", "<c-n>", function()
-	local line, col = unpack(vim.api.nvim_win_get_cursor(0))
-	-- print("win_get_cursor: "..vim.inspect(vim.api.nvim_win_get_cursor(0)).. " Unpacks to "..line..","..col)
-	vim.cmd("normal! J")
-	vim.api.nvim_win_set_cursor(0, { line, col })
+  local line, col = unpack(vim.api.nvim_win_get_cursor(0))
+  -- print("win_get_cursor: "..vim.inspect(vim.api.nvim_win_get_cursor(0)).. " Unpacks to "..line..","..col)
+  vim.cmd("normal! J")
+  vim.api.nvim_win_set_cursor(0, { line, col })
 end)
 
 -- make it easier to type a colon
@@ -206,51 +206,51 @@ vim.g.matchup_matchparen_deferred = 1
 vim.g.matchup_matchparen_hi_surround_always = 1
 
 function _G.overwrite_file(filename, payload)
-	local log_file_path = vim.env.HOME .. "/" .. filename
-	local log_file = io.open(log_file_path, "w")
-	log_file:write(payload)
-	log_file:close()
+  local log_file_path = vim.env.HOME .. "/" .. filename
+  local log_file = io.open(log_file_path, "w")
+  log_file:write(payload)
+  log_file:close()
 end
 
 vim.opt.titlestring = "NVIM %f %h%m%r%w (%{tabpagenr()} of %{tabpagenr('$')})"
 
 -- plugin settings
 require("gitsigns").setup({
-	diff_opts = {
-		internal = true,
-		-- linematch = 1
-	},
-	count_chars = {
-		[1] = "₁",
-		[2] = "₂",
-		[3] = "₃",
-		[4] = "₄",
-		[5] = "₅",
-		[6] = "₆",
-		[7] = "₇",
-		[8] = "₈",
-		[9] = "₉",
-		["+"] = "₊",
-	},
-	signs = {
-		add = { text = "+", show_count = true },
-		change = { text = "│", show_count = true },
-		delete = { text = "_", show_count = true },
-		topdelete = { text = "‾", show_count = true },
-		changedelete = { text = "~", show_count = true },
-		untracked = { text = "┆" },
-	},
-	show_deleted = true,
-	numhl = true, -- Toggle with `:Gitsigns toggle_numhl`
-	linehl = false, -- Toggle with `:Gitsigns toggle_linehl`
-	word_diff = true, -- Toggle with `:Gitsigns toggle_word_diff`
-	current_line_blame = true, -- Toggle with `:Gitsigns toggle_current_line_blame`
-	current_line_blame_opts = {
-		virt_text = true,
-		virt_text_pos = "eol", -- 'eol' | 'overlay' | 'right_align'
-		delay = 400,
-		ignore_whitespace = true,
-	},
+  diff_opts = {
+    internal = true,
+    -- linematch = 1
+  },
+  count_chars = {
+    [1] = "₁",
+    [2] = "₂",
+    [3] = "₃",
+    [4] = "₄",
+    [5] = "₅",
+    [6] = "₆",
+    [7] = "₇",
+    [8] = "₈",
+    [9] = "₉",
+    ["+"] = "₊",
+  },
+  signs = {
+    add = { text = "+", show_count = true },
+    change = { text = "│", show_count = true },
+    delete = { text = "_", show_count = true },
+    topdelete = { text = "‾", show_count = true },
+    changedelete = { text = "~", show_count = true },
+    untracked = { text = "┆" },
+  },
+  show_deleted = true,
+  numhl = true, -- Toggle with `:Gitsigns toggle_numhl`
+  linehl = false, -- Toggle with `:Gitsigns toggle_linehl`
+  word_diff = true, -- Toggle with `:Gitsigns toggle_word_diff`
+  current_line_blame = true, -- Toggle with `:Gitsigns toggle_current_line_blame`
+  current_line_blame_opts = {
+    virt_text = true,
+    virt_text_pos = "eol", -- 'eol' | 'overlay' | 'right_align'
+    delay = 400,
+    ignore_whitespace = true,
+  },
 })
 
 local telescope_builtin = require("telescope.builtin")
@@ -265,127 +265,127 @@ require("nvim-autopairs").setup({ map_cr = false })
 require("Comment").setup()
 
 require("nvim-treesitter.configs").setup({
-	-- A list of parser names, or "all" (the four listed parsers should always be installed)
-	ensure_installed = { "c", "lua", "vim", "help" },
+  -- A list of parser names, or "all" (the four listed parsers should always be installed)
+  ensure_installed = { "c", "lua", "vim", "help" },
 
-	-- Install parsers synchronously (only applied to `ensure_installed`)
-	sync_install = false,
+  -- Install parsers synchronously (only applied to `ensure_installed`)
+  sync_install = false,
 
-	-- Automatically install missing parsers when entering buffer
-	-- Recommendation: set to false if you don't have `tree-sitter` CLI installed locally
-	auto_install = true,
+  -- Automatically install missing parsers when entering buffer
+  -- Recommendation: set to false if you don't have `tree-sitter` CLI installed locally
+  auto_install = true,
 
-	-- List of parsers to ignore installing (for "all")
-	--- ignore_install = { "javascript" },
+  -- List of parsers to ignore installing (for "all")
+  --- ignore_install = { "javascript" },
 
-	---- If you need to change the installation directory of the parsers (see -> Advanced Setup)
-	-- parser_install_dir = "/some/path/to/store/parsers", -- Remember to run vim.opt.runtimepath:append("/some/path/to/store/parsers")!
+  ---- If you need to change the installation directory of the parsers (see -> Advanced Setup)
+  -- parser_install_dir = "/some/path/to/store/parsers", -- Remember to run vim.opt.runtimepath:append("/some/path/to/store/parsers")!
 
-	highlight = {
-		-- `false` will disable the whole extension
-		enable = true,
+  highlight = {
+    -- `false` will disable the whole extension
+    enable = true,
 
-		-- NOTE: these are the names of the parsers and not the filetype. (for example if you want to
-		-- disable highlighting for the `tex` filetype, you need to include `latex` in this list as this is
-		-- the name of the parser)
-		-- list of language that will be disabled
-		--- disable = { "c", "rust" },
+    -- NOTE: these are the names of the parsers and not the filetype. (for example if you want to
+    -- disable highlighting for the `tex` filetype, you need to include `latex` in this list as this is
+    -- the name of the parser)
+    -- list of language that will be disabled
+    --- disable = { "c", "rust" },
 
-		-- Or use a function for more flexibility, e.g. to disable slow treesitter highlight for large files
-		disable = function(lang, buf)
-			local max_filesize = 100 * 1024 -- 100 KB
-			local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
-			if ok and stats and stats.size > max_filesize then
-				return true
-			end
-		end,
+    -- Or use a function for more flexibility, e.g. to disable slow treesitter highlight for large files
+    disable = function(lang, buf)
+      local max_filesize = 100 * 1024 -- 100 KB
+      local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+      if ok and stats and stats.size > max_filesize then
+        return true
+      end
+    end,
 
-		-- Setting this to true will run `:h syntax` and tree-sitter at the same time.
-		-- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
-		-- Using this option may slow down your editor, and you may see some duplicate highlights.
-		-- Instead of true it can also be a list of languages
-		additional_vim_regex_highlighting = false,
-	},
-	indent = {
-		enable = true,
-		disable = { "python", "lua" },
-	},
-	-- incremental_selection = {
-	--   enable = true,
-	--   keymaps = {
-	--     init_selection = '<CR>',
-	--     --scope_incremental = '<TAB>',
-	--     node_incremental = '<CR>',
-	--     node_decremental = '<S-TAB>',
-	--   },
-	-- },
-	matchup = {
-		enable = true, -- mandatory, false will disable the whole extension
-		disable = {}, -- optional, list of language that will be disabled
-	},
+    -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
+    -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
+    -- Using this option may slow down your editor, and you may see some duplicate highlights.
+    -- Instead of true it can also be a list of languages
+    additional_vim_regex_highlighting = false,
+  },
+  indent = {
+    enable = true,
+    disable = { "python", "lua" },
+  },
+  -- incremental_selection = {
+  --   enable = true,
+  --   keymaps = {
+  --     init_selection = '<CR>',
+  --     --scope_incremental = '<TAB>',
+  --     node_incremental = '<CR>',
+  --     node_decremental = '<S-TAB>',
+  --   },
+  -- },
+  matchup = {
+    enable = true, -- mandatory, false will disable the whole extension
+    disable = {}, -- optional, list of language that will be disabled
+  },
 
-	textobjects = {
-		swap = {
-			enable = true,
-			swap_next = {
-				["]]"] = "@parameter.inner",
-			},
-			swap_previous = {
-				["[["] = "@parameter.inner",
-			},
-		},
-		select = {
-			enable = true,
+  textobjects = {
+    swap = {
+      enable = true,
+      swap_next = {
+        ["]]"] = "@parameter.inner",
+      },
+      swap_previous = {
+        ["[["] = "@parameter.inner",
+      },
+    },
+    select = {
+      enable = true,
 
-			-- Automatically jump forward to textobj, similar to targets.vim
-			lookahead = true,
+      -- Automatically jump forward to textobj, similar to targets.vim
+      lookahead = true,
 
-			keymaps = {
-				-- You can use the capture groups defined in textobjects.scm
-				["af"] = "@function.outer",
-				["if"] = "@function.inner",
-				["ac"] = "@class.outer",
-				-- You can optionally set descriptions to the mappings (used in the desc parameter of
-				-- nvim_buf_set_keymap) which plugins like which-key display
-				["ic"] = { query = "@class.inner", desc = "Select inner part of a class region" },
-				-- You can also use captures from other query groups like `locals.scm`
-				["as"] = { query = "@scope", query_group = "locals", desc = "Select language scope" },
-			},
-			-- You can choose the select mode (default is charwise 'v')
-			--
-			-- Can also be a function which gets passed a table with the keys
-			-- * query_string: eg '@function.inner'
-			-- * method: eg 'v' or 'o'
-			-- and should return the mode ('v', 'V', or '<c-v>') or a table
-			-- mapping query_strings to modes.
-			selection_modes = {
-				["@parameter.outer"] = "v", -- charwise
-				["@function.outer"] = "V", -- linewise
-				["@class.outer"] = "<c-v>", -- blockwise
-			},
-			-- If you set this to `true` (default is `false`) then any textobject is
-			-- extended to include preceding or succeeding whitespace. Succeeding
-			-- whitespace has priority in order to act similarly to eg the built-in
-			-- `ap`.
-			--
-			-- Can also be a function which gets passed a table with the keys
-			-- * query_string: eg '@function.inner'
-			-- * selection_mode: eg 'v'
-			-- and should return true of false
-			include_surrounding_whitespace = true,
-		},
-	},
+      keymaps = {
+        -- You can use the capture groups defined in textobjects.scm
+        ["af"] = "@function.outer",
+        ["if"] = "@function.inner",
+        ["ac"] = "@class.outer",
+        -- You can optionally set descriptions to the mappings (used in the desc parameter of
+        -- nvim_buf_set_keymap) which plugins like which-key display
+        ["ic"] = { query = "@class.inner", desc = "Select inner part of a class region" },
+        -- You can also use captures from other query groups like `locals.scm`
+        ["as"] = { query = "@scope", query_group = "locals", desc = "Select language scope" },
+      },
+      -- You can choose the select mode (default is charwise 'v')
+      --
+      -- Can also be a function which gets passed a table with the keys
+      -- * query_string: eg '@function.inner'
+      -- * method: eg 'v' or 'o'
+      -- and should return the mode ('v', 'V', or '<c-v>') or a table
+      -- mapping query_strings to modes.
+      selection_modes = {
+        ["@parameter.outer"] = "v", -- charwise
+        ["@function.outer"] = "V", -- linewise
+        ["@class.outer"] = "<c-v>", -- blockwise
+      },
+      -- If you set this to `true` (default is `false`) then any textobject is
+      -- extended to include preceding or succeeding whitespace. Succeeding
+      -- whitespace has priority in order to act similarly to eg the built-in
+      -- `ap`.
+      --
+      -- Can also be a function which gets passed a table with the keys
+      -- * query_string: eg '@function.inner'
+      -- * selection_mode: eg 'v'
+      -- and should return true of false
+      include_surrounding_whitespace = true,
+    },
+  },
 
-	-- let's see if textsubjects works well enough for my needs. so far seems like whitespace heuristics may be nice to have.
-	-- textsubjects = {
-	--   enable = true,
-	--   prev_selection = ',', -- (Optional) keymap to select the previous selection
-	--   keymaps = {
-	--     ['<cr>'] = 'textsubjects-smart',
-	--     ["'"] = 'textsubjects-container-outer',
-	--     [';'] = 'textsubjects-container-inner',
-	--   },
-	-- },
+  -- let's see if textsubjects works well enough for my needs. so far seems like whitespace heuristics may be nice to have.
+  -- textsubjects = {
+  --   enable = true,
+  --   prev_selection = ',', -- (Optional) keymap to select the previous selection
+  --   keymaps = {
+  --     ['<cr>'] = 'textsubjects-smart',
+  --     ["'"] = 'textsubjects-container-outer',
+  --     [';'] = 'textsubjects-container-inner',
+  --   },
+  -- },
 })
 
 -- require('lazy-lsp').setup {
@@ -422,23 +422,23 @@ require("nvim-treesitter.configs").setup({
 -- }
 
 require("trouble").setup({
-	-- your configuration comes here
-	-- or leave it empty to use the default settings
-	-- refer to the configuration section below
+  -- your configuration comes here
+  -- or leave it empty to use the default settings
+  -- refer to the configuration section below
 })
 
 require("nvim-cursorline").setup({
-	cursorline = {
-		enable = true,
-		timeout = 5,
-		number = true,
-		hl = { bg = "#262626" }, -- seems to be overridden by at least a few CSs but worth specifying?
-	},
-	cursorword = {
-		enable = true,
-		min_length = 2,
-		hl = { bg = "#303050", underline = false },
-	},
+  cursorline = {
+    enable = true,
+    timeout = 5,
+    number = true,
+    hl = { bg = "#262626" }, -- seems to be overridden by at least a few CSs but worth specifying?
+  },
+  cursorword = {
+    enable = true,
+    min_length = 2,
+    hl = { bg = "#303050", underline = false },
+  },
 })
 
 require("colorizer").setup()
@@ -476,16 +476,16 @@ vim.cmd("highlight IndentBlanklineContextStart gui=underdouble guisp=#66446f")
 vim.cmd("highlight IndentBlanklineIndent1 gui=nocombine guifg=#383838")
 vim.cmd("highlight IndentBlanklineIndent2 gui=nocombine guifg=#484848")
 require("indent_blankline").setup({
-	char = "▏",
-	char_highlight_list = {
-		"IndentBlanklineIndent1",
-		"IndentBlanklineIndent2",
-	},
-	context_char = "▏",
-	space_char_blankline = " ",
-	show_end_of_line = true, -- no effect while eof not put in listchars.
-	show_current_context = true,
-	show_current_context_start = true,
+  char = "▏",
+  char_highlight_list = {
+    "IndentBlanklineIndent1",
+    "IndentBlanklineIndent2",
+  },
+  context_char = "▏",
+  space_char_blankline = " ",
+  show_end_of_line = true, -- no effect while eof not put in listchars.
+  show_current_context = true,
+  show_current_context_start = true,
 })
 
 -- nvim-lsp via cmp
@@ -535,39 +535,39 @@ local null_ls = require("null-ls")
 -- local null_ls = require 'null-ls'
 
 require("mason-null-ls").setup({
-	ensure_installed = { "shellcheck" },
-	automatic_setup = true,
+  ensure_installed = { "shellcheck" },
+  automatic_setup = true,
 })
 require("mason-null-ls").setup_handlers({
-	function(source_name, methods)
-		-- print("mason-null-ls-handler: source_name:" .. source_name)
-		-- print("mason-null-ls-handler: methods:" .. vim.inspect(methods))
-		-- all sources with no handler get passed here
+  function(source_name, methods)
+    -- print("mason-null-ls-handler: source_name:" .. source_name)
+    -- print("mason-null-ls-handler: methods:" .. vim.inspect(methods))
+    -- all sources with no handler get passed here
 
-		-- To keep the original functionality of `automatic_setup = true`,
-		-- please add the below.
-		require("mason-null-ls.automatic_setup")(source_name, methods)
-	end,
+    -- To keep the original functionality of `automatic_setup = true`,
+    -- please add the below.
+    require("mason-null-ls.automatic_setup")(source_name, methods)
+  end,
 
-	-- stylua = function(source_name, methods)
-	--   null_ls.register(null_ls.builtins.formatting.stylua)
-	-- end,
+  -- stylua = function(source_name, methods)
+  --   null_ls.register(null_ls.builtins.formatting.stylua)
+  -- end,
 
-	---- Semgrep is cool but takes way long to run (need to find out how to extend timeout) and also does not commonly emit much output. So I'm not really interested in it right now.
-	-- semgrep = function(source_name, methods)
-	--   null_ls.register(null_ls.builtins.diagnostics.semgrep.with({
-	--     extra_args = { "--config", "auto" },
-	--   }))
-	-- end,
-	--
-	-- print("semgrep obtained as:", vim.inspect(null_ls.builtins.diagnostics.semgrep)),
-	-- print("semgrep prospective:", vim.inspect(null_ls.builtins.diagnostics.semgrep.with({
-	--   extra_args = { "--config", "auto" },
-	-- })))
+  ---- Semgrep is cool but takes way long to run (need to find out how to extend timeout) and also does not commonly emit much output. So I'm not really interested in it right now.
+  -- semgrep = function(source_name, methods)
+  --   null_ls.register(null_ls.builtins.diagnostics.semgrep.with({
+  --     extra_args = { "--config", "auto" },
+  --   }))
+  -- end,
+  --
+  -- print("semgrep obtained as:", vim.inspect(null_ls.builtins.diagnostics.semgrep)),
+  -- print("semgrep prospective:", vim.inspect(null_ls.builtins.diagnostics.semgrep.with({
+  --   extra_args = { "--config", "auto" },
+  -- })))
 })
 
 null_ls.setup({
-	debug = true,
+  debug = true,
 })
 --
 -- require("copilot").setup({
@@ -584,42 +584,42 @@ null_ls.setup({
 ---
 
 require("lsp-zero").extend_lspconfig({
-	set_lsp_keymaps = false,
-	on_attach = function(client, bufnr)
-		print("lsp zero lspconfig extend client", vim.inspect(client.name))
-		local opts = { buffer = bufnr }
+  set_lsp_keymaps = false,
+  on_attach = function(client, bufnr)
+    print("lsp zero lspconfig extend client", vim.inspect(client.name))
+    local opts = { buffer = bufnr }
 
-		vim.keymap.set("n", "?", vim.lsp.buf.hover, opts)
-		vim.keymap.set("n", "<leader>r", vim.lsp.buf.rename, opts)
-		---
-		-- and many more...
-		---
-	end,
+    vim.keymap.set("n", "?", vim.lsp.buf.hover, opts)
+    vim.keymap.set("n", "<leader>r", vim.lsp.buf.rename, opts)
+    ---
+    -- and many more...
+    ---
+  end,
 })
 
 require("mason").setup()
 require("mason-lspconfig").setup()
 
 require("mason-lspconfig").setup_handlers({
-	function(server_name)
-		print("mason-lspconfig setup_handlers", server_name)
-		require("lspconfig")[server_name].setup({})
-	end,
-	["lua_ls"] = function()
-		require("lspconfig")["lua_ls"].setup({
-			settings = {
-				Lua = {
-					diagnostics = {
-						enable = true,
-						globals = { "vim" },
-					},
-					runtime = {
-						version = "LuaJIT",
-					},
-				},
-			},
-		})
-	end,
+  function(server_name)
+    print("mason-lspconfig setup_handlers", server_name)
+    require("lspconfig")[server_name].setup({})
+  end,
+  ["lua_ls"] = function()
+    require("lspconfig")["lua_ls"].setup({
+      settings = {
+        Lua = {
+          diagnostics = {
+            enable = true,
+            globals = { "vim" },
+          },
+          runtime = {
+            version = "LuaJIT",
+          },
+        },
+      },
+    })
+  end,
 })
 
 ---
@@ -635,8 +635,8 @@ require("lsp-zero").set_sign_icons()
 ---
 
 require("luasnip").config.set_config({
-	region_check_events = "InsertEnter",
-	delete_check_events = "InsertLeave",
+  region_check_events = "InsertEnter",
+  delete_check_events = "InsertLeave",
 })
 
 require("luasnip.loaders.from_vscode").lazy_load()
@@ -654,55 +654,55 @@ cmp_config.completion.completeopt = "menu,menuone"
 cmp.setup(cmp_config)
 
 cmp.setup.filetype("gitcommit", {
-	sources = cmp.config.sources({
-		{ name = "cmp_git" }, -- You can specify the `cmp_git` source if you were installed it.
-	}, {
-		{ name = "buffer" },
-	}),
+  sources = cmp.config.sources({
+    { name = "cmp_git" }, -- You can specify the `cmp_git` source if you were installed it.
+  }, {
+    { name = "buffer" },
+  }),
 })
 
 -- Use buffer source for `/` and `?` (if you enabled `native_menu`, this won't work anymore).
 cmp.setup.cmdline({ "/", "?" }, {
-	mapping = cmp.mapping.preset.cmdline(),
-	sources = {
-		{ name = "buffer" },
-	},
+  mapping = cmp.mapping.preset.cmdline(),
+  sources = {
+    { name = "buffer" },
+  },
 })
 
 -- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
 cmp.setup.cmdline(":", {
-	mapping = cmp.mapping.preset.cmdline(),
-	sources = cmp.config.sources({
-		{ name = "path" },
-	}, {
-		{ name = "cmdline" },
-	}),
+  mapping = cmp.mapping.preset.cmdline(),
+  sources = cmp.config.sources({
+    { name = "path" },
+  }, {
+    { name = "cmdline" },
+  }),
 })
 
 -- helper
 function string:split(delimiter)
-	local result = {}
-	local from = 1
-	local delim_from, delim_to = string.find(self, delimiter, from)
-	while delim_from do
-		table.insert(result, string.sub(self, from, delim_from - 1))
-		from = delim_to + 1
-		delim_from, delim_to = string.find(self, delimiter, from)
-	end
-	table.insert(result, string.sub(self, from))
-	return result
+  local result = {}
+  local from = 1
+  local delim_from, delim_to = string.find(self, delimiter, from)
+  while delim_from do
+    table.insert(result, string.sub(self, from, delim_from - 1))
+    from = delim_to + 1
+    delim_from, delim_to = string.find(self, delimiter, from)
+  end
+  table.insert(result, string.sub(self, from))
+  return result
 end
 
 function table:print()
-	for key, value in pairs(self) do
-		print(key, value)
-	end
+  for key, value in pairs(self) do
+    print(key, value)
+  end
 end
 
 local log = function(message)
-	local log_file_path = "/tmp/lua-zephyr.log"
-	local log_file = io.open(log_file_path, "a")
-	io.output(log_file)
-	io.write(message .. "\n")
-	io.close(log_file)
+  local log_file_path = "/tmp/lua-zephyr.log"
+  local log_file = io.open(log_file_path, "a")
+  io.output(log_file)
+  io.write(message .. "\n")
+  io.close(log_file)
 end
