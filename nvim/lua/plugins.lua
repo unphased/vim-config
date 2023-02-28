@@ -104,5 +104,6 @@ return {
       {'L3MON4D3/LuaSnip'},             -- Required
       {'rafamadriz/friendly-snippets'}, -- Optional
     }
-  }
+  },
+  'rhysd/conflict-marker.vim'
 }
