@@ -132,8 +132,6 @@ export LESS_TERMCAP_us=$'\E[4;38;5;146m' # begin underline
 
 export OSTYPE
 
-alias bat='bat --pager="less -R"'
-
 # # because omz people are slightly incompetent and regressed these aliases i did 
 # # start to use (these may come back later when #4585 completes)
 alias gdc='git diff --cached'
