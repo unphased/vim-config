@@ -55,10 +55,19 @@ return {
   }, -- show nerd font icons for LSP types in completion menu
   "nvim-treesitter/nvim-treesitter-context",
   -- "onsails/lspkind-nvim", -- status line plugin
+  -- {
+  --   "MunifTanjim/nougat.nvim",
+  --   config = function ()
+  --     require("nougat")
+  --   end
+  -- },
   {
-    "MunifTanjim/nougat.nvim",
-    config = function ()
-      require("nougat")
+    "rebelot/heirline.nvim",
+    -- You can optionally lazy-load heirline on UiEnter
+    -- to make sure all required plugins and colorschemes are loaded before setup
+    -- event = "UiEnter",
+    config = function()
+      require("heirline").setup()
     end
   },
   'lewis6991/gitsigns.nvim',
@@ -111,5 +120,16 @@ return {
       {'rafamadriz/friendly-snippets'}, -- Optional
     }
   },
-  'rhysd/conflict-marker.vim'
+  'rhysd/conflict-marker.vim',
+  {
+    "aaronhallaert/ts-advanced-git-search.nvim",
+    config = function()
+      require("telescope").load_extension("advanced_git_search")
+    end,
+    dependencies = {
+      "nvim-telescope/telescope.nvim",
+      -- to show diff splits and open commits in browser
+      "tpope/vim-fugitive",
+    },
+  }
 }
