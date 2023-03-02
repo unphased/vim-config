@@ -55,7 +55,12 @@ return {
   }, -- show nerd font icons for LSP types in completion menu
   "nvim-treesitter/nvim-treesitter-context",
   -- "onsails/lspkind-nvim", -- status line plugin
-  "MunifTanjim/nougat.nvim",
+  {
+    "MunifTanjim/nougat.nvim",
+    config = function ()
+      require("nougat")
+    end
+  },
   'lewis6991/gitsigns.nvim',
   'lambdalisue/suda.vim',
   ---- Not sure about this one because i am trying to stick to treesitter for stuff like this at the moment
