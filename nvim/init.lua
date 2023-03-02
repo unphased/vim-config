@@ -605,6 +605,9 @@ require("lsp-zero").extend_lspconfig({
   end,
 })
 
+navic.setup()
+vim.o.winbar = "%{%v:lua.require'nvim-navic'.get_location()%}"
+
 require("mason").setup()
 require("mason-lspconfig").setup()
 
