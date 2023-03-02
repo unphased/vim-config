@@ -583,11 +583,19 @@ null_ls.setup({
 -- Configure LSP servers
 ---
 
+local navic = require("nvim-navic")
+
 require("lsp-zero").extend_lspconfig({
   set_lsp_keymaps = false,
+  -- review whether an autocmd is preferable to this. possibly not
   on_attach = function(client, bufnr)
     print("lsp zero lspconfig extend client", vim.inspect(client.name))
     local opts = { buffer = bufnr }
+
+    -- enable navic
+    if client.server_capabilities.documentSymbolProvider then
+        navic.attach(client, bufnr)
+    end
 
     vim.keymap.set("n", "?", vim.lsp.buf.hover, opts)
     vim.keymap.set("n", "<leader>r", vim.lsp.buf.rename, opts)

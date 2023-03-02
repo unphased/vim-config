@@ -62,6 +62,7 @@ return {
     end
   },
   'lewis6991/gitsigns.nvim',
+  'SmiteshP/nvim-navic',
   'lambdalisue/suda.vim',
   ---- Not sure about this one because i am trying to stick to treesitter for stuff like this at the moment
   -- {

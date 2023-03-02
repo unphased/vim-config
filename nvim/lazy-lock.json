@@ -27,6 +27,7 @@
   "nvim-cursorline": { "branch": "main", "commit": "804f0023692653b2b2368462d67d2a87056947f9" },
   "nvim-lastplace": { "branch": "main", "commit": "65c5d6e2501a3af9c2cd15c6548e67fa035bf640" },
   "nvim-lspconfig": { "branch": "master", "commit": "95b7a69bc6da2a6a740584ea3c555e5327638b7d" },
+  "nvim-navic": { "branch": "master", "commit": "7e9d2b2b601149fecdccd11b516acb721e571fe6" },
   "nvim-osc52": { "branch": "main", "commit": "0abf3267090905accf348d19951640e3b95755c3" },
   "nvim-treesitter": { "branch": "master", "commit": "252c1011c4bae91d25a8c54be4ed1a7b341c088c" },
   "nvim-treesitter-context": { "branch": "master", "commit": "895ec44f5c89bc67ba5440aef3d1f2efa3d59a41" },
