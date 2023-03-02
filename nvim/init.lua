@@ -124,10 +124,11 @@ vim.cmd([[
   " EOF
   " endfunction
 
-  highlight DiffAdd guibg=#203520 guifg=NONE
-  highlight DiffChange guibg=#13292e guifg=NONE
-  " highlight DiffText guibg=#452250 guifg=NONE
-  highlight DiffDelete guibg=#30181a guifg=NONE
+  "" Following live in heirline for now
+  " highlight DiffAdd guibg=#203520 guifg=NONE
+  " highlight DiffChange guibg=#13292e guifg=NONE
+  " " highlight DiffText guibg=#452250 guifg=NONE
+  " highlight DiffDelete guibg=#30181a guifg=NONE
   highlight GitSignsChangeInline guibg=#302ee8 guifg=NONE
   highlight GitSignsDeleteInline guibg=#68221a guifg=NONE
   highlight GitSignsAddInline guibg=#30582e guifg=NONE
@@ -692,6 +693,9 @@ require("mason-null-ls").setup_handlers({
 null_ls.setup({
   debug = true,
 })
+
+-- putting here late so navic can init first. Nah, didn't fix it.
+require("heirline_conf.heirline")
 
 -- for conflict-marker
 vim.cmd([[ 

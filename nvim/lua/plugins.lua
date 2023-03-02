@@ -61,15 +61,6 @@ return {
   --     require("nougat")
   --   end
   -- },
-  {
-    "rebelot/heirline.nvim",
-    -- You can optionally lazy-load heirline on UiEnter
-    -- to make sure all required plugins and colorschemes are loaded before setup
-    -- event = "UiEnter",
-    config = function()
-      require("heirline").setup()
-    end
-  },
   'lewis6991/gitsigns.nvim',
   'SmiteshP/nvim-navic',
   'lambdalisue/suda.vim',
@@ -131,5 +122,11 @@ return {
       -- to show diff splits and open commits in browser
       "tpope/vim-fugitive",
     },
-  }
+  },
+  {
+    "rebelot/heirline.nvim",
+    -- You can optionally lazy-load heirline on UiEnter
+    -- to make sure all required plugins and colorschemes are loaded before setup
+    -- event = "UiEnter",
+  },
 }
