@@ -428,7 +428,18 @@ require("trouble").setup({
   -- refer to the configuration section below
 })
 
-require("neo-tree").setup()
+require("neo-tree").setup({
+  close_if_last_window = true,
+  sort_case_insensitive = true,
+  filesystem = {
+    follow_current_file = true,
+    use_libuv_file_watcher = true,
+  },
+  source_selector = {
+    winbar = true,
+    statusline = false
+  }
+})
 
 require("nvim-cursorline").setup({
   cursorline = {
