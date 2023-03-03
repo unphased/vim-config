@@ -50,5 +50,6 @@
   "vim-repeat": { "branch": "master", "commit": "24afe922e6a05891756ecf331f39a1f6743d3d5a" },
   "vim-sleuth": { "branch": "master", "commit": "1cc4557420f215d02c4d2645a748a816c220e99b" },
   "vim-surround": { "branch": "master", "commit": "3d188ed2113431cf8dac77be61b842acb64433d9" },
+  "yanky.nvim": { "branch": "main", "commit": "2ccd52506dd0d9374c845e52b5373e901227639e" },
   "zephyr-nvim": { "branch": "main", "commit": "0592f65b5541d3b1fb426677d2c6cef5bb066dde" }
 }
