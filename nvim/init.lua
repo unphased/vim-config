@@ -711,8 +711,8 @@ vim.keymap.set({"n","x"}, "P", "<Plug>(YankyPutBefore)")
 vim.keymap.set({"n","x"}, "gp", "<Plug>(YankyGPutAfter)")
 vim.keymap.set({"n","x"}, "gP", "<Plug>(YankyGPutBefore)")
 -- yankring
-vim.keymap.set("n", "<c-n>", "<Plug>(YankyCycleForward)")
-vim.keymap.set("n", "<c-p>", "<Plug>(YankyCycleBackward)")
+vim.keymap.set("n", "<leader>i", "<Plug>(YankyCycleForward)")
+vim.keymap.set("n", "<leader>j", "<Plug>(YankyCycleBackward)")
 
 -- putting here late so navic can init first. Nah, didn't fix it.
 require("heirline_conf.heirline")
