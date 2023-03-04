@@ -705,6 +705,28 @@ null_ls.setup({
   debug = true,
 })
 
+require("yanky").setup({
+  highlight = {
+    on_put = true,
+    on_yank = true,
+    timer = 1000,
+  },
+})
+vim.keymap.set({"n","x"}, "p", "<Plug>(YankyPutAfter)")
+vim.keymap.set({"n","x"}, "P", "<Plug>(YankyPutBefore)")
+vim.keymap.set({"n","x"}, "gp", "<Plug>(YankyGPutAfter)")
+vim.keymap.set({"n","x"}, "gP", "<Plug>(YankyGPutBefore)")
+-- yankring
+vim.keymap.set("n", "<leader>i", "<Plug>(YankyCycleForward)")
+vim.keymap.set("n", "<leader>j", "<Plug>(YankyCycleBackward)")
+-- Search highlight
+vim.cmd([[
+  hi YankyPut guibg=#2f9366 gui=bold cterm=bold
+  hi YankyYanked guibg=#2e5099 gui=bold cterm=bold
+  hi Search cterm=bold gui=bold ctermfg=black ctermbg=yellow guibg=#f0c674
+  hi incSearch cterm=bold gui=bold ctermfg=black ctermbg=yellow guibg=#f0c674
+]])
+
 -- putting here late so navic can init first. Nah, didn't fix it.
 require("heirline_conf.heirline")
 
