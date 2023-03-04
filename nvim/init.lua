@@ -86,8 +86,11 @@ vim.keymap.set("v", "<c-\\>", "<esc>:vsplit<cr>")
 vim.keymap.set("n", "<c-_>", ":split<cr>")
 vim.keymap.set("v", "<c-_>", "<esc>:split<cr>")
 
--- sample basic version of my quick-search. Not using this though. too simplistic.
+-- Example basic version of my quick-search. Not using this though. too simplistic.
 -- vim.keymap.set('n', '<CR>', '*``')
+
+-- make typing d<CR> not cause two lines to be deleted. Make it do nothing instead. This is because d is a terminal alias I use and it's too easy to let it be entered in a Vim.
+vim.keymap.set("n", "d<CR>", "<nop>")
 
 -- dumping vimL code that I didnt bother porting yet here for expedient bringup
 vim.cmd([[
@@ -745,6 +748,9 @@ vim.cmd([[
   highlight ConflictMarkerEnd guibg=#2f628e
   highlight ConflictMarkerCommonAncestorsHunk guibg=#754a81
 ]])
+
+vim.keymap.set("n", "<F4>", ":UndotreeToggle<CR>")
+vim.keymap.set("i", "<F4>", "<Esc>:UndotreeToggle<CR>")
 
 -- disable horiz scroll in the neo-tree pane. Not perfect (only works on second focus)
 vim.cmd([[ 

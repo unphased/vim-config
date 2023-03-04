@@ -20,8 +20,8 @@ local colors = {
     git_add = utils.get_highlight("DiffAdd").bg,
     git_change = utils.get_highlight("DiffChange").bg,
 }
--- print(vim.inspect(colors))
-vim.pretty_print(vim.tbl_map(function (v) return string.format("0x%06x", v) end, colors))
+-- the hex is needed to read these colors
+-- vim.pretty_print(vim.tbl_map(function (v) return string.format("0x%06x", v) end, colors))
 
 vim.cmd([[
   highlight DiffAdd guibg=#203520 guifg=NONE
