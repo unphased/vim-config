@@ -38,7 +38,8 @@ require("lazy").setup("plugins", {
 -- mappings
 vim.keymap.set("n", "<leader>w", ":set wrap!<cr>")
 
-vim.keymap.set({ "n", "v" }, "/", "/\\v")
+--- disabling for now since regular works with cmp cmdline completion
+-- vim.keymap.set({ "n", "v" }, "/", "/\\V")
 vim.keymap.set({ "n", "v" }, "k", "gk")
 vim.keymap.set({ "n", "v" }, "j", "gj")
 vim.keymap.set({ "n", "v" }, "gk", "k")
@@ -745,12 +746,16 @@ cmp.setup({
   }),
   sources = cmp.config.sources({
     { name = 'nvim_lsp' },
-    { name = 'copilot' },
     -- { name = 'vsnip' }, -- For vsnip users.
     -- { name = 'luasnip' }, -- For luasnip users.
     -- { name = 'ultisnips' }, -- For ultisnips users.
     -- { name = 'snippy' }, -- For snippy users.
     { name = 'buffer' },
+    { name = 'path',
+      option = {
+        -- Options go into this table
+      },
+    },
   })
 })
 
@@ -780,6 +785,14 @@ cmp.setup.cmdline(':', {
     { name = 'cmdline' }
   })
 })
+
+-- insert `(` after select function or method item
+local cmp_autopairs = require('nvim-autopairs.completion.cmp')
+local cmp = require('cmp')
+cmp.event:on(
+  'confirm_done',
+  cmp_autopairs.on_confirm_done()
+)
 
 require("mason").setup({})
 require("mason-lspconfig").setup({
@@ -876,6 +889,7 @@ vim.cmd([[
 vim.keymap.set("n", "<F4>", ":UndotreeToggle<CR>")
 vim.keymap.set("i", "<F4>", "<Esc>:UndotreeToggle<CR>")
 
+vim.keymap.set("n", "<leader>t", ":Trouble<CR>")
 
 -- helper
 function string:split(delimiter)
