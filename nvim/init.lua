@@ -724,6 +724,11 @@ vim.cmd([[
   highlight ConflictMarkerCommonAncestorsHunk guibg=#754a81
 ]])
 
+-- disable horiz scroll in the neo-tree pane. Not perfect (only works on second focus)
+vim.cmd([[ 
+  autocmd BufWinEnter * if &filetype == 'neo-tree' | setlocal wrap | echom "setlocal'd wrap in neo-tree ft buf" | endif
+]])
+
 -- helper
 function string:split(delimiter)
   local result = {}
