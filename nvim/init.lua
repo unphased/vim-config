@@ -257,6 +257,10 @@ vim.cmd([[
   " What's a bit funny is that we probably do not need a plugin to automate this across files because it's quite easy to hit colon up to fetch the replacement command back out
   " TODO Actually I think we can do it easily by finding those files and then specifying them in the command line just like we do with % but the real true solution is some kinda preview window
 
+  " Fix home and end (Don't work; but I think I just need to convince tmux to emit other codes)
+  " set t_kh=[1~
+  " set t_@7=[4~
+
 ]])
 
 -- gvar settings for plugins
@@ -497,13 +501,22 @@ require("neo-tree").setup({
   source_selector = {
     winbar = true,
     statusline = false
+  },
+  -- log_level = "trace",
+  -- log_to_file = true,
+  event_handlers = {
+    {
+      event = "neo_tree_buffer_enter",
+      custom = "my custom handler",
+      handler = function ()
+        vim.cmd([[
+          " echom "neotree enter buf"
+          setlocal wrap
+        ]])
+      end
+    }
   }
 })
-
--- disable horiz scroll in the neo-tree pane. Not perfect (only works on second focus)
-vim.cmd([[ 
-  autocmd BufWinEnter * if &filetype == 'neo-tree' | setlocal wrap | echom "setlocal'd wrap in neo-tree ft buf" | endif
-]])
 
 require("nvim-cursorline").setup({
   cursorline = { enable = false },
