@@ -90,7 +90,7 @@ return {
   end },
   {
     'VonHeikemen/lsp-zero.nvim',
-    branch = 'v1.x',
+    branch = 'v2.x',
     dependencies = {
       -- LSP Support
       {'neovim/nvim-lspconfig'},             -- Required
@@ -113,7 +113,7 @@ return {
   },
   'rhysd/conflict-marker.vim',
   {
-    "aaronhallaert/ts-advanced-git-search.nvim",
+    "aaronhallaert/advanced-git-search.nvim",
     config = function()
       require("telescope").load_extension("advanced_git_search")
     end,

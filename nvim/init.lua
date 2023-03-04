@@ -584,208 +584,172 @@ require("indent_blankline").setup({
   show_current_context_start = true,
 })
 
--- nvim-lsp via cmp
 
--- require("mason-lspconfig").setup_handlers {
---   -- The first entry (without a key) will be the default handler
---   -- and will be called for each installed server that doesn't have
---   -- a dedicated handler.
---   function (server_name) -- default handler (optional)
---     require("lspconfig")[server_name].setup {}
+-- local navic = require("nvim-navic")
+--
+-- require("lsp-zero").extend_lspconfig({
+--   set_lsp_keymaps = false,
+--   -- review whether an autocmd is preferable to this. possibly not
+--   on_attach = function(client, bufnr)
+--     -- print("lsp zero lspconfig extend client", vim.inspect(client.name))
+--     local opts = { buffer = bufnr }
+--
+--     -- enable navic
+--     if client.server_capabilities.documentSymbolProvider then
+--         navic.attach(client, bufnr)
+--     end
+--
+--     vim.keymap.set("n", "?", vim.lsp.buf.hover, opts)
+--     vim.keymap.set("n", "<leader>r", vim.lsp.buf.rename, opts)
+--     ---
+--     -- and many more...
+--     ---
 --   end,
---   -- Next, you can provide a dedicated handler for specific servers.
---   ["lua_ls"] = function ()
---     require("lspconfig")["lua_ls"].setup {
+-- })
+
+-- navic.setup()
+-- vim.o.winbar = "%{%v:lua.require'nvim-navic'.get_location()%}"
+--
+-- require("mason").setup()
+-- require("mason-lspconfig").setup()
+--
+-- require("mason-lspconfig").setup_handlers({
+--   function(server_name)
+--     -- print("mason-lspconfig setup_handlers", server_name)
+--     require("lspconfig")[server_name].setup({})
+--   end,
+--   ["lua_ls"] = function()
+--     require("lspconfig")["lua_ls"].setup({
 --       settings = {
 --         Lua = {
 --           diagnostics = {
 --             enable = true,
---             globals = { 'vim' }
+--             globals = { "vim" },
 --           },
 --           runtime = {
---             version = 'LuaJIT',
+--             version = "LuaJIT",
 --           },
---           workspace = {
---             library = vim.api.nvim_get_runtime_file('', true),
---             maxPreload = 10000,
---             preloadFileSize = 10000,
---             checkThirdParty = false,
---           },
---           telemetry = {enable = false},
---         }
---       }
---     }
---   end
--- }
-
+--         },
+--       },
+--     })
+--   end,
+-- })
 --
--- require("copilot").setup({
---   -- suggestion = { enabled = false },
---   -- panel = { enabled = false },
+-- ---
+-- -- Diagnostic config
+-- ---
+--
+-- require("lsp-zero").set_sign_icons()
+-- --- Not sure -- the next line disables/interferes w/ Trouble inline virtual text stuff
+-- -- vim.diagnostic.config(require('lsp-zero').defaults.diagnostics({}))
+--
+-- ---
+-- -- Snippet config
+-- ---
+--
+-- require("luasnip").config.set_config({
+--   region_check_events = "InsertEnter",
+--   delete_check_events = "InsertLeave",
 -- })
--- require("copilot_cmp").setup({
---   method = "getCompletionsCycling",
+--
+-- require("luasnip.loaders.from_vscode").lazy_load()
+--
+-- ---
+-- -- Autocompletion
+-- ---
+--
+-- vim.opt.completeopt = { "menu", "menuone" }
+--
+-- local cmp = require("cmp")
+-- local cmp_config = require("lsp-zero").defaults.cmp_config({})
+-- cmp_config.completion.completeopt = "menu,menuone"
+-- vim.pretty_print(cmp_config)
+-- cmp.setup(cmp_config)
+
+-- cmp.setup.filetype("gitcommit", {
+--   sources = cmp.config.sources({
+--     { name = "cmp_git" }, -- You can specify the `cmp_git` source if you were installed it.
+--   }, {
+--     { name = "buffer" },
+--   }),
 -- })
-
--- LSP via lsp-zero
----
--- Configure LSP servers
----
-
-local navic = require("nvim-navic")
-
-require("lsp-zero").extend_lspconfig({
-  set_lsp_keymaps = false,
-  -- review whether an autocmd is preferable to this. possibly not
-  on_attach = function(client, bufnr)
-    -- print("lsp zero lspconfig extend client", vim.inspect(client.name))
-    local opts = { buffer = bufnr }
-
-    -- enable navic
-    if client.server_capabilities.documentSymbolProvider then
-        navic.attach(client, bufnr)
-    end
-
-    vim.keymap.set("n", "?", vim.lsp.buf.hover, opts)
-    vim.keymap.set("n", "<leader>r", vim.lsp.buf.rename, opts)
-    ---
-    -- and many more...
-    ---
-  end,
-})
-
-navic.setup()
-vim.o.winbar = "%{%v:lua.require'nvim-navic'.get_location()%}"
-
-require("mason").setup()
-require("mason-lspconfig").setup()
-
-require("mason-lspconfig").setup_handlers({
-  function(server_name)
-    -- print("mason-lspconfig setup_handlers", server_name)
-    require("lspconfig")[server_name].setup({})
-  end,
-  ["lua_ls"] = function()
-    require("lspconfig")["lua_ls"].setup({
-      settings = {
-        Lua = {
-          diagnostics = {
-            enable = true,
-            globals = { "vim" },
-          },
-          runtime = {
-            version = "LuaJIT",
-          },
-        },
-      },
-    })
-  end,
-})
-
----
--- Diagnostic config
----
-
-require("lsp-zero").set_sign_icons()
---- Not sure -- the next line disables/interferes w/ Trouble inline virtual text stuff
--- vim.diagnostic.config(require('lsp-zero').defaults.diagnostics({}))
-
----
--- Snippet config
----
-
-require("luasnip").config.set_config({
-  region_check_events = "InsertEnter",
-  delete_check_events = "InsertLeave",
-})
-
-require("luasnip.loaders.from_vscode").lazy_load()
-
----
--- Autocompletion
----
-
-vim.opt.completeopt = { "menu", "menuone" }
-
-local cmp = require("cmp")
-local cmp_config = require("lsp-zero").defaults.cmp_config({})
-cmp_config.completion.completeopt = "menu,menuone"
--- print("cmp_config", vim.inspect(cmp_config))
-cmp.setup(cmp_config)
-
-cmp.setup.filetype("gitcommit", {
-  sources = cmp.config.sources({
-    { name = "cmp_git" }, -- You can specify the `cmp_git` source if you were installed it.
-  }, {
-    { name = "buffer" },
-  }),
-})
-
--- Use buffer source for `/` and `?` (if you enabled `native_menu`, this won't work anymore).
-cmp.setup.cmdline({ "/", "?" }, {
-  mapping = cmp.mapping.preset.cmdline(),
-  sources = {
-    { name = "buffer" },
-  },
-})
-
--- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
-cmp.setup.cmdline(":", {
-  mapping = cmp.mapping.preset.cmdline(),
-  sources = cmp.config.sources({
-    { name = "path" },
-  }, {
-    { name = "cmdline" },
-  }),
-})
-
-local null_ls = require("null-ls")
+--
+-- -- Use buffer source for `/` and `?` (if you enabled `native_menu`, this won't work anymore).
+-- cmp.setup.cmdline({ "/", "?" }, {
+--   mapping = cmp.mapping.preset.cmdline(),
+--   sources = {
+--     { name = "buffer" },
+--   },
+-- })
+--
+-- -- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
+-- cmp.setup.cmdline(":", {
+--   mapping = cmp.mapping.preset.cmdline(),
+--   sources = cmp.config.sources({
+--     { name = "path" },
+--   }, {
+--     { name = "cmdline" },
+--   }),
+-- })
+--
+-- local null_ls = require("null-ls")
+-- --
+-- -- null_ls.setup({
+-- --   sources = {
+-- --     null_ls.builtins.diagnostics.shellcheck,
+-- --     null_ls.builtins.diagnostics.hadolint,
+-- --     null_ls.builtins.diagnostics.yamllint,
+-- --     null_ls.builtins.diagnostics.selene,
+-- --   }
+-- -- })
+-- -- local null_ls = require 'null-ls'
+--
+-- require("mason-null-ls").setup({
+--   ensure_installed = { "shellcheck" },
+--   automatic_setup = true,
+-- })
+-- require("mason-null-ls").setup_handlers({
+--   function(source_name, methods)
+--     -- print("mason-null-ls-handler: source_name:" .. source_name)
+--     -- print("mason-null-ls-handler: methods:" .. vim.inspect(methods))
+--     -- all sources with no handler get passed here
+--
+--     -- To keep the original functionality of `automatic_setup = true`,
+--     -- please add the below.
+--     require("mason-null-ls.automatic_setup")(source_name, methods)
+--   end,
+--
+--   -- stylua = function(source_name, methods)
+--   --   null_ls.register(null_ls.builtins.formatting.stylua)
+--   -- end,
+--
+--   ---- Semgrep is cool but takes way long to run (need to find out how to extend timeout) and also does not commonly emit much output. So I'm not really interested in it right now.
+--   -- semgrep = function(source_name, methods)
+--   --   null_ls.register(null_ls.builtins.diagnostics.semgrep.with({
+--   --     extra_args = { "--config", "auto" },
+--   --   }))
+--   -- end,
+--   --
+--   -- print("semgrep obtained as:", vim.inspect(null_ls.builtins.diagnostics.semgrep)),
+--   -- print("semgrep prospective:", vim.inspect(null_ls.builtins.diagnostics.semgrep.with({
+--   --   extra_args = { "--config", "auto" },
+--   -- })))
+-- })
 --
 -- null_ls.setup({
---   sources = {
---     null_ls.builtins.diagnostics.shellcheck,
---     null_ls.builtins.diagnostics.hadolint,
---     null_ls.builtins.diagnostics.yamllint,
---     null_ls.builtins.diagnostics.selene,
---   }
+--   debug = true,
 -- })
--- local null_ls = require 'null-ls'
 
-require("mason-null-ls").setup({
-  ensure_installed = { "shellcheck" },
-  automatic_setup = true,
-})
-require("mason-null-ls").setup_handlers({
-  function(source_name, methods)
-    -- print("mason-null-ls-handler: source_name:" .. source_name)
-    -- print("mason-null-ls-handler: methods:" .. vim.inspect(methods))
-    -- all sources with no handler get passed here
+local lspzero = require('lsp-zero').preset({})
 
-    -- To keep the original functionality of `automatic_setup = true`,
-    -- please add the below.
-    require("mason-null-ls.automatic_setup")(source_name, methods)
-  end,
+lspzero.on_attach(function(client, bufnr)
+  lspzero.default_keymaps({buffer = bufnr, preserve_mappings = false})
+end)
 
-  -- stylua = function(source_name, methods)
-  --   null_ls.register(null_ls.builtins.formatting.stylua)
-  -- end,
+-- (Optional) Configure lua language server for neovim
+require('lspconfig').lua_ls.setup(lspzero.nvim_lua_ls())
 
-  ---- Semgrep is cool but takes way long to run (need to find out how to extend timeout) and also does not commonly emit much output. So I'm not really interested in it right now.
-  -- semgrep = function(source_name, methods)
-  --   null_ls.register(null_ls.builtins.diagnostics.semgrep.with({
-  --     extra_args = { "--config", "auto" },
-  --   }))
-  -- end,
-  --
-  -- print("semgrep obtained as:", vim.inspect(null_ls.builtins.diagnostics.semgrep)),
-  -- print("semgrep prospective:", vim.inspect(null_ls.builtins.diagnostics.semgrep.with({
-  --   extra_args = { "--config", "auto" },
-  -- })))
-})
-
-null_ls.setup({
-  debug = true,
-})
+lspzero.setup()
 
 require("yanky").setup({
   highlight = {
