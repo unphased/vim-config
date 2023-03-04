@@ -209,8 +209,53 @@ vim.cmd([[
   let &directory=vimtmp
   set backup
 
-  " This is super neat with nvim which shows you the preview replacement as you type
+  " This is super neat text based refactor command which nvim shows you the preview replacement as you type
   nnoremap <m-/> :%s/\<<c-r><c-w>\>//g<left><left>
+  " The obvious but bad visual mode version of this
+  " vnoremap <m-/> y:%s/<c-r>0//g<left><left>
+
+  "" From https://stackoverflow.com/a/6171215/340947
+  " Escape special characters in a string for exact matching.
+  " This is useful to copying strings from the file to the search tool
+  " Based on this - http://peterodding.com/code/vim/profile/autoload/xolox/escape.vim
+  function! EscapeString (string)
+    let string=a:string
+    " Escape regex characters
+    let string = escape(string, '^$.*\/~[]')
+    " Escape the line endings
+    let string = substitute(string, '\n', '\\n', 'g')
+    return string
+  endfunction
+
+  " Get the current visual block for search and replaces
+  " This function passed the visual block through a string escape function
+  " Based on this - https://stackoverflow.com/questions/676600/vim-replace-selected-text/677918#677918
+  function! GetVisual() range
+    " Save the current register and clipboard
+    let reg_save = getreg('"')
+    let regtype_save = getregtype('"')
+    let cb_save = &clipboard
+    set clipboard&
+
+    " Put the current visual selection in the " register
+    normal! ""gvy
+    let selection = getreg('"')
+
+    " Put the saved registers and clipboards back
+    call setreg('"', reg_save, regtype_save)
+    let &clipboard = cb_save
+
+    "Escape any special characters in the selection
+    let escaped_selection = EscapeString(selection)
+
+    return escaped_selection
+  endfunction
+
+  " Ctrl+R works well to mean "replace"
+  vnoremap <c-r> <Esc>:%s/<c-r>=GetVisual()<cr>//g<left><left>
+
+  " What's a bit funny is that we probably do not need a plugin to automate this across files because it's quite easy to hit colon up to fetch the replacement command back out
+  " TODO Actually I think we can do it easily by finding those files and then specifying them in the command line just like we do with % but the real true solution is some kinda preview window
 
 ]])
 
@@ -281,7 +326,7 @@ require("Comment").setup()
 
 require("nvim-treesitter.configs").setup({
   -- A list of parser names, or "all" (the four listed parsers should always be installed)
-  ensure_installed = { "c", "lua", "vim", "help" },
+  ensure_installed = { "c", "lua", "vim", "help", "bash", "comment" },
 
   -- Install parsers synchronously (only applied to `ensure_installed`)
   sync_install = false,
