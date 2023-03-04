@@ -452,19 +452,29 @@ require("neo-tree").setup({
   }
 })
 
+-- disable horiz scroll in the neo-tree pane. Not perfect (only works on second focus)
+vim.cmd([[ 
+  autocmd BufWinEnter * if &filetype == 'neo-tree' | setlocal wrap | echom "setlocal'd wrap in neo-tree ft buf" | endif
+]])
+
 require("nvim-cursorline").setup({
-  cursorline = {
-    enable = true,
-    timeout = 5,
-    number = true,
-    hl = { bg = "#262626" }, -- seems to be overridden by at least a few CSs but worth specifying?
-  },
+  cursorline = { enable = false },
+  -- cursorline = {
+  --   enable = true,
+  --   timeout = 5,
+  --   number = true,
+  --   hl = { bg = "#262626" }, -- seems to be overridden by at least a few CSs but worth specifying?
+  -- },
   cursorword = {
     enable = true,
     min_length = 2,
     hl = { bg = "#303050", underline = false },
   },
 })
+
+vim.cmd([[ 
+  set cursorline
+]])
 
 require("colorizer").setup()
 
@@ -760,10 +770,6 @@ vim.cmd([[
 vim.keymap.set("n", "<F4>", ":UndotreeToggle<CR>")
 vim.keymap.set("i", "<F4>", "<Esc>:UndotreeToggle<CR>")
 
--- disable horiz scroll in the neo-tree pane. Not perfect (only works on second focus)
-vim.cmd([[ 
-  autocmd BufWinEnter * if &filetype == 'neo-tree' | setlocal wrap | echom "setlocal'd wrap in neo-tree ft buf" | endif
-]])
 
 -- helper
 function string:split(delimiter)
