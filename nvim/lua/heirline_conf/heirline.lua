@@ -16,10 +16,12 @@ local colors = {
     diag_error = utils.get_highlight("DiagnosticError").fg,
     diag_hint = utils.get_highlight("DiagnosticHint").fg,
     diag_info = utils.get_highlight("DiagnosticInfo").fg,
-    git_del = utils.get_highlight("DiffDelete").fg,
-    git_add = utils.get_highlight("DiffAdd").fg,
-    git_change = utils.get_highlight("DiffChange").fg,
+    git_del = utils.get_highlight("DiffDelete").bg,
+    git_add = utils.get_highlight("DiffAdd").bg,
+    git_change = utils.get_highlight("DiffChange").bg,
 }
+-- the hex is needed to read these colors
+-- vim.pretty_print(vim.tbl_map(function (v) return string.format("0x%06x", v) end, colors))
 
 vim.cmd([[
   highlight DiffAdd guibg=#203520 guifg=NONE
@@ -700,7 +702,7 @@ local DefaultStatusline = {
     -- Navic, DAPMessages, Align,
     Align,
     -- LSPActive, Space, LSPMessages, Space, UltTest, Space, FileType, Space, Ruler, Space, ScrollBar
-    LSPActive, Space, Space, Space, FileType, Space, Ruler, Space, ScrollBar
+    LSPActive, Space, FileType, Space, Ruler, Space, ScrollBar
 }
 
 local InactiveStatusline = {

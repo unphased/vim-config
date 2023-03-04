@@ -86,8 +86,11 @@ vim.keymap.set("v", "<c-\\>", "<esc>:vsplit<cr>")
 vim.keymap.set("n", "<c-_>", ":split<cr>")
 vim.keymap.set("v", "<c-_>", "<esc>:split<cr>")
 
--- sample basic version of my quick-search. Not using this though. too simplistic.
+-- Example basic version of my quick-search. Not using this though. too simplistic.
 -- vim.keymap.set('n', '<CR>', '*``')
+
+-- make typing d<CR> not cause two lines to be deleted. Make it do nothing instead. This is because d is a terminal alias I use and it's too easy to let it be entered in a Vim.
+vim.keymap.set("n", "d<CR>", "<nop>")
 
 -- dumping vimL code that I didnt bother porting yet here for expedient bringup
 vim.cmd([[
@@ -705,14 +708,27 @@ null_ls.setup({
   debug = true,
 })
 
-require("yanky").setup({})
+require("yanky").setup({
+  highlight = {
+    on_put = true,
+    on_yank = true,
+    timer = 1000,
+  },
+})
 vim.keymap.set({"n","x"}, "p", "<Plug>(YankyPutAfter)")
 vim.keymap.set({"n","x"}, "P", "<Plug>(YankyPutBefore)")
 vim.keymap.set({"n","x"}, "gp", "<Plug>(YankyGPutAfter)")
 vim.keymap.set({"n","x"}, "gP", "<Plug>(YankyGPutBefore)")
 -- yankring
-vim.keymap.set("n", "<c-n>", "<Plug>(YankyCycleForward)")
-vim.keymap.set("n", "<c-p>", "<Plug>(YankyCycleBackward)")
+vim.keymap.set("n", "<leader>i", "<Plug>(YankyCycleForward)")
+vim.keymap.set("n", "<leader>j", "<Plug>(YankyCycleBackward)")
+-- Search highlight
+vim.cmd([[
+  hi YankyPut guibg=#2f9366 gui=bold cterm=bold
+  hi YankyYanked guibg=#2e5099 gui=bold cterm=bold
+  hi Search cterm=bold gui=bold ctermfg=black ctermbg=yellow guibg=#f0c674
+  hi incSearch cterm=bold gui=bold ctermfg=black ctermbg=yellow guibg=#f08634
+]])
 
 -- putting here late so navic can init first. Nah, didn't fix it.
 require("heirline_conf.heirline")
@@ -731,6 +747,14 @@ vim.cmd([[
   highlight ConflictMarkerTheirs guibg=#344f69
   highlight ConflictMarkerEnd guibg=#2f628e
   highlight ConflictMarkerCommonAncestorsHunk guibg=#754a81
+]])
+
+vim.keymap.set("n", "<F4>", ":UndotreeToggle<CR>")
+vim.keymap.set("i", "<F4>", "<Esc>:UndotreeToggle<CR>")
+
+-- disable horiz scroll in the neo-tree pane. Not perfect (only works on second focus)
+vim.cmd([[ 
+  autocmd BufWinEnter * if &filetype == 'neo-tree' | setlocal wrap | echom "setlocal'd wrap in neo-tree ft buf" | endif
 ]])
 
 -- helper

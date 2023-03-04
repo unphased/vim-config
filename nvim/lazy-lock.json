@@ -43,6 +43,7 @@
   "telescope.nvim": { "branch": "0.1.x", "commit": "766a45a972408f67e793a3b63e3c419ff5458753" },
   "trouble.nvim": { "branch": "main", "commit": "67337644e38144b444d026b0df2dc5fa0038930f" },
   "ts-advanced-git-search.nvim": { "branch": "main", "commit": "759909a451add2c24cda723c898417c0b5844def" },
+  "undotree": { "branch": "master", "commit": "485f01efde4e22cb1ce547b9e8c9238f36566f21" },
   "vim-SearchHighlighting": { "branch": "master", "commit": "cecb38b64071e7db1219e27de5612dd6c4b89bf9" },
   "vim-fugitive": { "branch": "master", "commit": "bba8d1beb37fe933a9f182b6bdf981e01f31499a" },
   "vim-ingo-library": { "branch": "master", "commit": "097b1c729ee0f334a40eddfbd84d77161287f2f1" },

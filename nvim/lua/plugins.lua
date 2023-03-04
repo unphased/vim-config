@@ -130,4 +130,5 @@ return {
     -- event = "UiEnter",
   },
   "gbprod/yanky.nvim",
+  "mbbill/undotree",
 }
