@@ -202,6 +202,13 @@ vim.cmd([[
 
   nnoremap <c-m-s> :SudaWrite<CR>
 
+  " https://stackoverflow.com/a/75553217/340947
+  let vimtmp = $HOME . '/.tmp/' . getpid()
+  silent! call mkdir(vimtmp, "p", 0700)
+  let &backupdir=vimtmp
+  let &directory=vimtmp
+  set backup
+
 ]])
 
 -- gvar settings for plugins
