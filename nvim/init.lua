@@ -489,8 +489,8 @@ vim.opt.list = true
 -- "eol:↴"
 vim.opt.listchars = "tab:→ ,extends:»,precedes:«,trail:·,nbsp:◆"
 
-vim.cmd("highlight IndentBlanklineContextChar guifg=#66446f gui=nocombine")
-vim.cmd("highlight IndentBlanklineContextStart gui=underdouble guisp=#66446f")
+vim.cmd("highlight IndentBlanklineContextChar guifg=#66666f gui=nocombine")
+vim.cmd("highlight IndentBlanklineContextStart gui=underdouble guisp=#66666f")
 vim.cmd("highlight IndentBlanklineIndent1 gui=nocombine guifg=#383838")
 vim.cmd("highlight IndentBlanklineIndent2 gui=nocombine guifg=#484848")
 require("indent_blankline").setup({
