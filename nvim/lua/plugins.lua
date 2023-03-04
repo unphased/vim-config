@@ -54,7 +54,7 @@ return {
     }
   }, -- show nerd font icons for LSP types in completion menu
   "nvim-treesitter/nvim-treesitter-context",
-  -- "onsails/lspkind-nvim", -- status line plugin
+  "onsails/lspkind-nvim", -- status line plugin
   -- {
   --   "MunifTanjim/nougat.nvim",
   --   config = function ()
