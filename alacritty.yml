@@ -174,8 +174,9 @@ bell:
 # - Copy (TODO)
 mouse_bindings:
   - { mouse: Middle, action: PasteSelection }
-  - { mouse: 8,  chars: "" }
-  - { mouse: 9,  chars: "" }
+  ## Ripping this out of macos alacritty config because almost never use mouse back/forward buttons there
+  # - { mouse: 8,  chars: "" }
+  # - { mouse: 9,  chars: "" }
 
 mouse:
   double_click: { threshold: 300 }
@@ -427,6 +428,7 @@ key_bindings:
   - { key: F11,      mods: Command|Shift,   chars: "\x1b[23;4~"            }
   - { key: F12,      mods: Command|Shift,   chars: "\x1b[24;4~"            }
   - { key: Slash,    mods: Alt,             chars: "\x1b/"  }
+  - { key: Slash,    mods: Command,             chars: "\x1b/"  }
   # These are to make it so i dont have to define custom binds in BTT, I could do that of course,
   # but this is a lot less work setting up!
   - { key: RBracket,    mods: Command|Shift,             chars: "\x1b[21;3~"  }

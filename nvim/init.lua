@@ -209,6 +209,9 @@ vim.cmd([[
   let &directory=vimtmp
   set backup
 
+  " This is super neat with nvim which shows you the preview replacement as you type
+  nnoremap <m-/> :%s/\<<c-r><c-w>\>//g<left><left>
+
 ]])
 
 -- gvar settings for plugins
