@@ -198,6 +198,7 @@ vim.cmd([[
   nnoremap <s-tab> gT
 
   nnoremap <leader>f :NeoTreeRevealToggle<CR>
+  nnoremap fg :Neotree float reveal_file=<cfile> reveal_force_cwd<cr>
 
   nnoremap <c-m-s> :SudaWrite<CR>
 
@@ -559,7 +560,7 @@ require("lsp-zero").extend_lspconfig({
   set_lsp_keymaps = false,
   -- review whether an autocmd is preferable to this. possibly not
   on_attach = function(client, bufnr)
-    print("lsp zero lspconfig extend client", vim.inspect(client.name))
+    -- print("lsp zero lspconfig extend client", vim.inspect(client.name))
     local opts = { buffer = bufnr }
 
     -- enable navic
@@ -583,7 +584,7 @@ require("mason-lspconfig").setup()
 
 require("mason-lspconfig").setup_handlers({
   function(server_name)
-    print("mason-lspconfig setup_handlers", server_name)
+    -- print("mason-lspconfig setup_handlers", server_name)
     require("lspconfig")[server_name].setup({})
   end,
   ["lua_ls"] = function()
