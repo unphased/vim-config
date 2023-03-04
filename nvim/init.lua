@@ -660,38 +660,6 @@ require("indent_blankline").setup({
 --
 -- vim.opt.completeopt = { "menu", "menuone" }
 --
--- local cmp = require("cmp")
--- local cmp_config = require("lsp-zero").defaults.cmp_config({})
--- cmp_config.completion.completeopt = "menu,menuone"
--- vim.pretty_print(cmp_config)
--- cmp.setup(cmp_config)
-
--- cmp.setup.filetype("gitcommit", {
---   sources = cmp.config.sources({
---     { name = "cmp_git" }, -- You can specify the `cmp_git` source if you were installed it.
---   }, {
---     { name = "buffer" },
---   }),
--- })
---
--- -- Use buffer source for `/` and `?` (if you enabled `native_menu`, this won't work anymore).
--- cmp.setup.cmdline({ "/", "?" }, {
---   mapping = cmp.mapping.preset.cmdline(),
---   sources = {
---     { name = "buffer" },
---   },
--- })
---
--- -- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
--- cmp.setup.cmdline(":", {
---   mapping = cmp.mapping.preset.cmdline(),
---   sources = cmp.config.sources({
---     { name = "path" },
---   }, {
---     { name = "cmdline" },
---   }),
--- })
---
 -- local null_ls = require("null-ls")
 -- --
 -- -- null_ls.setup({
@@ -740,16 +708,7 @@ require("indent_blankline").setup({
 --   debug = true,
 -- })
 
-local lspzero = require('lsp-zero').preset({})
 
-lspzero.on_attach(function(client, bufnr)
-  lspzero.default_keymaps({buffer = bufnr, preserve_mappings = false})
-end)
-
--- (Optional) Configure lua language server for neovim
-require('lspconfig').lua_ls.setup(lspzero.nvim_lua_ls())
-
-lspzero.setup()
 
 require("yanky").setup({
   highlight = {
