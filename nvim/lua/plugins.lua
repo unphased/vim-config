@@ -33,12 +33,6 @@ return {
   --    dependencies = { "zbirenbaum/copilot.lua" },
   -- },
   'ethanholz/nvim-lastplace',
-  { 'github/copilot.vim', init = function()
-    vim.cmd([[
-      imap <silent><script><expr> <c-space> copilot#Accept("\<CR>")
-      let g:copilot_no_tab_map = v:true
-    ]])
-  end },
   -- {
   --   'dundalek/lazy-lsp.nvim', dependencies = { 'neovim/nvim-lspconfig' }
   -- },
@@ -131,4 +125,10 @@ return {
   },
   "gbprod/yanky.nvim",
   "mbbill/undotree",
+  { 'github/copilot.vim', init = function()
+    vim.cmd([[
+      let g:copilot_no_tab_map = v:true
+      imap <silent><script><expr> <c-space> copilot#Accept("\<CR>")
+    ]])
+  end },
 }
