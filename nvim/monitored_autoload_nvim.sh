@@ -2,6 +2,7 @@
 
 # nvim config develop mode with automatic forced reload
 echo init new instance... >> .nvim_autoload_monitor.log
+# TODO debounce me because fswatch is made of jank
 fswatch -0 -o -x init.lua | while read -d "" event; do
   echo "event received $event" >> .nvim_autoload_monitor.log
   if echo "$event" | grep "\<Updated\>"; then
@@ -20,12 +21,17 @@ done &
 
 rm -f .nvim_autoload_monitor.completed
 echo "Cleared completed sentinel file, launching controlled nvim..." >> .nvim_autoload_monitor.log
-while [ ! -f .nvim_autoload_monitor.completed ]; do
-  # use pid sentinel as a lockfile as well. only allow one process instance with this treatment 
-  if [ -f .nvim_autoload_monitor.pid ]; then
-    >&2 echo "nvim_autoload_monitor already running! Aborting nvim launch"
-    exit 1
-  fi
+while true; do
+  if [ ! -f .nvim_autoload_monitor.completed ]; then
+    # use pid sentinel as a lockfile as well. only allow one process instance with this treatment 
+    if [ -f .nvim_autoload_monitor.pid ]; then
+      >&2 echo "nvim_autoload_monitor already running! Aborting nvim launch"
+      exit 1
+    fi
 
-  nvim "$@" -c ':lua local file = io.open(".nvim_autoload_monitor.pid", "w"); io.output(file); io.write(vim.loop.os_getpid()); io.close(file);' -c ':autocmd VimLeave * :lua log("Manual vim close"); os.remove(".nvim_autoload_monitor.pid"); log("completed", ".nvim_autoload_monitor.completed")' -c ':autocmd Signal SIGUSR1 :lua log("quit in response to USR1"); log(string.format("SIGUSR1 autocmd dying=%d exiting=%s", vim.v.dying, vim.inspect(vim.v.exiting)), ".nvim_autoload_monitor.log"); os.remove(".nvim_autoload_monitor.pid"); vim.cmd(":qa!")'
+    nvim "$@" -c ':lua local file = io.open(".nvim_autoload_monitor.pid", "w"); io.output(file); io.write(vim.loop.os_getpid()); io.close(file);' -c ':autocmd VimLeave * :lua log("Manual vim close"); os.remove(".nvim_autoload_monitor.pid"); log("completed", ".nvim_autoload_monitor.completed")' -c ':autocmd Signal SIGUSR1 :lua log("quit in response to USR1"); log(string.format("SIGUSR1 autocmd dying=%d exiting=%s", vim.v.dying, vim.inspect(vim.v.exiting)), ".nvim_autoload_monitor.log"); os.remove(".nvim_autoload_monitor.pid"); vim.cmd(":qa!")'
+  else
+    echo "Neovim dev mode automation completed due to manual user exit. Exiting loop. Have a nice day!"
+    exit 0
+  fi
 done
