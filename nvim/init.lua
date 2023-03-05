@@ -317,7 +317,20 @@ require("gitsigns").setup({
     ignore_whitespace = true,
   },
 })
-
+local tele_actions = require('telescope.actions')
+require('telescope').setup{
+  defaults = {
+    mappings = {
+      i = {
+        ["<RightMouse>"] = tele_actions.close,
+        -- clicking will not interpret the location of the click but mouse can be used with scroll to pick or cancel, which is a lot better than always dismissing and clicking through underneath
+        ["<LeftMouse>"] = tele_actions.select_default,
+        ["<ScrollWheelDown>"] = tele_actions.move_selection_next,
+        ["<ScrollWheelUp>"] = tele_actions.move_selection_previous,
+      }
+    }
+  }
+}
 local telescope_builtin = require("telescope.builtin")
 vim.keymap.set("n", "<c-p>", telescope_builtin.find_files, {})
 vim.keymap.set("n", "<leader>g", telescope_builtin.live_grep, {})
@@ -884,6 +897,19 @@ local lsp_attach = function (x, bufnr)
   vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
   vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
   vim.keymap.set('n', '?', vim.lsp.buf.hover, bufopts)
+
+  vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, bufopts)
+  vim.keymap.set('n', '<leader>h', vim.lsp.buf.signature_help, bufopts)
+  -- vim.keymap.set('n', '<space>wa', vim.lsp.buf.add_workspace_folder, bufopts)
+  -- vim.keymap.set('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, bufopts)
+  -- vim.keymap.set('n', '<space>wl', function()
+  --   print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
+  -- end, bufopts)
+  -- vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, bufopts)
+  vim.keymap.set('n', '<leader>r', vim.lsp.buf.rename, bufopts)
+  vim.keymap.set('n', '<leader>ca', function() vim.cmd('CodeActionMenu') end, bufopts)
+  vim.keymap.set('n', 'gr', telescope_builtin.lsp_references, bufopts)
+  vim.keymap.set('n', '<space>f', function() vim.lsp.buf.format { async = true } end, bufopts)
 end
 
 require("mason-lspconfig").setup_handlers {

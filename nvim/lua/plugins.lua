@@ -132,4 +132,5 @@ return {
       imap <silent><script><expr> <c-space> copilot#Accept("\<CR>")
     ]])
   end },
+  'weilbith/nvim-code-action-menu',
 }
