@@ -94,6 +94,7 @@ return {
       -- Autocompletion
       {'hrsh7th/nvim-cmp'},         -- Required
       {'hrsh7th/cmp-nvim-lsp'},     -- Required
+      {'hrsh7th/cmp-nvim-lsp-signature-help'},     -- Required
       {'hrsh7th/cmp-buffer'},       -- Optional
       {'hrsh7th/cmp-cmdline'},       -- Optional
       {'hrsh7th/cmp-path'},         -- Optional

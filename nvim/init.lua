@@ -811,6 +811,7 @@ cmp.setup({
         -- Options go into this table
       },
     },
+    { name = 'nvim_lsp_signature_help' },
   })
 })
 
@@ -830,9 +831,9 @@ cmp.setup.cmdline({ '/', '?' }, {
     -- only start completion after typing 3 chars
     keyword_length = 3,
   },
-  sources = {
+  sources = cmp.config.sources({
     { name = 'buffer' }
-  }
+  })
 })
 
 -- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
@@ -877,10 +878,13 @@ require("mason-lspconfig").setup({
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
 -- keymaps!!
-local lsp_attach = function (x, y)
-  print("lsp_attach:", vim.inspect(x.name), vim.inspect(y))
-
-end 
+local lsp_attach = function (x, bufnr)
+  print("lsp_attach:", vim.inspect(x.name), "bufnr="..bufnr)
+  local bufopts = { noremap=true, silent=true, buffer=bufnr }
+  vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
+  vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
+  vim.keymap.set('n', '?', vim.lsp.buf.hover, bufopts)
+end
 
 require("mason-lspconfig").setup_handlers {
   -- The first entry (without a key) will be the default handler
