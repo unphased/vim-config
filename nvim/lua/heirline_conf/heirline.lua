@@ -150,29 +150,29 @@ local FileIcon = {
     end
 }
 
-local FileName = {
-    provider = function(self)
-        -- first, trim the pattern relative to the current directory. For other
-        -- options, see :h filename-modifers
-        local filename = vim.fn.fnamemodify(self.filename, ":.")
-        if filename == "" then return "[No Name]" end
-        -- now, if the filename would occupy more than 1/4th of the available
-        -- space, we trim the file path to its initials
-        -- See Flexible Components section below for dynamic truncation
-        if not conditions.width_percent_below(#filename, 0.25) then
-            filename = vim.fn.pathshorten(filename)
-        end
-        return filename
-    end,
-    hl = { fg = utils.get_highlight("Directory").fg },
-}
+-- local FileName = {
+--     provider = function(self)
+--         -- first, trim the pattern relative to the current directory. For other
+--         -- options, see :h filename-modifers
+--         local filename = vim.fn.fnamemodify(self.filename, ":.")
+--         if filename == "" then return "[No Name]" end
+--         -- now, if the filename would occupy more than 1/4th of the available
+--         -- space, we trim the file path to its initials
+--         -- See Flexible Components section below for dynamic truncation
+--         if not conditions.width_percent_below(#filename, 0.25) then
+--             filename = vim.fn.pathshorten(filename)
+--         end
+--         return filename
+--     end,
+--     hl = { fg = utils.get_highlight("Directory").fg },
+-- }
 
 local FileFlags = {
     {
         condition = function()
             return vim.bo.modified
         end,
-        provider = "[+]",
+        provider = " ●",
         hl = { fg = "green" },
     },
     {
@@ -183,6 +183,28 @@ local FileFlags = {
         hl = { fg = "orange" },
     },
 }
+
+local FileName = {
+    init = function(self)
+        self.lfilename = vim.fn.fnamemodify(self.filename, ":.")
+        if self.lfilename == "" then self.lfilename = "[No Name]" end
+    end,
+    hl = { fg = utils.get_highlight("Directory").fg },
+
+    flexible = 2,
+
+    {
+        provider = function(self)
+            return self.lfilename
+        end,
+    },
+    {
+        provider = function(self)
+            return vim.fn.pathshorten(self.lfilename)
+        end,
+    },
+}
+
 
 -- Now, let's say that we want the filename color to change if the buffer is
 -- modified. Of course, we could do that directly using the FileName.hl field,
@@ -278,14 +300,20 @@ local LSPActive = {
     -- provider = " [LSP]",
 
     -- Or complicate things a bit and get the servers names
-    provider  = function()
-        local names = {}
-        for i, server in pairs(vim.lsp.get_active_clients({ bufnr = 0 })) do
-            table.insert(names, server.name)
-        end
-        return " [" .. table.concat(names, " ") .. "]"
-    end,
-    hl = { fg = "green", bold = true },
+    flexible = 1,
+    {
+        provider = function()
+            local names = {}
+            for i, server in pairs(vim.lsp.get_active_clients({ bufnr = 0 })) do
+                table.insert(names, server.name)
+            end
+            return " " .. table.concat(names, " ")
+        end,
+        hl = { fg = "green", bold = true },
+    },
+    {
+       provider = " LSP"
+    }, { provider = "" }
 }
 
 -- I personally use it only to display progress messages!
@@ -500,7 +528,7 @@ local Git = {
         condition = function(self)
             return self.has_changes
         end,
-        provider = "("
+        provider = " "
     },
     {
         provider = function(self)
@@ -523,13 +551,9 @@ local Git = {
         end,
         hl = { fg = "git_change" },
     },
-    {
-        condition = function(self)
-            return self.has_changes
-        end,
-        provider = ")",
-    },
 }
+
+Git = utils.surround({ "", "" }, "muted_bg", Git)
 
 -- local DAPMessages = {
 --     condition = function()
@@ -667,27 +691,6 @@ local WorkDir = {
         -- evaluates to "", hiding the component
         provider = "",
     }
-}
-
-local FileName = {
-    init = function(self)
-        self.lfilename = vim.fn.fnamemodify(self.filename, ":.")
-        if self.lfilename == "" then self.lfilename = "[No Name]" end
-    end,
-    hl = { fg = utils.get_highlight("Directory").fg },
-
-    flexible = 2,
-
-    {
-        provider = function(self)
-            return self.lfilename
-        end,
-    },
-    {
-        provider = function(self)
-            return vim.fn.pathshorten(self.lfilename)
-        end,
-    },
 }
 
 local Navic = { flexible = 3, Navic, { provider = "" } }
