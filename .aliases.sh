@@ -117,6 +117,20 @@ fi
 
 alias dc="cd"
 
+# Very useful command debugger
+BLACK="\x1b[30m"
+RESET="\x1b[0m"
+execute () {
+  CTR=1
+  echo "Executing the following:"
+  for arg in "$@"; do
+    printf "$BLACK"'$'"%s=$RESET%s " $CTR "$arg"
+    (( CTR ++ ))
+  done
+  echo "" # new line
+  "$@"
+}
+
 # unfortunately this is turning into a place where i collect environment 
 # settings for both zsh/bash. Not that theres anything wrong with that per se, 
 # but it means this file shouldn't be called aliases.sh any longer...
