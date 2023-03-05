@@ -341,7 +341,8 @@ vim.keymap.set("n", "<leader>g", telescope_builtin.live_grep, {})
 vim.keymap.set("n", "<leader>m", telescope_builtin.man_pages, {})
 vim.keymap.set("n", "<f6>", telescope_builtin.oldfiles, {})
 vim.keymap.set("n", "<leader>b", telescope_builtin.buffers, {})
-vim.keymap.set('n', '<leader>fh', telescope_builtin.help_tags, {})
+-- "vim help"
+vim.keymap.set('n', '<leader>vh', telescope_builtin.help_tags, {})
 
 require("nvim-lastplace").setup({})
 require("nvim-autopairs").setup({ map_cr = false })
