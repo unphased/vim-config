@@ -36,7 +36,7 @@ while true; do
 
     nvim "$@" -c ':lua local file = io.open(".nvim_autoload_monitor.pid", "w"); io.output(file); io.write(vim.loop.os_getpid()); io.close(file);' -c ':autocmd VimLeave * :lua log("Manual vim close"); os.remove(".nvim_autoload_monitor.pid"); log("completed", ".nvim_autoload_monitor.completed")' -c ':autocmd Signal SIGUSR1 :lua log("quit in response to USR1"); log(string.format("SIGUSR1 autocmd dying=%d exiting=%s", vim.v.dying, vim.inspect(vim.v.exiting)), ".nvim_autoload_monitor.log"); os.remove(".nvim_autoload_monitor.pid"); vim.cmd(":qa!")'
   else
-    echo "Neovim dev mode automation completed due to manual user exit. Exiting loop. Have a nice day!"
+    echo "Neovim dev mode automation completed due to manual user exit. Exiting loop. The terminated job message you may see next should be for the fswatch control loop getting killed. Have a nice day!"
     exit 0
   fi
 done
