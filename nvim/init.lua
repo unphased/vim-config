@@ -786,6 +786,10 @@ cmp.setup.cmdline({ '/', '?' }, {
 -- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
 cmp.setup.cmdline(':', {
   mapping = cmp.mapping.preset.cmdline(),
+  completion = {
+    -- only start completion after typing 3 chars
+    keyword_length = 2,
+  },
   sources = cmp.config.sources({
     { name = 'path' }
   }, {
