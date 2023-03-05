@@ -914,9 +914,14 @@ function table:print()
   end
 end
 
-local log = function(message)
-  local log_file_path = "/tmp/lua-zephyr.log"
+
+log = function(message, file)
+  local log_file_path = file or "/tmp/lua-nvim.log"
   local log_file = io.open(log_file_path, "a")
+  if (log_file == nil) then
+    print("Could not open log file: " .. log_file_path)
+    return
+  end
   io.output(log_file)
   io.write(message .. "\n")
   io.close(log_file)
