@@ -325,10 +325,14 @@ require('telescope').setup{
         ["<RightMouse>"] = tele_actions.close,
         -- clicking will not interpret the location of the click but mouse can be used with scroll to pick or cancel, which is a lot better than always dismissing and clicking through underneath
         ["<LeftMouse>"] = tele_actions.select_default,
-        ["<ScrollWheelDown>"] = tele_actions.move_selection_next,
-        ["<ScrollWheelUp>"] = tele_actions.move_selection_previous,
+        ["<ScrollWheelDown>"] = tele_actions.preview_scrolling_down,
+        ["<ScrollWheelUp>"] = tele_actions.preview_scrolling_up,
       }
-    }
+    },
+    scroll_strategy = "limit",
+    layout_config = {
+      scroll_speed = 3
+    },
   }
 }
 local telescope_builtin = require("telescope.builtin")
@@ -337,6 +341,7 @@ vim.keymap.set("n", "<leader>g", telescope_builtin.live_grep, {})
 vim.keymap.set("n", "<leader>m", telescope_builtin.man_pages, {})
 vim.keymap.set("n", "<f6>", telescope_builtin.oldfiles, {})
 vim.keymap.set("n", "<leader>b", telescope_builtin.buffers, {})
+vim.keymap.set('n', '<leader>fh', telescope_builtin.help_tags, {})
 
 require("nvim-lastplace").setup({})
 require("nvim-autopairs").setup({ map_cr = false })
