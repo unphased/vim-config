@@ -709,6 +709,8 @@ require("indent_blankline").setup({
 --   debug = true,
 -- })
 
+vim.opt.completeopt="menu,menuone,noselect"
+
 local cmp = require'cmp'
 local lspkind = require('lspkind')
 
