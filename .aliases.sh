@@ -19,7 +19,7 @@ if [ "$(uname)" = Linux ] && lsb_release -i | grep Ubuntu; then
 fi
 
 alias vv="v ~/.vim/nvim/init.lua"
-alias vp="v ~/.vim/nvim/lua/plugins.lua"
+alias vp="~/.vim/nvim/monitored_autoload_nvim.sh -O ~/.vim/nvim/lua/plugins.lua ~/.vim/nvim/init.lua"
 alias l="ls -rt"
 alias sl="ls"
 alias ll="l -lh"
