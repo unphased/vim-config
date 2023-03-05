@@ -555,6 +555,25 @@ vim.keymap.set("v", "<leader>p", ":!pbpaste<CR>")
 -- vnoremap <Leader>p :!pbpaste<CR>
 
 -- lspconfig
+-- set border
+local _border = "rounded"
+
+vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(
+  vim.lsp.handlers.hover, {
+    border = _border
+  }
+)
+
+vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(
+  vim.lsp.handlers.signature_help, {
+    border = _border
+  }
+)
+
+vim.diagnostic.config{
+  float={border=_border}
+}
+
 local opts = {}
 vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, opts)
 vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
@@ -855,16 +874,29 @@ require("mason-lspconfig").setup({
   automatic_installation = true,
 })
 
+local capabilities = require('cmp_nvim_lsp').default_capabilities()
+
+-- keymaps!!
+local lsp_attach = function (x, y)
+  print("lsp_attach:", vim.inspect(x.name), vim.inspect(y))
+
+end 
+
 require("mason-lspconfig").setup_handlers {
   -- The first entry (without a key) will be the default handler
   -- and will be called for each installed server that doesn't have
   -- a dedicated handler.
   function (server_name) -- default handler (optional)
-    require("lspconfig")[server_name].setup {}
+    require("lspconfig")[server_name].setup {
+      capabilities = capabilities,
+      on_attach = lsp_attach,
+    }
   end,
-  -- Next, you can provide a dedicated handler for specific servers.
+  -- Next, you can provide a dedicated handler for specific servers. Don't forget to bring capabilities and on_attach in.
   ["lua_ls"] = function ()
     require("lspconfig")["lua_ls"].setup {
+      capabilities = capabilities,
+      on_attach = lsp_attach,
       settings = {
         Lua = {
           diagnostics = {
@@ -887,7 +919,6 @@ require("mason-lspconfig").setup_handlers {
   end
 }
 
-
 require("yanky").setup({
   highlight = {
     on_put = true,
@@ -897,11 +928,12 @@ require("yanky").setup({
 })
 vim.keymap.set({"n","x"}, "p", "<Plug>(YankyPutAfter)")
 vim.keymap.set({"n","x"}, "P", "<Plug>(YankyPutBefore)")
-vim.keymap.set({"n","x"}, "gp", "<Plug>(YankyGPutAfter)")
-vim.keymap.set({"n","x"}, "gP", "<Plug>(YankyGPutBefore)")
+--- commenting these out because i'm never ever going to remember to use them
+-- vim.keymap.set({"n","x"}, "gp", "<Plug>(YankyGPutAfter)")
+-- vim.keymap.set({"n","x"}, "gP", "<Plug>(YankyGPutBefore)")
 -- yankring
-vim.keymap.set("n", "<leader>i", "<Plug>(YankyCycleForward)")
-vim.keymap.set("n", "<leader>j", "<Plug>(YankyCycleBackward)")
+vim.keymap.set("n", "<c-f>", "<Plug>(YankyCycleForward)")
+vim.keymap.set("n", "<c-b>", "<Plug>(YankyCycleBackward)")
 -- Search highlight
 vim.cmd([[
   hi YankyPut guibg=#2f9366 gui=bold cterm=bold
