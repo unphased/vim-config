@@ -7,7 +7,7 @@ trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
 
 echo init new instance... >> .nvim_autoload_monitor.log
 # TODO debounce me, because fswatch is made of jank
-fswatch -0 -x init.lua | while read -d "" event; do
+fswatch -0 -x -m kqueue_monitor $(cat nvim_config_monitor_refresh_files.txt) | while read -d "" event; do
   echo "event received $event" >> .nvim_autoload_monitor.log
   if echo "$event" | grep "\<Updated\>"; then
     echo "Received update to watched file. reading pidfile..." >> .nvim_autoload_monitor.log
