@@ -6,20 +6,21 @@
 trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
 
 echo init new instance... >> .nvim_autoload_monitor.log
+
+MYDIR=${0%/*}
+
 # TODO debounce me, because fswatch is made of jank
-fswatch -0 -x -m kqueue_monitor $(cat nvim_config_monitor_refresh_files.txt) | while read -d "" event; do
-  echo "event received $event" >> .nvim_autoload_monitor.log
-  if echo "$event" | grep "\<Updated\>"; then
-    echo "Received update to watched file. reading pidfile..." >> .nvim_autoload_monitor.log
-    pid=$(cat .nvim_autoload_monitor.pid)
-    echo "firing USR1 at $pid" >> .nvim_autoload_monitor.log
-    kill -USR1 "$pid"
-    sleep 1
-    # if the process is still alive, kill it
-    if kill -0 "$pid" 2>/dev/null; then
-      echo "killing $pid with TERM" >> .nvim_autoload_monitor.log
-      kill -TERM "$pid"
-    fi
+watchexec -w $MYDIR/init.lua -w $MYDIR/lua/plugins.lua -w $MYDIR/lua/heirline_conf/heirline.lua -- 'echo "$WATCHEXEC_WRITTEN_PATH"' | while read -r file; do
+  if [ -z $file ]; then continue; fi
+  echo "$file changed, supposedly" >> .nvim_autoload_monitor.log
+  pid=$(cat .nvim_autoload_monitor.pid)
+  echo "firing USR1 at $pid" >> .nvim_autoload_monitor.log
+  kill -USR1 "$pid"
+  sleep 1
+  # if the process is still alive, kill it
+  if kill -0 "$pid" 2>/dev/null; then
+    echo "killing $pid with TERM" >> .nvim_autoload_monitor.log
+    kill -TERM "$pid"
   fi
 done &
 
@@ -67,7 +68,7 @@ fi
 # initial launch passes given args
 nvim "$@" "${NVIM_ARGS[@]}"
 
-while sleep 1; do
+while true; do
   if [ ! -f .nvim_autoload_monitor.completed ]; then
     # use pid sentinel as a lockfile as well. only allow one process instance with this treatment 
 

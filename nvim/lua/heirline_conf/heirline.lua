@@ -113,7 +113,7 @@ local ViMode = {
     -- control the padding and make sure our string is always at least 2
     -- characters long. Plus a nice Icon.
     provider = function(self)
-        return " %2("..self.mode_names[self.mode].."%)"
+        return "%("..self.mode_names[self.mode].."%)"
     end,
     -- Same goes for the highlight. Now the foreground will change according to the current mode.
     hl = function(self)
@@ -257,7 +257,7 @@ local Ruler = {
 -- I take no credits for this! :lion:
 local ScrollBar ={
     static = {
-        sbar = { '▁', '▂', '▃', '▄', '▅', '▆', '▇', '█' }
+        sbar = { '█', '▇', '▆', '▅', '▄', '▃', '▂', '▁' }
         -- Another variant, because the more choice the better.
         -- sbar = { '🭶', '🭷', '🭸', '🭹', '🭺', '🭻' }
     },
@@ -267,7 +267,7 @@ local ScrollBar ={
         local i = math.floor((curr_line - 1) / lines * #self.sbar) + 1
         return string.rep(self.sbar[i], 2)
     end,
-    hl = { fg = "blue", bg = "bright_bg" },
+    hl = { bg = "blue", fg = "bright_bg" },
 }
 
 local LSPActive = {
@@ -695,7 +695,7 @@ local Navic = { flexible = 3, Navic, { provider = "" } }
 local Align = { provider = "%=" }
 local Space = { provider = " " }
 
-ViMode = utils.surround({ "", "" }, "bright_bg", { ViMode, Snippets })
+ViMode = utils.surround({ "", "" }, "muted_bg", { ViMode, Snippets })
 
 local DefaultStatusline = {
     ViMode, Space, FileNameBlock, Space, Git, Space, Diagnostics, Align,
@@ -780,7 +780,7 @@ local WinBars = {
         utils.surround({ "", "" }, "bright_bg", { hl = { fg = "gray", force = true }, FileNameBlock }),
     },
     -- A winbar for regular files
-    utils.surround({ "", "" }, "bright_bg", FileNameBlock),
+    utils.surround({ "", "" }, "muted_bg", FileNameBlock),
 }
 vim.api.nvim_create_autocmd("User", {
     pattern = 'HeirlineInitWinbar',
@@ -989,6 +989,7 @@ vim.cmd([[au FileType * if index(['wipe', 'delete'], &bufhidden) >= 0 | set nobu
 local function setup_colors()
     return {
         bright_bg = utils.get_highlight("Folded").bg,
+        muted_bg = "#414352",
         bright_fg = utils.get_highlight("Folded").fg,
         red = utils.get_highlight("DiagnosticError").fg,
         dark_red = utils.get_highlight("DiffDelete").bg,
