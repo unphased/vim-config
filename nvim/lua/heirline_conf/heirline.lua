@@ -191,7 +191,7 @@ local FileName = {
     end,
     hl = { fg = utils.get_highlight("Directory").fg },
 
-    flexible = 2,
+    flexible = 100,
 
     {
         provider = function(self)
@@ -229,10 +229,14 @@ FileNameBlock = utils.insert(FileNameBlock,
 )
 
 local FileType = {
-    provider = function()
-        return string.upper(vim.bo.filetype)
-    end,
     hl = { fg = utils.get_highlight("Type").fg, bold = true },
+    flexible = 2,
+    {
+        provider = function()
+            return string.upper(vim.bo.filetype)
+        end,
+    },
+    { provider = "" }
 }
 local FileEncoding = {
     provider = function()
@@ -274,10 +278,19 @@ local Ruler = {
     -- %L = number of lines in the buffer
     -- %c = column number
     -- %P = percentage through file of displayed window
-    provider = "%7(%l/%3L%):%2c %P",
+    flexible = 1,
+    {
+        provider = "%l/%L:%c %P"
+    }, {
+        provider = "%l/%L:%c"
+    }, {
+        provider = "%l:%c"
+    }, {
+        provider = "%l"
+    }
 }
 -- I take no credits for this! :lion:
-local ScrollBar ={
+local ScrollBar = {
     static = {
         sbar = { '█', '▇', '▆', '▅', '▄', '▃', '▂', '▁' }
         -- Another variant, because the more choice the better.
@@ -293,8 +306,7 @@ local ScrollBar ={
 }
 
 local LSPActive = {
-    condition = conditions.lsp_attached,
-    update = {'LspAttach', 'LspDetach'},
+    hl = { fg = "green", bold = true },
 
     -- You can keep it simple,
     -- provider = " [LSP]",
@@ -302,6 +314,8 @@ local LSPActive = {
     -- Or complicate things a bit and get the servers names
     flexible = 1,
     {
+        condition = conditions.lsp_attached,
+        update = {'LspAttach', 'LspDetach'},
         provider = function()
             local names = {}
             for i, server in pairs(vim.lsp.get_active_clients({ bufnr = 0 })) do
@@ -309,11 +323,16 @@ local LSPActive = {
             end
             return " " .. table.concat(names, " ")
         end,
-        hl = { fg = "green", bold = true },
     },
     {
-       provider = " LSP"
-    }, { provider = "" }
+        condition = conditions.lsp_attached,
+        update = {'LspAttach', 'LspDetach'},
+        provider = " LSP"
+    }, { 
+        condition = conditions.lsp_attached,
+        update = {'LspAttach', 'LspDetach'},
+        provider = ""
+    }
 }
 
 -- I personally use it only to display progress messages!
