@@ -25,16 +25,7 @@ watchexec -w $MYDIR/init.lua -w $MYDIR/lua/plugins.lua -w $MYDIR/lua/heirline_co
 done &
 
 # optional utility
-RED="[31m"
-BLUE="[34m"
-YELLOW="[33m"
-GREEN="[32m"
-MAGENTA="[35m"
-CYAN="[36m"
-WHITE="[37m"
 BLACK="[30m"
-INVERTED="[7m"
-BOLD="[1m"
 RESET="[0m"
 
 execute () {

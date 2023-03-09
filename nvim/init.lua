@@ -1002,6 +1002,14 @@ vim.keymap.set("i", "<F4>", "<Esc>:UndotreeToggle<CR>")
 
 vim.keymap.set("n", "<leader>t", ":Trouble<CR>")
 
+-- set the icons for diagnostic
+vim.cmd [[
+  sign define DiagnosticSignError text=  linehl= texthl=DiagnosticSignError numhl=
+  sign define DiagnosticSignWarn text= linehl= texthl=DiagnosticSignWarn numhl= 
+  sign define DiagnosticSignInfo text=  linehl= texthl=DiagnosticSignInfo numhl= 
+  sign define DiagnosticSignHint text=💡  linehl= texthl=DiagnosticSignHint numhl=
+]]
+
 -- helper
 function string:split(delimiter)
   local result = {}
