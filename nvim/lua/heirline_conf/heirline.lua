@@ -660,18 +660,20 @@ local HelpFileName = {
     hl = { fg = colors.blue },
 }
 
--- local Snippets = {
---     -- check that we are in insert or select mode
---     condition = function()
---         return vim.tbl_contains({'s', 'i'}, vim.fn.mode())
---     end,
---     provider = function()
---         local forward = (vim.fn["UltiSnips#CanJumpForwards"]() == 1) and "" or ""
---         local backward = (vim.fn["UltiSnips#CanJumpBackwards"]() == 1) and " " or ""
---         return backward .. forward
---     end,
---     hl = { fg = "red", bold = true },
--- }
+local luasnip = require('luasnip')
+
+local Snippets = {
+    -- check that we are in insert or select mode
+    condition = function()
+        return vim.tbl_contains({'s', 'i'}, vim.fn.mode())
+    end,
+    provider = function()
+        local forward = luasnip.expand_or_jumpable() and "" or ""
+        local backward = luasnip.jumpable(-1) and " " or ""
+        return backward .. forward
+    end,
+    hl = { fg = "red", bold = true },
+}
 
 local Spell = {
     condition = function()
@@ -719,12 +721,28 @@ local Space = { provider = " " }
 
 ViMode = utils.surround({ "", "" }, "muted_bg", { ViMode, Snippets })
 
+local lazystatus = require("lazy.status")
+
+local Lazy = {
+    condition = lazystatus.has_updates(),
+    update = { "User", pattern = "LazyUpdate" },
+    provider = function()
+        local has_updates = lazystatus.updates()
+        return has_updates == false and "LzyNoUpd " or "  " .. has_updates .. " "
+    end,
+    on_click = {
+        callback = function() require("lazy").update() end,
+        name = "update_plugins",
+    },
+    hl = { fg = "gray" },
+}
+
 local DefaultStatusline = {
     ViMode, Space, FileNameBlock, Space, Git, Space, Diagnostics, Align,
     -- Navic, DAPMessages, Align,
     Align,
     -- LSPActive, Space, LSPMessages, Space, UltTest, Space, FileType, Space, Ruler, Space, ScrollBar
-    LSPActive, Space, FileType, Space, Ruler, Space, ScrollBar
+    Lazy, LSPActive, Space, FileType, Space, Ruler, Space, ScrollBar
 }
 
 local InactiveStatusline = {
@@ -938,6 +956,52 @@ local BufferLine = utils.make_buflist(
     -- by the way, open a lot of buffers and try clicking them ;)
 )
 
+
+-- this is the default function used to retrieve buffers
+local get_bufs = function()
+    return vim.tbl_filter(function(bufnr)
+        return vim.api.nvim_buf_get_option(bufnr, "buflisted")
+    end, vim.api.nvim_list_bufs())
+end
+
+-- initialize the buflist cache
+local buflist_cache = {}
+
+-- setup an autocmd that updates the buflist_cache every time that buffers are added/removed
+vim.api.nvim_create_autocmd({ "BufAdd", "BufDelete" }, {
+    callback = function()
+        vim.schedule(function()
+            local buffers = get_bufs()
+            for i, v in ipairs(buffers) do
+                buflist_cache[i] = v
+            end
+            for i = #buffers + 1, #buflist_cache do
+                buflist_cache[i] = nil
+            end
+
+            -- check how many buffers we have and set showtabline accordingly
+            if #buflist_cache > 1 then
+                vim.o.showtabline = 2 -- always
+            else
+                vim.o.showtabline = 1 -- only when #tabpages > 1
+            end
+        end)
+    end,
+})
+
+local BufferLine = utils.make_buflist(
+    TablineBufferBlock,
+    { provider = " ", hl = { fg = "gray" } },
+    { provider = " ", hl = { fg = "gray" } },
+    -- out buf_func simply returns the buflist_cache
+    function()
+        return buflist_cache
+    end,
+    -- no cache, as we're handling everything ourselves
+    false
+)
+
+
 local Tabpage = {
     provider = function(self)
         return "%" .. self.tabnr .. "T " .. self.tabpage .. " %T"
@@ -1005,7 +1069,6 @@ require("heirline").setup({
 })
 
 -- Yep, with heirline we're driving manual!
-vim.o.showtabline = 2
 vim.cmd([[au FileType * if index(['wipe', 'delete'], &bufhidden) >= 0 | set nobuflisted | endif]])
 
 local function setup_colors()
