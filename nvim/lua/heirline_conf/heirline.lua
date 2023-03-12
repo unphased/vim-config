@@ -721,20 +721,19 @@ local Space = { provider = " " }
 
 ViMode = utils.surround({ "", "" }, "muted_bg", { ViMode, Snippets })
 
-local lazystatus = require("lazy.status")
-
 local Lazy = {
-    condition = lazystatus.has_updates(),
-    update = { "User", pattern = "LazyUpdate" },
-    provider = function()
-        local has_updates = lazystatus.updates()
-        return has_updates == false and "LzyNoUpd " or "  " .. has_updates .. " "
-    end,
-    on_click = {
-        callback = function() require("lazy").update() end,
-        name = "update_plugins",
-    },
-    hl = { fg = "gray" },
+  condition = function()
+    local ok, lazy_status = pcall(require, "lazy.status")
+    return ok and lazy_status.has_updates()
+  end,
+  provider = function()
+    return require("lazy.status").updates() .. " "
+  end,
+  on_click = {
+      callback = function () require('lazy').update() end,
+      name = "update_plugins"
+  },
+  hl = "Error",
 }
 
 local DefaultStatusline = {

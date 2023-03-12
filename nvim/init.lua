@@ -33,6 +33,7 @@ require("lazy").setup("plugins", {
     enabled = true,
     notify = true, -- get a notification when changes are found
   },
+  checker = { enabled = true, notify = false, },
 })
 
 -- mappings
@@ -262,6 +263,12 @@ vim.cmd([[
   " set t_kh=[1~
   " set t_@7=[4~
 
+  "" This does not do anything here because our lua nvim config disables traditional vim syntax systems
+  " command! SyntaxDetect :echom "hi<" . synIDattr(synID(line("."),col("."),1),"name") . '> trans<' . synIDattr(synID(line("."),col("."),0),"name") . "> lo<" . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"
+  " These are for disabling the default middlemouse mouse paste action which is sometimes easily accidentally triggered (3-finger tap gesture)
+  noremap <MiddleMouse> <LeftMouse>
+  inoremap <MiddleMouse> <Nop>
+
 ]])
 
 -- gvar settings for plugins
@@ -281,6 +288,25 @@ vim.opt.titlestring = "NVIM %f %h%m%r%w (%{tabpagenr()} of %{tabpagenr('$')})"
 
 -- plugin settings
 require("gitsigns").setup({
+  on_attach = function ()
+    local gs = package.loaded.gitsigns
+    local function map(mode, l, r, opts)
+      opts = opts or {}
+      opts.buffer = bufnr
+      vim.keymap.set(mode, l, r, opts)
+    end
+    map('n', ']c', function()
+      if vim.wo.diff then return ']c' end
+      vim.schedule(function() gs.next_hunk() end)
+      return '<Ignore>'
+    end, {expr=true})
+
+    map('n', '[c', function()
+      if vim.wo.diff then return '[c' end
+      vim.schedule(function() gs.prev_hunk() end)
+      return '<Ignore>'
+    end, {expr=true})
+  end,
   diff_opts = {
     internal = true,
     -- linematch = 1
@@ -317,6 +343,7 @@ require("gitsigns").setup({
     ignore_whitespace = true,
   },
 })
+
 local tele_actions = require('telescope.actions')
 require('telescope').setup{
   defaults = {
@@ -739,6 +766,7 @@ require("mason-null-ls").setup_handlers({
 
 null_ls.setup({
   debug = true,
+  sources = null_ls.builtins.code_actions.gitsigns
 })
 
 vim.opt.completeopt="menu,menuone,noselect"
