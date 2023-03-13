@@ -731,7 +731,7 @@ local null_ls = require("null-ls")
 -- --   }
 -- -- })
 -- -- local null_ls = require 'null-ls'
---
+
 require("mason-null-ls").setup({
   ensure_installed = { "shellcheck" },
   automatic_setup = true,

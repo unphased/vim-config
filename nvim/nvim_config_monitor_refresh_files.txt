@@ -1,0 +1,3 @@
+init.lua
+lua/plugins.lua
+lua/heirline_conf/heirline.lua
