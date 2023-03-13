@@ -10,17 +10,20 @@ echo init new instance... >> .nvim_autoload_monitor.log
 MYDIR=${0%/*}
 
 # TODO debounce me, because fswatch is made of jank
-watchexec -w $MYDIR/init.lua -w $MYDIR/lua/plugins.lua -w $MYDIR/lua/heirline_conf/heirline.lua -- 'echo "$WATCHEXEC_WRITTEN_PATH"' | while read -r file; do
+pushd "$MYDIR" || ( echo "failed to pushdir to $MYDIR" && exit 2 )
+watchexec --exts lua -- 'echo "$WATCHEXEC_WRITTEN_PATH"' | while read -r file; do
   if [ -z $file ]; then continue; fi
-  echo "$file changed, supposedly" >> .nvim_autoload_monitor.log
-  pid=$(cat .nvim_autoload_monitor.pid)
-  echo "firing USR1 at $pid" >> .nvim_autoload_monitor.log
-  kill -USR1 "$pid"
-  sleep 1
-  # if the process is still alive, kill it
-  if kill -0 "$pid" 2>/dev/null; then
-    echo "killing $pid with TERM" >> .nvim_autoload_monitor.log
-    kill -TERM "$pid"
+  if grep "$file" nvim_config_monitor_refresh_files.txt; then
+    echo "$file changed, supposedly, and matched nvim_config_monitor_refresh_files.txt" >> .nvim_autoload_monitor.log
+    pid=$(cat .nvim_autoload_monitor.pid)
+    echo "firing USR1 at $pid" >> .nvim_autoload_monitor.log
+    kill -USR1 "$pid"
+    sleep 1
+    # if the process is still alive, kill it
+    if kill -0 "$pid" 2>/dev/null; then
+      echo "killing $pid with TERM" >> .nvim_autoload_monitor.log
+      kill -TERM "$pid"
+    fi
   fi
 done &
 
