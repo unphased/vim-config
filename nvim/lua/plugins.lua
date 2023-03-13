@@ -133,4 +133,5 @@ return {
     ]])
   end },
   'weilbith/nvim-code-action-menu',
+  'stevearc/profile.nvim'
 }
