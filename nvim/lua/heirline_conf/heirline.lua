@@ -300,6 +300,7 @@ local ScrollBar = {
         -- sbar = { '', '⢀', '⢠', '⢰', '⢸', '⣸', '⣼', '⣾', '⣿', '⢀⣿', '⢠⣿', '⢰⣿', '⢸⣿', '⣸⣿', '⣼⣿', '⣾⣿', '⣿⣿', '⢀⣿⣿', '⢠⣿⣿', '⢰⣿⣿', '⢸⣿⣿', '⣸⣿⣿', '⣼⣿⣿', '⣾⣿⣿', '⣿⣿⣿'  }
         -- Animate the dots falling down to fill the space. Adds a lot of additional states while grabbing a char back. (41)
         sbar = { '', '⠁', '⠂', '⠄', '⡀', '⡈', '⡐', '⡠', '⣀', '⣁', '⣂', '⣄', '⣌', '⣔', '⣤', '⣥', '⣦', '⣮', '⣶', '⣷', '⣿', '⠈⣿', '⠐⣿', '⠠⣿', '⢀⣿', '⢁⣿', '⢂⣿', '⢄⣿', '⣀⣿', '⣈⣿', '⣐⣿', '⣠⣿', '⣡⣿', '⣢⣿', '⣤⣿', '⣬⣿', '⣴⣿', '⣵⣿', '⣶⣿', '⣾⣿', '⣿⣿' }
+        -- The beauty of this one is that by filling columns separately, 50% still looks like 50%
     },
     provider = function(self)
         local curr_line = vim.api.nvim_win_get_cursor(0)[1]
@@ -323,7 +324,7 @@ local LSPActive = {
         update = {'LspAttach', 'LspDetach'},
         provider = function()
             local names = {}
-            for i, server in pairs(vim.lsp.get_active_clients({ bufnr = 0 })) do
+            for _, server in pairs(vim.lsp.get_active_clients({ bufnr = 0 })) do
                 table.insert(names, server.name)
             end
             return " " .. table.concat(names, " ")
@@ -333,7 +334,7 @@ local LSPActive = {
         condition = conditions.lsp_attached,
         update = {'LspAttach', 'LspDetach'},
         provider = " LSP"
-    }, { 
+    }, {
         condition = conditions.lsp_attached,
         update = {'LspAttach', 'LspDetach'},
         provider = ""
