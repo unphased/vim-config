@@ -200,9 +200,29 @@ local FileName = {
     },
     {
         provider = function(self)
-            return vim.fn.pathshorten(self.lfilename)
+            return vim.fn.pathshorten(self.lfilename, 4)
         end,
     },
+    {
+        provider = function(self)
+            return vim.fn.pathshorten(self.lfilename, 3)
+        end,
+    },
+    {
+        provider = function(self)
+            return vim.fn.pathshorten(self.lfilename, 2)
+        end,
+    },
+    {
+        provider = function(self)
+            return vim.fn.pathshorten(self.lfilename, 1)
+        end,
+    },
+    {
+        provider = function(self)
+            return self.lfilename:match("^.+/(.+)$")
+        end,
+    }
 }
 
 
@@ -228,12 +248,12 @@ FileNameBlock = utils.insert(FileNameBlock,
     { provider = '%<'} -- this means that the statusline is cut here when there's not enough space
 )
 
-local FileType = {
+local FileTypeSpace = {
     hl = { fg = utils.get_highlight("Type").fg, bold = true },
-    flexible = 2,
+    flexible = 4,
     {
         provider = function()
-            return string.upper(vim.bo.filetype)
+            return string.upper(vim.bo.filetype) .. " "
         end,
     },
     { provider = "" }
@@ -318,7 +338,7 @@ local LSPActive = {
     -- provider = " [LSP]",
 
     -- Or complicate things a bit and get the servers names
-    flexible = 1,
+    flexible = 2,
     {
         condition = conditions.lsp_attached,
         update = {'LspAttach', 'LspDetach'},
@@ -730,19 +750,25 @@ local Space = { provider = " " }
 
 ViMode = utils.surround({ "", "" }, "muted_bg", { ViMode, Snippets })
 
-local Lazy = {
+local LazySpace = {
   condition = function()
     local ok, lazy_status = pcall(require, "lazy.status")
     return ok and lazy_status.has_updates()
-  end,
-  provider = function()
-    return require("lazy.status").updates() .. " "
   end,
   on_click = {
       callback = function () require('lazy').update() end,
       name = "update_plugins"
   },
   hl = "Error",
+  flexible = 3,
+  {
+      provider = function()
+          return require("lazy.status").updates() .. " "
+      end
+  },
+  {
+      provider = ""
+  }
 }
 
 local DefaultStatusline = {
@@ -750,7 +776,7 @@ local DefaultStatusline = {
     -- Navic, DAPMessages, Align,
     Align,
     -- LSPActive, Space, LSPMessages, Space, UltTest, Space, FileType, Space, Ruler, Space, ScrollBar
-    Lazy, LSPActive, Space, FileType, Space, Ruler, Space, ScrollBar
+    LazySpace, LSPActive, Space, FileTypeSpace, Ruler, Space, ScrollBar
 }
 
 local InactiveStatusline = {
