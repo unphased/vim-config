@@ -134,6 +134,8 @@ return {
   end },
   'weilbith/nvim-code-action-menu',
   'stevearc/profile.nvim',
+  -- For more proper profiling, also check out https://github.com/nvim-lua/plenary.nvim#plenaryprofile
+  -- https://github.com/norcalli/profiler.nvim is another but this seems only for requires
   { 'simrat39/symbols-outline.nvim',
     config = function()
       require('symbols-outline').setup({

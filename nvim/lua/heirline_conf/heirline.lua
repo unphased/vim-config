@@ -248,6 +248,17 @@ FileNameBlock = utils.insert(FileNameBlock,
     { provider = '%<'} -- this means that the statusline is cut here when there's not enough space
 )
 
+local FileType = {
+    hl = { fg = utils.get_highlight("Type").fg, bold = true },
+    flexible = 4,
+    {
+        provider = function()
+            return string.upper(vim.bo.filetype)
+        end,
+    },
+    { provider = "" }
+}
+
 local FileTypeSpace = {
     hl = { fg = utils.get_highlight("Type").fg, bold = true },
     flexible = 4,
@@ -258,6 +269,7 @@ local FileTypeSpace = {
     },
     { provider = "" }
 }
+
 local FileEncoding = {
     provider = function()
         local enc = (vim.bo.fenc ~= '' and vim.bo.fenc) or vim.o.enc -- :h 'enc'
@@ -298,7 +310,7 @@ local Ruler = {
     -- %L = number of lines in the buffer
     -- %c = column number
     -- %P = percentage through file of displayed window
-    flexible = 1,
+    flexible = 5,
     {
         provider = "%l/%L:%c %P"
     }, {
@@ -347,18 +359,18 @@ local LSPActive = {
             for _, server in pairs(vim.lsp.get_active_clients({ bufnr = 0 })) do
                 table.insert(names, server.name)
             end
-            return " " .. table.concat(names, " ")
+            return " " .. table.concat(names, " ") .. " "
         end,
     },
     {
         condition = conditions.lsp_attached,
         update = {'LspAttach', 'LspDetach'},
-        provider = " LSP"
+        provider = " LSP "
     }, {
         condition = conditions.lsp_attached,
         update = {'LspAttach', 'LspDetach'},
-        provider = ""
-    }
+        provider = " "
+    }, { provider = "" }
 }
 
 -- I personally use it only to display progress messages!
@@ -504,31 +516,80 @@ local Diagnostics = {
     -- {
     --     provider = "![",
     -- },
+    flexible = 4,
     {
-        provider = function(self)
-            -- 0 is just another output, we can decide to print it or not!
-            return self.errors > 0 and (self.error_icon .. self.errors .. " ")
-        end,
-        hl = { fg = "diag_error" },
+        {
+            provider = function(self)
+                -- 0 is just another output, we can decide to print it or not!
+                return self.errors > 0 and (self.error_icon .. self.errors .. " ")
+            end,
+            hl = { fg = "diag_error" },
+        },
+        {
+            provider = function(self)
+                return self.warnings > 0 and (self.warn_icon .. self.warnings .. " ")
+            end,
+            hl = { fg = "diag_warn" },
+        },
+        {
+            provider = function(self)
+                return self.info > 0 and (self.info_icon .. self.info .. " ")
+            end,
+            hl = { fg = "diag_info" },
+        },
+        {
+            provider = function(self)
+                return self.hints > 0 and (self.hint_icon .. self.hints)
+            end,
+            hl = { fg = "diag_hint" },
+        },
     },
     {
-        provider = function(self)
-            return self.warnings > 0 and (self.warn_icon .. self.warnings .. " ")
-        end,
-        hl = { fg = "diag_warn" },
+        {
+            provider = function(self)
+                -- 0 is just another output, we can decide to print it or not!
+                return self.errors > 0 and (self.error_icon .. self.errors .. " ")
+            end,
+            hl = { fg = "diag_error" },
+        },
+        {
+            provider = function(self)
+                return self.warnings > 0 and (self.warn_icon .. self.warnings .. " ")
+            end,
+            hl = { fg = "diag_warn" },
+        },
+        {
+            provider = function(self)
+                return self.info > 0 and (self.info_icon .. self.info .. " ")
+            end,
+            hl = { fg = "diag_info" },
+        },
     },
     {
-        provider = function(self)
-            return self.info > 0 and (self.info_icon .. self.info .. " ")
-        end,
-        hl = { fg = "diag_info" },
+        {
+            provider = function(self)
+                -- 0 is just another output, we can decide to print it or not!
+                return self.errors > 0 and (self.error_icon .. self.errors .. " ")
+            end,
+            hl = { fg = "diag_error" },
+        },
+        {
+            provider = function(self)
+                return self.warnings > 0 and (self.warn_icon .. self.warnings .. " ")
+            end,
+            hl = { fg = "diag_warn" },
+        },
     },
     {
-        provider = function(self)
-            return self.hints > 0 and (self.hint_icon .. self.hints)
-        end,
-        hl = { fg = "diag_hint" },
-    },
+        {
+            provider = function(self)
+                -- 0 is just another output, we can decide to print it or not!
+                return self.errors > 0 and (self.error_icon .. self.errors .. " ")
+            end,
+            hl = { fg = "diag_error" },
+        },
+
+    }
     -- {
     --     provider = "]",
     -- },
@@ -745,7 +806,7 @@ local WorkDir = {
 
 local Navic = { flexible = 3, Navic, { provider = "" } }
 
-local Align = { provider = "%=" }
+local Align = { provider = " %=" }
 local Space = { provider = " " }
 
 ViMode = utils.surround({ "", "" }, "muted_bg", { ViMode, Snippets })
@@ -771,12 +832,13 @@ local LazySpace = {
   }
 }
 
+-- Spacing convention: 
+-- Items to the left of Align are to put their spaces to the left, items to the right put their spaces on the right, etc. All components need to have a space included so that no stacking of spaces takes place.
 local DefaultStatusline = {
     ViMode, Space, FileNameBlock, Space, GitSpace, Diagnostics, Align,
     -- Navic, DAPMessages, Align,
-    Align,
     -- LSPActive, Space, LSPMessages, Space, UltTest, Space, FileType, Space, Ruler, Space, ScrollBar
-    LazySpace, LSPActive, Space, FileTypeSpace, Ruler, Space, ScrollBar
+    LazySpace, LSPActive, FileTypeSpace, Ruler, Space, ScrollBar
 }
 
 local InactiveStatusline = {
