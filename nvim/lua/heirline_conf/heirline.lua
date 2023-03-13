@@ -172,7 +172,7 @@ local FileFlags = {
         condition = function()
             return vim.bo.modified
         end,
-        provider = " ●",
+        provider = " ● ",
         hl = { fg = "green" },
     },
     {
@@ -847,7 +847,7 @@ vim.api.nvim_create_autocmd("User", {
 
 local TablineBufnr = {
     provider = function(self)
-        return tostring(self.bufnr) .. ". "
+        return " " .. tostring(self.bufnr) .. " "
     end,
     hl = "Comment",
 }
@@ -873,8 +873,9 @@ local TablineFileFlags = {
         condition = function(self)
             return vim.api.nvim_buf_get_option(self.bufnr, "modified")
         end,
-        provider = "[+]",
-        hl = { fg = "green" },
+        provider = " ● ",
+        hl = { fg = "cyan" },
+
     },
     {
         condition = function(self)
@@ -885,7 +886,7 @@ local TablineFileFlags = {
             if vim.api.nvim_buf_get_option(self.bufnr, "buftype") == "terminal" then
                 return "  "
             else
-                return ""
+                return " "
             end
         end,
         hl = { fg = "orange" },
@@ -933,7 +934,7 @@ local TablineCloseButton = {
     end,
     { provider = " " },
     {
-        provider = "",
+        provider = " ",
         hl = { fg = "gray" },
         on_click = {
             callback = function(_, minwid)
@@ -955,15 +956,6 @@ local TablineBufferBlock = utils.surround({ "", "" }, function(self)
         return utils.get_highlight("TabLine").bg
     end
 end, { TablineFileNameBlock, TablineCloseButton })
-
--- and here we go
-local BufferLine = utils.make_buflist(
-    TablineBufferBlock,
-    { provider = "", hl = { fg = "gray" } }, -- left truncation, optional (defaults to "<")
-    { provider = "", hl = { fg = "gray" } } -- right trunctation, also optional (defaults to ...... yep, ">")
-    -- by the way, open a lot of buffers and try clicking them ;)
-)
-
 
 -- this is the default function used to retrieve buffers
 local get_bufs = function()
@@ -1008,7 +1000,6 @@ local BufferLine = utils.make_buflist(
     -- no cache, as we're handling everything ourselves
     false
 )
-
 
 local Tabpage = {
     provider = function(self)

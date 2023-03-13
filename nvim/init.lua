@@ -1002,8 +1002,9 @@ vim.keymap.set("n", "<c-b>", "<Plug>(YankyCycleBackward)")
 vim.cmd([[
   hi YankyPut guibg=#2f9366 gui=bold cterm=bold
   hi YankyYanked guibg=#2e5099 gui=bold cterm=bold
-  hi Search cterm=bold gui=bold ctermfg=black ctermbg=yellow guibg=#a04644 guifg=NONE
-  hi incSearch cterm=bold gui=bold ctermfg=black ctermbg=yellow guibg=#a04080 guifg=NONE
+
+  hi Search cterm=bold gui=bold ctermfg=black ctermbg=yellow guibg=#a93634 guifg=NONE
+  hi incSearch cterm=bold gui=bold ctermfg=black ctermbg=yellow guibg=#a94080 guifg=NONE
 ]])
 
 -- putting here late so navic can init first. Nah, didn't fix it.
