@@ -292,17 +292,22 @@ local Ruler = {
 -- I take no credits for this! :lion:
 local ScrollBar = {
     static = {
-        sbar = { '█', '▇', '▆', '▅', '▄', '▃', '▂', '▁' }
-        -- Another variant, because the more choice the better.
-        -- sbar = { '🭶', '🭷', '🭸', '🭹', '🭺', '🭻' }
+        -- The original (with my modification):
+        -- sbar = { '█', '▇', '▆', '▅', '▄', '▃', '▂', '▁', ' ' }
+        -- My invention (17):
+        -- sbar = { '  ', ' ⢀', ' ⢠', ' ⢰', ' ⢸', ' ⣸', ' ⣼', ' ⣾', ' ⣿', '⢀⣿', '⢠⣿', '⢰⣿', '⢸⣿', '⣸⣿', '⣼⣿', '⣾⣿', '⣿⣿'  }
+        -- Using three (25):
+        -- sbar = { '', '⢀', '⢠', '⢰', '⢸', '⣸', '⣼', '⣾', '⣿', '⢀⣿', '⢠⣿', '⢰⣿', '⢸⣿', '⣸⣿', '⣼⣿', '⣾⣿', '⣿⣿', '⢀⣿⣿', '⢠⣿⣿', '⢰⣿⣿', '⢸⣿⣿', '⣸⣿⣿', '⣼⣿⣿', '⣾⣿⣿', '⣿⣿⣿'  }
+        -- Animate the dots falling down to fill the space. Adds a lot of additional states while grabbing a char back. (41)
+        sbar = { '', '⠁', '⠂', '⠄', '⡀', '⡈', '⡐', '⡠', '⣀', '⣁', '⣂', '⣄', '⣌', '⣔', '⣤', '⣥', '⣦', '⣮', '⣶', '⣷', '⣿', '⠈⣿', '⠐⣿', '⠠⣿', '⢀⣿', '⢁⣿', '⢂⣿', '⢄⣿', '⣀⣿', '⣈⣿', '⣐⣿', '⣠⣿', '⣡⣿', '⣢⣿', '⣤⣿', '⣬⣿', '⣴⣿', '⣵⣿', '⣶⣿', '⣾⣿', '⣿⣿' }
     },
     provider = function(self)
         local curr_line = vim.api.nvim_win_get_cursor(0)[1]
         local lines = vim.api.nvim_buf_line_count(0)
         local i = math.floor((curr_line - 1) / lines * #self.sbar) + 1
-        return string.rep(self.sbar[i], 2)
+        return self.sbar[i]
     end,
-    hl = { bg = "blue", fg = "bright_bg" },
+    hl = { fg = "blue" },
 }
 
 local LSPActive = {
