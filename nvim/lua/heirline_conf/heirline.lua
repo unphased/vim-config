@@ -179,7 +179,7 @@ local FileFlags = {
         condition = function()
             return not vim.bo.modifiable or vim.bo.readonly
         end,
-        provider = "",
+        provider = " ",
         hl = { fg = "orange" },
     },
 }
@@ -525,7 +525,7 @@ local Diagnostics = {
 
 -- Diagnostics = utils.surround({"![", "]"}, nil, Diagnostics)
 
-local Git = {
+local GitSpace = {
     condition = conditions.is_git_repo,
 
     init = function(self)
@@ -535,8 +535,8 @@ local Git = {
 
     hl = { fg = "orange" },
 
-    utils.surround({ "", "" }, "muted_bg", 
-    {
+
+    utils.surround({ "", "" }, "muted_bg", {
         {   -- git branch name
             provider = function(self)
                 return " " .. self.status_dict.head
@@ -571,7 +571,9 @@ local Git = {
             end,
             hl = { fg = "git_change" },
         },
-    })
+    }), {
+        provider = " ",
+    },
 }
 
 
@@ -738,7 +740,7 @@ local Lazy = {
 }
 
 local DefaultStatusline = {
-    ViMode, Space, FileNameBlock, Space, Git, Space, Diagnostics, Align,
+    ViMode, Space, FileNameBlock, Space, GitSpace, Diagnostics, Align,
     -- Navic, DAPMessages, Align,
     Align,
     -- LSPActive, Space, LSPMessages, Space, UltTest, Space, FileType, Space, Ruler, Space, ScrollBar
