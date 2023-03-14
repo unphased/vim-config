@@ -269,6 +269,16 @@ vim.cmd([[
   noremap <MiddleMouse> <LeftMouse>
   inoremap <MiddleMouse> <Nop>
 
+  source $VIMRUNTIME/menu.vim
+  set wildmenu
+  set cpo-=<
+  set wcm=<C-Z>
+  map <F5> :emenu <C-Z>
+
+  " windowswap config
+  let g:windowswap_map_keys = 0
+  nnoremap <m-w> :call WindowSwap#EasyWindowSwap()<CR>
+
 ]])
 
 -- gvar settings for plugins
@@ -431,7 +441,7 @@ require("nvim-treesitter.configs").setup({
   --   },
   -- },
   matchup = {
-    enable = true, -- mandatory, false will disable the whole extension
+    enable = false, -- mandatory, false will disable the whole extension
     disable = {}, -- optional, list of language that will be disabled
   },
 
@@ -943,7 +953,7 @@ local lsp_attach = function (x, bufnr)
   vim.keymap.set('n', '<leader>r', vim.lsp.buf.rename, bufopts)
   vim.keymap.set('n', '<leader>ca', function() vim.cmd('CodeActionMenu') end, bufopts)
   vim.keymap.set('n', 'gr', telescope_builtin.lsp_references, bufopts)
-  vim.keymap.set('n', '<space>f', function() vim.lsp.buf.format { async = true } end, bufopts)
+  vim.keymap.set('n', '<leader>=', function() vim.lsp.buf.format { async = true } end, bufopts)
 end
 
 require("mason-lspconfig").setup_handlers {
