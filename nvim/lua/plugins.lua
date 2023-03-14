@@ -70,7 +70,7 @@ return {
   "andymass/vim-matchup",
   "AndrewRadev/splitjoin.vim",
   "windwp/nvim-autopairs",
-  "google/vim-searchindex", -- give search index output (i of n matches) that isn't clamped to 99
+  -- "google/vim-searchindex", -- give search index output (i of n matches) that isn't clamped to 99
   "lukas-reineke/indent-blankline.nvim",
   {
     "folke/trouble.nvim",
@@ -81,7 +81,12 @@ return {
   "jay-babu/mason-null-ls.nvim",
   "inkarkat/vim-ingo-library",
   { "inkarkat/vim-SearchHighlighting", init = function ()
-    vim.keymap.set('n', '<CR>', '<Plug>SearchHighlightingStar')
+    vim.keymap.set('n', '<CR>', '<Plug>SearchHighlightingStar', { silent = true } )
+    -- vim.cmd([[
+    --   nmap <silent> <CR> <Plug>SearchHighlightingStar
+    --   "" doesn't work
+    --   " vmap <silent> <CR> <Plug>SearchHighlightingStar
+    -- ]])
   end },
   {
     'VonHeikemen/lsp-zero.nvim',

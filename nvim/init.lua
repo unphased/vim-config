@@ -8,6 +8,7 @@ vim.o.termguicolors = true
 vim.o.ignorecase = true
 vim.o.smartcase = true
 vim.o.numberwidth = 3
+-- vim.o.cmdheight = 0
 
 -- settings that may require inclusion prior to Lazy loader
 
@@ -620,7 +621,7 @@ require("nvim-cursorline").setup({
   cursorword = {
     enable = true,
     min_length = 2,
-    hl = { bg = "#303050", underline = false },
+    hl = { bold = true, underline = false },
   },
 })
 
