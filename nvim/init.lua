@@ -1058,7 +1058,7 @@ vim.cmd([[
   hi YankyPut guibg=#2f9366 gui=bold cterm=bold
   hi YankyYanked guibg=#2e5099 gui=bold cterm=bold
 
-  hi Search cterm=bold gui=bold ctermfg=black ctermbg=yellow guibg=#a93634 guifg=NONE
+  hi Search cterm=bold gui=bold ctermfg=black ctermbg=yellow guibg=#a9291a guifg=NONE
   hi incSearch cterm=bold gui=bold ctermfg=black ctermbg=yellow guibg=#a94080 guifg=NONE
   hi Visual term=reverse ctermbg=238 guibg=#505760
 ]])
