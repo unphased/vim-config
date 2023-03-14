@@ -1005,6 +1005,7 @@ vim.cmd([[
 
   hi Search cterm=bold gui=bold ctermfg=black ctermbg=yellow guibg=#a93634 guifg=NONE
   hi incSearch cterm=bold gui=bold ctermfg=black ctermbg=yellow guibg=#a94080 guifg=NONE
+  hi Visual term=reverse ctermbg=238 guibg=#505760
 ]])
 
 -- putting here late so navic can init first. Nah, didn't fix it.
