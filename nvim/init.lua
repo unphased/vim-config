@@ -269,6 +269,8 @@ vim.cmd([[
   noremap <MiddleMouse> <LeftMouse>
   inoremap <MiddleMouse> <Nop>
 
+  "" This enables the count and index indicator for search. Not enabled because we are using google/vim-searchindex and it does not limit to a count of 99
+  " set shortmess-=S
 ]])
 
 -- gvar settings for plugins

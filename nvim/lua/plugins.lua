@@ -70,6 +70,7 @@ return {
   "andymass/vim-matchup",
   "AndrewRadev/splitjoin.vim",
   "windwp/nvim-autopairs",
+  "google/vim-searchindex", -- give search index output (i of n matches) that isn't clamped to 99
   "lukas-reineke/indent-blankline.nvim",
   {
     "folke/trouble.nvim",
