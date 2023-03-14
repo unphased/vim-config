@@ -715,19 +715,19 @@ local GitSpace = {
 --     },
 -- }
 
-local WorkDir = {
-    provider = function()
-        local icon = (vim.fn.haslocaldir(0) == 1 and "l" or "g") .. " " .. " "
-        local cwd = vim.fn.getcwd(0)
-        cwd = vim.fn.fnamemodify(cwd, ":~")
-        if not conditions.width_percent_below(#cwd, 0.25) then
-            cwd = vim.fn.pathshorten(cwd)
-        end
-        local trail = cwd:sub(-1) == '/' and '' or "/"
-        return icon .. cwd  .. trail
-    end,
-    hl = { fg = "blue", bold = true },
-}
+-- local WorkDir = {
+--     provider = function()
+--         local icon = (vim.fn.haslocaldir(0) == 1 and "l" or "g") .. " " .. " "
+--         local cwd = vim.fn.getcwd(0)
+--         cwd = vim.fn.fnamemodify(cwd, ":~")
+--         if not conditions.width_percent_below(#cwd, 0.25) then
+--             cwd = vim.fn.pathshorten(cwd)
+--         end
+--         local trail = cwd:sub(-1) == '/' and '' or "/"
+--         return icon .. cwd  .. trail
+--     end,
+--     hl = { fg = "blue", bold = true },
+-- }
 
 local TerminalName = {
     -- we could add a condition to check that buftype == 'terminal'
@@ -775,14 +775,13 @@ local Spell = {
 
 local WorkDir = {
     init = function(self)
-        self.icon = (vim.fn.haslocaldir(0) == 1 and "l" or "g") .. " " .. " "
+        self.icon = (vim.fn.haslocaldir(0) == 1 and "l " or "") .. " "
         local cwd = vim.fn.getcwd(0)
         self.cwd = vim.fn.fnamemodify(cwd, ":~")
     end,
-    hl = { fg = "blue", bold = true },
+    hl = { fg = utils.get_highlight("Directory").fg, bold = true },
 
     flexible = 1,
-
     {
         -- evaluates to the full-lenth path
         provider = function(self)
@@ -832,13 +831,44 @@ local LazySpace = {
   }
 }
 
+local SearchCount = {
+    condition = function()
+        return vim.v.hlsearch ~= 0 and vim.o.cmdheight == 0
+    end,
+    init = function(self)
+        local ok, search = pcall(vim.fn.searchcount)
+        if ok and search.total then
+            self.search = search
+        end
+    end,
+    provider = function(self)
+        local search = self.search
+        return string.format("[%d/%d] ", search.current, math.min(search.total, search.maxcount))
+    end,
+}
+
+local MacroRec = {
+    condition = function()
+        return vim.fn.reg_recording() ~= "" and vim.o.cmdheight == 0
+    end,
+    provider = " ",
+    hl = { fg = "orange", bold = true },
+    utils.surround({ "[", "] " }, nil, {
+        provider = function()
+            return vim.fn.reg_recording()
+        end,
+        hl = { fg = "green", bold = true },
+    }),
+}
+
 -- Spacing convention: 
 -- Items to the left of Align are to put their spaces to the left, items to the right put their spaces on the right, etc. All components need to have a space included so that no stacking of spaces takes place.
 local DefaultStatusline = {
-    ViMode, Space, FileNameBlock, Space, GitSpace, Diagnostics, Align,
+    -- TODO make the workdir and filename render out in separate styles for visual distinction but allow copying an abspath
+    ViMode, Space, WorkDir, FileNameBlock, Space, GitSpace, Diagnostics, Align,
     -- Navic, DAPMessages, Align,
     -- LSPActive, Space, LSPMessages, Space, UltTest, Space, FileType, Space, Ruler, Space, ScrollBar
-    LazySpace, LSPActive, FileTypeSpace, Ruler, Space, ScrollBar
+    LazySpace, LSPActive, FileTypeSpace, SearchCount, MacroRec, Ruler, Space, ScrollBar
 }
 
 local InactiveStatusline = {
