@@ -599,6 +599,11 @@ require("neo-tree").setup({
   filesystem = {
     follow_current_file = true,
     use_libuv_file_watcher = true,
+    filtered_items = {
+      visible = true, -- This is what you want: If you set this to `true`, all "hide" just mean "dimmed out"
+      hide_dotfiles = false,
+      hide_gitignored = true,
+    },
   },
   source_selector = {
     winbar = true,
@@ -606,18 +611,19 @@ require("neo-tree").setup({
   },
   -- log_level = "trace",
   -- log_to_file = true,
-  event_handlers = {
-    {
-      event = "neo_tree_buffer_enter",
-      custom = "my custom handler",
-      handler = function ()
-        vim.cmd([[
-          " echom "neotree enter buf"
-          setlocal wrap
-        ]])
-      end
-    }
-  }
+  --- below is not working unknown reason https://github.com/nvim-neo-tree/neo-tree.nvim/issues/486
+  -- event_handlers = {
+  --   {
+  --     event = "neo_tree_buffer_enter",
+  --     custom = "my custom handler",
+  --     handler = function ()
+  --       vim.cmd([[
+  --         " echom "neotree enter buf"
+  --         setlocal wrap
+  --       ]])
+  --     end
+  --   }
+  -- }
 })
 
 require("nvim-cursorline").setup({
