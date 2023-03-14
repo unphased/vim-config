@@ -404,6 +404,8 @@ require('telescope').setup{
   defaults = {
     mappings = {
       i = {
+        -- remove me to get normal mode in telescope
+        ["<esc>"] = tele_actions.close,
         ["<RightMouse>"] = tele_actions.close,
         -- clicking will not interpret the location of the click but mouse can be used with scroll to pick or cancel, which is a lot better than always dismissing and clicking through underneath
         ["<LeftMouse>"] = tele_actions.select_default,
@@ -1057,15 +1059,15 @@ vim.keymap.set({"n","x"}, "P", "<Plug>(YankyPutBefore)")
 -- vim.keymap.set({"n","x"}, "gp", "<Plug>(YankyGPutAfter)")
 -- vim.keymap.set({"n","x"}, "gP", "<Plug>(YankyGPutBefore)")
 -- yankring
-vim.keymap.set("n", "<c-f>", "<Plug>(YankyCycleForward)")
-vim.keymap.set("n", "<c-b>", "<Plug>(YankyCycleBackward)")
+vim.keymap.set("n", "<c-u>", "<Plug>(YankyCycleForward)")
+vim.keymap.set("n", "<c-y>", "<Plug>(YankyCycleBackward)")
 -- Search highlight
 vim.cmd([[
   hi YankyPut guibg=#2f9366 gui=bold cterm=bold
   hi YankyYanked guibg=#2e5099 gui=bold cterm=bold
 
-  hi Search cterm=bold gui=bold ctermfg=black ctermbg=yellow guibg=#a93634 guifg=NONE
-  hi incSearch cterm=bold gui=bold ctermfg=black ctermbg=yellow guibg=#a94080 guifg=NONE
+  hi Search cterm=bold gui=bold ctermfg=black ctermbg=yellow guibg=#a9291a guifg=NONE
+  hi incSearch cterm=bold gui=bold ctermfg=black ctermbg=yellow guibg=#a04080 guifg=NONE
   hi Visual term=reverse ctermbg=238 guibg=#505760
 ]])
 
