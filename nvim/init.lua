@@ -343,7 +343,7 @@ vim.opt.titlestring = "NVIM %f %h%m%r%w (%{tabpagenr()} of %{tabpagenr('$')})"
 
 -- plugin settings
 require("gitsigns").setup({
-  on_attach = function ()
+  on_attach = function (bufnr)
     local gs = package.loaded.gitsigns
     local function map(mode, l, r, opts)
       opts = opts or {}
@@ -420,13 +420,15 @@ require('telescope').setup{
   }
 }
 local telescope_builtin = require("telescope.builtin")
-vim.keymap.set("n", "<c-p>", telescope_builtin.find_files, {})
-vim.keymap.set("n", "<leader>g", telescope_builtin.live_grep, {})
-vim.keymap.set("n", "<leader>m", telescope_builtin.man_pages, {})
-vim.keymap.set("n", "<f6>", telescope_builtin.oldfiles, {})
-vim.keymap.set("n", "<leader>b", telescope_builtin.buffers, {})
+vim.keymap.set("n", "<c-p>", function ()
+  telescope_builtin.find_files({ find_command = { 'fd', '--type', 'f' } })
+end)
+vim.keymap.set("n", "<leader>g", telescope_builtin.live_grep)
+vim.keymap.set("n", "<leader>m", telescope_builtin.man_pages)
+vim.keymap.set("n", "<f6>", telescope_builtin.oldfiles)
+vim.keymap.set("n", "<leader>b", telescope_builtin.buffers)
 -- "vim help"
-vim.keymap.set('n', '<leader>vh', telescope_builtin.help_tags, {})
+vim.keymap.set('n', '<leader>vh', telescope_builtin.help_tags)
 
 require("nvim-lastplace").setup({})
 require("nvim-autopairs").setup({ map_cr = false })
@@ -992,7 +994,7 @@ local lsp_attach = function (x, bufnr)
   print("lsp_attach:", vim.inspect(x.name), "bufnr="..bufnr)
   local bufopts = { noremap=true, silent=true, buffer=bufnr }
   vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
-  vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
+  vim.keymap.set('n', 'gd', telescope_builtin.lsp_definitions, bufopts)
   vim.keymap.set('n', '?', vim.lsp.buf.hover, bufopts)
 
   vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, bufopts)
