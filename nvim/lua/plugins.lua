@@ -177,6 +177,11 @@ return {
       vim.g.mkdp_command_for_global = 0
       vim.g.mkdp_echo_preview_url = 1
       vim.g.mkdp_page_title = "Markdown Preview"
+      --- below is for debug, not sure if it works tho
+      -- vim.cmd([[
+      --   let $NVIM_MKDP_LOG_FILE = $HOME . '/.tmp/mkdp-log.log'
+      --   let $NVIM_MKDP_LOG_LEVEL = 'debug'
+      -- ]])
     end
   },
 }
