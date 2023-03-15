@@ -18,6 +18,9 @@ if [ "$(uname)" = Linux ] && lsb_release -i | grep Ubuntu; then
 	alias open="xdg-open"
 fi
 
+# black ass magic
+export TERMINFO_DIRS=$TERMINFO_DIRS:$HOME/.local/share/terminfo
+
 alias vv="v ~/.vim/nvim/init.lua"
 alias vp="~/.vim/nvim/monitored_autoload_nvim.sh -O ~/.vim/nvim/lua/plugins.lua ~/.vim/nvim/init.lua"
 alias l="ls -rt"
