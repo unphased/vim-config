@@ -179,4 +179,5 @@ return {
       vim.g.mkdp_page_title = "Markdown Preview"
     end
   },
+  'mechatroner/rainbow_csv',
 }
