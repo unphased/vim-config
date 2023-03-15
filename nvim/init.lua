@@ -343,7 +343,7 @@ vim.opt.titlestring = "NVIM %f %h%m%r%w (%{tabpagenr()} of %{tabpagenr('$')})"
 
 -- plugin settings
 require("gitsigns").setup({
-  on_attach = function ()
+  on_attach = function (bufnr)
     local gs = package.loaded.gitsigns
     local function map(mode, l, r, opts)
       opts = opts or {}
@@ -994,7 +994,7 @@ local lsp_attach = function (x, bufnr)
   print("lsp_attach:", vim.inspect(x.name), "bufnr="..bufnr)
   local bufopts = { noremap=true, silent=true, buffer=bufnr }
   vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
-  vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
+  vim.keymap.set('n', 'gd', telescope_builtin.lsp_definitions, bufopts)
   vim.keymap.set('n', '?', vim.lsp.buf.hover, bufopts)
 
   vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, bufopts)
