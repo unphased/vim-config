@@ -11,6 +11,8 @@
 !.gitlab/
 !.dockerignore
 !.gitlab-ci.yml
+!.yamllint.yml
+!.yamllint.yaml
 **/node_modules
 **/*.min.js
 **/*.svg
