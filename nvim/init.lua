@@ -95,8 +95,23 @@ vim.keymap.set("v", "<c-_>", "<esc>:split<cr>")
 -- make typing d<CR> not cause two lines to be deleted. Make it do nothing instead. This is because d is a terminal alias I use and it's too easy to let it be entered in a Vim.
 vim.keymap.set("n", "d<CR>", "<nop>")
 
+-- quit with shift+q
+vim.keymap.set("n", "<s-q>", ":q<cr>")
+
 -- dumping vimL code that I didnt bother porting yet here for expedient bringup
 vim.cmd([[
+
+  " my quit method: ctrl+q first attempts to quit nvim. if there are unsaved changes, ask if you want to save them first.
+  function! MyConfirmQuitAllNoSave()
+    qall
+    if confirm('DISCARD CHANGES and then QUIT ALL? (you hit Ctrl+Q)', "No\nConfirm Discarding Changes!") == 2
+      qall!
+    endif
+  endfunc
+  " Use CTRL-Q for abort-quitting (no save)
+  noremap <C-Q> :call MyConfirmQuitAllNoSave()<CR>
+  cnoremap <C-Q> <C-C>:call MyConfirmQuitAllNoSave()<CR>
+  inoremap <C-Q> <C-O>:call MyConfirmQuitAllNoSave()<CR>
 
   noremap <C-S> :update<CR>
   vnoremap <C-S> <ESC>:update<CR>
@@ -616,18 +631,18 @@ require("neo-tree").setup({
   -- log_level = "trace",
   -- log_to_file = true,
   --- below is not working unknown reason https://github.com/nvim-neo-tree/neo-tree.nvim/issues/486
-  -- event_handlers = {
-  --   {
-  --     event = "neo_tree_buffer_enter",
-  --     custom = "my custom handler",
-  --     handler = function ()
-  --       vim.cmd([[
-  --         " echom "neotree enter buf"
-  --         setlocal wrap
-  --       ]])
-  --     end
-  --   }
-  -- }
+  event_handlers = {
+    {
+      event = "neo_tree_buffer_enter",
+      custom = "my custom handler",
+      handler = function ()
+        vim.cmd([[
+          " echom "neotree enter buf"
+          setlocal wrap
+        ]])
+      end
+    }
+  }
 })
 
 require("nvim-cursorline").setup({
