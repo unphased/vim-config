@@ -196,4 +196,5 @@ return {
       })
     end,
   },
+  'mechatroner/rainbow_csv',
 }
