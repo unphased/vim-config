@@ -1168,6 +1168,7 @@ function table:print()
   end
 end
 
+-- also add https://github.com/goolord/alpha-nvim
 log = function(message, file)
   local log_file_path = file or "/tmp/lua-nvim.log"
   local log_file = io.open(log_file_path, "a")
