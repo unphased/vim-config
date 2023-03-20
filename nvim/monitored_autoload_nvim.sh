@@ -9,8 +9,9 @@ echo init new instance... >> .nvim_autoload_monitor.log
 
 MYDIR=${0%/*}
 
-# TODO debounce me, because fswatch is made of jank
+# Run everything from scripts own dir, this is where the state dotfiles will live
 pushd "$MYDIR" || ( echo "failed to pushdir to $MYDIR" && exit 2 )
+
 watchexec --exts lua -- 'echo "$WATCHEXEC_WRITTEN_PATH"' | while read -r file; do
   if [ -z $file ]; then continue; fi
   if grep "$file" nvim_config_monitor_refresh_files.txt; then
@@ -48,15 +49,15 @@ echo "Cleared completed sentinel file, launching controlled nvim..." >> .nvim_au
 # Prep the custom behavior to run nvim with
 NVIM_ARGS=(
   '-c'
-  ':lua local file = io.open(".nvim_autoload_monitor.pid", "w"); io.output(file); io.write(vim.loop.os_getpid()); io.close(file);'
+  ':lua write_to_file(vim.loop.os_getpid(), ".nvim_autoload_monitor.pid")'
   '-c'
-  ':autocmd VimLeave * :lua log("Manual vim close"); os.remove(".nvim_autoload_monitor.pid"); log("completed", ".nvim_autoload_monitor.completed")'
+  ':autocmd VimLeave * :lua log("Manual vim close"); os.remove(".nvim_autoload_monitor.pid"); write_to_file("completed", ".nvim_autoload_monitor.completed")'
   '-c'
-  ':autocmd Signal SIGUSR1 :lua log("quit in response to USR1"); log(string.format("SIGUSR1 autocmd dying=%d exiting=%s", vim.v.dying, vim.inspect(vim.v.exiting)), ".nvim_autoload_monitor.log"); os.remove(".nvim_autoload_monitor.pid"); vim.cmd(":mksess! auto_sesh") vim.cmd(":qa!")'
+  ':autocmd Signal SIGUSR1 :lua log("quit in response to USR1"); write_to_file(string.format("SIGUSR1 autocmd dying=%d exiting=%s", vim.v.dying, vim.inspect(vim.v.exiting)), ".nvim_autoload_monitor.log"); os.remove(".nvim_autoload_monitor.pid"); vim.cmd(":mksess! auto_sesh") vim.cmd(":qa!")'
 )
 
 if [ -f .nvim_autoload_monitor.pid ]; then
-  >&2 echo "nvim_autoload_monitor already running! Aborting nvim launch"
+  >&2 echo "nvim_autoload_monitor already running! Found it here: $(pwd) Aborting nvim launch"
   exit 1
 fi
 # initial launch passes given args

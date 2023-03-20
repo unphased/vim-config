@@ -347,13 +347,6 @@ vim.g.matchup_surround_enabled = 1
 vim.g.matchup_matchparen_deferred = 1
 vim.g.matchup_matchparen_hi_surround_always = 1
 
-function _G.overwrite_file(filename, payload)
-  local log_file_path = vim.env.HOME .. "/" .. filename
-  local log_file = io.open(log_file_path, "w")
-  log_file:write(payload)
-  log_file:close()
-end
-
 vim.opt.titlestring = "NVIM %f %h%m%r%w (%{tabpagenr()} of %{tabpagenr('$')})"
 
 -- plugin settings
@@ -1088,9 +1081,6 @@ vim.cmd([[
   hi Visual term=reverse ctermbg=238 guibg=#505760
 ]])
 
--- putting here late so navic can init first. Nah, didn't fix it.
-require("heirline_conf.heirline")
-
 -- for conflict-marker
 vim.cmd([[ 
   " disable the default highlight group
@@ -1119,7 +1109,6 @@ vim.cmd [[
   sign define DiagnosticSignInfo text=  linehl= texthl=DiagnosticSignInfo numhl= 
   sign define DiagnosticSignHint text=⚑  linehl= texthl=DiagnosticSignHint numhl=
 ]]
-
 
 -- helper for debug
 local should_profile = os.getenv("NVIM_PROFILE")
@@ -1168,22 +1157,51 @@ function table:print()
   end
 end
 
-log = function(message, file)
-  local log_file_path = file or "/tmp/lua-nvim.log"
+
+_G.write_to_file = function (content, file)
+  local f = io.open(file, "w")
+  f:write(content)
+  f:close()
+end
+
+_G.log = function(...)
+  local args = {...}
+  local log_file_path = "/tmp/lua-nvim.log"
   local log_file = io.open(log_file_path, "a")
-  if (log_file == nil) then
+  if log_file == nil then
     print("Could not open log file: " .. log_file_path)
     return
   end
   io.output(log_file)
-  io.write(message .. "\n")
+  io.write(string.format("%s:%03d", os.date("%H:%M:%S"), vim.loop.now() % 1000) .. " >>> ")
+  for i, payload in ipairs(args) do
+    local ty = type(payload)
+    if ty == "table" then
+      io.write(string.format("%d -> %s\n", i, vim.inspect(payload)))
+    elseif ty == "function" then
+      io.write(string.format("%d -> [function]\n", i))
+    else
+      io.write(string.format("%d -> %s\n", i, payload))
+    end
+  end
   io.close(log_file)
 end
+
+function _G.overwrite_file(payload, filename)
+  local log_file_path = vim.env.HOME .. "/" .. filename
+  local log_file = io.open(log_file_path, "w")
+  log_file:write(payload)
+  log_file:close()
+end
+
+-- putting here late so log global is present for it
+require("heirline_conf.heirline")
 
 --[[
 
 - todo list (track stuff to port over, track stuff i want to achieve)
 - still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults
 - yank window to new tab in next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
+- my prized alt-, and friends automations (to be fair i've been getting good at manually leveraging dot-repeat which is decently good retraining)
 
 --]]
