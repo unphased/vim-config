@@ -1168,7 +1168,6 @@ function table:print()
   end
 end
 
--- also add https://github.com/goolord/alpha-nvim
 log = function(message, file)
   local log_file_path = file or "/tmp/lua-nvim.log"
   local log_file = io.open(log_file_path, "a")
@@ -1181,8 +1180,11 @@ log = function(message, file)
   io.close(log_file)
 end
 
--- todo list (track stuff to port over, track stuff i want to achieve)
 --[[
+
+- todo list (track stuff to port over, track stuff i want to achieve)
 - still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults
 - yank window to new tab in next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
+- add https://github.com/goolord/alpha-nvim
+
 --]]
