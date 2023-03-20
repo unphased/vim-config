@@ -228,6 +228,7 @@ vim.cmd([[
   set backup
 
   " This is super neat text based refactor command which nvim shows you the preview replacement as you type
+  " TODO i still need to find a better bind for this because it is hard to remember
   nnoremap <m-/> :%s/\<<c-r><c-w>\>//g<left><left>
   " The obvious but bad visual mode version of this
   " vnoremap <m-/> y:%s/<c-r>0//g<left><left>
@@ -694,10 +695,10 @@ vim.diagnostic.config{
 }
 
 local opts = {}
-vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, opts)
-vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
-vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
-vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, opts)
+vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "Open diagnostic in float" })
+vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Go to previous diagnostic" })
+vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Go to next diagnostic" })
+vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Set diagnostics to location list" })
 
 -- indent-blankline
 
