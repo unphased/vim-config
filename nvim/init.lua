@@ -1185,6 +1185,5 @@ end
 - todo list (track stuff to port over, track stuff i want to achieve)
 - still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults
 - yank window to new tab in next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
-- add https://github.com/goolord/alpha-nvim
 
 --]]
