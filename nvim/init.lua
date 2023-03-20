@@ -40,7 +40,7 @@ require("lazy").setup("plugins", {
 -- mappings
 vim.keymap.set("n", "<leader>w", ":set wrap!<cr>")
 
--- disabling for now since regular works with cmp cmdline completion
+--- disabling for now since regular works with cmp cmdline completion
 -- vim.keymap.set({ "n", "v" }, "/", "/\\V")
 vim.keymap.set({ "n", "v" }, "k", "gk")
 vim.keymap.set({ "n", "v" }, "j", "gj")
