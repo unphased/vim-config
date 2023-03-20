@@ -1179,3 +1179,9 @@ log = function(message, file)
   io.write(message .. "\n")
   io.close(log_file)
 end
+
+-- todo list (track stuff to port over, track stuff i want to achieve)
+--[[
+- still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults
+- yank window to new tab in next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
+--]]
