@@ -978,6 +978,10 @@ cmp.event:on(
   cmp_autopairs.on_confirm_done()
 )
 
+require("neodev").setup({
+  -- add any options here, or leave empty to use the default settings
+})
+
 require("mason").setup({})
 require("mason-lspconfig").setup({
   -- A list of servers to automatically install if they're not already installed. Example: { "rust_analyzer@nightly", "lua_ls" }
@@ -1043,20 +1047,9 @@ require("mason-lspconfig").setup_handlers {
       on_attach = lsp_attach,
       settings = {
         Lua = {
-          diagnostics = {
-            enable = true,
-            globals = { 'vim' }
-          },
-          runtime = {
-            version = 'LuaJIT',
-          },
-          workspace = {
-            library = vim.api.nvim_get_runtime_file('', true),
-            maxPreload = 10000,
-            preloadFileSize = 10000,
-            checkThirdParty = false,
-          },
-          telemetry = {enable = false},
+          completion = {
+            callSnippet = "Replace"
+          }
         }
       }
     }
@@ -1210,5 +1203,6 @@ require("heirline_conf.heirline")
 - still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults
 - yank window to new tab in next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
 - my prized alt-, and friends automations (to be fair i've been getting good at manually leveraging dot-repeat which is decently good retraining)
+- \p for toggle paste and removing indent markers and stuff like that in paste mode to make it work like a copy-mode
 
 --]]
