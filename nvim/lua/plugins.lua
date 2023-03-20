@@ -205,4 +205,11 @@ return {
     end
   },
   "folke/neodev.nvim",
+  {
+    'ruifm/gitlinker.nvim',
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    init = function ()
+      require"gitlinker".setup()
+    end
+  },
 }
