@@ -432,12 +432,12 @@ local telescope_builtin = require("telescope.builtin")
 vim.keymap.set("n", "<c-p>", function ()
   telescope_builtin.find_files({ find_command = { 'fd', '--type', 'f' } })
 end)
-vim.keymap.set("n", "<leader>g", telescope_builtin.live_grep)
-vim.keymap.set("n", "<leader>m", telescope_builtin.man_pages)
-vim.keymap.set("n", "<f6>", telescope_builtin.oldfiles)
-vim.keymap.set("n", "<leader>b", telescope_builtin.buffers)
+vim.keymap.set("n", "<leader>g", telescope_builtin.live_grep, { desc = "Telescope Live Grep" })
+vim.keymap.set("n", "<leader>m", telescope_builtin.man_pages, { desc = "Telescope Man Pages" })
+vim.keymap.set("n", "<f6>", telescope_builtin.oldfiles, { desc = "Telescope Recent Files" })
+vim.keymap.set("n", "<leader>b", telescope_builtin.buffers, { desc = "Telescope Buffers" })
 -- "vim help"
-vim.keymap.set('n', '<leader>vh', telescope_builtin.help_tags)
+vim.keymap.set('n', '<leader>vh', telescope_builtin.help_tags, { desc = "Telescope Help Tags" })
 
 require("nvim-lastplace").setup({})
 require("nvim-autopairs").setup({ map_cr = false })
@@ -998,26 +998,32 @@ require("mason-lspconfig").setup({
 
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
+local ext = function(table, key, value)
+  local tbl = table
+  tbl[key] = value
+  return tbl
+end
+
 -- keymaps!!
 local lsp_attach = function (x, bufnr)
   print("lsp_attach:", vim.inspect(x.name), "bufnr="..bufnr)
   local bufopts = { noremap=true, silent=true, buffer=bufnr }
-  vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
-  vim.keymap.set('n', 'gd', telescope_builtin.lsp_definitions, bufopts)
-  vim.keymap.set('n', '?', vim.lsp.buf.hover, bufopts)
+  vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, ext(bufopts, "desc", "Go to Declaration"))
+  vim.keymap.set('n', 'gd', telescope_builtin.lsp_definitions, ext(bufopts, "desc", "Go to Definition(s)"))
+  vim.keymap.set('n', '?', vim.lsp.buf.hover, ext(bufopts, "desc", "Hover"))
 
-  vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, bufopts)
-  vim.keymap.set('n', '<leader>h', vim.lsp.buf.signature_help, bufopts)
+  vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, ext(bufopts, "desc", "Go to Implementation"))
+  vim.keymap.set('n', '<leader>h', vim.lsp.buf.signature_help, ext(bufopts, "desc", "Signature help"))
   -- vim.keymap.set('n', '<space>wa', vim.lsp.buf.add_workspace_folder, bufopts)
   -- vim.keymap.set('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, bufopts)
   -- vim.keymap.set('n', '<space>wl', function()
   --   print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
   -- end, bufopts)
   -- vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, bufopts)
-  vim.keymap.set('n', '<leader>r', vim.lsp.buf.rename, bufopts)
-  vim.keymap.set('n', '<leader>ca', function() vim.cmd('CodeActionMenu') end, bufopts)
-  vim.keymap.set('n', 'gr', telescope_builtin.lsp_references, bufopts)
-  vim.keymap.set('n', '<leader>=', function() vim.lsp.buf.format { async = true } end, bufopts)
+  vim.keymap.set('n', '<leader>r', vim.lsp.buf.rename, ext(bufopts, "desc", "Rename"))
+  vim.keymap.set('n', '<leader>ca', function() vim.cmd('CodeActionMenu') end, ext(bufopts, "desc", "Code Action Menu"))
+  vim.keymap.set('n', 'gr', telescope_builtin.lsp_references, ext(bufopts, "desc", "Go to References"))
+  vim.keymap.set('n', '<leader>=', function() vim.lsp.buf.format { async = true } end, ext(bufopts, "desc", "Format Buffer"))
 end
 
 require("mason-lspconfig").setup_handlers {
