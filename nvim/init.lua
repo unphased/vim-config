@@ -525,6 +525,8 @@ require("nvim-treesitter.configs").setup({
         ["af"] = "@function.outer",
         ["if"] = "@function.inner",
         ["ac"] = "@class.outer",
+        ["ai"] = "@parameter.inner",
+        ["aa"] = "@parameter.outer",
         -- You can optionally set descriptions to the mappings (used in the desc parameter of
         -- nvim_buf_set_keymap) which plugins like which-key display
         ["ic"] = { query = "@class.inner", desc = "Select inner part of a class region" },
@@ -1011,10 +1013,14 @@ end
 
 -- keymaps!!
 local lsp_attach = function (x, bufnr)
-  print("lsp_attach:", vim.inspect(x.name), "bufnr="..bufnr)
+  local engine = x.name;
+  print("lsp_attach:", engine, "bufnr="..bufnr)
   local bufopts = { noremap=true, silent=true, buffer=bufnr }
   vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, ext(bufopts, "desc", "Go to Declaration"))
-  vim.keymap.set('n', 'gd', function () telescope_builtin.lsp_definitions({ jump_type = "split" }) end, ext(bufopts, "desc", "Go to Definition(s)"))
+  vim.keymap.set('n', 'gd', function ()
+    print ("gd called", engine)
+    telescope_builtin.lsp_definitions({ jump_type = "split" })
+  end, ext(bufopts, "desc", "Go to Definition(s)"))
   vim.keymap.set('n', '?', vim.lsp.buf.hover, ext(bufopts, "desc", "Hover"))
 
   vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, ext(bufopts, "desc", "Go to Implementation"))
@@ -1077,8 +1083,8 @@ vim.cmd([[
   hi YankyPut guibg=#2f9366 gui=bold cterm=bold
   hi YankyYanked guibg=#2e5099 gui=bold cterm=bold
 
-  hi Search cterm=bold gui=bold ctermfg=black ctermbg=yellow guibg=#a9291a guifg=NONE
-  hi incSearch cterm=bold gui=bold ctermfg=black ctermbg=yellow guibg=#a04080 guifg=NONE
+  hi Search cterm=bold ctermfg=black ctermbg=yellow guibg=#a9291a guifg=NONE
+  hi incSearch cterm=bold ctermfg=black ctermbg=yellow guibg=#a04080 guifg=NONE
   hi Visual term=reverse ctermbg=238 guibg=#505760
 ]])
 
