@@ -432,7 +432,8 @@ local telescope_builtin = require("telescope.builtin")
 vim.keymap.set("n", "<c-p>", function ()
   telescope_builtin.find_files({ find_command = { 'fd', '--type', 'f' } })
 end)
-vim.keymap.set("n", "<leader>g", telescope_builtin.live_grep, { desc = "Telescope Live Grep" })
+-- hard to believe ctrl+G was not already bound by vim
+vim.keymap.set("n", "<c-g>", telescope_builtin.live_grep, { desc = "Telescope Live Grep" })
 vim.keymap.set("n", "<leader>m", telescope_builtin.man_pages, { desc = "Telescope Man Pages" })
 vim.keymap.set("n", "<f6>", telescope_builtin.oldfiles, { desc = "Telescope Recent Files" })
 vim.keymap.set("n", "<leader>b", telescope_builtin.buffers, { desc = "Telescope Buffers" })
@@ -1013,7 +1014,7 @@ local lsp_attach = function (x, bufnr)
   print("lsp_attach:", vim.inspect(x.name), "bufnr="..bufnr)
   local bufopts = { noremap=true, silent=true, buffer=bufnr }
   vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, ext(bufopts, "desc", "Go to Declaration"))
-  vim.keymap.set('n', 'gd', telescope_builtin.lsp_definitions, ext(bufopts, "desc", "Go to Definition(s)"))
+  vim.keymap.set('n', 'gd', function () telescope_builtin.lsp_definitions({ jump_type = "split" }) end, ext(bufopts, "desc", "Go to Definition(s)"))
   vim.keymap.set('n', '?', vim.lsp.buf.hover, ext(bufopts, "desc", "Hover"))
 
   vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, ext(bufopts, "desc", "Go to Implementation"))
