@@ -53,7 +53,7 @@ NVIM_ARGS=(
   '-c'
   ':autocmd VimLeave * :lua log("Manual vim close"); os.remove(".nvim_autoload_monitor.pid"); write_to_file("completed", ".nvim_autoload_monitor.completed")'
   '-c'
-  ':autocmd Signal SIGUSR1 :lua log("quit in response to USR1"); write_to_file(string.format("SIGUSR1 autocmd dying=%d exiting=%s", vim.v.dying, vim.inspect(vim.v.exiting)), ".nvim_autoload_monitor.log"); os.remove(".nvim_autoload_monitor.pid"); vim.cmd(":mksess! auto_sesh") vim.cmd(":qa!")'
+  ':autocmd Signal SIGUSR1 :lua log("quit in response to USR1"); write_to_file(string.format("SIGUSR1 autocmd dying=%d exiting=%s", vim.v.dying, vim.inspect(vim.v.exiting)), ".nvim_autoload_monitor.log"); os.remove(".nvim_autoload_monitor.pid"); vim.cmd(":mksess! auto_sesh") vim.cmd(":qa")'
 )
 
 if [ -f .nvim_autoload_monitor.pid ]; then
