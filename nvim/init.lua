@@ -1,3 +1,15 @@
+-- -- -- TODO LIST
+--[[
+
+- todo list (track stuff to port over, track stuff i want to achieve)
+- still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults
+- yank window to new tab in next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
+- my prized alt-, and friends automations (to be fair i've been getting good at manually leveraging dot-repeat which is decently good retraining)
+- \p for toggle paste and removing indent markers and stuff like that in paste mode to make it work like a copy-mode
+- f10 handling for tmux
+
+--]]
+
 -- traditional settings
 
 vim.o.title = true
@@ -52,12 +64,32 @@ vim.keymap.set({ "v", "n" }, "J", "5gj")
 vim.keymap.set({ "v", "n" }, "H", "7h")
 vim.keymap.set({ "v", "n" }, "L", "7l")
 
+-- just a thing i got used to; makes it easy to put what you just typed into brackets
+vim.keymap.set("i", "<c-b>", "<esc>lve")
+
 -- Joining lines with Ctrl+N. Keep cursor stationary.
 vim.keymap.set("n", "<c-n>", function()
   local line, col = unpack(vim.api.nvim_win_get_cursor(0))
   -- print("win_get_cursor: "..vim.inspect(vim.api.nvim_win_get_cursor(0)).. " Unpacks to "..line..","..col)
   vim.cmd("normal! J")
   vim.api.nvim_win_set_cursor(0, { line, col })
+end)
+
+-- make alt+p (historical reason: used to toggle paste mode) toggle in unison the indent markers and the listchars. Key the state off of the indent-blankline toggle state.
+vim.keymap.set("n", "<m-p>", function()
+  local indent_blankline_enabled = vim.g.indent_blankline_enabled
+  if indent_blankline_enabled then
+    vim.g.indent_blankline_enabled = false
+    vim.o.list = false
+    vim.o.number = false
+    -- a bit tricky: toggle signs off
+    vim.o.signcolumn = "no"
+  else
+    vim.g.indent_blankline_enabled = true
+    vim.o.list = true
+    vim.o.number = true
+    vim.o.signcolumn = "auto"
+  end
 end)
 
 -- make it easier to type a colon
@@ -949,16 +981,17 @@ cmp.setup.filetype('gitcommit', {
 })
 
 -- Use buffer source for `/` and `?` (if you enabled `native_menu`, this won't work anymore).
-cmp.setup.cmdline({ '/', '?' }, {
-  mapping = cmp.mapping.preset.cmdline(),
-  completion = {
-    -- only start completion after typing 3 chars
-    keyword_length = 3,
-  },
-  sources = cmp.config.sources({
-    { name = 'buffer' }
-  })
-})
+-- -- disabling the search cmp completion to see if the search history problem is related to this; completions from buffer in here are not valuable honestly
+-- cmp.setup.cmdline({ '/', '?' }, {
+--   mapping = cmp.mapping.preset.cmdline(),
+--   completion = {
+--     -- only start completion after typing 3 chars
+--     keyword_length = 3,
+--   },
+--   sources = cmp.config.sources({
+--     { name = 'buffer' }
+--   })
+-- })
 
 -- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
 cmp.setup.cmdline(':', {
@@ -1208,14 +1241,3 @@ end
 -- putting here late so log global is present for it
 require("heirline_conf.heirline")
 
---[[
-
-- todo list (track stuff to port over, track stuff i want to achieve)
-- still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults
-- yank window to new tab in next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
-- my prized alt-, and friends automations (to be fair i've been getting good at manually leveraging dot-repeat which is decently good retraining)
-- \p for toggle paste and removing indent markers and stuff like that in paste mode to make it work like a copy-mode
-- f10 handling for tmux
-
-
---]]
