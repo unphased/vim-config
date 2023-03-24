@@ -5,9 +5,9 @@
 # Set trap to clean children
 trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
 
-echo init new instance... >> .nvim_autoload_monitor.log
-
 MYDIR=${0%/*}
+
+echo init new instance... >> "$MYDIR/.nvim_autoload_monitor.log"
 
 # Run everything from scripts own dir, this is where the state dotfiles will live
 pushd "$MYDIR" || ( echo "failed to pushdir to $MYDIR" && exit 2 )
@@ -15,14 +15,14 @@ pushd "$MYDIR" || ( echo "failed to pushdir to $MYDIR" && exit 2 )
 watchexec --exts lua -- 'echo "$WATCHEXEC_WRITTEN_PATH"' | while read -r file; do
   if [ -z $file ]; then continue; fi
   if grep "$file" nvim_config_monitor_refresh_files.txt; then
-    echo "$file changed, supposedly, and matched nvim_config_monitor_refresh_files.txt" >> .nvim_autoload_monitor.log
+    echo "$file changed, supposedly, and matched nvim_config_monitor_refresh_files.txt" >> "$MYDIR/.nvim_autoload_monitor.log"
     pid=$(cat .nvim_autoload_monitor.pid)
-    echo "firing USR1 at $pid" >> .nvim_autoload_monitor.log
+    echo "firing USR1 at $pid" >> "$MYDIR/.nvim_autoload_monitor.log"
     kill -USR1 "$pid"
     sleep 1
     # if the process is still alive, kill it
     if kill -0 "$pid" 2>/dev/null; then
-      echo "killing $pid with TERM" >> .nvim_autoload_monitor.log
+      echo "killing $pid with TERM" >> "$MYDIR/.nvim_autoload_monitor.log"
       kill -TERM "$pid"
     fi
   fi
@@ -44,7 +44,7 @@ execute () {
 }
 
 rm -f .nvim_autoload_monitor.completed
-echo "Cleared completed sentinel file, launching controlled nvim..." >> .nvim_autoload_monitor.log
+echo "Cleared completed sentinel file, launching controlled nvim..." >> "$MYDIR/.nvim_autoload_monitor.log"
 
 # Prep the custom behavior to run nvim with
 NVIM_ARGS=(
