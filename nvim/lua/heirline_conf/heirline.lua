@@ -248,8 +248,6 @@ FileNameBlock = utils.insert(FileNameBlock,
     { provider = '%<'} -- this means that the statusline is cut here when there's not enough space
 )
 
-_G.log(FileNameBlock)
-
 local FileType = {
     hl = { fg = utils.get_highlight("Type").fg, bold = true },
     flexible = 4,

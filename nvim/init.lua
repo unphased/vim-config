@@ -1045,19 +1045,18 @@ local ext = function(table, key, value)
   return tbl
 end
 
+local goto_preview = require('goto-preview')
+
 -- keymaps!!
 local lsp_attach = function (x, bufnr)
   local engine = x.name;
   print("lsp_attach:", engine, "bufnr="..bufnr)
   local bufopts = { noremap=true, silent=true, buffer=bufnr }
-  vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, ext(bufopts, "desc", "Go to Declaration"))
-  vim.keymap.set('n', 'gd', function ()
-    print ("gd called", engine)
-    telescope_builtin.lsp_definitions({ jump_type = "split" })
-  end, ext(bufopts, "desc", "Go to Definition(s)"))
+  vim.keymap.set('n', 'gD', goto_preview.goto_preview_type_definition, ext(bufopts, "desc", "Go to Type Definition (preview window)"))
+  vim.keymap.set('n', 'gd', goto_preview.goto_preview_definition, ext(bufopts, "desc", "Go to Definition (preview window)"))
   vim.keymap.set('n', '?', vim.lsp.buf.hover, ext(bufopts, "desc", "Hover"))
 
-  vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, ext(bufopts, "desc", "Go to Implementation"))
+  vim.keymap.set('n', 'gi', goto_preview.goto_preview_implementation, ext(bufopts, "desc", "Go to Implementation (preview window)"))
   vim.keymap.set('n', '<leader>h', vim.lsp.buf.signature_help, ext(bufopts, "desc", "Signature help"))
   -- vim.keymap.set('n', '<space>wa', vim.lsp.buf.add_workspace_folder, bufopts)
   -- vim.keymap.set('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, bufopts)
@@ -1067,7 +1066,7 @@ local lsp_attach = function (x, bufnr)
   -- vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, bufopts)
   vim.keymap.set('n', '<leader>r', vim.lsp.buf.rename, ext(bufopts, "desc", "Rename"))
   vim.keymap.set('n', '<leader>ca', function() vim.cmd('CodeActionMenu') end, ext(bufopts, "desc", "Code Action Menu"))
-  vim.keymap.set('n', 'gr', telescope_builtin.lsp_references, ext(bufopts, "desc", "Go to References"))
+  vim.keymap.set('n', 'gr', goto_preview.goto_preview_references, ext(bufopts, "desc", "Go to References"))
   vim.keymap.set('n', '<leader>=', function() vim.lsp.buf.format { async = true } end, ext(bufopts, "desc", "Format Buffer"))
 end
 
