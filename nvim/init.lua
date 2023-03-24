@@ -7,6 +7,7 @@
 - my prized alt-, and friends automations (to be fair i've been getting good at manually leveraging dot-repeat which is decently good retraining)
 - \p for toggle paste and removing indent markers and stuff like that in paste mode to make it work like a copy-mode
 - f10 handling for tmux
+- prevent mouse interaction from messing with insert mode cursor position
 
 --]]
 
