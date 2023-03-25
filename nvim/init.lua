@@ -9,6 +9,7 @@
 - f10 handling for tmux
 - prevent mouse interaction from messing with insert mode cursor position
 - implement insert mode ctrl backspace
+- implement insert mode reliable ctrl/alt arrows
 
 --]]
 
