@@ -1091,6 +1091,13 @@ require("mason-lspconfig").setup_handlers {
     }
   end,
   -- Next, you can provide a dedicated handler for specific servers. Don't forget to bring capabilities and on_attach in.
+  ["dockerls"] = function ()
+    print("dockerls caps =" .. vim.inspect(capabilities))
+    require("lspconfig")["dockerls"].setup {
+      capabilities = capabilities,
+      on_attach = lsp_attach,
+    }
+  end,
   ["lua_ls"] = function ()
     require("lspconfig")["lua_ls"].setup {
       capabilities = capabilities,

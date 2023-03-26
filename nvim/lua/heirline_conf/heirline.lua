@@ -191,7 +191,7 @@ local FileName = {
     end,
     hl = { fg = utils.get_highlight("Directory").fg },
 
-    flexible = 100,
+    flexible = 1000,
 
     {
         provider = function(self)
@@ -284,6 +284,7 @@ local FileFormat = {
 }
 
 local FileSize = {
+    flexible = 1,
     provider = function()
         -- stackoverflow, compute human readable file size
         local suffix = { 'b', 'k', 'M', 'G', 'T', 'P', 'E' }
@@ -365,7 +366,13 @@ local LSPActive = {
     {
         condition = conditions.lsp_attached,
         update = {'LspAttach', 'LspDetach'},
-        provider = " LSP "
+        provider = function()
+            local count = 0
+            for _, server in pairs(vim.lsp.get_active_clients({ bufnr = 0 })) do
+                count = count + 1
+            end
+            return " " .. count .. " "
+        end,
     }, {
         condition = conditions.lsp_attached,
         update = {'LspAttach', 'LspDetach'},
@@ -516,7 +523,7 @@ local Diagnostics = {
     -- {
     --     provider = "![",
     -- },
-    flexible = 1,
+    flexible = 20,
     {
         {
             provider = function(self)
@@ -623,44 +630,61 @@ local GitSpace = {
     hl = { fg = "orange" },
 
 
-    utils.surround({ "", "" }, "muted_bg", {
-        {   -- git branch name
-            provider = function(self)
-                return " " .. self.status_dict.head
-            end,
-            hl = { bold = true }
+    
+    flexible = 15,
+    {
+        utils.surround({ "", "" }, "muted_bg", {
+            {   -- git branch name
+                provider = function(self)
+                    return " " .. self.status_dict.head
+                end,
+                hl = { bold = true }
+            },
+            -- You could handle delimiters, icons and counts similar to Diagnostics
+            {
+                condition = function(self)
+                    return self.has_changes
+                end,
+                provider = " "
+            },
+            {
+                provider = function(self)
+                    local count = self.status_dict.added or 0
+                    return count > 0 and ("+" .. count)
+                end,
+                hl = { fg = "git_add" },
+            },
+            {
+                provider = function(self)
+                    local count = self.status_dict.removed or 0
+                    return count > 0 and ("-" .. count)
+                end,
+                hl = { fg = "git_del" },
+            },
+            {
+                provider = function(self)
+                    local count = self.status_dict.changed or 0
+                    return count > 0 and ("~" .. count)
+                end,
+                hl = { fg = "git_change" },
+            },
+        }), {
+            provider = " ",
         },
-        -- You could handle delimiters, icons and counts similar to Diagnostics
-        {
-            condition = function(self)
-                return self.has_changes
-            end,
-            provider = " "
-        },
-        {
-            provider = function(self)
-                local count = self.status_dict.added or 0
-                return count > 0 and ("+" .. count)
-            end,
-            hl = { fg = "git_add" },
-        },
-        {
-            provider = function(self)
-                local count = self.status_dict.removed or 0
-                return count > 0 and ("-" .. count)
-            end,
-            hl = { fg = "git_del" },
-        },
-        {
-            provider = function(self)
-                local count = self.status_dict.changed or 0
-                return count > 0 and ("~" .. count)
-            end,
-            hl = { fg = "git_change" },
-        },
-    }), {
-        provider = " ",
     },
+    {
+        utils.surround({ "", "" }, "muted_bg", {
+            {   -- git branch name
+                provider = function(self)
+                    return " " .. self.status_dict.head
+                end,
+                hl = { bold = true }
+            },
+        }), {
+            provider = " ",
+        },
+    },
+    { provider = "" }
 }
 
 
@@ -811,24 +835,24 @@ local Space = { provider = " " }
 ViMode = utils.surround({ "", "" }, "muted_bg", { ViMode, Snippets })
 
 local LazySpace = {
-  condition = function()
-    local ok, lazy_status = pcall(require, "lazy.status")
-    return ok and lazy_status.has_updates()
-  end,
-  on_click = {
-      callback = function () require('lazy').update() end,
-      name = "update_plugins"
-  },
-  hl = "Error",
-  flexible = 3,
-  {
-      provider = function()
-          return require("lazy.status").updates() .. " "
-      end
-  },
-  {
-      provider = ""
-  }
+    condition = function()
+        local ok, lazy_status = pcall(require, "lazy.status")
+        return ok and lazy_status.has_updates()
+    end,
+    on_click = {
+        callback = function () require('lazy').update() end,
+        name = "update_plugins"
+    },
+    hl = "Error",
+    flexible = 3,
+    {
+        provider = function()
+            return require("lazy.status").updates() .. " "
+        end
+    },
+    {
+        provider = ""
+    }
 }
 
 local SearchCount = {
