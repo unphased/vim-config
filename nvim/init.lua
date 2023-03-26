@@ -133,6 +133,12 @@ vim.keymap.set("n", "d<CR>", "<nop>")
 -- quit with shift+q
 vim.keymap.set("n", "<s-q>", ":q<cr>")
 
+-- add more window key sugar for the yank direction HJKL default binds.
+vim.keymap.set("n", "<c-w><c-l>", "<c-w>L")
+vim.keymap.set("n", "<c-w><c-h>", "<c-w>H")
+vim.keymap.set("n", "<c-w><c-j>", "<c-w>J")
+vim.keymap.set("n", "<c-w><c-k>", "<c-w>K")
+
 -- dumping vimL code that I didnt bother porting yet here for expedient bringup
 vim.cmd([[
 
@@ -645,6 +651,7 @@ require("trouble").setup({
 })
 
 require("neo-tree").setup({
+  auto_clean_after_session_restore = true, -- Automatically clean up broken neo-tree buffers saved in sessions
   close_if_last_window = true,
   sort_case_insensitive = true,
   filesystem = {
@@ -1125,6 +1132,7 @@ vim.cmd([[
   hi Search cterm=bold ctermfg=black ctermbg=yellow guibg=#a9291a guifg=NONE
   hi incSearch cterm=bold ctermfg=black ctermbg=yellow guibg=#a04080 guifg=NONE
   hi Visual term=reverse ctermbg=238 guibg=#505760
+  hi VertSplit guifg=#505760
 ]])
 
 -- for conflict-marker
