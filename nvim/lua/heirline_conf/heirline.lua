@@ -518,7 +518,7 @@ local Diagnostics = {
         self.info = #vim.diagnostic.get(0, { severity = vim.diagnostic.severity.INFO })
     end,
 
-    update = { "DiagnosticChanged", "BufEnter" },
+    -- update = { "DiagnosticChanged", "BufEnter" },
 
     -- {
     --     provider = "![",
