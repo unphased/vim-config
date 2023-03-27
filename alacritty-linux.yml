@@ -960,6 +960,12 @@ font:
     x: 0
     y: 0
 
+cursor: 
+  style:
+    blinking: Always
+    blink_interval: 300
+    blink_timeout: 10
+
 colors:
   # Default colors
   primary:
@@ -971,7 +977,6 @@ colors:
     text: '0x0f640f'
     cursor: '0x00ff00'
     shape: 'Block'
-    blinking: On
 
   # Normal colors
   normal:
