@@ -14,6 +14,8 @@
 - vim window maximization toggle
 - see if i can get trouble to show a list of just a type of severity of diag. hook to click on section.
 - add update field back to heirline for diags' flexible entries.
+- figure out why dockerls capabilities doesnt include semantic tokens
+- find a way to search by token under cursor or current search text in telesscope live grep
 
 --]]
 
@@ -869,6 +871,18 @@ require("mason-null-ls").setup_handlers({
     -- please add the below.
     require("mason-null-ls.automatic_setup")(source_name, methods)
   end,
+    pylint = function (source_name, methods)
+      -- need to set PYTHONPATH via --source-roots
+      null_ls.register(null_ls.builtins.diagnostics.pylint.with({
+        env = function(params)
+          local computed_pythonpath = vim.fn.system('python3 -c "import site; print(site.getsitepackages()[0])"')
+          local resolved_symlink = vim.fn.system('readlink -f ' .. computed_pythonpath):gsub("\n$", "")
+          print('null-ls pylint pythonpath', resolved_symlink)
+          return { PYTHONPATH = resolved_symlink }
+        end,
+      }))
+
+    end
 
   -- stylua = function(source_name, methods)
   --   null_ls.register(null_ls.builtins.formatting.stylua)
@@ -889,7 +903,9 @@ require("mason-null-ls").setup_handlers({
 
 null_ls.setup({
   debug = true,
-  sources = null_ls.builtins.code_actions.gitsigns
+  sources = {
+    null_ls.builtins.code_actions.gitsigns,
+  }
 })
 
 vim.opt.completeopt="menu,menuone,noselect"
