@@ -11,6 +11,7 @@
 - implement insert mode ctrl backspace
 - implement insert mode reliable ctrl/alt arrows
 - implement semantic highlight removal (i want this in possibly lua right now but also definitely dockerfile) by literally selecting them out at the highlight group level (ah dang, no worky for dockerls)
+- vim window maximization toggle
 
 --]]
 
