@@ -91,11 +91,11 @@ font:
 # render_timer: false
 
 # custom_cursor_colors: true
-cursor: 
+cursor:
   style:
     blinking: Always
-    blink_interval: 300
-    blink_timeout: 10
+  blink_interval: 500
+  blink_timeout: 0
 
 # Colors (Tomorrow Night)
 colors:

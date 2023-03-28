@@ -963,8 +963,8 @@ font:
 cursor: 
   style:
     blinking: Always
-    blink_interval: 300
-    blink_timeout: 10
+  blink_interval: 300
+  blink_timeout: 0
 
 colors:
   # Default colors
