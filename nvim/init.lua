@@ -252,6 +252,7 @@ vim.cmd([[
 
   " Note gui=italic is what modern nvim seems to take, NOT cterm. likely related to 24bit color
   hi Comment cterm=italic gui=italic
+  hi CopilotSuggestion gui=bold guibg=#202020
 
   nnoremap = :vertical res +5<CR>
   nnoremap - :vertical res -5<CR>
