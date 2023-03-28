@@ -12,6 +12,8 @@
 - implement insert mode reliable ctrl/alt arrows
 - implement semantic highlight removal (i want this in possibly lua right now but also definitely dockerfile) by literally selecting them out at the highlight group level (ah dang, no worky for dockerls)
 - vim window maximization toggle
+- see if i can get trouble to show a list of just a type of severity of diag. hook to click on section.
+- add update field back to heirline for diags' flexible entries.
 
 --]]
 
