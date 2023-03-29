@@ -1,7 +1,9 @@
 -- -- -- TODO LIST
 --[[
 
-- todo list (track stuff to port over, track stuff i want to achieve)
+------ todo list (track stuff to port over, track stuff i want to achieve)
+- fix ia/aa etc textobjects.
+- fix/reinvestigate matchup not working as expected in a lot of places like python
 - still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults
 - yank window to new tab in next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
 - my prized alt-, and friends automations (to be fair i've been getting good at manually leveraging dot-repeat which is decently good retraining)
