@@ -874,18 +874,23 @@ require("mason-null-ls").setup_handlers({
     -- please add the below.
     require("mason-null-ls.automatic_setup")(source_name, methods)
   end,
-    pylint = function (source_name, methods)
-      -- need to set PYTHONPATH via --source-roots
-      null_ls.register(null_ls.builtins.diagnostics.pylint.with({
-        env = function(params)
-          local computed_pythonpath = vim.fn.system('python3 -c "import site; print(site.getsitepackages()[0])"')
-          local resolved_symlink = vim.fn.system('readlink -f ' .. computed_pythonpath):gsub("\n$", "")
-          print('null-ls pylint pythonpath', resolved_symlink)
-          return { PYTHONPATH = resolved_symlink }
-        end,
-      }))
-
-    end
+  pylint = function (source_name, methods)
+    -- need to set PYTHONPATH via --source-roots
+    null_ls.register(null_ls.builtins.diagnostics.pylint.with({
+      env = function(params)
+        local computed_pythonpath = vim.fn.system('python3 -c "import site; print(site.getsitepackages()[0])"')
+        local resolved_symlink = vim.fn.system('readlink -f ' .. computed_pythonpath):gsub("\n$", "")
+        print ('null-ls pylint pythonpath', resolved_symlink)
+        return { PYTHONPATH = resolved_symlink }
+      end,
+    }))
+  end,
+  cspell = function(source_name, methods)
+    null_ls.register(null_ls.builtins.diagnostics.cspell.with({
+      timeout = 20000,
+      method = null_ls.methods.DIAGNOSTICS_ON_SAVE,
+    }))
+  end,
 
   -- stylua = function(source_name, methods)
   --   null_ls.register(null_ls.builtins.formatting.stylua)
@@ -1114,7 +1119,7 @@ require("mason-lspconfig").setup_handlers {
   end,
   -- Next, you can provide a dedicated handler for specific servers. Don't forget to bring capabilities and on_attach in.
   ["dockerls"] = function ()
-    print("dockerls caps =" .. vim.inspect(capabilities))
+    -- print("dockerls caps =" .. vim.inspect(capabilities))
     require("lspconfig")["dockerls"].setup {
       capabilities = capabilities,
       on_attach = lsp_attach,
