@@ -911,6 +911,7 @@ require("mason-null-ls").setup_handlers({
 
 null_ls.setup({
   debug = true,
+  fallback_severity = vim.diagnostic.severity.HINT,
   sources = {
     null_ls.builtins.code_actions.gitsigns,
   }
