@@ -172,7 +172,7 @@ local FileFlags = {
         condition = function()
             return vim.bo.modified
         end,
-        provider = " ● ",
+        provider = " ●",
         hl = { fg = "green" },
     },
     {
