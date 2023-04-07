@@ -1,7 +1,6 @@
 -- -- -- TODO LIST
 --[[
 
------- todo list (track stuff to port over, track stuff i want to achieve)
 - fix ia/aa etc textobjects.
 - fix/reinvestigate matchup not working as expected in a lot of places like python
 - still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults
@@ -1185,32 +1184,32 @@ vim.cmd [[
   sign define DiagnosticSignHint text=⚑  linehl= texthl=DiagnosticSignHint numhl=
 ]]
 
--- helper for debug
-local should_profile = os.getenv("NVIM_PROFILE")
-if should_profile then
-  require("profile").instrument_autocmds()
-  if should_profile:lower():match("^start") then
-    require("profile").start("*")
-  else
-    require("profile").instrument("*")
-  end
-end
-
-local function toggle_profile()
-  local prof = require("profile")
-  if prof.is_recording() then
-    prof.stop()
-    vim.ui.input({ prompt = "Save profile to:", completion = "file", default = "profile.json" }, function(filename)
-      if filename then
-        prof.export(filename)
-        vim.notify(string.format("Wrote %s", filename))
-      end
-    end)
-  else
-    prof.start("*")
-  end
-end
-vim.keymap.set("", "<f1>", toggle_profile)
+-- helper for stevearc/profile.nvim
+-- local should_profile = os.getenv("NVIM_PROFILE")
+-- if should_profile then
+--   require("profile").instrument_autocmds()
+--   if should_profile:lower():match("^start") then
+--     require("profile").start("*")
+--   else
+--     require("profile").instrument("*")
+--   end
+-- end
+--
+-- local function toggle_profile()
+--   local prof = require("profile")
+--   if prof.is_recording() then
+--     prof.stop()
+--     vim.ui.input({ prompt = "Save profile to:", completion = "file", default = "profile.json" }, function(filename)
+--       if filename then
+--         prof.export(filename)
+--         vim.notify(string.format("Wrote %s", filename))
+--       end
+--     end)
+--   else
+--     prof.start("*")
+--   end
+-- end
+-- vim.keymap.set("", "<f1>", toggle_profile)
 
 -- helper
 function string:split(delimiter)
@@ -1232,6 +1231,10 @@ function table:print()
   end
 end
 
+function is_lazy_plugin_installed(plugin_name)
+  local plugin_path = vim.fn.stdpath("data") .. "/lazy/" .. plugin_name
+  return vim.fn.isdirectory(plugin_path) == 1
+end
 
 _G.write_to_file = function (content, file)
   local f = io.open(file, "w")
