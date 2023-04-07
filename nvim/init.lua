@@ -1246,6 +1246,10 @@ function table:print()
   end
 end
 
+function is_lazy_plugin_installed(plugin_name)
+  local plugin_path = vim.fn.stdpath("data") .. "/lazy/" .. plugin_name
+  return vim.fn.isdirectory(plugin_path) == 1
+end
 
 _G.write_to_file = function (content, file)
   local f = io.open(file, "w")
