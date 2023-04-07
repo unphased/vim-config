@@ -66,7 +66,7 @@ return {
   -- "rafi/awesome-vim-colorschemes",
   -- "jlanzarotta/colorSchemeExplorer",
   "ojroques/nvim-osc52",
-  "yamatsum/nvim-cursorline",
+  -- "yamatsum/nvim-cursorline",
   "andymass/vim-matchup",
   "AndrewRadev/splitjoin.vim",
   "windwp/nvim-autopairs",

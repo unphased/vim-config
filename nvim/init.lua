@@ -17,7 +17,7 @@
 - see if i can get trouble to show a list of just a type of severity of diag. hook to click on section.
 - add update field back to heirline for diags' flexible entries.
 - figure out why dockerls capabilities doesnt include semantic tokens
-- find a way to search by token under cursor or current search text in telesscope live grep
+- find a way to search by token under cursor or current search text in telescope live grep
 
 --]]
 
@@ -691,21 +691,6 @@ require("neo-tree").setup({
       end
     }
   }
-})
-
-require("nvim-cursorline").setup({
-  cursorline = { enable = false },
-  -- cursorline = {
-  --   enable = true,
-  --   timeout = 5,
-  --   number = true,
-  --   hl = { bg = "#262626" }, -- seems to be overridden by at least a few CSs but worth specifying?
-  -- },
-  cursorword = {
-    enable = true,
-    min_length = 2,
-    hl = { bold = true, underline = false },
-  },
 })
 
 vim.cmd([[ 
