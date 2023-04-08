@@ -15,7 +15,7 @@
 - vim window maximization toggle
 - see if i can get trouble to show a list of just a type of severity of diag. hook to click on section.
 - add update field back to heirline for diags' flexible entries.
-- figure out why dockerls capabilities doesnt include semantic tokens
+- figure out why dockerls capabilities doesn't include semantic tokens
 - find a way to search by token under cursor or current search text in telescope live grep
 
 --]]
@@ -31,6 +31,7 @@ vim.o.ignorecase = true
 vim.o.smartcase = true
 vim.o.numberwidth = 3
 -- vim.o.cmdheight = 0
+vim.o.updatetime = 300 -- useful for non-plugin word highlight
 
 -- settings that may require inclusion prior to Lazy loader
 
@@ -389,6 +390,11 @@ vim.cmd([[
   " endif
   let &cpo = s:save_cpo | unlet s:save_cpo
   " End impl of Search for selected text.
+
+  augroup highlight_current_word
+    au!
+    au CursorHold * :exec 'match WordUnderTheCursor /\V\<' . expand('<cword>') . '\>/'
+  augroup END
 ]])
 
 -- gvar settings for plugins
