@@ -705,15 +705,15 @@ vim.cmd([[
 require("colorizer").setup()
 
 -- general plugin specific binds (TODO: put together when refactoring the plugin configs into files)
-vim.keymap.set("n", "<leader>y", require("osc52").copy_operator, { expr = true })
-vim.keymap.set("n", "<leader>yy", "<leader>c_", { remap = true })
-vim.keymap.set("x", "<leader>y", require("osc52").copy_visual)
+vim.keymap.set("n", "<leader>y", require("osc52").copy_operator, { expr = true, desc = "Copy to host term system clipboard via OSC 52" })
+vim.keymap.set("n", "<leader>yy", "<leader>c_", { remap = true, desc = "Copy entire line to host term system clipboard via OSC 52" })
+vim.keymap.set("x", "<leader>y", require("osc52").copy_visual, { desc = "Copy visual selection to host term system clipboard via OSC 52" })
 
 -- We can explicitly use the server's own clipboard or fallback clipboard file if we somehow know
 -- that we want the buffer that's in there.
 -- nnoremap <Leader>p :read !pbpaste<CR>
-vim.keymap.set("n", "<leader>p", ":read !pbpaste<CR>")
-vim.keymap.set("v", "<leader>p", ":!pbpaste<CR>")
+vim.keymap.set("n", "<leader>p", ":read !pbpaste<CR>", { desc = "Paste from pbpaste" })
+vim.keymap.set("v", "<leader>p", ":!pbpaste<CR>", { desc = "Paste from pbpaste" })
 
 -- do not use read here so that the selected stuff gets slurped.
 -- vnoremap <Leader>p :!pbpaste<CR>
