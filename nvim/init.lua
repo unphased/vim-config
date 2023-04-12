@@ -1,7 +1,6 @@
 -- -- -- TODO LIST
 --[[
 
-- fix ia/aa etc textobjects.
 - fix/reinvestigate matchup not working as expected in a lot of places like python
 - still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults
 - yank window to new tab in next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
@@ -581,7 +580,7 @@ require("nvim-treesitter.configs").setup({
         ["af"] = "@function.outer",
         ["if"] = "@function.inner",
         ["ac"] = "@class.outer",
-        ["ai"] = "@parameter.inner",
+        ["ia"] = "@parameter.inner",
         ["aa"] = "@parameter.outer",
         -- You can optionally set descriptions to the mappings (used in the desc parameter of
         -- nvim_buf_set_keymap) which plugins like which-key display
