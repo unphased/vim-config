@@ -29,6 +29,7 @@ vim.o.undodir = vim.env.HOME .. "/.tmp"
 vim.o.termguicolors = true
 vim.o.ignorecase = true
 vim.o.smartcase = true
+vim.o.tabstop = 4
 vim.o.numberwidth = 3
 -- vim.o.cmdheight = 0
 vim.o.updatetime = 300 -- useful for non-plugin word highlight
