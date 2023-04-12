@@ -1,6 +1,7 @@
 -- -- -- TODO LIST
 --[[
 
+- Add my custom statusline functionality from other vim config: File current byte offset, etc.
 - fix/reinvestigate matchup not working as expected in a lot of places like python
 - still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults
 - yank window to new tab in next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
@@ -393,7 +394,7 @@ vim.cmd([[
 
   augroup highlight_current_word
     au!
-    au CursorHold * :exec 'match WordUnderTheCursor /\V\<' . expand('<cword>') . '\>/'
+    au CursorHold * :silent! exec 'match WordUnderTheCursor /\V\<' . expand('<cword>') . '\>/'
   augroup END
 ]])
 
