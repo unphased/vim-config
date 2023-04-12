@@ -625,39 +625,6 @@ require("nvim-treesitter.configs").setup({
   -- },
 })
 
--- require('lazy-lsp').setup {
---   -- By default all available servers are set up. Exclude unwanted or misbehaving servers.
---   excluded_servers = {
---     "ccls", "zk",
---   },
---   -- Default config passed to all servers to specify on_attach callback and other options.
---   default_config = {
---     flags = {
---       debounce_text_changes = 150,
---     },
---     -- on_attach = on_attach,
---     -- capabilities = capabilities,
---   },
---   -- Override config for specific servers that will passed down to lspconfig setup.
---   configs = {
---     sumneko_lua = {
---       cmd = {"lua-language-server"},
---       -- on_attach = on_lua_attach,
---       -- capabilities = capabilities,
---       settings = {
---         Lua = {
---           runtime = {
---             version = 'LuaJIT',
---           },
---           diagnostics = {
---             globals = { 'vim' }
---           }
---         }
---       }
---     },
---   },
--- }
-
 require("trouble").setup({
   -- your configuration comes here
   -- or leave it empty to use the default settings
@@ -769,91 +736,8 @@ require("indent_blankline").setup({
 })
 
 
--- local navic = require("nvim-navic")
---
--- require("lsp-zero").extend_lspconfig({
---   set_lsp_keymaps = false,
---   -- review whether an autocmd is preferable to this. possibly not
---   on_attach = function(client, bufnr)
---     -- print("lsp zero lspconfig extend client", vim.inspect(client.name))
---     local opts = { buffer = bufnr }
---
---     -- enable navic
---     if client.server_capabilities.documentSymbolProvider then
---         navic.attach(client, bufnr)
---     end
---
---     vim.keymap.set("n", "?", vim.lsp.buf.hover, opts)
---     vim.keymap.set("n", "<leader>r", vim.lsp.buf.rename, opts)
---     ---
---     -- and many more...
---     ---
---   end,
--- })
-
--- navic.setup()
--- vim.o.winbar = "%{%v:lua.require'nvim-navic'.get_location()%}"
---
--- require("mason").setup()
--- require("mason-lspconfig").setup()
---
--- require("mason-lspconfig").setup_handlers({
---   function(server_name)
---     -- print("mason-lspconfig setup_handlers", server_name)
---     require("lspconfig")[server_name].setup({})
---   end,
---   ["lua_ls"] = function()
---     require("lspconfig")["lua_ls"].setup({
---       settings = {
---         Lua = {
---           diagnostics = {
---             enable = true,
---             globals = { "vim" },
---           },
---           runtime = {
---             version = "LuaJIT",
---           },
---         },
---       },
---     })
---   end,
--- })
---
--- ---
--- -- Diagnostic config
--- ---
---
--- require("lsp-zero").set_sign_icons()
--- --- Not sure -- the next line disables/interferes w/ Trouble inline virtual text stuff
--- -- vim.diagnostic.config(require('lsp-zero').defaults.diagnostics({}))
---
--- ---
--- -- Snippet config
--- ---
---
---
--- ---
--- -- Autocompletion
--- ---
---
--- vim.opt.completeopt = { "menu", "menuone" }
---
 local null_ls = require("null-ls")
--- --
--- -- null_ls.setup({
--- --   sources = {
--- --     null_ls.builtins.diagnostics.shellcheck,
--- --     null_ls.builtins.diagnostics.hadolint,
--- --     null_ls.builtins.diagnostics.yamllint,
--- --     null_ls.builtins.diagnostics.selene,
--- --   }
--- -- })
--- -- local null_ls = require 'null-ls'
 
-require("mason-null-ls").setup({
-  ensure_installed = { "shellcheck" },
-  automatic_setup = true,
-})
 require("mason-null-ls").setup_handlers({
   function(source_name, methods)
     -- print("mason-null-ls-handler: source_name:" .. source_name)
@@ -897,6 +781,10 @@ require("mason-null-ls").setup_handlers({
   -- print("semgrep prospective:", vim.inspect(null_ls.builtins.diagnostics.semgrep.with({
   --   extra_args = { "--config", "auto" },
   -- })))
+})
+require("mason-null-ls").setup({
+  ensure_installed = { "shellcheck" },
+  automatic_setup = true,
 })
 
 null_ls.setup({
