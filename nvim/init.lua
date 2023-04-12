@@ -736,65 +736,6 @@ require("indent_blankline").setup({
 })
 
 
-local null_ls = require("null-ls")
-
-require("mason-null-ls").setup_handlers({
-  function(source_name, methods)
-    -- print("mason-null-ls-handler: source_name:" .. source_name)
-    -- print("mason-null-ls-handler: methods:" .. vim.inspect(methods))
-    -- all sources with no handler get passed here
-
-    -- To keep the original functionality of `automatic_setup = true`,
-    -- please add the below.
-    require("mason-null-ls.automatic_setup")(source_name, methods)
-  end,
-  pylint = function (source_name, methods)
-    -- need to set PYTHONPATH via --source-roots
-    null_ls.register(null_ls.builtins.diagnostics.pylint.with({
-      env = function(params)
-        local computed_pythonpath = vim.fn.system('python3 -c "import site; print(site.getsitepackages()[0])"')
-        local resolved_symlink = vim.fn.system('readlink -f ' .. computed_pythonpath):gsub("\n$", "")
-        print ('null-ls pylint pythonpath', resolved_symlink)
-        return { PYTHONPATH = resolved_symlink }
-      end,
-    }))
-  end,
-  cspell = function(source_name, methods)
-    null_ls.register(null_ls.builtins.diagnostics.cspell.with({
-      timeout = 20000,
-      method = null_ls.methods.DIAGNOSTICS_ON_SAVE,
-    }))
-  end,
-
-  -- stylua = function(source_name, methods)
-  --   null_ls.register(null_ls.builtins.formatting.stylua)
-  -- end,
-
-  ---- Semgrep is cool but takes way long to run (need to find out how to extend timeout) and also does not commonly emit much output. So I'm not really interested in it right now.
-  -- semgrep = function(source_name, methods)
-  --   null_ls.register(null_ls.builtins.diagnostics.semgrep.with({
-  --     extra_args = { "--config", "auto" },
-  --   }))
-  -- end,
-  --
-  -- print("semgrep obtained as:", vim.inspect(null_ls.builtins.diagnostics.semgrep)),
-  -- print("semgrep prospective:", vim.inspect(null_ls.builtins.diagnostics.semgrep.with({
-  --   extra_args = { "--config", "auto" },
-  -- })))
-})
-require("mason-null-ls").setup({
-  ensure_installed = { "shellcheck" },
-  automatic_setup = true,
-})
-
-null_ls.setup({
-  debug = true,
-  fallback_severity = vim.diagnostic.severity.HINT,
-  sources = {
-    null_ls.builtins.code_actions.gitsigns,
-  }
-})
-
 vim.opt.completeopt="menu,menuone,noselect"
 
 local cmp = require'cmp'
@@ -952,6 +893,54 @@ require("mason-lspconfig").setup({
   --       Example: automatic_installation = { exclude = { "rust_analyzer", "solargraph" } }
   automatic_installation = true,
 })
+
+local null_ls = require("null-ls")
+
+require("mason-null-ls").setup({
+  ensure_installed = { "shellcheck" },
+  automatic_setup = true,
+  handlers = {
+    function(source_name, methods)
+      -- print("mason-null-ls-handler: source_name:" .. source_name)
+      -- print("mason-null-ls-handler: methods:" .. vim.inspect(methods))
+      -- all sources with no handler get passed here
+
+      -- To keep the original functionality of `automatic_setup = true`,
+      -- please add the below.
+      require("mason-null-ls.automatic_setup")(source_name, methods)
+    end,
+    pylint = function (source_name, methods)
+      -- need to set PYTHONPATH via --source-roots
+      null_ls.register(null_ls.builtins.diagnostics.pylint.with({
+        env = function(params)
+          local computed_pythonpath = vim.fn.system('python3 -c "import site; print(site.getsitepackages()[0])"')
+          local resolved_symlink = vim.fn.system('readlink -f ' .. computed_pythonpath):gsub("\n$", "")
+          print ('null-ls pylint pythonpath', resolved_symlink)
+          return { PYTHONPATH = resolved_symlink }
+        end,
+      }))
+    end,
+    cspell = function(source_name, methods)
+      null_ls.register(null_ls.builtins.diagnostics.cspell.with({
+        timeout = 20000,
+        method = null_ls.methods.DIAGNOSTICS_ON_SAVE,
+      }))
+    end,
+
+    -- stylua = function(source_name, methods)
+    --   null_ls.register(null_ls.builtins.formatting.stylua)
+    -- end,
+  }
+})
+
+null_ls.setup({
+  debug = true,
+  fallback_severity = vim.diagnostic.severity.HINT,
+  sources = {
+    null_ls.builtins.code_actions.gitsigns,
+  }
+})
+
 
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
