@@ -224,5 +224,6 @@ return {
         end,
       }
     end
-  }
+  },
+  "RRethy/vim-illuminate"
 }

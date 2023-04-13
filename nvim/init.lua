@@ -394,10 +394,7 @@ vim.cmd([[
   let &cpo = s:save_cpo | unlet s:save_cpo
   " End impl of Search for selected text.
 
-  augroup highlight_current_word
-    au!
-    au CursorHold * :silent! exec 'match WordUnderTheCursor /\V\<' . expand('<cword>') . '\>/'
-  augroup END
+
 ]])
 
 -- gvar settings for plugins
