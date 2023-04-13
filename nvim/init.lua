@@ -208,7 +208,8 @@ vim.cmd([[
   " highlight GitSignsChangeLnInline guibg=#0000ff guifg=NONE
   highlight GitSignsDeleteLnInline gui=underdouble guisp=#800000 guibg=NONE guifg=NONE
   " highlight GitSignsDeleteVirtLn guibg=NONE guifg=NONE
-  highlight GitSignsDeleteVirtLnInLine guibg=#800000
+  highlight GitSignsDeleteVirtLn guibg=#500000
+  highlight GitSignsDeleteVirtLnInLine guibg=#600000
 
   highlight WordUnderTheCursor gui=bold
 
@@ -1035,7 +1036,11 @@ vim.cmd([[
   hi Search cterm=bold ctermfg=black ctermbg=yellow guibg=#a9291a guifg=NONE
   hi incSearch cterm=bold ctermfg=black ctermbg=yellow guibg=#a04080 guifg=NONE
   hi Visual term=reverse ctermbg=238 guibg=#505760
+
+  " pane/window split style: only vertical split style matters in vim since horizontal splits are made of statuslines.
   hi VertSplit guifg=#505760
+
+  hi TSPlaygroundFocus guibg=#2f628e
 ]])
 
 -- for conflict-marker
@@ -1156,5 +1161,5 @@ function _G.overwrite_file(payload, filename)
 end
 
 -- putting here late so log global is present for it
-require("heirline_conf.heirline")
+-- require("heirline_conf.heirline")
 

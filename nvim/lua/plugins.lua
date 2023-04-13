@@ -36,13 +36,15 @@ return {
   -- {
   --   'dundalek/lazy-lsp.nvim', dependencies = { 'neovim/nvim-lspconfig' }
   -- },
+  'unphased/nvim-treesitter-textobjects',
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
     dependencies = {
       -- show treesitter nodes
       "nvim-treesitter/playground", -- enable more advanced treesitter-aware text objects
-      "nvim-treesitter/nvim-treesitter-textobjects", -- add rainbow highlighting to parens and brackets
+      -- removing this dependency because specifying my own fork of nvim-treesitter-textobjects now.
+      -- "nvim-treesitter/nvim-treesitter-textobjects", -- add rainbow highlighting to parens and brackets
       -- "p00f/nvim-ts-rainbow",
       "JoosepAlviste/nvim-ts-context-commentstring"
     }
@@ -125,7 +127,7 @@ return {
     },
   },
   {
-    "rebelot/heirline.nvim",
+    -- "rebelot/heirline.nvim",
     -- You can optionally lazy-load heirline on UiEnter
     -- to make sure all required plugins and colorschemes are loaded before setup
     -- event = "UiEnter",
