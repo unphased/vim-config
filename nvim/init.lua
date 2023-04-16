@@ -4,6 +4,7 @@
 - Add my custom statusline functionality from other vim config: File current byte offset, etc.
 - still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults
 - yank window to new tab in next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
+- https://www.reddit.com/r/neovim/comments/12o2pzq/im_tired_of_configuring_neovim/jggvt2n/?utm_source=share&utm_medium=ios_app&utm_name=ioscss&utm_content=1&utm_term=1&context=3
 - my prized alt-, and friends automations (to be fair i've been getting good at manually leveraging dot-repeat which is decently good retraining)
 - \p for toggle paste and removing indent markers and stuff like that in paste mode to make it work like a copy-mode
 - f10 handling for tmux
