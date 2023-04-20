@@ -2,6 +2,7 @@
 --[[
 
 - Add my custom statusline functionality from other vim config: File current byte offset, etc.
+- reorganize the config into separate source files grouped by functionality
 - still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults
 - yank window to new tab in next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
 - https://www.reddit.com/r/neovim/comments/12o2pzq/im_tired_of_configuring_neovim/jggvt2n/?utm_source=share&utm_medium=ios_app&utm_name=ioscss&utm_content=1&utm_term=1&context=3
@@ -403,6 +404,7 @@ vim.g.matchup_matchparen_offscreen = { method = "popup" }
 vim.g.matchup_surround_enabled = 1
 vim.g.matchup_matchparen_deferred = 1
 vim.g.matchup_matchparen_hi_surround_always = 1
+vim.g.matchup_transmute_enabled = 1
 
 vim.opt.titlestring = "NVIM %f %h%m%r%w (%{tabpagenr()} of %{tabpagenr('$')})"
 
