@@ -64,5 +64,5 @@
   "vim-windowswap": { "branch": "master", "commit": "15db3f697aa1fa696d99fcdc920c90cd2cec855e" },
   "which-key.nvim": { "branch": "main", "commit": "94cb020ff33a1e0e22fac1c41663d2c439741f17" },
   "yanky.nvim": { "branch": "main", "commit": "c4c794afd762a00ca543972e5b9e34ce9aa14a87" },
-  "zephyr-nvim": { "branch": "main", "commit": "8f00d14959d8afc082bd032fa101eeabaf75ca8b" }
+  "zephyr-nvim": { "branch": "main", "commit": "392331d7e3ccd4a748b183934e711adb9bf5893b" }
 }
