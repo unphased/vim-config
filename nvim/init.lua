@@ -54,12 +54,10 @@ vim.opt.rtp:prepend(lazypath)
 
 -- plugins
 require("lazy").setup("plugins", {
-  change_detection = {
-    -- automatically check for config file changes and reload the ui
-    enabled = true,
-    notify = true, -- get a notification when changes are found
-  },
   checker = { enabled = true, notify = false, },
+  git = {
+    url_format = "git@github.com:%s.git",
+  }
 })
 
 -- mappings
@@ -213,6 +211,11 @@ vim.cmd([[
   highlight GitSignsDeleteVirtLnInLine guibg=#600000
 
   highlight WordUnderTheCursor gui=bold
+  highlight IlluminatedWordText gui=bold
+  highlight IlluminatedWordWrite gui=bold,underline
+  highlight IlluminatedWordRead gui=bold
+
+  highlight MatchParen guibg=#683068
 
   noremap <silent> <C-H> :<c-u>call TmuxWindow('h')<CR>
   noremap <silent> <C-J> :<c-u>call TmuxWindow('j')<CR>
