@@ -227,5 +227,10 @@ return {
       }
     end
   },
-  "RRethy/vim-illuminate"
+  "RRethy/vim-illuminate",
+  {
+    "ecthelionvi/NeoComposer.nvim",
+    dependencies = { "kkharji/sqlite.lua" },
+    opts = {}
+  },
 }
