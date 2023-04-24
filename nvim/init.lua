@@ -499,7 +499,7 @@ vim.keymap.set("n", "<leader>m", telescope_builtin.man_pages, { desc = "Telescop
 vim.keymap.set("n", "<f6>", telescope_builtin.oldfiles, { desc = "Telescope Recent Files" })
 vim.keymap.set("n", "<leader>b", telescope_builtin.buffers, { desc = "Telescope Buffers" })
 -- "vim help"
-vim.keymap.set('n', '<leader>vh', telescope_builtin.help_tags, { desc = "Telescope Help Tags" })
+vim.keymap.set('n', '<leader>h', telescope_builtin.help_tags, { desc = "Telescope Help Tags" })
 
 require("nvim-lastplace").setup({})
 require("nvim-autopairs").setup({ map_cr = false })
@@ -554,10 +554,10 @@ require("nvim-treesitter.configs").setup({
   -- incremental_selection = {
   --   enable = true,
   --   keymaps = {
-  --     init_selection = '<CR>',
-  --     --scope_incremental = '<TAB>',
-  --     node_incremental = '<CR>',
-  --     node_decremental = '<S-TAB>',
+  --     init_selection = "<leader>v", -- set to `false` to disable one of the mappings
+  --     node_incremental = "<right>",
+  --     scope_incremental = "<up>",
+  --     node_decremental = "<left>",
   --   },
   -- },
   matchup = {
@@ -968,7 +968,8 @@ local lsp_attach = function (x, bufnr)
   vim.keymap.set('n', '?', vim.lsp.buf.hover, ext(bufopts, "desc", "Hover"))
 
   vim.keymap.set('n', 'gi', goto_preview.goto_preview_implementation, ext(bufopts, "desc", "Go to Implementation (preview window)"))
-  vim.keymap.set('n', '<leader>h', vim.lsp.buf.signature_help, ext(bufopts, "desc", "Signature help"))
+  -- mnemonic is "args"
+  vim.keymap.set('n', '<leader>a', vim.lsp.buf.signature_help, ext(bufopts, "desc", "Signature help"))
   -- vim.keymap.set('n', '<space>wa', vim.lsp.buf.add_workspace_folder, bufopts)
   -- vim.keymap.set('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, bufopts)
   -- vim.keymap.set('n', '<space>wl', function()
