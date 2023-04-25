@@ -1,6 +1,9 @@
 -- -- -- TODO LIST
 --[[
 
+- make colon wq from insert also quit nvim (actually i forget what i set it up for in vim just replicate that...)
+- grab the syntax-tree-surfer plugin
+- explore the alternative to composer (forget the name but it is a thing that previews macros and other stuff. very cool)
 - Add my custom statusline functionality from other vim config: File current byte offset, etc.
 - reorganize the config into separate source files grouped by functionality
 - still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults
