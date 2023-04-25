@@ -440,6 +440,15 @@ vim.cmd([[
   " End impl of Search for selected text.
 
 
+  " Ctrl+F for find -- tip on \v from
+  " http://stevelosh.com/blog/2010/09/coming-home-to-vim/
+  " May take some getting used to, but is generally saving on use of backslashes
+  nnoremap <C-F> /\v
+  inoremap <C-F> <ESC>/\v
+  vnoremap <C-F> /\v
+  nnoremap / /\v
+  vnoremap / /\v
+
 ]])
 
 -- gvar settings for plugins
@@ -1208,7 +1217,7 @@ function _G.overwrite_file(payload, filename)
   log_file:close()
 end
 
-require'treesitter-context'.setup{
+require('treesitter-context').setup{
   enable = true, -- Enable this plugin (Can be enabled/disabled later via commands)
   max_lines = 0, -- How many lines the window should span. Values <= 0 mean no limit.
   min_window_height = 0, -- Minimum editor window height to enable context. Values <= 0 mean no limit.
@@ -1222,18 +1231,6 @@ require'treesitter-context'.setup{
   zindex = 20, -- The Z-index of the context window
 }
 
-function ExecuteCommandWithFallback(command, fallback)
-  -- Use pcall to execute the command and catch potential errors
-  local success, errMsg = pcall(function() vim.cmd(command) end)
-  if not success then
-    -- If there was an error, execute the fallback command
-    _G.log("ECWF Fallback executing: " .. fallback)
-    vim.cmd(fallback)
-    -- _G.log("ECWF Error executing command: " .. errMsg)
-  else
-    _G.log("ECWF Success executing command: " .. command)
-  end
-end
 -- Syntax Tree Surfer
 local sts = require('syntax-tree-surfer')
 sts.setup({
@@ -1285,10 +1282,10 @@ vim.keymap.set("n", "vx", '<cmd>STSSelectMasterNode<cr>', opts)
 vim.keymap.set("n", "vn", '<cmd>STSSelectCurrentNode<cr>', opts)
 --
 -- Select Nodes in Visual Mode
-vim.keymap.set("x", "L", '<cmd>lua ExecuteCommandWithFallback("STSSelectNextSiblingNode", "normal 7l")<cr>', opts)
-vim.keymap.set("x", "H", '<cmd>lua ExecuteCommandWithFallback("STSSelectPrevSiblingNode", "normal 7h")<cr>', opts)
-vim.keymap.set("x", "K", '<cmd>lua ExecuteCommandWithFallback("STSSelectParentNode", "normal 5gk")<cr>', opts)
-vim.keymap.set("x", "J", '<cmd>lua ExecuteCommandWithFallback("STSSelectChildNode", "normal 5gj")<cr>', opts)
+vim.keymap.set("x", "<Right>", '<cmd>STSSelectNextSiblingNode<cr>', opts)
+vim.keymap.set("x", "<Left>", '<cmd>STSSelectPrevSiblingNode<cr>', opts)
+vim.keymap.set("x", "<Up>", '<cmd>STSSelectParentNode<cr>', opts)
+vim.keymap.set("x", "<Down>", '<cmd>STSSelectChildNode<cr>', opts)
 
 -- Swapping Nodes in Visual Mode
 vim.keymap.set("x", "<A-j>", '<cmd>STSSwapNextVisual<cr>', opts)
