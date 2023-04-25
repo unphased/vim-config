@@ -473,13 +473,13 @@ require("gitsigns").setup({
       if vim.wo.diff then return ']c' end
       vim.schedule(function() gs.next_hunk() end)
       return '<Ignore>'
-    end, {expr=true})
+    end, {expr=true, desc="Next Hunk"})
 
     map('n', '[c', function()
       if vim.wo.diff then return '[c' end
       vim.schedule(function() gs.prev_hunk() end)
       return '<Ignore>'
-    end, {expr=true})
+    end, {expr=true, desc="Prev Hunk"})
   end,
   diff_opts = {
     internal = true,
@@ -1250,26 +1250,25 @@ sts.setup({
 -- local opts = {noremap = true, silent = true}
 local opts = {noremap = true} -- delete me later
 
--- -- Normal Mode Swapping:
--- -- Swap The Master Node relative to the cursor with it's siblings, Dot Repeatable
--- vim.keymap.set("n", "vU", function()
--- 	vim.opt.opfunc = "v:lua.STSSwapUpNormal_Dot"
--- 	return "g@l"
--- end, { silent = true, expr = true })
--- vim.keymap.set("n", "vD", function()
--- 	vim.opt.opfunc = "v:lua.STSSwapDownNormal_Dot"
--- 	return "g@l"
--- end, { silent = true, expr = true })
---
--- -- Swap Current Node at the Cursor with it's siblings, Dot Repeatable
--- vim.keymap.set("n", "vd", function()
--- 	vim.opt.opfunc = "v:lua.STSSwapCurrentNodeNextNormal_Dot"
--- 	return "g@l"
--- end, { silent = true, expr = true })
--- vim.keymap.set("n", "vu", function()
--- 	vim.opt.opfunc = "v:lua.STSSwapCurrentNodePrevNormal_Dot"
--- 	return "g@l"
--- end, { silent = true, expr = true })
+-- Normal Mode Swapping:
+-- Swap The Master Node relative to the cursor with it's siblings, Dot Repeatable
+vim.keymap.set("n", "{", function()
+	vim.opt.opfunc = "v:lua.STSSwapUpNormal_Dot"
+	return "g@l"
+end, { silent = true, expr = true })
+vim.keymap.set("n", "}", function()
+	vim.opt.opfunc = "v:lua.STSSwapDownNormal_Dot"
+	return "g@l"
+end, { silent = true, expr = true })
+-- Swap Current Node at the Cursor with it's siblings, Dot Repeatable
+vim.keymap.set("n", "]]", function()
+	vim.opt.opfunc = "v:lua.STSSwapCurrentNodeNextNormal_Dot"
+	return "g@l"
+end, { silent = true, expr = true })
+vim.keymap.set("n", "[[", function()
+	vim.opt.opfunc = "v:lua.STSSwapCurrentNodePrevNormal_Dot"
+	return "g@l"
+end, { silent = true, expr = true })
 --
 -- --> If the mappings above don't work, use these instead (no dot repeatable)
 -- -- vim.keymap.set("n", "vd", '<cmd>STSSwapCurrentNodeNextNormal<cr>', opts)
@@ -1288,8 +1287,8 @@ vim.keymap.set("x", "<Up>", '<cmd>STSSelectParentNode<cr>', opts)
 vim.keymap.set("x", "<Down>", '<cmd>STSSelectChildNode<cr>', opts)
 
 -- Swapping Nodes in Visual Mode
-vim.keymap.set("x", "<A-j>", '<cmd>STSSwapNextVisual<cr>', opts)
-vim.keymap.set("x", "<A-k>", '<cmd>STSSwapPrevVisual<cr>', opts)
+vim.keymap.set("x", "<C-Right>", '<cmd>STSSwapNextVisual<cr>', opts)
+vim.keymap.set("x", "<C-Left>", '<cmd>STSSwapPrevVisual<cr>', opts)
 
 -- end of Syntax Tree Surfer
 
