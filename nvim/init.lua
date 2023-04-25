@@ -1,6 +1,7 @@
 -- -- -- TODO LIST
 --[[
 
+- get a better profiler tool and figure out why this file is sluggish
 - Add my custom statusline functionality from other vim config: File current byte offset, etc.
 - reorganize the config into separate source files grouped by functionality
 - still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults
@@ -65,15 +66,15 @@ vim.keymap.set("n", "<leader>w", ":set wrap!<cr>")
 
 --- disabling for now since regular works with cmp cmdline completion
 -- vim.keymap.set({ "n", "v" }, "/", "/\\V")
-vim.keymap.set({ "n", "v" }, "k", "gk")
-vim.keymap.set({ "n", "v" }, "j", "gj")
-vim.keymap.set({ "n", "v" }, "gk", "k")
-vim.keymap.set({ "n", "v" }, "gj", "j")
+vim.keymap.set({ "n", "x" }, "k", "gk")
+vim.keymap.set({ "n", "x" }, "j", "gj")
+vim.keymap.set({ "n", "x" }, "gk", "k")
+vim.keymap.set({ "n", "x" }, "gj", "j")
 
-vim.keymap.set({ "v", "n" }, "K", "5gk")
-vim.keymap.set({ "v", "n" }, "J", "5gj")
-vim.keymap.set({ "v", "n" }, "H", "7h")
-vim.keymap.set({ "v", "n" }, "L", "7l")
+vim.keymap.set({ "x", "n" }, "K", "5gk")
+vim.keymap.set({ "x", "n" }, "J", "5gj")
+vim.keymap.set({ "x", "n" }, "H", "7h")
+vim.keymap.set({ "x", "n" }, "L", "7l")
 
 -- just a thing i got used to; makes it easy to put what you just typed into brackets
 vim.keymap.set("i", "<c-b>", "<esc>lve")
@@ -567,7 +568,8 @@ require("nvim-treesitter.configs").setup({
 
   textobjects = {
     swap = {
-      enable = true,
+      -- disabled because using STS for swaps
+      enable = false,
       swap_next = {
         ["]]"] = "@parameter.inner",
       },
@@ -588,6 +590,7 @@ require("nvim-treesitter.configs").setup({
         ["ac"] = "@class.outer",
         ["ia"] = "@parameter.inner",
         ["aa"] = "@parameter.outer",
+        ["/"] = "@comment.outer",
         -- You can optionally set descriptions to the mappings (used in the desc parameter of
         -- nvim_buf_set_keymap) which plugins like which-key display
         ["ic"] = { query = "@class.inner", desc = "Select inner part of a class region" },
@@ -1179,6 +1182,68 @@ require'treesitter-context'.setup{
   separator = nil,
   zindex = 20, -- The Z-index of the context window
 }
+
+-- Syntax Tree Surfer
+local sts = require('syntax-tree-surfer')
+sts.setup({
+  -- icon_dictionary = {
+  --   ["if_statement"] = "",
+  --   ["else_clause"] = "",
+  --   ["else_statement"] = "",
+  --   ["elseif_statement"] = "",
+  --   ["for_statement"] = "ﭜ",
+  --   ["while_statement"] = "ﯩ",
+  --   ["switch_statement"] = "ﳟ",
+  --   ["function"] = "",
+  --   ["function_definition"] = "",
+  --   ["variable_declaration"] = "",
+  -- },
+})
+local opts = {noremap = true, silent = true}
+local opts = {noremap = true} -- delete me later
+
+-- -- Normal Mode Swapping:
+-- -- Swap The Master Node relative to the cursor with it's siblings, Dot Repeatable
+-- vim.keymap.set("n", "vU", function()
+-- 	vim.opt.opfunc = "v:lua.STSSwapUpNormal_Dot"
+-- 	return "g@l"
+-- end, { silent = true, expr = true })
+-- vim.keymap.set("n", "vD", function()
+-- 	vim.opt.opfunc = "v:lua.STSSwapDownNormal_Dot"
+-- 	return "g@l"
+-- end, { silent = true, expr = true })
+--
+-- -- Swap Current Node at the Cursor with it's siblings, Dot Repeatable
+-- vim.keymap.set("n", "vd", function()
+-- 	vim.opt.opfunc = "v:lua.STSSwapCurrentNodeNextNormal_Dot"
+-- 	return "g@l"
+-- end, { silent = true, expr = true })
+-- vim.keymap.set("n", "vu", function()
+-- 	vim.opt.opfunc = "v:lua.STSSwapCurrentNodePrevNormal_Dot"
+-- 	return "g@l"
+-- end, { silent = true, expr = true })
+--
+-- --> If the mappings above don't work, use these instead (no dot repeatable)
+-- -- vim.keymap.set("n", "vd", '<cmd>STSSwapCurrentNodeNextNormal<cr>', opts)
+-- -- vim.keymap.set("n", "vu", '<cmd>STSSwapCurrentNodePrevNormal<cr>', opts)
+-- -- vim.keymap.set("n", "vD", '<cmd>STSSwapDownNormal<cr>', opts)
+-- -- vim.keymap.set("n", "vU", '<cmd>STSSwapUpNormal<cr>', opts)
+--
+-- -- Visual Selection from Normal Mode
+-- vim.keymap.set("n", "vx", '<cmd>STSSelectMasterNode<cr>', opts)
+-- vim.keymap.set("n", "vn", '<cmd>STSSelectCurrentNode<cr>', opts)
+--
+-- Select Nodes in Visual Mode
+vim.keymap.set("x", "L", '<cmd>STSSelectNextSiblingNode<cr>', opts)
+vim.keymap.set("x", "H", '<cmd>STSSelectPrevSiblingNode<cr>', opts)
+vim.keymap.set("x", "K", '<cmd>STSSelectParentNode<cr>', opts)
+vim.keymap.set("x", "J", '<cmd>STSSelectChildNode<cr>', opts)
+
+-- Swapping Nodes in Visual Mode
+vim.keymap.set("x", "<A-j>", '<cmd>STSSwapNextVisual<cr>', opts)
+vim.keymap.set("x", "<A-k>", '<cmd>STSSwapPrevVisual<cr>', opts)
+
+-- end of Syntax Tree Surfer
 
 -- putting here late so log global is present for it
 require("heirline_conf.heirline")
