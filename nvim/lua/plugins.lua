@@ -163,6 +163,7 @@ return {
           unfold_all = "E",
           fold_reset = "R",
         },
+        auto_preview = false,
       })
       vim.cmd([[
         nnoremap <silent> <leader>s :SymbolsOutline<CR>
@@ -233,4 +234,5 @@ return {
     dependencies = { "kkharji/sqlite.lua" },
     opts = {}
   },
+  "ziontee113/syntax-tree-surfer",
 }
