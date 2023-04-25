@@ -5,6 +5,7 @@
 - explore the alternative to composer (forget the name but it is a thing that previews macros and other stuff. very cool)
 - get a better profiler tool and figure out why this file is sluggish
 - Add my custom statusline functionality from other vim config: File current byte offset, etc.
+- setup wezterm and move away from alacritty
 - reorganize the config into separate source files grouped by functionality
 - still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults
 - yank window to new tab in next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
