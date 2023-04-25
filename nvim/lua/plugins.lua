@@ -230,10 +230,5 @@ return {
     end
   },
   "RRethy/vim-illuminate",
-  {
-    "ecthelionvi/NeoComposer.nvim",
-    dependencies = { "kkharji/sqlite.lua" },
-    opts = {}
-  },
   "ziontee113/syntax-tree-surfer",
 }
