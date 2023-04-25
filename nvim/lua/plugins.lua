@@ -82,15 +82,15 @@ return {
   { "jose-elias-alvarez/null-ls.nvim", dependencies = { 'nvim-lua/plenary.nvim' } },
   "jay-babu/mason-null-ls.nvim",
   "inkarkat/vim-ingo-library",
-  -- { "inkarkat/vim-SearchHighlighting", init = function ()
-  --   ---- This has been disabled in favor of STS
-  --   -- vim.keymap.set('n', '<CR>', '<Plug>SearchHighlightingStar', { silent = true } )
-  --   -- vim.cmd([[
-  --   --   nmap <silent> <CR> <Plug>SearchHighlightingStar
-  --   --   "" doesn't work
-  --   --   " vmap <silent> <CR> <Plug>SearchHighlightingStar
-  --   -- ]])
-  -- end },
+  { "inkarkat/vim-SearchHighlighting", init = function ()
+    -- This is set to be disabled in favor of STS *maybe*
+    vim.keymap.set('n', '<CR>', '<Plug>SearchHighlightingStar', { silent = true } )
+    vim.cmd([[
+      nmap <silent> <CR> <Plug>SearchHighlightingStar
+      "" doesn't work
+      " vmap <silent> <CR> <Plug>SearchHighlightingStar
+    ]])
+  end },
   {
     'VonHeikemen/lsp-zero.nvim',
     branch = 'v2.x',

@@ -1222,6 +1222,15 @@ require'treesitter-context'.setup{
   zindex = 20, -- The Z-index of the context window
 }
 
+function ExecuteCommandWithFallback(command, fallback)
+  -- Use pcall to execute the command and catch potential errors
+  local success, errMsg = pcall(function() vim.cmd(command) end)
+  if not success then
+    -- If there was an error, execute the fallback command
+    print("ECWF Error executing command: " .. errMsg)
+    vim.cmd(fallback)
+  end
+end
 -- Syntax Tree Surfer
 local sts = require('syntax-tree-surfer')
 sts.setup({
@@ -1269,8 +1278,8 @@ local opts = {noremap = true} -- delete me later
 -- -- vim.keymap.set("n", "vU", '<cmd>STSSwapUpNormal<cr>', opts)
 --
 -- -- Visual Selection from Normal Mode
--- vim.keymap.set("n", "vx", '<cmd>STSSelectMasterNode<cr>', opts)
-vim.keymap.set("n", "<CR>", '<cmd>STSSelectCurrentNode<cr>', opts)
+vim.keymap.set("n", "vx", '<cmd>STSSelectMasterNode<cr>', opts)
+vim.keymap.set("n", "vn", '<cmd>STSSelectCurrentNode<cr>', opts)
 --
 -- Select Nodes in Visual Mode
 vim.keymap.set("x", "L", '<cmd>STSSelectNextSiblingNode<cr>', opts)
