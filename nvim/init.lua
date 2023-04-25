@@ -1,7 +1,6 @@
 -- -- -- TODO LIST
 --[[
 
-- make colon wq from insert also quit nvim (actually i forget what i set it up for in vim just replicate that...)
 - grab the syntax-tree-surfer plugin
 - explore the alternative to composer (forget the name but it is a thing that previews macros and other stuff. very cool)
 - get a better profiler tool and figure out why this file is sluggish
@@ -185,6 +184,32 @@ vim.cmd([[
   vnoremap <m-s> <ESC>:update<CR>
   cnoremap <m-s> <C-C>:update<CR>
   inoremap <m-s> <ESC>:update<CR>
+
+  " if ;w<CR> is typed in insert mode, exit insert mode and run a prompt asking
+  " if you really want to save the file (rather than inserting ;w<CR> into file)
+  function! MyConfirmSave()
+      if confirm('Save file? (you probably hit ;w<CR> in insert mode...)', "OK\nNo") == 1
+          w
+          silent redraw!
+      endif
+  endfunc
+  inoremap ;w<CR> <ESC>:call MyConfirmSave()<CR>
+
+  function! MyConfirmSaveQuit()
+      if confirm('Save file and then QUIT? (you probably hit ;wq<CR> in insert mode...)', "OK\nNo") == 1
+          wq
+          silent redraw!
+      endif
+  endfunc
+  inoremap ;wq<CR> <ESC>:call MyConfirmSaveQuit()<CR>
+
+  function! MyConfirmSaveQuitAll()
+      if confirm('Save file and then QUIT ALL? (you probably hit ;wqa<CR> in insert mode...)', "OK\nNo") == 1
+          wqa
+          silent redraw!
+      endif
+  endfunc
+  inoremap ;wqa<CR> <ESC>:call MyConfirmSaveQuitAll()<CR>
 
   " If cannot move in a direction, attempt to forward the directive to tmux
   function! TmuxWindow(dir)
