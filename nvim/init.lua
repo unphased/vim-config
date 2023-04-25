@@ -14,7 +14,6 @@
 - \p for toggle paste and removing indent markers and stuff like that in paste mode to make it work like a copy-mode
 - f10 handling for tmux
 - prevent mouse interaction from messing with insert mode cursor position
-- implement insert mode ctrl backspace
 - implement insert mode reliable ctrl/alt arrows
 - implement semantic highlight removal (i want this in possibly lua right now but also definitely dockerfile) by literally selecting them out at the highlight group level (ah dang, no worky for dockerls)
 - vim window maximization toggle
