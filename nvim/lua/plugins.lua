@@ -230,5 +230,5 @@ return {
     end
   },
   "RRethy/vim-illuminate",
-  "ziontee113/syntax-tree-surfer",
+  "unphased/syntax-tree-surfer",
 }
