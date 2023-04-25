@@ -66,7 +66,12 @@ require("lazy").setup("plugins", {
 
 -- mappings
 
--- enables command mode to have word delete (really needed this...)
+-- Remember: I've mapped at the terminal level ctrl+BS, alt/opt+BS both to ^[^?
+-- stronger normal mode move back via backspace
+vim.keymap.set("n", "<M-BS>", "B")
+-- word delete
+vim.keymap.set("i", "<M-BS>", "<Cmd>normal db<CR>")
+-- command mode word delete
 vim.keymap.set('c', "<M-BS>", '<C-W>', {noremap = true})
 
 vim.keymap.set("n", "<leader>w", ":set wrap!<cr>")
@@ -154,6 +159,9 @@ vim.keymap.set("n", "<c-w><c-l>", "<c-w>L")
 vim.keymap.set("n", "<c-w><c-h>", "<c-w>H")
 vim.keymap.set("n", "<c-w><c-j>", "<c-w>J")
 vim.keymap.set("n", "<c-w><c-k>", "<c-w>K")
+
+-- cycle window with tab. convenient
+vim.keymap.set("n", "<tab>", "<c-w>w")
 
 -- dumping vimL code that I didnt bother porting yet here for expedient bringup
 vim.cmd([[
@@ -278,7 +286,6 @@ vim.cmd([[
   nnoremap _ :res -4<CR>
 
 
-  nnoremap <tab> gt
   nnoremap <s-tab> gT
 
   nnoremap <leader>f :NeoTreeRevealToggle<CR>
