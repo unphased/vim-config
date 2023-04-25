@@ -1227,8 +1227,11 @@ function ExecuteCommandWithFallback(command, fallback)
   local success, errMsg = pcall(function() vim.cmd(command) end)
   if not success then
     -- If there was an error, execute the fallback command
-    print("ECWF Error executing command: " .. errMsg)
+    _G.log("ECWF Fallback executing: " .. fallback)
     vim.cmd(fallback)
+    -- _G.log("ECWF Error executing command: " .. errMsg)
+  else
+    _G.log("ECWF Success executing command: " .. command)
   end
 end
 -- Syntax Tree Surfer
@@ -1282,10 +1285,10 @@ vim.keymap.set("n", "vx", '<cmd>STSSelectMasterNode<cr>', opts)
 vim.keymap.set("n", "vn", '<cmd>STSSelectCurrentNode<cr>', opts)
 --
 -- Select Nodes in Visual Mode
-vim.keymap.set("x", "L", '<cmd>STSSelectNextSiblingNode<cr>', opts)
-vim.keymap.set("x", "H", '<cmd>STSSelectPrevSiblingNode<cr>', opts)
-vim.keymap.set("x", "K", '<cmd>STSSelectParentNode<cr>', opts)
-vim.keymap.set("x", "J", '<cmd>STSSelectChildNode<cr>', opts)
+vim.keymap.set("x", "L", '<cmd>lua ExecuteCommandWithFallback("STSSelectNextSiblingNode", "normal 7l")<cr>', opts)
+vim.keymap.set("x", "H", '<cmd>lua ExecuteCommandWithFallback("STSSelectPrevSiblingNode", "normal 7h")<cr>', opts)
+vim.keymap.set("x", "K", '<cmd>lua ExecuteCommandWithFallback("STSSelectParentNode", "normal 5gk")<cr>', opts)
+vim.keymap.set("x", "J", '<cmd>lua ExecuteCommandWithFallback("STSSelectChildNode", "normal 5gj")<cr>', opts)
 
 -- Swapping Nodes in Visual Mode
 vim.keymap.set("x", "<A-j>", '<cmd>STSSwapNextVisual<cr>', opts)
