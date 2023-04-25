@@ -448,7 +448,7 @@ vim.g.matchup_matchparen_deferred = 1
 vim.g.matchup_matchparen_hi_surround_always = 1
 vim.g.matchup_transmute_enabled = 1
 
-vim.opt.titlestring = "NVIM %f %h%m%r%w (%{tabpagenr()} of %{tabpagenr('$')})"
+vim.opt.titlestring = "NVIM %f%h%m%r%w (%{tabpagenr()} of %{tabpagenr('$')})"
 
 -- plugin settings
 require("gitsigns").setup({
@@ -1237,7 +1237,7 @@ sts.setup({
   --   ["variable_declaration"] = "",
   -- },
 })
-local opts = {noremap = true, silent = true}
+-- local opts = {noremap = true, silent = true}
 local opts = {noremap = true} -- delete me later
 
 -- -- Normal Mode Swapping:
