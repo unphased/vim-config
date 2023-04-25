@@ -62,6 +62,10 @@ require("lazy").setup("plugins", {
 })
 
 -- mappings
+
+-- enables command mode to have word delete (really needed this...)
+vim.keymap.set('c', "<M-BS>", '<C-W>', {noremap = true})
+
 vim.keymap.set("n", "<leader>w", ":set wrap!<cr>")
 
 --- disabling for now since regular works with cmp cmdline completion
@@ -1044,7 +1048,7 @@ vim.cmd([[
 
   hi Search cterm=bold ctermfg=black ctermbg=yellow guibg=#a9291a guifg=NONE
   hi incSearch cterm=bold ctermfg=black ctermbg=yellow guibg=#a04080 guifg=NONE
-  hi Visual term=reverse ctermbg=238 guibg=#505760
+  hi Visual term=reverse ctermbg=238 guibg=#505f50
 
   " pane/window split style: only vertical split style matters in vim since horizontal splits are made of statuslines.
   hi VertSplit guifg=#505760
@@ -1231,7 +1235,7 @@ local opts = {noremap = true} -- delete me later
 --
 -- -- Visual Selection from Normal Mode
 -- vim.keymap.set("n", "vx", '<cmd>STSSelectMasterNode<cr>', opts)
--- vim.keymap.set("n", "vn", '<cmd>STSSelectCurrentNode<cr>', opts)
+vim.keymap.set("n", "<CR>", '<cmd>STSSelectCurrentNode<cr>', opts)
 --
 -- Select Nodes in Visual Mode
 vim.keymap.set("x", "L", '<cmd>STSSelectNextSiblingNode<cr>', opts)
