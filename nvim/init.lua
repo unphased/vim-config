@@ -1,7 +1,10 @@
 -- -- -- TODO LIST
 --[[
 
-- grab the syntax-tree-surfer plugin
+- short term for STS: work out how to delete/paste items automating handling and placement of delimiters, handling inclusion of boundary bracket chars, etc. I guess the latter can be handled by having a way to expand to all siblings though. This may have impact on the next work.
+- improve STS to contantly set highlights to preview what the parent and sibling nodes are? track the last child node? abandon visual mode? Not sure.
+- evaluate if it is more intuitive for both parent/child and sibling movements to use up/down directionals rather than have siblings be left/right. I guess the main issue here is evicting other key binds...
+- find for most common languages a workflow to autoformat them, which is going to solve the indent related niggles that remain
 - explore the alternative to composer (forget the name but it is a thing that previews macros and other stuff. very cool)
 - get a better profiler tool and figure out why this file is sluggish
 - Add my custom statusline functionality from other vim config: File current byte offset, etc.
