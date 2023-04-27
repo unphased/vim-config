@@ -250,7 +250,7 @@ FileNameBlock = utils.insert(FileNameBlock,
 
 local FileType = {
     hl = { fg = utils.get_highlight("Type").fg, bold = true },
-    flexible = 4,
+    flexible = 6,
     {
         provider = function()
             return string.upper(vim.bo.filetype)
@@ -261,7 +261,7 @@ local FileType = {
 
 local FileTypeSpace = {
     hl = { fg = utils.get_highlight("Type").fg, bold = true },
-    flexible = 4,
+    flexible = 6,
     {
         provider = function()
             return string.upper(vim.bo.filetype) .. " "
@@ -284,7 +284,7 @@ local FileFormat = {
 }
 
 local FileSize = {
-    flexible = 4,
+    flexible = 5,
     {
         provider = function()
             -- stackoverflow, compute human readable file size
@@ -315,7 +315,7 @@ local RulerSpace = {
     -- %L = number of lines in the buffer
     -- %c = column number
     -- %P = percentage through file of displayed window
-    flexible = 3,
+    flexible = 7,
     {
         provider = "%l/%L:%c %P "
     }, {
@@ -329,7 +329,7 @@ local RulerSpace = {
 
 -- Additional info that belongs in ruler but need a lower prio 
 local RulerExtraSpace = {
-    flexible = 3,
+    flexible = 4,
     {
         -- %o = byte offset of cursor in the file
         -- 0x%02B = cursor's byte value shown in hex
@@ -337,6 +337,12 @@ local RulerExtraSpace = {
     },
     {
         provider = "%o %02B "
+    },
+    {
+        provider = "%o "
+    },
+    {
+        provider = ""
     }
 }
 
@@ -911,8 +917,6 @@ local MacroRec = {
 local DefaultStatusline = {
     -- TODO make the workdir and filename render out in separate styles for visual distinction but allow copying an abspath
     ViMode, Space, WorkDir, FileNameBlock, Space, GitSpace, Diagnostics, Space, Align,
-    -- Navic, DAPMessages, Align,
-    -- LSPActive, Space, LSPMessages, Space, UltTest, Space, FileType, Space, Ruler, Space, ScrollBar
     LazySpace, LSPActive, FileTypeSpace, SearchCount, MacroRec, RulerExtraSpace, FileSize, RulerSpace, ScrollBar
 }
 
