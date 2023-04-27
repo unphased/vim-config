@@ -231,5 +231,10 @@ return {
   },
   "RRethy/vim-illuminate",
   "unphased/syntax-tree-surfer",
-  "t-troebst/perfanno.nvim",
+  {
+    "t-troebst/perfanno.nvim",
+    init = function()
+      require("perfanno").setup()
+    end
+  }
 }
