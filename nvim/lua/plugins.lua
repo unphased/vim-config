@@ -231,4 +231,5 @@ return {
   },
   "RRethy/vim-illuminate",
   "unphased/syntax-tree-surfer",
+  "t-troebst/perfanno.nvim",
 }
