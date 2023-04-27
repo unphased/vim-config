@@ -530,6 +530,14 @@ local Diagnostics = {
 
     condition = conditions.has_diagnostics,
 
+    on_click = {
+        callback = function()
+            -- I just open the Trouble window by calling :TroubleToggle
+            require("trouble").toggle()
+        end,
+        name = "open_diags"
+    },
+
     static = {
         -- error_icon = vim.fn.sign_getdefined("DiagnosticSignError")[1].text,
         -- warn_icon = vim.fn.sign_getdefined("DiagnosticSignWarn")[1].text,
@@ -548,13 +556,9 @@ local Diagnostics = {
         self.info = #vim.diagnostic.get(0, { severity = vim.diagnostic.severity.INFO })
     end,
 
-    -- update = { "DiagnosticChanged", "BufEnter" },
-
-    -- {
-    --     provider = "![",
-    -- },
     flexible = 20,
     {
+        update = { "DiagnosticChanged", "BufEnter" },
         {
             provider = function(self)
                 -- 0 is just another output, we can decide to print it or not!
@@ -582,6 +586,7 @@ local Diagnostics = {
         },
     },
     {
+        update = { "DiagnosticChanged", "BufEnter" },
         {
             provider = function(self)
                 -- 0 is just another output, we can decide to print it or not!
@@ -603,6 +608,7 @@ local Diagnostics = {
         },
     },
     {
+        update = { "DiagnosticChanged", "BufEnter" },
         {
             provider = function(self)
                 -- 0 is just another output, we can decide to print it or not!
@@ -618,6 +624,7 @@ local Diagnostics = {
         },
     },
     {
+        update = { "DiagnosticChanged", "BufEnter" },
         {
             provider = function(self)
                 -- 0 is just another output, we can decide to print it or not!
@@ -627,9 +634,6 @@ local Diagnostics = {
         },
 
     }
-    -- {
-    --     provider = "]",
-    -- },
 }
 
 -- Let's say that you'd like to have only the diagnostic icon colored, not the actual count. Just replace the children with something like this.
@@ -916,7 +920,7 @@ local MacroRec = {
 -- Items to the left of Align are to put their spaces to the left, items to the right put their spaces on the right, etc. All components need to have a space included so that no stacking of spaces takes place.
 local DefaultStatusline = {
     -- TODO make the workdir and filename render out in separate styles for visual distinction but allow copying an abspath
-    ViMode, Space, WorkDir, FileNameBlock, Space, GitSpace, Diagnostics, Space, Align,
+    ViMode, Space, WorkDir, FileNameBlock, Space, GitSpace, Diagnostics, Align,
     LazySpace, LSPActive, FileTypeSpace, SearchCount, MacroRec, RulerExtraSpace, FileSize, RulerSpace, ScrollBar
 }
 

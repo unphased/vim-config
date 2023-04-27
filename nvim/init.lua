@@ -8,6 +8,7 @@
 - explore the alternative to composer (live-command.nvim previews macros and other stuff) (there is also nvim-neoclip)
 - get a better profiler tool and figure out why this file is sluggish (got perfanno and it is kind of pretty cool)
 - (IN PROGRESS) Add my custom statusline functionality from other vim config: File current byte offset, etc.
+- TRACK DOWN THE STUPID ISSUE WITH THE HOVER POPUPS
 - setup wezterm and move away from alacritty
 - reorganize the config into separate source files grouped by functionality
 - still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults
