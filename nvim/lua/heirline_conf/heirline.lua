@@ -284,18 +284,22 @@ local FileFormat = {
 }
 
 local FileSize = {
-    flexible = 1,
-    provider = function()
-        -- stackoverflow, compute human readable file size
-        local suffix = { 'b', 'k', 'M', 'G', 'T', 'P', 'E' }
-        local fsize = vim.fn.getfsize(vim.api.nvim_buf_get_name(0))
-        fsize = (fsize < 0 and 0) or fsize
-        if fsize < 1024 then
-            return fsize..suffix[1]
+    flexible = 4,
+    {
+        provider = function()
+            -- stackoverflow, compute human readable file size
+            local suffix = { 'b', 'K', 'M', 'G', 'T', 'P', 'E' }
+            local fsize = vim.fn.getfsize(vim.api.nvim_buf_get_name(0))
+            fsize = (fsize < 0 and 0) or fsize
+            if fsize < 1024 then
+                return fsize..suffix[1]
+            end
+            local i = math.floor((math.log(fsize) / math.log(1024)))
+            return string.format("%.2g%s", fsize / math.pow(1024, i), suffix[i + 1]) .. ' '
         end
-        local i = math.floor((math.log(fsize) / math.log(1024)))
-        return string.format("%.2g%s", fsize / math.pow(1024, i), suffix[i + 1])
-    end
+    }, {
+        provider = ""
+    }
 }
 local FileLastModified = {
     -- did you know? Vim is full of functions!
@@ -306,22 +310,36 @@ local FileLastModified = {
 }
 
 -- We're getting minimalists here!
-local Ruler = {
+local RulerSpace = {
     -- %l = current line number
     -- %L = number of lines in the buffer
     -- %c = column number
     -- %P = percentage through file of displayed window
-    flexible = 5,
+    flexible = 3,
     {
-        provider = "%l/%L:%c %P"
+        provider = "%l/%L:%c %P "
     }, {
-        provider = "%l/%L:%c"
+        provider = "%l/%L:%c "
     }, {
-        provider = "%l:%c"
+        provider = "%l:%c "
     }, {
-        provider = "%l"
+        provider = "%l "
     }
 }
+
+-- Additional info that belongs in ruler but need a lower prio 
+local RulerExtraSpace = {
+    flexible = 3,
+    {
+        -- %o = byte offset of cursor in the file
+        -- 0x%02B = cursor's byte value shown in hex
+        provider = "%o 0x%02B "
+    },
+    {
+        provider = "%o %02B "
+    }
+}
+
 -- I take no credits for this! :lion:
 local ScrollBar = {
     static = {
@@ -335,13 +353,19 @@ local ScrollBar = {
         sbar = { '', '⠁', '⠂', '⠄', '⡀', '⡈', '⡐', '⡠', '⣀', '⣁', '⣂', '⣄', '⣌', '⣔', '⣤', '⣥', '⣦', '⣮', '⣶', '⣷', '⣿', '⠈⣿', '⠐⣿', '⠠⣿', '⢀⣿', '⢁⣿', '⢂⣿', '⢄⣿', '⣀⣿', '⣈⣿', '⣐⣿', '⣠⣿', '⣡⣿', '⣢⣿', '⣤⣿', '⣬⣿', '⣴⣿', '⣵⣿', '⣶⣿', '⣾⣿', '⣿⣿' }
         -- The beauty of this one is that by filling columns separately, 50% still looks like 50%
     },
-    provider = function(self)
-        local curr_line = vim.api.nvim_win_get_cursor(0)[1]
-        local lines = vim.api.nvim_buf_line_count(0)
-        local i = math.floor((curr_line - 1) / lines * #self.sbar) + 1
-        return self.sbar[i]
-    end,
-    hl = { fg = "blue" },
+    flexible = 8,
+    {
+        provider = function(self)
+            local curr_line = vim.api.nvim_win_get_cursor(0)[1]
+            local lines = vim.api.nvim_buf_line_count(0)
+            local i = math.floor((curr_line - 1) / lines * #self.sbar) + 1
+            return self.sbar[i]
+        end,
+        hl = { fg = "blue" },
+    },
+    {
+        provider = ""
+    }
 }
 
 local LSPActive = {
@@ -628,9 +652,6 @@ local GitSpace = {
     end,
 
     hl = { fg = "orange" },
-
-
-    
     flexible = 15,
     {
         utils.surround({ "", "" }, "muted_bg", {
@@ -892,7 +913,7 @@ local DefaultStatusline = {
     ViMode, Space, WorkDir, FileNameBlock, Space, GitSpace, Diagnostics, Space, Align,
     -- Navic, DAPMessages, Align,
     -- LSPActive, Space, LSPMessages, Space, UltTest, Space, FileType, Space, Ruler, Space, ScrollBar
-    LazySpace, LSPActive, FileTypeSpace, SearchCount, MacroRec, Ruler, Space, ScrollBar
+    LazySpace, LSPActive, FileTypeSpace, SearchCount, MacroRec, RulerExtraSpace, FileSize, RulerSpace, ScrollBar
 }
 
 local InactiveStatusline = {

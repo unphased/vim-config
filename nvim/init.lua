@@ -6,8 +6,8 @@
 - evaluate if it is more intuitive for both parent/child and sibling movements to use up/down directionals rather than have siblings be left/right. I guess the main issue here is evicting other key binds...
 - find for most common languages a workflow to autoformat them, which is going to solve the indent related niggles that remain
 - explore the alternative to composer (live-command.nvim previews macros and other stuff) (there is also nvim-neoclip)
-- get a better profiler tool and figure out why this file is sluggish
-- Add my custom statusline functionality from other vim config: File current byte offset, etc.
+- get a better profiler tool and figure out why this file is sluggish (got perfanno and it is kind of pretty cool)
+- (IN PROGRESS) Add my custom statusline functionality from other vim config: File current byte offset, etc.
 - setup wezterm and move away from alacritty
 - reorganize the config into separate source files grouped by functionality
 - still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults
