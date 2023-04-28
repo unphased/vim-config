@@ -128,7 +128,7 @@ local ViMode = {
     },
 }
 
-local FileNameBlock = {
+local FileNameBlockPre = {
     -- let's first set up some attributes needed by this component and it's children
     init = function(self)
         self.filename = vim.api.nvim_buf_get_name(0)
@@ -142,12 +142,18 @@ local FileIcon = {
         local extension = vim.fn.fnamemodify(filename, ":e")
         self.icon, self.icon_color = require("nvim-web-devicons").get_icon_color(filename, extension, { default = true })
     end,
-    provider = function(self)
-        return self.icon and (self.icon .. " ")
-    end,
     hl = function(self)
         return { fg = self.icon_color }
-    end
+    end,
+    flexible = 5,
+    {
+        provider = function(self)
+            return self.icon and (self.icon .. " ")
+        end,
+    },
+    {
+        provider = "",
+    },
 }
 
 -- local FileName = {
@@ -189,38 +195,38 @@ local FileName = {
         self.lfilename = vim.fn.fnamemodify(self.filename, ":.")
         if self.lfilename == "" then self.lfilename = "[No Name]" end
     end,
-    hl = { fg = utils.get_highlight("Directory").fg },
+    hl = { fg = utils.get_highlight("Directory").fg, bold = true },
 
     flexible = 1000,
-
+    -- TODO decide if this expanding chain is really useful since it does make it copy into a useless path)
     {
         provider = function(self)
-            return self.lfilename
+            return self.lfilename .. " "
         end,
     },
     {
         provider = function(self)
-            return vim.fn.pathshorten(self.lfilename, 4)
+            return vim.fn.pathshorten(self.lfilename, 4) .. " "
         end,
     },
     {
         provider = function(self)
-            return vim.fn.pathshorten(self.lfilename, 3)
+            return vim.fn.pathshorten(self.lfilename, 3) .. " "
         end,
     },
     {
         provider = function(self)
-            return vim.fn.pathshorten(self.lfilename, 2)
+            return vim.fn.pathshorten(self.lfilename, 2) .. " "
         end,
     },
     {
         provider = function(self)
-            return vim.fn.pathshorten(self.lfilename, 1)
+            return vim.fn.pathshorten(self.lfilename, 1) .. " "
         end,
     },
     {
         provider = function(self)
-            return self.lfilename:match("^.+/(.+)$")
+            return self.lfilename:match("^.+/(.+)$") .. " "
         end,
     }
 }
@@ -241,9 +247,9 @@ local FileNameModifer = {
 }
 
 -- let's add the children to our FileNameBlock component
-FileNameBlock = utils.insert(FileNameBlock,
-    FileIcon,
+FileNameBlock = utils.insert(FileNameBlockPre,
     utils.insert(FileNameModifer, FileName), -- a new table where FileName is a child of FileNameModifier
+    FileIcon,
     FileFlags,
     { provider = '%<'} -- this means that the statusline is cut here when there's not enough space
 )
@@ -317,11 +323,11 @@ local RulerSpace = {
     -- %P = percentage through file of displayed window
     flexible = 7,
     {
-        provider = "%l/%L:%c %P "
+        provider = "%#StatusLineLineNo#%l%#Normal#/%L:%c %P "
     }, {
-        provider = "%l/%L:%c "
+        provider = "%#StatusLineLineNo#%l%#Normal#/%L:%c "
     }, {
-        provider = "%l:%c "
+        provider = "%#StatusLineLineNo#%l%#Normal#:%c "
     }, {
         provider = "%l "
     }
@@ -580,7 +586,7 @@ local Diagnostics = {
         },
         {
             provider = function(self)
-                return self.hints > 0 and (self.hint_icon .. self.hints)
+                return self.hints > 0 and (self.hint_icon .. self.hints .. " ")
             end,
             hl = { fg = "diag_hint" },
         },
@@ -718,7 +724,6 @@ local GitSpace = {
     { provider = "" }
 }
 
-
 -- local DAPMessages = {
 --     condition = function()
 --         local session = require("dap").session()
@@ -768,20 +773,6 @@ local GitSpace = {
 --             return "of " .. self.status.tests - 1
 --         end,
 --     },
--- }
-
--- local WorkDir = {
---     provider = function()
---         local icon = (vim.fn.haslocaldir(0) == 1 and "l" or "g") .. " " .. " "
---         local cwd = vim.fn.getcwd(0)
---         cwd = vim.fn.fnamemodify(cwd, ":~")
---         if not conditions.width_percent_below(#cwd, 0.25) then
---             cwd = vim.fn.pathshorten(cwd)
---         end
---         local trail = cwd:sub(-1) == '/' and '' or "/"
---         return icon .. cwd  .. trail
---     end,
---     hl = { fg = "blue", bold = true },
 -- }
 
 local TerminalName = {
@@ -834,22 +825,22 @@ local WorkDir = {
         local cwd = vim.fn.getcwd(0)
         self.cwd = vim.fn.fnamemodify(cwd, ":~")
     end,
-    hl = { fg = utils.get_highlight("Directory").fg, bold = true },
+    hl = { fg = utils.get_highlight("Directory").fg },
 
     flexible = 1,
     {
-        -- evaluates to the full-lenth path
+        -- evaluates to the full-length path
         provider = function(self)
             local trail = self.cwd:sub(-1) == "/" and "" or "/"
-            return self.icon .. self.cwd .. trail .." "
+            return self.icon .. self.cwd .. trail
         end,
     },
     {
-        -- evaluates to the shortened path
+        -- evaluates to the shortened path (TODO decide if this is useful since it does make it copy into a useless path)
         provider = function(self)
             local cwd = vim.fn.pathshorten(self.cwd)
             local trail = self.cwd:sub(-1) == "/" and "" or "/"
-            return self.icon .. cwd .. trail .. " "
+            return self.icon .. cwd .. trail
         end,
     },
     {
@@ -860,7 +851,7 @@ local WorkDir = {
 
 local Navic = { flexible = 3, Navic, { provider = "" } }
 
-local Align = { provider = " %=" }
+local Align = { provider = "%=" }
 local Space = { provider = " " }
 
 ViMode = utils.surround({ "", "" }, "muted_bg", { ViMode, Snippets })
@@ -920,7 +911,7 @@ local MacroRec = {
 -- Items to the left of Align are to put their spaces to the left, items to the right put their spaces on the right, etc. All components need to have a space included so that no stacking of spaces takes place.
 local DefaultStatusline = {
     -- TODO make the workdir and filename render out in separate styles for visual distinction but allow copying an abspath
-    ViMode, Space, WorkDir, FileNameBlock, Space, GitSpace, Diagnostics, Align,
+    ViMode, Space, Diagnostics, GitSpace, Align, WorkDir, FileNameBlock, Align,
     LazySpace, LSPActive, FileTypeSpace, SearchCount, MacroRec, RulerExtraSpace, FileSize, RulerSpace, ScrollBar
 }
 
