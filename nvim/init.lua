@@ -59,8 +59,14 @@ end
 
 vim.opt.rtp:prepend(lazypath)
 
+local function safeRequire(module)
+  local success, req = pcall(require, module)
+  if success then return req end
+  vim.cmd.echoerr ("Error loading " .. module)
+end
+
 -- plugins
-require("lazy").setup("plugins", {
+safeRequire("lazy").setup("plugins", {
   checker = { enabled = true, notify = false, },
   git = {
     url_format = "git@github.com:%s.git",
@@ -528,7 +534,7 @@ vim.g.matchup_transmute_enabled = 1
 vim.opt.titlestring = "NVIM %f%h%m%r%w (%{tabpagenr()} of %{tabpagenr('$')})"
 
 -- plugin settings
-require("gitsigns").setup({
+safeRequire("gitsigns").setup({
   on_attach = function (bufnr)
     local gs = package.loaded.gitsigns
     local function map(mode, l, r, opts)
@@ -585,8 +591,8 @@ require("gitsigns").setup({
   },
 })
 
-local tele_actions = require('telescope.actions')
-require('telescope').setup{
+local tele_actions = safeRequire('telescope.actions')
+safeRequire('telescope').setup{
   defaults = {
     mappings = {
       i = {
@@ -605,7 +611,7 @@ require('telescope').setup{
     },
   }
 }
-local telescope_builtin = require("telescope.builtin")
+local telescope_builtin = safeRequire("telescope.builtin")
 vim.keymap.set("n", "<c-p>", function ()
   telescope_builtin.find_files({ find_command = { 'fd', '--type', 'f' } })
 end)
@@ -617,11 +623,11 @@ vim.keymap.set("n", "<leader>b", telescope_builtin.buffers, { desc = "Telescope 
 -- "vim help"
 vim.keymap.set('n', '<leader>h', telescope_builtin.help_tags, { desc = "Telescope Help Tags" })
 
-require("nvim-lastplace").setup({})
-require("nvim-autopairs").setup({ map_cr = false })
-require("Comment").setup()
+safeRequire("nvim-lastplace").setup({})
+safeRequire("nvim-autopairs").setup({ map_cr = false })
+safeRequire("Comment").setup()
 
-require("nvim-treesitter.configs").setup({
+safeRequire("nvim-treesitter.configs").setup({
   -- A list of parser names, or "all" (the four listed parsers should always be installed)
   ensure_installed = { "c", "lua", "vim", "bash", "comment" },
 
@@ -749,13 +755,13 @@ require("nvim-treesitter.configs").setup({
   -- },
 })
 
-require("trouble").setup({
+safeRequire("trouble").setup({
   -- your configuration comes here
   -- or leave it empty to use the default settings
   -- refer to the configuration section below
 })
 
-require("neo-tree").setup({
+safeRequire("neo-tree").setup({
   auto_clean_after_session_restore = true, -- Automatically clean up broken neo-tree buffers saved in sessions
   close_if_last_window = true,
   sort_case_insensitive = true,
@@ -793,12 +799,12 @@ vim.cmd([[
   set cursorline
 ]])
 
-require("colorizer").setup()
+safeRequire("colorizer").setup()
 
 -- general plugin specific binds (TODO: put together when refactoring the plugin configs into files)
-vim.keymap.set("n", "<leader>y", require("osc52").copy_operator, { expr = true, desc = "Copy to host term system clipboard via OSC 52" })
+vim.keymap.set("n", "<leader>y", safeRequire("osc52").copy_operator, { expr = true, desc = "Copy to host term system clipboard via OSC 52" })
 vim.keymap.set("n", "<leader>yy", "<leader>c_", { remap = true, desc = "Copy entire line to host term system clipboard via OSC 52" })
-vim.keymap.set("x", "<leader>y", require("osc52").copy_visual, { desc = "Copy visual selection to host term system clipboard via OSC 52" })
+vim.keymap.set("x", "<leader>y", safeRequire("osc52").copy_visual, { desc = "Copy visual selection to host term system clipboard via OSC 52" })
 
 -- We can explicitly use the server's own clipboard or fallback clipboard file if we somehow know
 -- that we want the buffer that's in there.
@@ -845,7 +851,7 @@ vim.cmd("highlight IndentBlanklineContextChar guifg=#66666f gui=nocombine")
 vim.cmd("highlight IndentBlanklineContextStart gui=underdouble guisp=#66666f")
 vim.cmd("highlight IndentBlanklineIndent1 gui=nocombine guifg=#383838")
 vim.cmd("highlight IndentBlanklineIndent2 gui=nocombine guifg=#484848")
-require("indent_blankline").setup({
+safeRequire("indent_blankline").setup({
   char = "▏",
   char_highlight_list = {
     "IndentBlanklineIndent1",
@@ -861,16 +867,16 @@ require("indent_blankline").setup({
 
 vim.opt.completeopt="menu,menuone,noselect"
 
-local cmp = require'cmp'
-local lspkind = require('lspkind')
+local cmp = safeRequire'cmp'
+local lspkind = safeRequire('lspkind')
 
-local luasnip = require("luasnip")
+local luasnip = safeRequire("luasnip")
 -- luasnip.config.set_config({
   -- region_check_events = "InsertEnter",
   -- delete_check_events = "InsertLeave",
 -- })
 
-require("luasnip.loaders.from_vscode").lazy_load()
+safeRequire("luasnip.loaders.from_vscode").lazy_load()
 
 local has_words_before = function()
   local line, col = unpack(vim.api.nvim_win_get_cursor(0))
@@ -894,7 +900,7 @@ cmp.setup({
   },
   snippet = {
     expand = function(args)
-      require('luasnip').lsp_expand(args.body)
+      safeRequire('luasnip').lsp_expand(args.body)
     end
   },
 
@@ -989,18 +995,18 @@ cmp.setup.cmdline(':', {
 })
 
 -- insert `(` after select function or method item
-local cmp_autopairs = require('nvim-autopairs.completion.cmp')
+local cmp_autopairs = safeRequire('nvim-autopairs.completion.cmp')
 cmp.event:on(
   'confirm_done',
   cmp_autopairs.on_confirm_done()
 )
 
--- require("neodev").setup({
---   -- add any options here, or leave empty to use the default settings
--- })
+safeRequire("neodev").setup({
+  -- add any options here, or leave empty to use the default settings
+})
 
-require("mason").setup({})
-require("mason-lspconfig").setup({
+safeRequire("mason").setup({})
+safeRequire("mason-lspconfig").setup({
   -- A list of servers to automatically install if they're not already installed. Example: { "rust_analyzer@nightly", "lua_ls" }
   -- This setting has no relation with the `automatic_installation` setting.
   ensure_installed = {
@@ -1017,9 +1023,9 @@ require("mason-lspconfig").setup({
   automatic_installation = true,
 })
 
-local null_ls = require("null-ls")
+local null_ls = safeRequire("null-ls")
 
-require("mason-null-ls").setup({
+safeRequire("mason-null-ls").setup({
   ensure_installed = { "shellcheck" },
   automatic_setup = true,
   handlers = {
@@ -1030,7 +1036,7 @@ require("mason-null-ls").setup({
 
       -- To keep the original functionality of `automatic_setup = true`,
       -- please add the below.
-      require("mason-null-ls.automatic_setup")(source_name, methods)
+      safeRequire("mason-null-ls.automatic_setup")(source_name, methods)
     end,
     pylint = function (source_name, methods)
       -- need to set PYTHONPATH via --source-roots
@@ -1058,13 +1064,14 @@ require("mason-null-ls").setup({
 
 null_ls.setup({
   debug = true,
+  -- this is for cspell to default to hints and not errors (yeesh)
   fallback_severity = vim.diagnostic.severity.HINT,
   sources = {
     null_ls.builtins.code_actions.gitsigns,
   }
 })
 
-local capabilities = require('cmp_nvim_lsp').default_capabilities()
+local capabilities = safeRequire('cmp_nvim_lsp').default_capabilities()
 _G.log("capabilities", capabilities)
 
 -- oh man written by GPT4
@@ -1088,7 +1095,7 @@ end
 
 vim.keymap.set('n', '?', vim.lsp.buf.hover)
 
-local goto_preview = require('goto-preview')
+local goto_preview = safeRequire('goto-preview')
 
 -- keymaps!!
 local lsp_attach = function (x, bufnr)
@@ -1112,12 +1119,12 @@ local lsp_attach = function (x, bufnr)
   vim.keymap.set('n', '<leader>=', function() vim.lsp.buf.format { async = true } end, ext(bufopts, "desc", "Format Buffer"))
 end
 
-require("mason-lspconfig").setup_handlers {
+safeRequire("mason-lspconfig").setup_handlers {
   -- The first entry (without a key) will be the default handler
   -- and will be called for each installed server that doesn't have
   -- a dedicated handler.
   function (server_name) -- default handler (optional)
-    require("lspconfig")[server_name].setup {
+    safeRequire("lspconfig")[server_name].setup {
       capabilities = capabilities,
       on_attach = lsp_attach,
     }
@@ -1125,13 +1132,13 @@ require("mason-lspconfig").setup_handlers {
   -- Next, you can provide a dedicated handler for specific servers. Don't forget to bring capabilities and on_attach in.
   ["dockerls"] = function ()
     -- print("dockerls caps =" .. vim.inspect(capabilities))
-    require("lspconfig")["dockerls"].setup {
+    safeRequire("lspconfig")["dockerls"].setup {
       capabilities = capabilities,
       on_attach = lsp_attach,
     }
   end,
   ["lua_ls"] = function ()
-    require("lspconfig")["lua_ls"].setup {
+    safeRequire("lspconfig")["lua_ls"].setup {
       capabilities = capabilities,
       on_attach = lsp_attach,
       settings = {
@@ -1149,7 +1156,7 @@ require("mason-lspconfig").setup_handlers {
   end
 }
 
-require("yanky").setup({
+safeRequire("yanky").setup({
   highlight = {
     on_put = true,
     on_yank = true,
@@ -1236,7 +1243,7 @@ vim.cmd [[
 -- vim.keymap.set("", "<f1>", toggle_profile)
 
 
-require('treesitter-context').setup{
+safeRequire('treesitter-context').setup{
   enable = true, -- Enable this plugin (Can be enabled/disabled later via commands)
   max_lines = 0, -- How many lines the window should span. Values <= 0 mean no limit.
   min_window_height = 0, -- Minimum editor window height to enable context. Values <= 0 mean no limit.
@@ -1251,7 +1258,7 @@ require('treesitter-context').setup{
 }
 
 -- Syntax Tree Surfer
-local sts = require('syntax-tree-surfer')
+local sts = safeRequire('syntax-tree-surfer')
 sts.setup({
   -- icon_dictionary = {
   --   ["if_statement"] = "",
@@ -1312,5 +1319,5 @@ vim.keymap.set("x", "<C-Left>", '<cmd>STSSwapPrevVisual<cr>', opts)
 -- end of Syntax Tree Surfer
 
 -- putting here late so log global is present for it
-require("heirline_conf.heirline")
+safeRequire("heirline_conf.heirline")
 
