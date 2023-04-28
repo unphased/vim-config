@@ -127,12 +127,12 @@ return {
       "tpope/vim-fugitive",
     },
   },
-  {
-    "rebelot/heirline.nvim",
-    -- You can optionally lazy-load heirline on UiEnter
-    -- to make sure all required plugins and colorschemes are loaded before setup
-    event = "UiEnter",
-  },
+  -- {
+  --   "rebelot/heirline.nvim",
+  --   -- You can optionally lazy-load heirline on UiEnter
+  --   -- to make sure all required plugins and colorschemes are loaded before setup
+  --   event = "UiEnter",
+  -- },
   "gbprod/yanky.nvim",
   "mbbill/undotree",
   { 'github/copilot.vim', init = function()

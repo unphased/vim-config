@@ -62,7 +62,8 @@ vim.opt.rtp:prepend(lazypath)
 local function safeRequire(module)
   local success, req = pcall(require, module)
   if success then return req end
-  vim.cmd("echoerr 'safeRequire: Caught an error loading the module ' .. module'")
+  vim.api.nvim_err_writeln("safeRequire Caught error loading " .. module)
+  return nil
 end
 
 -- plugins
@@ -1259,7 +1260,7 @@ safeRequire('treesitter-context').setup{
 
 -- Syntax Tree Surfer
 local sts = safeRequire('syntax-tree-surfer')
-sts.setup({
+if sts then sts.setup({
   -- icon_dictionary = {
   --   ["if_statement"] = "",
   --   ["else_clause"] = "",
@@ -1272,7 +1273,8 @@ sts.setup({
   --   ["function_definition"] = "",
   --   ["variable_declaration"] = "",
   -- },
-})
+}) end
+
 -- local opts = {noremap = true, silent = true}
 local opts = {noremap = true} -- delete me later
 
