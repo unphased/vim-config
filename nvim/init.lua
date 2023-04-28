@@ -62,7 +62,7 @@ vim.opt.rtp:prepend(lazypath)
 local function safeRequire(module)
   local success, req = pcall(require, module)
   if success then return req end
-  vim.cmd.echoerr ("Error loading " .. module)
+  vim.cmd("echoerr 'safeRequire: Caught an error loading the module ' .. module'")
 end
 
 -- plugins
