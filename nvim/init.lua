@@ -457,6 +457,67 @@ vim.cmd([[
 
 ]])
 
+-- helpers
+function string:split(delimiter)
+  local result = {}
+  local from = 1
+  local delim_from, delim_to = string.find(self, delimiter, from)
+  while delim_from do
+    table.insert(result, string.sub(self, from, delim_from - 1))
+    from = delim_to + 1
+    delim_from, delim_to = string.find(self, delimiter, from)
+  end
+  table.insert(result, string.sub(self, from))
+  return result
+end
+
+function table:print()
+  for key, value in pairs(self) do
+    print(key, value)
+  end
+end
+
+function is_lazy_plugin_installed(plugin_name)
+  local plugin_path = vim.fn.stdpath("data") .. "/lazy/" .. plugin_name
+  return vim.fn.isdirectory(plugin_path) == 1
+end
+
+_G.write_to_file = function (content, file)
+  local f = io.open(file, "w")
+  f:write(content)
+  f:close()
+end
+
+_G.log = function(...)
+  local args = {...}
+  local log_file_path = "/tmp/lua-nvim.log"
+  local log_file = io.open(log_file_path, "a")
+  if log_file == nil then
+    print("Could not open log file: " .. log_file_path)
+    return
+  end
+  io.output(log_file)
+  io.write(string.format("%s:%03d", os.date("%H:%M:%S"), vim.loop.now() % 1000) .. " >>> ")
+  for i, payload in ipairs(args) do
+    local ty = type(payload)
+    if ty == "table" then
+      io.write(string.format("%d -> %s\n", i, vim.inspect(payload)))
+    elseif ty == "function" then
+      io.write(string.format("%d -> [function]\n", i))
+    else
+      io.write(string.format("%d -> %s\n", i, payload))
+    end
+  end
+  io.close(log_file)
+end
+
+function _G.overwrite_file(payload, filename)
+  local log_file_path = vim.env.HOME .. "/" .. filename
+  local log_file = io.open(log_file_path, "w")
+  log_file:write(payload)
+  log_file:close()
+end
+
 -- gvar settings for plugins
 vim.g.matchup_matchparen_offscreen = { method = "popup" }
 vim.g.matchup_surround_enabled = 1
@@ -1003,8 +1064,8 @@ null_ls.setup({
   }
 })
 
-
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
+_G.log("capabilities", capabilities)
 
 -- oh man written by GPT4
 local function deep_copy(tbl)
@@ -1174,66 +1235,6 @@ vim.cmd [[
 -- end
 -- vim.keymap.set("", "<f1>", toggle_profile)
 
--- helper
-function string:split(delimiter)
-  local result = {}
-  local from = 1
-  local delim_from, delim_to = string.find(self, delimiter, from)
-  while delim_from do
-    table.insert(result, string.sub(self, from, delim_from - 1))
-    from = delim_to + 1
-    delim_from, delim_to = string.find(self, delimiter, from)
-  end
-  table.insert(result, string.sub(self, from))
-  return result
-end
-
-function table:print()
-  for key, value in pairs(self) do
-    print(key, value)
-  end
-end
-
-function is_lazy_plugin_installed(plugin_name)
-  local plugin_path = vim.fn.stdpath("data") .. "/lazy/" .. plugin_name
-  return vim.fn.isdirectory(plugin_path) == 1
-end
-
-_G.write_to_file = function (content, file)
-  local f = io.open(file, "w")
-  f:write(content)
-  f:close()
-end
-
-_G.log = function(...)
-  local args = {...}
-  local log_file_path = "/tmp/lua-nvim.log"
-  local log_file = io.open(log_file_path, "a")
-  if log_file == nil then
-    print("Could not open log file: " .. log_file_path)
-    return
-  end
-  io.output(log_file)
-  io.write(string.format("%s:%03d", os.date("%H:%M:%S"), vim.loop.now() % 1000) .. " >>> ")
-  for i, payload in ipairs(args) do
-    local ty = type(payload)
-    if ty == "table" then
-      io.write(string.format("%d -> %s\n", i, vim.inspect(payload)))
-    elseif ty == "function" then
-      io.write(string.format("%d -> [function]\n", i))
-    else
-      io.write(string.format("%d -> %s\n", i, payload))
-    end
-  end
-  io.close(log_file)
-end
-
-function _G.overwrite_file(payload, filename)
-  local log_file_path = vim.env.HOME .. "/" .. filename
-  local log_file = io.open(log_file_path, "w")
-  log_file:write(payload)
-  log_file:close()
-end
 
 require('treesitter-context').setup{
   enable = true, -- Enable this plugin (Can be enabled/disabled later via commands)
