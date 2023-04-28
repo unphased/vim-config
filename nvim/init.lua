@@ -750,29 +750,28 @@ vim.keymap.set("v", "<leader>p", ":!pbpaste<CR>", { desc = "Paste from pbpaste" 
 
 -- lspconfig
 -- set border
-local _border = "rounded"
+-- local _border = "rounded"
 
-vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(
-  vim.lsp.handlers.hover, {
-    border = _border
-  }
-)
+-- vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(
+--   vim.lsp.handlers.hover, {
+--     border = _border
+--   }
+-- )
 
-vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(
-  vim.lsp.handlers.signature_help, {
-    border = _border
-  }
-)
+-- vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(
+--   vim.lsp.handlers.signature_help, {
+--     border = _border
+--   }
+-- )
+--
+-- vim.diagnostic.config{
+--   float={border=_border}
+-- }
 
-vim.diagnostic.config{
-  float={border=_border}
-}
-
-local opts = {}
-vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "Open diagnostic in float" })
-vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Go to previous diagnostic" })
-vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Go to next diagnostic" })
-vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Set diagnostics to location list" })
+-- vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "Open diagnostic in float" })
+-- vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Go to previous diagnostic" })
+-- vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Go to next diagnostic" })
+-- vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Set diagnostics to location list" })
 
 -- indent-blankline
 
@@ -879,7 +878,7 @@ cmp.setup({
   sources = cmp.config.sources({
     { name = 'nvim_lsp' },
     -- { name = 'vsnip' }, -- For vsnip users.
-    { name = 'luasnip' }, -- For luasnip users.
+    -- { name = 'luasnip' }, -- For luasnip users.
     -- { name = 'ultisnips' }, -- For ultisnips users.
     -- { name = 'snippy' }, -- For snippy users.
     { name = 'buffer' },
@@ -935,9 +934,9 @@ cmp.event:on(
   cmp_autopairs.on_confirm_done()
 )
 
-require("neodev").setup({
-  -- add any options here, or leave empty to use the default settings
-})
+-- require("neodev").setup({
+--   -- add any options here, or leave empty to use the default settings
+-- })
 
 require("mason").setup({})
 require("mason-lspconfig").setup({
@@ -1007,11 +1006,26 @@ null_ls.setup({
 
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
+-- oh man written by GPT4
+local function deep_copy(tbl)
+    local copy = {}
+    for k, v in pairs(tbl) do
+        if type(v) == "table" then
+            copy[k] = deep_copy(v)
+        else
+            copy[k] = v
+        end
+    end
+    return copy
+end
+
 local ext = function(table, key, value)
-  local tbl = table
+  local tbl = deep_copy(table)
   tbl[key] = value
   return tbl
 end
+
+vim.keymap.set('n', '?', vim.lsp.buf.hover)
 
 local goto_preview = require('goto-preview')
 
@@ -1022,8 +1036,6 @@ local lsp_attach = function (x, bufnr)
   local bufopts = { noremap=true, silent=true, buffer=bufnr }
   vim.keymap.set('n', 'gD', goto_preview.goto_preview_type_definition, ext(bufopts, "desc", "Go to Type Definition (preview window)"))
   vim.keymap.set('n', 'gd', goto_preview.goto_preview_definition, ext(bufopts, "desc", "Go to Definition (preview window)"))
-  vim.keymap.set('n', '?', vim.lsp.buf.hover, ext(bufopts, "desc", "Hover"))
-
   vim.keymap.set('n', 'gi', goto_preview.goto_preview_implementation, ext(bufopts, "desc", "Go to Implementation (preview window)"))
   -- mnemonic is "args"
   vim.keymap.set('n', '<leader>a', vim.lsp.buf.signature_help, ext(bufopts, "desc", "Signature help"))
