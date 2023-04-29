@@ -323,8 +323,7 @@ vim.cmd([[
   nnoremap + :res +4<CR>
   nnoremap _ :res -4<CR>
 
-
-  nnoremap <s-tab> gT
+  nnoremap <s-tab> gt
 
   nnoremap <leader>f :NeoTreeRevealToggle<CR>
   nnoremap fg :Neotree float reveal_file=<cfile> reveal_force_cwd<cr>
@@ -1073,7 +1072,6 @@ null_ls.setup({
 })
 
 local capabilities = safeRequire('cmp_nvim_lsp').default_capabilities()
-_G.log("capabilities", capabilities)
 
 -- oh man written by GPT4
 local function deep_copy(tbl)

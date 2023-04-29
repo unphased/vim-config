@@ -178,14 +178,14 @@ local FileFlags = {
         condition = function()
             return vim.bo.modified
         end,
-        provider = " ● ",
+        provider = "● ",
         hl = { fg = "green" },
     },
     {
         condition = function()
             return not vim.bo.modifiable or vim.bo.readonly
         end,
-        provider = " ",
+        provider = "",
         hl = { fg = "orange" },
     },
 }
@@ -249,8 +249,8 @@ local FileNameModifer = {
 -- let's add the children to our FileNameBlock component
 FileNameBlock = utils.insert(FileNameBlockPre,
     utils.insert(FileNameModifer, FileName), -- a new table where FileName is a child of FileNameModifier
-    FileIcon,
     FileFlags,
+    FileIcon,
     { provider = '%<'} -- this means that the statusline is cut here when there's not enough space
 )
 
@@ -960,53 +960,28 @@ local StatusLines = {
     SpecialStatusline, TerminalStatusline, InactiveStatusline, DefaultStatusline,
 }
 
--- local WinBars = {
---     fallthrough = false,
---     {   -- Hide the winbar for special buffers
---         condition = function()
---             return conditions.buffer_matches({
---                 buftype = { "nofile", "prompt", "help", "quickfix" },
---                 filetype = { "^git.*", "fugitive" },
---             })
---         end,
---         init = function()
---             vim.opt_local.winbar = nil
---         end
---     },
---     {   -- A special winbar for terminals
---         condition = function()
---             return conditions.buffer_matches({ buftype = { "terminal" } })
---         end,
---         utils.surround({ "", "" }, "dark_red", {
---             FileType,
---             Space,
---             TerminalName,
---         }),
---     },
---     {   -- An inactive winbar for regular files
---         condition = function()
---             return not conditions.is_active()
---         end,
---         utils.surround({ "", "" }, "bright_bg", { hl = { fg = "gray", force = true }, FileNameBlock }),
---     },
---     -- A winbar for regular files
---     utils.surround({ "", "" }, "muted_bg", FileNameBlock),
--- }
--- vim.api.nvim_create_autocmd("User", {
---     pattern = 'HeirlineInitWinbar',
---     callback = function(args)
---         local buf = args.buf
---         local buftype = vim.tbl_contains(
---             { "prompt", "nofile", "help", "quickfix" },
---             vim.bo[buf].buftype
---         )
---         local filetype = vim.tbl_contains({ "gitcommit", "fugitive" }, vim.bo[buf].filetype)
---         if buftype or filetype then
---             vim.opt_local.winbar = nil
---         end
---     end,
--- })
---
+local WinBars = {
+    fallthrough = false,
+    {   -- A special winbar for terminals
+        condition = function()
+            return conditions.buffer_matches({ buftype = { "terminal" } })
+        end,
+        utils.surround({ "", "" }, "dark_red", {
+            FileType,
+            Space,
+            TerminalName,
+        }),
+    },
+    {   -- An inactive winbar for regular files
+        condition = function()
+            return not conditions.is_active()
+        end,
+        utils.surround({ "", "" }, "bright_bg", { hl = { fg = "gray", force = true }, FileNameBlock }),
+    },
+    -- A winbar for regular files
+    utils.surround({ "", "" }, "bright_bg", FileNameBlock),
+}
+
 local TablineBufnr = {
     provider = function(self)
         return " " .. tostring(self.bufnr) .. " "
@@ -1225,8 +1200,20 @@ local TabLine = { TabLineOffset, BufferLine, TabPages }
 
 require("heirline").setup({
     statusline = StatusLines,
+    -- Honestly I just dont see the point of a winbar. earlier winbar code from an earlier coobook combined with updated heirline caused popups to break in a really weird way. I updated the config now, so this is no longer a thing, but i still have not found a reason to bring it back and much rather have one more row of real estate.
     -- winbar = WinBars,
-    tabline = TabLine
+    tabline = TabLine,
+    -- statuscolumn = nil,
+    opts = {
+        -- -- if the callback returns true, the winbar will be disabled for that window
+        -- -- the args parameter corresponds to the table argument passed to autocommand callbacks. :h nvim_lua_create_autocmd()
+        -- disable_winbar_cb = function(args)
+        --     return conditions.buffer_matches({
+        --         buftype = { "nofile", "prompt", "help", "quickfix" },
+        --         filetype = { "^git.*", "fugitive", "Trouble", "dashboard" },
+        --     }, args.buf)
+        -- end,
+    },
 })
 
 -- Yep, with heirline we're driving manual!
