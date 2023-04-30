@@ -3,13 +3,15 @@
 
 - short term for STS: work out how to delete/paste items automating handling and placement of delimiters, handling inclusion of boundary bracket chars, etc. I guess the latter can be handled by having a way to expand to all siblings though. This may have impact on the next work.
 - improve STS to contantly set highlights to preview what the parent and sibling nodes are? track the last child node? abandon visual mode? Not sure.
-- evaluate if it is more intuitive for both parent/child and sibling movements to use up/down directionals rather than have siblings be left/right. I guess the main issue here is evicting other key binds...
+- for STS: evaluate if it is more intuitive for both parent/child and sibling movements to use up/down directionals rather than have siblings be left/right. I guess the main issue here is evicting other key binds...
 - find for most common languages a workflow to autoformat them, which is going to solve the indent related niggles that remain
 - explore the alternative to composer (live-command.nvim previews macros and other stuff) (there is also nvim-neoclip)
-- get a better profiler tool and figure out why this file is sluggish (got perfanno and it is kind of pretty cool)
+- get a better profiler tool and figure out why this file is sluggish (got perfanno and it is kind of pretty cool, ubt see if there are any other better profilers)
 - setup wezterm and move away from alacritty
 - reorganize the config into separate source files grouped by functionality
-- still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults
+- still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults -- for onw this is done with tab and shift tab and i might just keep this honestly, because the behavior of going to the next tab when at the last window didnt really work that intuitively.
+-- ctrl+bs is still not working right in insert mode... i think
+-- make the i_I start inserting after the comment if applicable
 - yank window to new tab in next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
 - my prized alt-, and friends automations (to be fair i've been getting good at manually leveraging dot-repeat which is decently good retraining)
 - \p for toggle paste and removing indent markers and stuff like that in paste mode to make it work like a copy-mode
