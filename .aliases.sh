@@ -18,14 +18,18 @@ if [ "$(uname)" = Linux ] && lsb_release -i | grep Ubuntu; then
 	alias open="xdg-open"
 fi
 
+# black ass magic
+export TERMINFO_DIRS=$TERMINFO_DIRS:$HOME/.local/share/terminfo
+
 alias vv="v ~/.vim/nvim/init.lua"
-alias vp="v ~/.vim/nvim/lua/plugins.lua"
+alias vp="~/.vim/nvim/monitored_autoload_nvim.sh -O ~/.vim/nvim/lua/plugins.lua ~/.vim/nvim/init.lua"
 alias l="ls -rt"
 alias sl="ls"
 alias ll="l -lh"
 alias la="ll -a"
 alias ssht="TERM=xterm-256color ssh"
 alias v="nvim"
+alias vd='v $(git diff --name-only | while read file; do printf "$(git rev-parse --show-toplevel)/$file "; done) -O'
 alias g="git"
 alias gs="git s" # short status 
 alias gco="git checkout"
@@ -117,6 +121,20 @@ fi
 
 alias dc="cd"
 
+# Very useful command debugger
+BLACK="\x1b[30m"
+RESET="\x1b[0m"
+execute () {
+  CTR=1
+  echo "Executing the following:"
+  for arg in "$@"; do
+    printf "$BLACK"'$'"%s=$RESET%s " $CTR "$arg"
+    (( CTR ++ ))
+  done
+  echo "" # new line
+  "$@"
+}
+
 # unfortunately this is turning into a place where i collect environment 
 # settings for both zsh/bash. Not that theres anything wrong with that per se, 
 # but it means this file shouldn't be called aliases.sh any longer...
@@ -131,8 +149,6 @@ export LESS_TERMCAP_ue=$'\E[0m'           # end underline
 export LESS_TERMCAP_us=$'\E[4;38;5;146m' # begin underline
 
 export OSTYPE
-
-alias bat='bat --pager="less -R"'
 
 # # because omz people are slightly incompetent and regressed these aliases i did 
 # # start to use (these may come back later when #4585 completes)

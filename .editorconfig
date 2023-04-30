@@ -18,7 +18,7 @@ charset = utf-8
 # [*.{js,py}]
 # charset = utf-8
 
-# Tab indentation (no size specified)
+# Tab indentation
 [Makefile]
 indent_style = tab
 indent_size = 4

@@ -1816,9 +1816,9 @@ highlight Error term=reverse ctermfg=8 ctermbg=9
 " set t_ZR=[23m
 
 " only on an italic term do we set comment to use italic cterm highlight
-if &term == 'xterm-256color-italic' || &term == 'nvim' || &term == 'tmux-256color-italic'
+" if &term == 'xterm-256color-italic' || &term == 'nvim' || &term == 'tmux-256color-italic'
 	hi Comment cterm=italic
-endif
+" endif
 
 " bind ctrl W to always work on windows from insert mode
 " Update: UHHHHH i'm not so sure about this one but i do not use ctrlw so i guess i'm ok with 
