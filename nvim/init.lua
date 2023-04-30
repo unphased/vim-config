@@ -7,10 +7,11 @@
 - find for most common languages a workflow to autoformat them, which is going to solve the indent related niggles that remain
 - explore the alternative to composer (live-command.nvim previews macros and other stuff) (there is also nvim-neoclip)
 - get a better profiler tool and figure out why this file is sluggish (got perfanno and it is kind of pretty cool, ubt see if there are any other better profilers)
-- setup wezterm and move away from alacritty
+- setup wezterm and move away from alacritty/windows term/possibly eliminate tmux
 - reorganize the config into separate source files grouped by functionality
-- still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults -- for onw this is done with tab and shift tab and i might just keep this honestly, because the behavior of going to the next tab when at the last window didnt really work that intuitively.
+- still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults -- for now this is done with tab and shift tab and i might just keep this honestly, because the behavior of going to the next tab when at the last window didnt really work that intuitively.
 -- make the i_I start inserting after the comment if applicable
+-- reduce the brightness of the gitsigns removal virtlines
 - yank window to new tab in next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
 - my prized alt-, and friends automations (to be fair i've been getting good at manually leveraging dot-repeat which is decently good retraining)
 - \p for toggle paste and removing indent markers and stuff like that in paste mode to make it work like a copy-mode
@@ -249,16 +250,18 @@ vim.cmd([[
   " highlight DiffChange guibg=#13292e guifg=NONE
   " " highlight DiffText guibg=#452250 guifg=NONE
   " highlight DiffDelete guibg=#30181a guifg=NONE
-  highlight GitSignsChangeInline guibg=#302ee8 guifg=NONE
-  highlight GitSignsDeleteInline guibg=#68221a guifg=NONE
-  highlight GitSignsAddInline guibg=#30582e guifg=NONE
+  highlight GitSignsChangeInline guibg=#302ee8 guifg=NONE gui=bold
+  " FYI this style is only gonna get used in inline previews
+  highlight GitSignsDeleteInline guibg=#68221a guifg=NONE gui=bold
+  highlight GitSignsAddInline guibg=#30582e guifg=NONE gui=bold
 
   " highlight GitSignsAddLnInline guibg=#30ff2e guifg=NONE
   " highlight GitSignsChangeLnInline guibg=#0000ff guifg=NONE
   highlight GitSignsDeleteLnInline gui=underdouble guisp=#800000 guibg=NONE guifg=NONE
   " highlight GitSignsDeleteVirtLn guibg=NONE guifg=NONE
-  highlight GitSignsDeleteVirtLn guibg=#500000
-  highlight GitSignsDeleteVirtLnInLine guibg=#600000
+  " I wanted to make the fg of the deleted virt lines similar or darker than the comment style since it has to be made more subtle than that at least not to lead to some confusion. Do no specify a fg for all the other kind of styles like this so as to preserve syntax highlighting, but in virtual lines highlighting is not a possibility anyway.
+  highlight GitSignsDeleteVirtLn guibg=#500000 guifg=#707070
+  highlight GitSignsDeleteVirtLnInLine guibg=#700000 gui=bold,strikethrough
 
   highlight WordUnderTheCursor gui=bold
   highlight IlluminatedWordText gui=bold
@@ -551,6 +554,12 @@ safeRequire("gitsigns").setup({
       vim.schedule(function() gs.prev_hunk() end)
       return '<Ignore>'
     end, {expr=true, desc="Prev Hunk"})
+
+    -- toggle sohw deleted
+    map('n', '<leader>d', function ()
+      vim.schedule(function() gs.toggle_deleted() end)
+      return '<Ignore>'
+    end, {expr=true, desc="Toggle Show Deleted (GitSigns)"})
   end,
   diff_opts = {
     internal = true,
