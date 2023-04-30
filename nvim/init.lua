@@ -462,7 +462,32 @@ vim.cmd([[
   nnoremap / /\v
   vnoremap / /\v
 
+
 ]])
+
+-- From before, in vimL: " comment-aware insert at start of string
+
+-- function! SmartInsertStartOfLine()
+--
+-- if lua require'nvim-treesitter-playground.hl-info'.get_treesitter_hl()
+--   normal! ^w
+--   startinsert
+-- else
+--   " why do i need to use feedkeys? who knows?
+--   call feedkeys('I', 'n')
+--   endif
+-- endfun
+-- " http://stackoverflow.com/a/22282505/340947
+-- nnoremap I :call SmartInsertStartOfLine()<CR> 
+
+local smart_insert_start_of_line = function()
+  if require'nvim-treesitter-playground.hl-info'.get_treesitter_hl() then
+    vim.cmd[[normal! ^w]]
+    vim.cmd[[startinsert]]
+  else
+    vim.api.nvim_feedkeys('I', 'n', true)
+  end
+end
 
 -- helpers
 function string:split(delimiter)
@@ -555,7 +580,7 @@ safeRequire("gitsigns").setup({
       return '<Ignore>'
     end, {expr=true, desc="Prev Hunk"})
 
-    -- toggle sohw deleted
+    -- toggle show deleted
     map('n', '<leader>d', function ()
       vim.schedule(function() gs.toggle_deleted() end)
       return '<Ignore>'
