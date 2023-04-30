@@ -10,7 +10,6 @@
 - setup wezterm and move away from alacritty
 - reorganize the config into separate source files grouped by functionality
 - still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults -- for onw this is done with tab and shift tab and i might just keep this honestly, because the behavior of going to the next tab when at the last window didnt really work that intuitively.
--- ctrl+bs is still not working right in insert mode... i think
 -- make the i_I start inserting after the comment if applicable
 - yank window to new tab in next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
 - my prized alt-, and friends automations (to be fair i've been getting good at manually leveraging dot-repeat which is decently good retraining)
@@ -75,11 +74,11 @@ safeRequire("lazy").setup("plugins", {
 
 -- mappings
 
--- Remember: I've mapped at the terminal level ctrl+BS, alt/opt+BS both to ^[^?
+-- Remember: I map at the terminal level ctrl+BS, alt/opt+BS both to ^[^?, so binds should use <m-bs>. I'm not sure how this works on windows terminal as well, but it does.
 -- stronger normal mode move back via backspace
 vim.keymap.set("n", "<M-BS>", "B")
--- word delete
-vim.keymap.set("i", "<M-BS>", "<Cmd>normal db<CR>")
+-- word delete. Note that <Cmd>normal db does NOT work because exiting normal mode puts the cursor at the wrong spot
+vim.keymap.set("i", "<M-BS>", "<C-W>")
 -- command mode word delete
 vim.keymap.set('c', "<M-BS>", '<C-W>', {noremap = true})
 
