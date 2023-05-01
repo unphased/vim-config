@@ -10,7 +10,6 @@
 - setup wezterm and move away from alacritty/windows term/possibly eliminate tmux
 - reorganize the config into separate source files grouped by functionality
 - still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults -- for now this is done with tab and shift tab and i might just keep this honestly, because the behavior of going to the next tab when at the last window didnt really work that intuitively.
--- make the i_I start inserting after the comment if applicable
 -- reduce the brightness of the gitsigns removal virtlines
 - yank window to new tab in next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
 - my prized alt-, and friends automations (to be fair i've been getting good at manually leveraging dot-repeat which is decently good retraining)
@@ -479,15 +478,28 @@ vim.cmd([[
 -- endfun
 -- " http://stackoverflow.com/a/22282505/340947
 -- nnoremap I :call SmartInsertStartOfLine()<CR> 
+local is_comment_ts_hl = function()
+  local hl = require'nvim-treesitter-playground.hl-info'.get_treesitter_hl()
+  -- loop
+  for _, v in ipairs(hl) do
+    -- if any contain 'comment': typical values seen are: { "* **@error**", "* **@comment**", "* **@spell**", "* **@spell**" }
+    if string.find(v, 'comment') then
+      return true
+    end
+  end
+  return false
+end
 
-local smart_insert_start_of_line = function()
-  if require'nvim-treesitter-playground.hl-info'.get_treesitter_hl() then
+_G.smart_insert_start_of_line = function()
+  if is_comment_ts_hl() then
     vim.cmd[[normal! ^w]]
     vim.cmd[[startinsert]]
   else
     vim.api.nvim_feedkeys('I', 'n', true)
   end
 end
+
+vim.api.nvim_set_keymap('n', 'I', ':lua smart_insert_start_of_line()<CR>', {noremap = true, silent = true})
 
 -- helpers
 function string:split(delimiter)
