@@ -464,20 +464,7 @@ vim.cmd([[
 
 ]])
 
--- From before, in vimL: " comment-aware insert at start of string
-
--- function! SmartInsertStartOfLine()
---
--- if lua require'nvim-treesitter-playground.hl-info'.get_treesitter_hl()
---   normal! ^w
---   startinsert
--- else
---   " why do i need to use feedkeys? who knows?
---   call feedkeys('I', 'n')
---   endif
--- endfun
--- " http://stackoverflow.com/a/22282505/340947
--- nnoremap I :call SmartInsertStartOfLine()<CR> 
+-- http://stackoverflow.com/a/22282505/340947
 local is_comment_ts_hl = function()
   local hl = require'nvim-treesitter-playground.hl-info'.get_treesitter_hl()
   -- loop
