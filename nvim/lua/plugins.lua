@@ -110,7 +110,7 @@ return {
       {'hrsh7th/cmp-nvim-lua'},     -- Optional
 
       -- Snippets
-      {'rafamadriz/friendly-snippets'}, -- Optional
+      -- {'rafamadriz/friendly-snippets'}, -- Optional
     }
   },
   'rhysd/conflict-marker.vim',
