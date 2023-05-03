@@ -6,15 +6,15 @@
 - for STS: evaluate if it is more intuitive for both parent/child and sibling movements to use up/down directionals rather than have siblings be left/right. I guess the main issue here is evicting other key binds...
 - find for most common languages a workflow to autoformat them, which is going to solve the indent related niggles that remain
 - explore the alternative to composer (live-command.nvim previews macros and other stuff) (there is also nvim-neoclip)
-- get a better profiler tool and figure out why this file is sluggish (got perfanno and it is kind of pretty cool, ubt see if there are any other better profilers)
-- setup wezterm and move away from alacritty/windows term/possibly eliminate tmux
+- get a better profiler tool and figure out why this file is sluggish (got perfanno and it is kind of pretty cool, but see if there are any other better profilers)
+- look into resolving wezterm performance issues and move away from alacritty/windows term/possibly eliminate tmux
 - reorganize the config into separate source files grouped by functionality
 - still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults -- for now this is done with tab and shift tab and i might just keep this honestly, because the behavior of going to the next tab when at the last window didnt really work that intuitively.
 -- reduce the brightness of the gitsigns removal virtlines
 - yank window to new tab in next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
 - my prized alt-, and friends automations (to be fair i've been getting good at manually leveraging dot-repeat which is decently good retraining)
 - \p for toggle paste and removing indent markers and stuff like that in paste mode to make it work like a copy-mode
-- f10 handling for tmux
+- f10 handling for tmux (amazing though, i got this far without it, maybe i dont want to integrate from vim to tmux...)
 - prevent mouse interaction from messing with insert mode cursor position
 - implement insert mode reliable ctrl/alt arrows
 - implement semantic highlight removal (i want this in possibly lua right now but also definitely dockerfile) by literally selecting them out at the highlight group level (ah dang, no worky for dockerls)
@@ -58,14 +58,14 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 local function safeRequire(module)
-  local success, req = pcall(require, module)
-  if success then return req end
-  vim.api.nvim_err_writeln("safeRequire Caught error loading " .. module)
+  local success, res = pcall(require, module)
+  if success then return res end
+  vim.api.nvim_err_writeln("safeRequire caught an error while loading " .. module .. ", error: " .. res)
   return nil
 end
 
 -- plugins
-safeRequire("lazy").setup("plugins", {
+require("lazy").setup("plugins", {
   checker = { enabled = true, notify = false, },
   git = {
     url_format = "git@github.com:%s.git",
@@ -260,7 +260,7 @@ vim.cmd([[
   " highlight GitSignsDeleteVirtLn guibg=NONE guifg=NONE
   " I wanted to make the fg of the deleted virt lines similar or darker than the comment style since it has to be made more subtle than that at least not to lead to some confusion. Do no specify a fg for all the other kind of styles like this so as to preserve syntax highlighting, but in virtual lines highlighting is not a possibility anyway.
   highlight GitSignsDeleteVirtLn guibg=#500000 guifg=#707070
-  highlight GitSignsDeleteVirtLnInLine guibg=#700000 gui=bold,strikethrough
+  highlight GitSignsDeleteVirtLnInLine guibg=#700000 gui=strikethrough
 
   highlight WordUnderTheCursor gui=bold
   highlight IlluminatedWordText gui=bold
