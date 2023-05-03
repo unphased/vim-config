@@ -796,20 +796,20 @@ local HelpFileName = {
     hl = { fg = colors.blue },
 }
 
-local luasnip = require('luasnip')
+-- local luasnip = require('luasnip')
 
-local Snippets = {
-    -- check that we are in insert or select mode
-    condition = function()
-        return vim.tbl_contains({'s', 'i'}, vim.fn.mode())
-    end,
-    provider = function()
-        local forward = luasnip.expand_or_jumpable() and "" or ""
-        local backward = luasnip.jumpable(-1) and " " or ""
-        return backward .. forward
-    end,
-    hl = { fg = "red", bold = true },
-}
+-- local Snippets = {
+--     -- check that we are in insert or select mode
+--     condition = function()
+--         return vim.tbl_contains({'s', 'i'}, vim.fn.mode())
+--     end,
+--     provider = function()
+--         local forward = luasnip.expand_or_jumpable() and "" or ""
+--         local backward = luasnip.jumpable(-1) and " " or ""
+--         return backward .. forward
+--     end,
+--     hl = { fg = "red", bold = true },
+-- }
 
 local Spell = {
     condition = function()
@@ -854,7 +854,7 @@ local Navic = { flexible = 3, Navic, { provider = "" } }
 local Align = { provider = "%=" }
 local Space = { provider = " " }
 
-ViMode = utils.surround({ "", "" }, "muted_bg", { ViMode, Snippets })
+ViMode = utils.surround({ "", "" }, "muted_bg", { ViMode })
 
 local LazySpace = {
     condition = function()
