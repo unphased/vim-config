@@ -1207,7 +1207,7 @@ vim.cmd([[
   hi YankyYanked guibg=#2e5099 gui=bold cterm=bold
 
   hi Search cterm=bold ctermfg=black ctermbg=yellow guibg=#a9291a guifg=NONE
-  hi incSearch cterm=bold ctermfg=black ctermbg=yellow guibg=#a04080 guifg=NONE
+  hi IncSearch cterm=bold ctermfg=black ctermbg=cyan guibg=#f04050 guifg=NONE gui=NONE
   hi Visual term=reverse ctermbg=238 guibg=#504050
 
   " pane/window split style: only vertical split style matters in vim since horizontal splits are made of statuslines.

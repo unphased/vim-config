@@ -22,7 +22,7 @@ return {
   "tpope/vim-sleuth",
   "tpope/vim-repeat",
   "numToStr/Comment.nvim",
-  'AndrewRadev/switch.vim',
+  -- 'AndrewRadev/switch.vim',
   -- 'junegunn/fzf.vim',
   -- 'junegunn/fzf',
   { 'nvim-telescope/telescope.nvim', dependencies = { 'nvim-lua/plenary.nvim' }, branch = "0.1.x" },
@@ -70,7 +70,7 @@ return {
   "ojroques/nvim-osc52",
   -- "yamatsum/nvim-cursorline",
   "andymass/vim-matchup",
-  "AndrewRadev/splitjoin.vim",
+  -- "AndrewRadev/splitjoin.vim",
   "windwp/nvim-autopairs",
   -- "google/vim-searchindex", -- give search index output (i of n matches) that isn't clamped to 99
   "lukas-reineke/indent-blankline.nvim",
@@ -236,5 +236,8 @@ return {
     init = function()
       require("perfanno").setup()
     end
-  }
+  },
+  {
+    "ggandor/lightspeed.nvim"
+  },
 }
