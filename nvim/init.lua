@@ -6,11 +6,11 @@
 - for STS: evaluate if it is more intuitive for both parent/child and sibling movements to use up/down directionals rather than have siblings be left/right. I guess the main issue here is evicting other key binds...
 - find for most common languages a workflow to autoformat them, which is going to solve the indent related niggles that remain
 - explore the alternative to composer (live-command.nvim previews macros and other stuff) (there is also nvim-neoclip)
+- make the i_I custom behavior i have dot-repeatable (i tried with gpt4 and failed)
 - get a better profiler tool and figure out why this file is sluggish (got perfanno and it is kind of pretty cool, but see if there are any other better profilers)
-- look into resolving wezterm performance issues and move away from alacritty/windows term/possibly eliminate tmux
+- look into resolving wezterm performance issues (https://github.com/wez/wezterm/discussions/3664) and move away from alacritty/windows term/possibly eliminate tmux
 - reorganize the config into separate source files grouped by functionality
-- still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults -- for now this is done with tab and shift tab and i might just keep this honestly, because the behavior of going to the next tab when at the last window didnt really work that intuitively.
--- reduce the brightness of the gitsigns removal virtlines
+- LOW still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults -- for now this is done with tab and shift tab and i might just keep this honestly, because the behavior of going to the next tab when at the last window didnt really work that intuitively.
 - yank window to new tab in next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
 - my prized alt-, and friends automations (to be fair i've been getting good at manually leveraging dot-repeat which is decently good retraining)
 - \p for toggle paste and removing indent markers and stuff like that in paste mode to make it work like a copy-mode
@@ -464,6 +464,7 @@ vim.cmd([[
 
 ]])
 
+-- implements a smart I to insert at the front of the line but after the comment symbol if applicable
 -- http://stackoverflow.com/a/22282505/340947
 local is_comment_ts_hl = function()
   local hl = require'nvim-treesitter-playground.hl-info'.get_treesitter_hl()
