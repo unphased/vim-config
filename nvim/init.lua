@@ -18,9 +18,9 @@
 
 - implement insert mode ctrl arrows to do big word hops (backspace does a small word hop)
 - (super low prio) implement semantic highlight removal (i want this in possibly lua right now but also definitely dockerfile) by literally selecting them out at the highlight group level (ah dang, no worky for dockerls)
-- see if i can get trouble to show a list of just a type of severity of diag. hook to click on section.
-- add update field back to heirline for diags' flexible entries.
-- figure out why dockerls capabilities doesn't include semantic tokens
+- see if i can get trouble to show a list of just a type of severity of diag. hook to click on section. This might not be easily doable but if i can programmatically fetch the list i can just try to focus on the first of that type.
+- I THINK I DID THIS add update field back to heirline for diags' flexible entries.
+- NOT SURE IF THING figure out why dockerls capabilities doesn't include semantic tokens
 - find a way to search by token under cursor or current search text in telescope live grep
 
 --]]
@@ -745,7 +745,9 @@ vim.keymap.set("n", "<c-p>", function ()
   telescope_builtin.find_files({ find_command = { 'fd', '--type', 'f' } })
 end)
 -- hard to believe ctrl+G was not already bound by vim
-vim.keymap.set("n", "<c-g>", telescope_builtin.live_grep, { desc = "Telescope Live Grep" })
+vim.keymap.set('n', '<c-g>', '<cmd>AdvancedGitSearch<CR>')
+vim.keymap.set("n", "<leader>g", telescope_builtin.live_grep, { desc = "Telescope Live Grep" })
+vim.keymap.set("n", "<leader><CR>", telescope_builtin.grep_string, { desc = "Telescope Grep String" })
 vim.keymap.set("n", "<leader>m", telescope_builtin.man_pages, { desc = "Telescope Man Pages" })
 vim.keymap.set("n", "<f6>", telescope_builtin.oldfiles, { desc = "Telescope Recent Files" })
 vim.keymap.set("n", "<leader>b", telescope_builtin.buffers, { desc = "Telescope Buffers" })
