@@ -11,13 +11,13 @@
 - look into resolving wezterm performance issues (https://github.com/wez/wezterm/discussions/3664) and move away from alacritty/windows term/possibly eliminate tmux
 - reorganize the config into separate source files grouped by functionality
 - LOW still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults -- for now this is done with tab and shift tab and i might just keep this honestly, because the behavior of going to the next tab when at the last window didnt really work that intuitively.
-- yank window to new tab in next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
-- my prized alt-, and friends automations (to be fair i've been getting good at manually leveraging dot-repeat which is decently good retraining)
-- \p for toggle paste and removing indent markers and stuff like that in paste mode to make it work like a copy-mode
+- (IMPL'd but broken) yank window to new tab in next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
+- my prized alt-, and friends automations (to be fair i've been getting good at manually leveraging dot-repeat which is decently good retraining) (for this one i think i should look into the newer knowledge i now have for being able to customize dot repeat? or nah...)
+- DONE via alt+p. Also, paste mode is deprecated now. \p for toggle paste and removing indent markers and stuff like that in paste mode to make it work like a copy-mode
 - f10 handling for tmux (amazing though, i got this far without it, maybe i dont want to integrate from vim to tmux...)
-- prevent mouse interaction from messing with insert mode cursor position
-- implement insert mode reliable ctrl/alt arrows
-- implement semantic highlight removal (i want this in possibly lua right now but also definitely dockerfile) by literally selecting them out at the highlight group level (ah dang, no worky for dockerls)
+
+- implement insert mode ctrl arrows to do big word hops (backspace does a small word hop)
+- (super low prio) implement semantic highlight removal (i want this in possibly lua right now but also definitely dockerfile) by literally selecting them out at the highlight group level (ah dang, no worky for dockerls)
 - vim window maximization toggle
 - see if i can get trouble to show a list of just a type of severity of diag. hook to click on section.
 - add update field back to heirline for diags' flexible entries.
@@ -73,6 +73,17 @@ require("lazy").setup("plugins", {
 })
 
 -- mappings
+
+--- from the vimL 
+-- " woot, disable phantom clicktyping into random spots
+-- inoremap <LeftMouse> <Nop>
+-- inoremap <2-LeftMouse> <Nop>
+-- inoremap <3-LeftMouse> <Nop>
+-- inoremap <4-LeftMouse> <Nop>
+vim.keymap.set("i", "<LeftMouse>", "<Nop>")
+vim.keymap.set("i", "<2-LeftMouse>", "<Nop>")
+vim.keymap.set("i", "<3-LeftMouse>", "<Nop>")
+vim.keymap.set("i", "<4-LeftMouse>", "<Nop>")
 
 -- Remember: I map at the terminal level ctrl+BS, alt/opt+BS both to ^[^?, so binds should use <m-bs>. I'm not sure how this works on windows terminal as well, but it does.
 -- stronger normal mode move back via backspace
@@ -174,6 +185,21 @@ vim.keymap.set("n", "<tab>", "<c-w>w")
 
 -- dumping vimL code that I didnt bother porting yet here for expedient bringup
 vim.cmd([[
+
+  " Zoom / Restore window.
+  function! s:ZoomToggle() abort
+    if exists('t:zoomed') && t:zoomed
+      execute t:zoom_winrestcmd
+      let t:zoomed = 0
+    else
+      let t:zoom_winrestcmd = winrestcmd()
+      resize
+      vertical resize
+      let t:zoomed = 1
+    endif
+  endfunction
+  command! ZoomToggle call s:ZoomToggle()
+  nnoremap <Leader><Leader> :ZoomToggle<CR>
 
   " my quit method: ctrl+q first attempts to quit nvim. if there are unsaved changes, ask if you want to save them first.
   function! MyConfirmQuitAllNoSave()
