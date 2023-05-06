@@ -18,7 +18,6 @@
 
 - implement insert mode ctrl arrows to do big word hops (backspace does a small word hop)
 - (super low prio) implement semantic highlight removal (i want this in possibly lua right now but also definitely dockerfile) by literally selecting them out at the highlight group level (ah dang, no worky for dockerls)
-- vim window maximization toggle
 - see if i can get trouble to show a list of just a type of severity of diag. hook to click on section.
 - add update field back to heirline for diags' flexible entries.
 - figure out why dockerls capabilities doesn't include semantic tokens
@@ -1212,16 +1211,17 @@ end
 
 vim.keymap.set('n', '?', vim.lsp.buf.hover)
 
-local goto_preview = safeRequire('goto-preview')
+-- local goto_preview = safeRequire('goto-preview')
 
+local trouble = require('trouble')
 -- keymaps!!
 local lsp_attach = function (x, bufnr)
   local engine = x.name;
   print("lsp_attach:", engine, "bufnr="..bufnr)
   local bufopts = { noremap=true, silent=true, buffer=bufnr }
-  vim.keymap.set('n', 'gD', goto_preview.goto_preview_type_definition, ext(bufopts, "desc", "Go to Type Definition (preview window)"))
-  vim.keymap.set('n', 'gd', goto_preview.goto_preview_definition, ext(bufopts, "desc", "Go to Definition (preview window)"))
-  vim.keymap.set('n', 'gi', goto_preview.goto_preview_implementation, ext(bufopts, "desc", "Go to Implementation (preview window)"))
+  vim.keymap.set('n', 'gD', '<cmd>TroubleToggle lsp_type_definitions<cr>', ext(bufopts, "desc", "Go to Type Definition (Trouble UI)"))
+  vim.keymap.set('n', 'gd', '<cmd>TroubleToggle lsp_definitions<cr>', ext(bufopts, "desc", "Go to Definition (preview window)"))
+  -- vim.keymap.set('n', 'gi', goto_preview.goto_preview_implementation, ext(bufopts, "desc", "Go to Implementation (preview window)"))
   -- mnemonic is "args"
   vim.keymap.set('n', '<leader>a', vim.lsp.buf.signature_help, ext(bufopts, "desc", "Signature help"))
   -- vim.keymap.set('n', '<space>wa', vim.lsp.buf.add_workspace_folder, bufopts)
@@ -1232,7 +1232,7 @@ local lsp_attach = function (x, bufnr)
   -- vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, bufopts)
   vim.keymap.set('n', '<leader>r', vim.lsp.buf.rename, ext(bufopts, "desc", "Rename"))
   vim.keymap.set('n', '<leader>ca', function() vim.cmd('CodeActionMenu') end, ext(bufopts, "desc", "Code Action Menu"))
-  vim.keymap.set('n', 'gr', goto_preview.goto_preview_references, ext(bufopts, "desc", "Go to References"))
+  vim.keymap.set('n', 'gr', '<cmd>TroubleToggle lsp_references<cr>', ext(bufopts, "desc", "Go to References"))
   vim.keymap.set('n', '<leader>=', function() vim.lsp.buf.format { async = true } end, ext(bufopts, "desc", "Format Buffer"))
 end
 
