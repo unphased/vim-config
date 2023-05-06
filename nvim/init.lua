@@ -1322,7 +1322,8 @@ vim.cmd([[
 vim.keymap.set("n", "<F4>", ":UndotreeToggle<CR>")
 vim.keymap.set("i", "<F4>", "<Esc>:UndotreeToggle<CR>")
 
-vim.keymap.set("n", "<leader>t", ":Trouble<CR>")
+vim.keymap.set("n", "<leader>t", ":Trouble document_diagnostics<CR>")
+vim.keymap.set("n", "<leader>T", ":Trouble workspace_diagnostics<CR>")
 
 -- set the icons for diagnostic
 vim.cmd [[
