@@ -238,4 +238,5 @@ return {
   {
     "ggandor/lightspeed.nvim"
   },
+  { "chrisgrieser/nvim-spider", lazy = true },
 }
