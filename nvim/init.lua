@@ -465,6 +465,7 @@ vim.cmd([[
 
 ]])
 
+-- CURRENTLY NOT WORKING AT ALL YET
 _G.MoveToPrevTab = function()
   -- There is only one window
   if (#vim.api.nvim_list_tabpages()) == 1 and vim.api.nvim_win_get_number(0) == 1 then
@@ -497,6 +498,7 @@ _G.MoveToPrevTab = function()
   vim.api.nvim_set_current_buf(current_buf)
 end
 
+-- CURRENTLY THIS IS STILL NOT WORKING PROPERLY
 _G.MoveToNextTab = function()
   -- there is only one window
   local tabpages = vim.api.nvim_list_tabpages()
