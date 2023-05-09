@@ -178,8 +178,45 @@ vim.keymap.set("n", "<c-w><c-h>", "<c-w>H")
 vim.keymap.set("n", "<c-w><c-j>", "<c-w>J")
 vim.keymap.set("n", "<c-w><c-k>", "<c-w>K")
 
--- cycle window with tab. convenient
-vim.keymap.set("n", "<tab>", "<c-w>w")
+-- filters out windows:
+-- - made by nvim-treesitter-context
+-- - made by Neotree
+-- - made by Trouble
+-- Does so by filtering out not focusable, then filtering out nofile/nowrite/help/quickfix, then checking filetypes where still applicable (hopefully never need to do that)
+local function filter_to_real_wins(window_list)
+  local real_wins = {}
+  for _, win in ipairs(window_list) do
+    -- log("win config", win, vim.api.nvim_win_get_config(win))
+    local buf =  vim.api.nvim_win_get_buf(win)
+    -- log("win buftype filetype", win, vim.api.nvim_buf_get_option(buf, "buftype"), vim.api.nvim_buf_get_option(buf, "filetype"))
+    local buftype = vim.api.nvim_buf_get_option(buf, "buftype")
+    if vim.api.nvim_win_get_config(win).focusable and buftype ~= "nofile" and buftype ~= "nowrite" and buftype ~= "help" and buftype ~= "quickfix" then
+      table.insert(real_wins, win)
+    end
+  end
+  return real_wins
+end
+
+-- cycle thruogh the windows with tab. If the current tab has only one window, actually cycle through all the buffers which are not already open in other tabs (if applicable).
+_G.CycleWindowsOrBuffers = function ()
+  local curwin = vim.api.nvim_get_current_win()
+  local wins = filter_to_real_wins(vim.api.nvim_list_wins())
+  local tabs = vim.api.nvim_list_tabpages()
+  local curtab = vim.api.nvim_get_current_tabpage()
+  local wins_in_curtab = filter_to_real_wins(vim.api.nvim_tabpage_list_wins(curtab))
+  log("wins, tabs, curtab, wins_in_curtab", wins, tabs, curtab, wins_in_curtab)
+  if #wins == 1 then
+    vim.cmd("bnext")
+  elseif #tabs == 1 then
+    vim.cmd("wincmd w")
+  elseif wins_in_curtab[#wins_in_curtab] == curwin then
+    vim.cmd("tabnext")
+  else
+    vim.cmd("wincmd w")
+  end
+end
+
+vim.keymap.set("n", "<tab>", "<cmd>lua CycleWindowsOrBuffers()<cr>")
 
 -- dumping vimL code that I didnt bother porting yet here for expedient bringup
 vim.cmd([[
