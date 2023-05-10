@@ -21,6 +21,7 @@
 - see if i can get trouble to show a list of just a type of severity of diag. hook to click on section. This might not be easily doable but if i can programmatically fetch the list i can just try to focus on the first of that type.
 - I THINK I DID THIS add update field back to heirline for diags' flexible entries.
 - NOT SURE IF THING figure out why dockerls capabilities doesn't include semantic tokens
+- highlight with a salient backgruond the active window in nvim 
 
 --]]
 
@@ -198,25 +199,34 @@ local function filter_to_real_wins(window_list)
 end
 
 -- cycle thruogh the windows with tab. If the current tab has only one window, actually cycle through all the buffers which are not already open in other tabs (if applicable).
-_G.CycleWindowsOrBuffers = function ()
+_G.CycleWindowsOrBuffers = function (forward)
   local curwin = vim.api.nvim_get_current_win()
   local wins = filter_to_real_wins(vim.api.nvim_list_wins())
   local tabs = vim.api.nvim_list_tabpages()
   local curtab = vim.api.nvim_get_current_tabpage()
   local wins_in_curtab = filter_to_real_wins(vim.api.nvim_tabpage_list_wins(curtab))
-  log("wins, tabs, curtab, wins_in_curtab", wins, tabs, curtab, wins_in_curtab)
+  -- log("wins, tabs, curtab, wins_in_curtab", wins, tabs, curtab, wins_in_curtab)
   if #wins == 1 then
-    vim.cmd("bnext")
+    log("CycleWindowsOrBuffers only one window, cycling buffer " .. (forward and "forward" or "backward"))
+    if forward then vim.cmd("bnext") else vim.cmd("bprevious") end
   elseif #tabs == 1 then
-    vim.cmd("wincmd w")
-  elseif wins_in_curtab[#wins_in_curtab] == curwin then
+    log("CycleWindowsOrBuffers only one tab, going forward to next window")
+    vim.cmd("wincmd " .. (forward and "w" or "W"))
+  -- boundary
+  elseif forward and wins_in_curtab[#wins_in_curtab] == curwin then
+    log("CycleWindowsOrBuffers in last window in tab so going forward to next tab")
     vim.cmd("tabnext")
+  elseif not forward and curwin == wins_in_curtab[1] then
+    log("CycleWindowsOrBuffers in first window in tab so going back to prev tab")
+    vim.cmd("tabprevious")
   else
-    vim.cmd("wincmd w")
+    log("CycleWindowsOrBuffers in the last case (multiple tabs, not at end), cycling window " .. (forward and "forward" or "backward"))
+    vim.cmd("wincmd " .. (forward and "w" or "W"))
   end
 end
 
-vim.keymap.set("n", "<tab>", "<cmd>lua CycleWindowsOrBuffers()<cr>")
+vim.keymap.set("n", "<tab>", "<cmd>lua CycleWindowsOrBuffers(true)<cr>")
+vim.keymap.set("n", "<s-tab>", "<cmd>lua CycleWindowsOrBuffers(false)<cr>")
 
 -- dumping vimL code that I didnt bother porting yet here for expedient bringup
 vim.cmd([[
@@ -384,8 +394,6 @@ vim.cmd([[
   nnoremap - :vertical res -5<CR>
   nnoremap + :res +4<CR>
   nnoremap _ :res -4<CR>
-
-  nnoremap <s-tab> gt
 
   nnoremap <leader>f :NeoTreeRevealToggle<CR>
   nnoremap fg :Neotree float reveal_file=<cfile> reveal_force_cwd<cr>

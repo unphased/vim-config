@@ -911,8 +911,8 @@ local MacroRec = {
 -- Items to the left of Align are to put their spaces to the left, items to the right put their spaces on the right, etc. All components need to have a space included so that no stacking of spaces takes place.
 local DefaultStatusline = {
     -- TODO make the workdir and filename render out in separate styles for visual distinction but allow copying an abspath
-    ViMode, Space, Diagnostics, GitSpace, Align, WorkDir, FileNameBlock, Align,
-    LazySpace, LSPActive, FileTypeSpace, SearchCount, MacroRec, RulerExtraSpace, FileSize, RulerSpace, ScrollBar
+    ViMode, Space, LazySpace, GitSpace, Diagnostics, LSPActive, Align, WorkDir,
+    FileNameBlock, Align, FileTypeSpace, SearchCount, MacroRec, RulerExtraSpace, FileSize, RulerSpace, ScrollBar
 }
 
 local InactiveStatusline = {
