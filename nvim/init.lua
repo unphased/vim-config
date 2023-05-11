@@ -21,7 +21,7 @@
 - see if i can get trouble to show a list of just a type of severity of diag. hook to click on section. This might not be easily doable but if i can programmatically fetch the list i can just try to focus on the first of that type.
 - I THINK I DID THIS add update field back to heirline for diags' flexible entries.
 - NOT SURE IF THING figure out why dockerls capabilities doesn't include semantic tokens
-- highlight with a salient backgruond the active window in nvim 
+- highlight with a salient background the active window in nvim 
 
 --]]
 
