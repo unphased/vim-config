@@ -339,7 +339,7 @@ vim.cmd([[
   highlight IlluminatedWordWrite gui=bold,underline
   highlight IlluminatedWordRead gui=bold
 
-  highlight MatchParen guibg=#683068
+  highlight MatchParen guibg=#306868
 
   highlight StatusLineLineNo gui=bold
 
