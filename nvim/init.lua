@@ -1478,14 +1478,14 @@ vim.keymap.set("n", "vx", '<cmd>STSSelectMasterNode<cr>', opts)
 vim.keymap.set("n", "vn", '<cmd>STSSelectCurrentNode<cr>', opts)
 --
 -- Select Nodes in Visual Mode
-vim.keymap.set("x", "<Right>", '<cmd>STSSelectNextSiblingNode<cr>', opts)
-vim.keymap.set("x", "<Left>", '<cmd>STSSelectPrevSiblingNode<cr>', opts)
-vim.keymap.set("x", "<Up>", '<cmd>STSSelectParentNode<cr>', opts)
-vim.keymap.set("x", "<Down>", '<cmd>STSSelectChildNode<cr>', opts)
+vim.keymap.set("x", "<Down>", '<cmd>STSSelectNextSiblingNode<cr>', opts)
+vim.keymap.set("x", "<Up>", '<cmd>STSSelectPrevSiblingNode<cr>', opts)
+vim.keymap.set("x", "<Left>", '<cmd>STSSelectParentNode<cr>', opts)
+vim.keymap.set("x", "<Right>", '<cmd>STSSelectChildNode<cr>', opts)
 
 -- Swapping Nodes in Visual Mode
-vim.keymap.set("x", "<C-Right>", '<cmd>STSSwapNextVisual<cr>', opts)
-vim.keymap.set("x", "<C-Left>", '<cmd>STSSwapPrevVisual<cr>', opts)
+vim.keymap.set("x", "<C-Down>", '<cmd>STSSwapNextVisual<cr>', opts)
+vim.keymap.set("x", "<C-Up>", '<cmd>STSSwapPrevVisual<cr>', opts)
 
 -- end of Syntax Tree Surfer
 
