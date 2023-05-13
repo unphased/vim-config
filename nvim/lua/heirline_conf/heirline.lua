@@ -917,7 +917,7 @@ local DefaultStatusline = {
 
 local InactiveStatusline = {
     condition = conditions.is_not_active,
-    FileType, Space, FileNameBlock, Align,
+    Align, WorkDir, FileNameBlock, Space, Align, FileTypeSpace, RulerSpace
 }
 
 local SpecialStatusline = {
