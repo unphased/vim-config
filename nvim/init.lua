@@ -1263,7 +1263,7 @@ local trouble = require('trouble')
 -- keymaps!!
 local lsp_attach = function (x, bufnr)
   local engine = x.name;
-  print("lsp_attach:", engine, "bufnr="..bufnr)
+  log("lsp_attach:" .. engine .. "bufnr=" .. bufnr)
   local bufopts = { noremap=true, silent=true, buffer=bufnr }
   vim.keymap.set('n', 'gD', '<cmd>TroubleToggle lsp_type_definitions<cr>', ext(bufopts, "desc", "Go to Type Definition (Trouble UI)"))
   vim.keymap.set('n', 'gd', '<cmd>TroubleToggle lsp_definitions<cr>', ext(bufopts, "desc", "Go to Definition (preview window)"))
