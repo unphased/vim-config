@@ -22,6 +22,7 @@
 - I THINK I DID THIS add update field back to heirline for diags' flexible entries.
 - NOT SURE IF THING figure out why dockerls capabilities doesn't include semantic tokens
 - highlight with a salient background the active window in nvim 
+- also toggle the showbreak on alt p
 
 --]]
 
