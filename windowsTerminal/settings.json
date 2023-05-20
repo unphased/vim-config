@@ -20,8 +20,32 @@
             "keys": "backspace"
         },
         {
+            "command": 
+            {
+                "action": "sendInput",
+                "input": "\u001f"
+            },
+            "keys": "ctrl+minus"
+        },
+        {
+            "command": 
+            {
+                "action": "adjustFontSize",
+                "delta": 1.0
+            },
+            "keys": "alt+plus"
+        },
+        {
             "command": "find",
             "keys": "ctrl+shift+f"
+        },
+        {
+            "command": 
+            {
+                "action": "adjustFontSize",
+                "delta": -1.0
+            },
+            "keys": "alt+minus"
         },
         {
             "command": 
@@ -43,12 +67,17 @@
                 "splitMode": "duplicate"
             },
             "keys": "alt+shift+d"
+        },
+        {
+            "command": "unbound",
+            "keys": "ctrl+plus"
         }
     ],
     "copyFormatting": "none",
     "copyOnSelect": false,
     "defaultProfile": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
-    "initialRows": 40,
+    "initialCols": 200,
+    "initialRows": 60,
     "profiles": 
     {
         "defaults": 
@@ -57,8 +86,8 @@
             "colorScheme": "One Half Dark",
             "font": 
             {
-                "face": "CaskaydiaCove NFM",
-                "size": 10.0,
+                "face": "BitstromWera Nerd Font Mono",
+                "size": 9.0,
                 "weight": "normal"
             },
             "historySize": 90001,
