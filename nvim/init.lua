@@ -21,6 +21,8 @@
 - see if i can get trouble to show a list of just a type of severity of diag. hook to click on section. This might not be easily doable but if i can programmatically fetch the list i can just try to focus on the first of that type.
 - I THINK I DID THIS add update field back to heirline for diags' flexible entries.
 - NOT SURE IF THING figure out why dockerls capabilities doesn't include semantic tokens
+- highlight with a salient background the active window in nvim 
+- also toggle the showbreak on alt p
 
 --]]
 
@@ -37,6 +39,8 @@ vim.o.tabstop = 4
 vim.o.numberwidth = 3
 -- vim.o.cmdheight = 0
 vim.o.updatetime = 300 -- useful for non-plugin word highlight
+vim.o.mousescroll = 'ver:3,hor:3'
+vim.o.showbreak = "→ "
 
 -- settings that may require inclusion prior to Lazy loader
 
@@ -198,25 +202,34 @@ local function filter_to_real_wins(window_list)
 end
 
 -- cycle thruogh the windows with tab. If the current tab has only one window, actually cycle through all the buffers which are not already open in other tabs (if applicable).
-_G.CycleWindowsOrBuffers = function ()
+_G.CycleWindowsOrBuffers = function (forward)
   local curwin = vim.api.nvim_get_current_win()
   local wins = filter_to_real_wins(vim.api.nvim_list_wins())
   local tabs = vim.api.nvim_list_tabpages()
   local curtab = vim.api.nvim_get_current_tabpage()
   local wins_in_curtab = filter_to_real_wins(vim.api.nvim_tabpage_list_wins(curtab))
-  log("wins, tabs, curtab, wins_in_curtab", wins, tabs, curtab, wins_in_curtab)
+  -- log("wins, tabs, curtab, wins_in_curtab", wins, tabs, curtab, wins_in_curtab)
   if #wins == 1 then
-    vim.cmd("bnext")
+    log("CycleWindowsOrBuffers only one window, cycling buffer " .. (forward and "forward" or "backward"))
+    if forward then vim.cmd("bnext") else vim.cmd("bprevious") end
   elseif #tabs == 1 then
-    vim.cmd("wincmd w")
-  elseif wins_in_curtab[#wins_in_curtab] == curwin then
+    log("CycleWindowsOrBuffers only one tab, going forward to next window")
+    vim.cmd("wincmd " .. (forward and "w" or "W"))
+  -- boundary
+  elseif forward and wins_in_curtab[#wins_in_curtab] == curwin then
+    log("CycleWindowsOrBuffers in last window in tab so going forward to next tab")
     vim.cmd("tabnext")
+  elseif not forward and curwin == wins_in_curtab[1] then
+    log("CycleWindowsOrBuffers in first window in tab so going back to prev tab")
+    vim.cmd("tabprevious")
   else
-    vim.cmd("wincmd w")
+    log("CycleWindowsOrBuffers in the last case (multiple tabs, not at end), cycling window " .. (forward and "forward" or "backward"))
+    vim.cmd("wincmd " .. (forward and "w" or "W"))
   end
 end
 
-vim.keymap.set("n", "<tab>", "<cmd>lua CycleWindowsOrBuffers()<cr>")
+vim.keymap.set("n", "<tab>", "<cmd>lua CycleWindowsOrBuffers(true)<cr>")
+vim.keymap.set("n", "<s-tab>", "<cmd>lua CycleWindowsOrBuffers(false)<cr>")
 
 -- dumping vimL code that I didnt bother porting yet here for expedient bringup
 vim.cmd([[
@@ -329,7 +342,7 @@ vim.cmd([[
   highlight IlluminatedWordWrite gui=bold,underline
   highlight IlluminatedWordRead gui=bold
 
-  highlight MatchParen guibg=#683068
+  highlight MatchParen guibg=#306868
 
   highlight StatusLineLineNo gui=bold
 
@@ -384,8 +397,6 @@ vim.cmd([[
   nnoremap - :vertical res -5<CR>
   nnoremap + :res +4<CR>
   nnoremap _ :res -4<CR>
-
-  nnoremap <s-tab> gt
 
   nnoremap <leader>f :NeoTreeRevealToggle<CR>
   nnoremap fg :Neotree float reveal_file=<cfile> reveal_force_cwd<cr>
@@ -1003,8 +1014,8 @@ vim.keymap.set("v", "<leader>p", ":!pbpaste<CR>", { desc = "Paste from pbpaste" 
 -- }
 
 -- vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "Open diagnostic in float" })
--- vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Go to previous diagnostic" })
--- vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Go to next diagnostic" })
+vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Go to previous diagnostic" })
+vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Go to next diagnostic" })
 -- vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Set diagnostics to location list" })
 
 -- indent-blankline
@@ -1255,7 +1266,7 @@ local trouble = require('trouble')
 -- keymaps!!
 local lsp_attach = function (x, bufnr)
   local engine = x.name;
-  print("lsp_attach:", engine, "bufnr="..bufnr)
+  log("lsp_attach:" .. engine .. "bufnr=" .. bufnr)
   local bufopts = { noremap=true, silent=true, buffer=bufnr }
   vim.keymap.set('n', 'gD', '<cmd>TroubleToggle lsp_type_definitions<cr>', ext(bufopts, "desc", "Go to Type Definition (Trouble UI)"))
   vim.keymap.set('n', 'gd', '<cmd>TroubleToggle lsp_definitions<cr>', ext(bufopts, "desc", "Go to Definition (preview window)"))
@@ -1334,6 +1345,8 @@ vim.cmd([[
   hi Search cterm=bold ctermfg=black ctermbg=yellow guibg=#a9291a guifg=NONE
   hi IncSearch cterm=bold ctermfg=black ctermbg=cyan guibg=#f04050 guifg=NONE gui=NONE
   hi Visual term=reverse ctermbg=238 guibg=#504050
+  hi NormalFloat guibg=#404060
+  hi NonText guibg=#303030
 
   " pane/window split style: only vertical split style matters in vim since horizontal splits are made of statuslines.
   hi VertSplit guifg=#505760
@@ -1470,14 +1483,14 @@ vim.keymap.set("n", "vx", '<cmd>STSSelectMasterNode<cr>', opts)
 vim.keymap.set("n", "vn", '<cmd>STSSelectCurrentNode<cr>', opts)
 --
 -- Select Nodes in Visual Mode
-vim.keymap.set("x", "<Right>", '<cmd>STSSelectNextSiblingNode<cr>', opts)
-vim.keymap.set("x", "<Left>", '<cmd>STSSelectPrevSiblingNode<cr>', opts)
-vim.keymap.set("x", "<Up>", '<cmd>STSSelectParentNode<cr>', opts)
-vim.keymap.set("x", "<Down>", '<cmd>STSSelectChildNode<cr>', opts)
+vim.keymap.set("x", "<Down>", '<cmd>STSSelectNextSiblingNode<cr>', opts)
+vim.keymap.set("x", "<Up>", '<cmd>STSSelectPrevSiblingNode<cr>', opts)
+vim.keymap.set("x", "<Left>", '<cmd>STSSelectParentNode<cr>', opts)
+vim.keymap.set("x", "<Right>", '<cmd>STSSelectChildNode<cr>', opts)
 
 -- Swapping Nodes in Visual Mode
-vim.keymap.set("x", "<C-Right>", '<cmd>STSSwapNextVisual<cr>', opts)
-vim.keymap.set("x", "<C-Left>", '<cmd>STSSwapPrevVisual<cr>', opts)
+vim.keymap.set("x", "<C-Down>", '<cmd>STSSwapNextVisual<cr>', opts)
+vim.keymap.set("x", "<C-Up>", '<cmd>STSSwapPrevVisual<cr>', opts)
 
 -- end of Syntax Tree Surfer
 
