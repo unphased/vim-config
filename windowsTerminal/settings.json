@@ -15,17 +15,17 @@
             "command": 
             {
                 "action": "sendInput",
-                "input": ""
+                "input": "\u001f"
             },
-            "keys": "backspace"
+            "keys": "ctrl+minus"
         },
         {
             "command": 
             {
                 "action": "sendInput",
-                "input": "\u001f"
+                "input": ""
             },
-            "keys": "ctrl+minus"
+            "keys": "backspace"
         },
         {
             "command": 
@@ -42,18 +42,18 @@
         {
             "command": 
             {
-                "action": "adjustFontSize",
-                "delta": -1.0
-            },
-            "keys": "alt+minus"
-        },
-        {
-            "command": 
-            {
                 "action": "copy",
                 "singleLine": false
             },
             "keys": "ctrl+shift+c"
+        },
+        {
+            "command": 
+            {
+                "action": "adjustFontSize",
+                "delta": -1.0
+            },
+            "keys": "alt+minus"
         },
         {
             "command": "paste",
@@ -86,7 +86,7 @@
             "colorScheme": "One Half Dark",
             "font": 
             {
-                "face": "BitstromWera Nerd Font Mono",
+                "face": "DejaVuSansMono NFM",
                 "size": 9.0,
                 "weight": "normal"
             },
