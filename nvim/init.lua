@@ -1296,6 +1296,16 @@ safeRequire("mason-lspconfig").setup_handlers {
     }
   end,
   -- Next, you can provide a dedicated handler for specific servers. Don't forget to bring capabilities and on_attach in.
+  ["clangd"] = function ()
+    safeRequire("lspconfig")["clangd"].setup {
+      on_attach = lsp_attach,
+      capabilities = capabilities,
+      cmd = {
+        "clangd",
+        "--offset-encoding=utf-16",
+      },
+    }
+  end,
   ["dockerls"] = function ()
     -- print("dockerls caps =" .. vim.inspect(capabilities))
     safeRequire("lspconfig")["dockerls"].setup {
