@@ -1221,6 +1221,11 @@ safeRequire("mason-null-ls").setup({
         method = null_ls.methods.DIAGNOSTICS_ON_SAVE,
       }))
     end,
+    cpplint = function(source_name, methods)
+      null_ls.register(null_ls.builtins.diagnostics.cpplint.with({
+        args = { '--linelength=240' },
+      }))
+    end,
 
     -- stylua = function(source_name, methods)
     --   null_ls.register(null_ls.builtins.formatting.stylua)
