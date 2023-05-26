@@ -1,6 +1,14 @@
 -- Pull in the wezterm API
 local wezterm = require 'wezterm'
 
+local mux = wezterm.mux
+
+-- implement fullscreen from start
+wezterm.on('gui-startup', function(cmd)
+  local tab, pane, window = mux.spawn_window(cmd or {})
+  window:gui_window():maximize()
+end)
+
 -- This table will hold the configuration.
 local config = {}
 
