@@ -35,7 +35,7 @@ config.font_size = 9.0
 config.underline_thickness = 1.5
 
 config.window_background_opacity = 0
-config.win32_system_backdrop = 'Tabbed'
+config.win32_system_backdrop = 'Mica'
 
 -- and finally, return the configuration to wezterm
 return config
