@@ -6,7 +6,7 @@ local mux = wezterm.mux
 -- implement fullscreen from start
 wezterm.on('gui-startup', function(cmd)
   local tab, pane, window = mux.spawn_window(cmd or {})
-  window:gui_window():maximize()
+  window:gui_window():toggle_fullscreen()
 end)
 
 -- This table will hold the configuration.
