@@ -13,7 +13,16 @@ end
 -- This is where you actually apply your config choices
 
 -- For example, changing the color scheme:
-config.color_scheme = 'AdventureTime'
+config.color_scheme = 'Tomorrow Night Eighties'
+
+config.keys = {
+        {
+            key = 'F11',
+            action = wezterm.action.ToggleFullScreen,
+        },
+    }
+	
+config.hide_tab_bar_if_only_one_tab = true
 
 -- and finally, return the configuration to wezterm
 return config
