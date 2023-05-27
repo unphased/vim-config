@@ -21,7 +21,11 @@ end
 -- This is where you actually apply your config choices
 
 -- For example, changing the color scheme:
-config.color_scheme = 'Tomorrow Night Eighties'
+-- config.color_scheme = 'Tomorrow Night Eighties'
+
+local TMEcolor = wezterm.color.get_builtin_schemes()['Tomorrow Night Eighties'];
+print (TMEcolor);
+config.color_scheme = TMEcolor;
 
 config.keys = {
   { key = 'F11', action = wezterm.action.ToggleFullScreen, },
