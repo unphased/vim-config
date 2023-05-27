@@ -24,7 +24,8 @@ end
 -- config.color_scheme = 'Tomorrow Night Eighties'
 
 local TMEcolor = wezterm.color.get_builtin_schemes()['Tomorrow Night Eighties'];
-print(TMEcolor);
+TMEcolor.ansi[0] = TMEcolor.brights[0] = '#222222'
+
 config.color_schemes = {
   ['TME'] = TMEcolor,
 }
