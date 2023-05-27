@@ -24,12 +24,10 @@ end
 config.color_scheme = 'Tomorrow Night Eighties'
 
 config.keys = {
-        {
-            key = 'F11',
-            action = wezterm.action.ToggleFullScreen,
-        },
-    }
-	
+  { key = 'F11', action = wezterm.action.ToggleFullScreen, },
+  { key = 'Backspace', mods = 'CTRL', action = wezterm.action.SendString '\x1b\x7f' },
+}
+
 config.hide_tab_bar_if_only_one_tab = true
 config.font_size = 9.0
 config.underline_thickness = 1.5
