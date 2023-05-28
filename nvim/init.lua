@@ -1508,6 +1508,9 @@ vim.keymap.set("x", "<C-Down>", '<cmd>STSSwapNextVisual<cr>', opts)
 vim.keymap.set("x", "<C-Up>", '<cmd>STSSwapPrevVisual<cr>', opts)
 
 -- end of Syntax Tree Surfer
+--
+--
+vim.g.copilot_filetypes = {markdown = true, yaml = true}
 
 -- putting here late so log global is present for it
 safeRequire("heirline_conf.heirline")
