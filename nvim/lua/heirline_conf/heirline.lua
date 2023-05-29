@@ -223,11 +223,6 @@ local FileName = {
         provider = function(self)
             return vim.fn.pathshorten(self.lfilename, 1) .. " "
         end,
-    },
-    {
-        provider = function(self)
-            return self.lfilename:match("^.+/(.+)$") .. " "
-        end,
     }
 }
 
