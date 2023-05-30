@@ -240,4 +240,5 @@ return {
   },
   { "chrisgrieser/nvim-spider", lazy = true },
   "bekaboo/dropbar.nvim",
+  "bekaboo/deadcolumn.nvim",
 }
