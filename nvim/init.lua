@@ -41,6 +41,8 @@ vim.o.numberwidth = 3
 vim.o.updatetime = 300 -- useful for non-plugin word highlight
 vim.o.mousescroll = 'ver:3,hor:3'
 vim.o.showbreak = "→ "
+vim.o.linebreak = true
+vim.o.breakindent = true
 
 -- settings that may require inclusion prior to Lazy loader
 
@@ -123,17 +125,20 @@ end)
 -- make alt+p (historical reason: used to toggle paste mode) toggle in unison the indent markers and the listchars. Key the state off of the indent-blankline toggle state.
 vim.keymap.set("n", "<m-p>", function()
   local indent_blankline_enabled = vim.g.indent_blankline_enabled
-  if indent_blankline_enabled then
+  if vim.wo.number then
     vim.g.indent_blankline_enabled = false
-    vim.o.list = false
-    vim.o.number = false
+    vim.cmd[[IndentBlanklineDisable]]
+    vim.wo.list = false
+    vim.wo.number = false
     -- a bit tricky: toggle signs off
-    vim.o.signcolumn = "no"
+    vim.wo.signcolumn = "no"
+    vim.wo.showbreak = ""
   else
-    vim.g.indent_blankline_enabled = true
-    vim.o.list = true
-    vim.o.number = true
-    vim.o.signcolumn = "auto"
+    vim.cmd[[IndentBlanklineEnable]]
+    vim.wo.list = true
+    vim.wo.number = true
+    vim.wo.signcolumn = "auto"
+    vim.wo.showbreak = "→ "
   end
 end)
 
@@ -1036,6 +1041,7 @@ vim.cmd("highlight IndentBlanklineContextChar guifg=#66666f gui=nocombine")
 vim.cmd("highlight IndentBlanklineContextStart gui=underdouble guisp=#66666f")
 vim.cmd("highlight IndentBlanklineIndent1 gui=nocombine guifg=#383838")
 vim.cmd("highlight IndentBlanklineIndent2 gui=nocombine guifg=#484848")
+
 safeRequire("indent_blankline").setup({
   char = "▏",
   char_highlight_list = {
