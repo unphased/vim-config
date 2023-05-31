@@ -1,48 +1,44 @@
 -- -- -- TODO LIST
---[[
 
-- short term for STS: work out how to delete/paste items automating handling
-and placement of delimiters, handling inclusion of boundary bracket chars, etc.
-I guess the latter can be handled by having a way to expand to all siblings
-though. This may have impact on the next work.
-- improve STS to contantly set highlights to preview what the parent and
-sibling nodes are? track the last child node? abandon visual mode? Not sure.
-- for STS: evaluate if it is more intuitive for both parent/child and sibling
-movements to use up/down directionals rather than have siblings be left/right.
-I guess the main issue here is evicting other key binds...
-- find for most common languages a workflow to autoformat them, which is going
-to solve the indent related niggles that remain
-- explore the alternative to composer (live-command.nvim previews macros and
-other stuff) (there is also nvim-neoclip)
-- make the i_I custom behavior i have dot-repeatable (i tried with gpt4 and failed)
-- get a better profiler tool and figure out why this file is sluggish (got perfanno and it is kind of pretty cool, but
-see if there are any other better profilers)
-- look into resolving wezterm performance issues (https://github.com/wez/wezterm/discussions/3664) and move away from
-alacritty/windows term/possibly eliminate tmux
-- reorganize the config into separate source files grouped by functionality
-- LOW still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults --
-for now this is done with tab and shift tab and i might just keep this honestly, because the behavior of going to the
-  next tab when at the last window didnt really work that intuitively. - (IMPL'd but broken) yank window to new tab in
-  next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
-- my prized alt-, and friends automations (to be fair i've been getting good at manually leveraging dot-repeat which is
-decently good retraining) (for this one i think i should look into the newer knowledge i now have for being able to
-customize dot repeat? or nah...)
-- DONE via alt+p. Also, paste mode is deprecated now. \p for toggle paste and removing indent markers and stuff like
-that in paste mode to make it work like a copy-mode
-- f10 handling for tmux (amazing though, i got this far without it, maybe i dont want to integrate from vim to tmux...)
-
-- implement insert mode ctrl arrows to do big word hops (backspace does a small word hop)
-- (super low prio) implement semantic highlight removal (i want this in possibly lua right now but also definitely
-dockerfile) by literally selecting them out at the highlight group level (ah dang, no worky for dockerls)
-- see if i can get trouble to show a list of just a type of severity of diag. hook to click on section. This might not
-be easily doable but if i can programmatically fetch the list i can just try to focus on the first of that type.
-- I THINK I DID THIS add update field back to heirline for diags' flexible entries.
-- NOT SURE IF THING figure out why dockerls capabilities doesn't include semantic tokens
-- highlight with a salient background the active window in nvim
-- also toggle the showbreak on alt p
-
-
---]]
+-- - short term for STS: work out how to delete/paste items automating handling
+-- and placement of delimiters, handling inclusion of boundary bracket chars, etc.
+-- I guess the latter can be handled by having a way to expand to all siblings
+-- though. This may have impact on the next work.
+-- - improve STS to contantly set highlights to preview what the parent and
+-- sibling nodes are? track the last child node? abandon visual mode? Not sure.
+-- - for STS: evaluate if it is more intuitive for both parent/child and sibling
+-- movements to use up/down directionals rather than have siblings be left/right.
+-- I guess the main issue here is evicting other key binds...
+-- - find for most common languages a workflow to autoformat them, which is going
+-- to solve the indent related niggles that remain
+-- - explore the alternative to composer (live-command.nvim previews macros and
+-- other stuff) (there is also nvim-neoclip)
+-- - make the i_I custom behavior i have dot-repeatable (i tried with gpt4 and failed)
+-- - get a better profiler tool and figure out why this file is sluggish (got perfanno and it is kind of pretty cool, but
+-- see if there are any other better profilers)
+-- - look into resolving wezterm performance issues (https://github.com/wez/wezterm/discussions/3664) and move away from
+-- alacritty/windows term/possibly eliminate tmux
+-- - reorganize the config into separate source files grouped by functionality
+-- - LOW still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults --
+-- for now this is done with tab and shift tab and i might just keep this honestly, because the behavior of going to the
+--   next tab when at the last window didnt really work that intuitively. - (IMPL'd but broken) yank window to new tab in
+--   next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
+-- - my prized alt-, and friends automations (to be fair i've been getting good at manually leveraging dot-repeat which is
+-- decently good retraining) (for this one i think i should look into the newer knowledge i now have for being able to
+-- customize dot repeat? or nah...)
+-- - DONE via alt+p. Also, paste mode is deprecated now. \p for toggle paste and removing indent markers and stuff like
+-- that in paste mode to make it work like a copy-mode
+-- - f10 handling for tmux (amazing though, i got this far without it, maybe i dont want to integrate from vim to tmux...)
+-- 
+-- - implement insert mode ctrl arrows to do big word hops (backspace does a small word hop)
+-- - (super low prio) implement semantic highlight removal (i want this in possibly lua right now but also definitely
+-- dockerfile) by literally selecting them out at the highlight group level (ah dang, no worky for dockerls)
+-- - see if i can get trouble to show a list of just a type of severity of diag. hook to click on section. This might not
+-- be easily doable but if i can programmatically fetch the list i can just try to focus on the first of that type.
+-- - I THINK I DID THIS add update field back to heirline for diags' flexible entries.
+-- - NOT SURE IF THING figure out why dockerls capabilities doesn't include semantic tokens
+-- - highlight with a salient background the active window in nvim
+-- - also toggle the showbreak on alt p
 
 -- traditional settings
 
