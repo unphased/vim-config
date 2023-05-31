@@ -27,6 +27,7 @@ return {
   -- 'junegunn/fzf',
   { 'nvim-telescope/telescope.nvim', dependencies = { 'nvim-lua/plenary.nvim' }, branch = "0.1.x" },
   { 'nvim-telescope/telescope-fzf-native.nvim', build = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build' },
+  'nvim-telescope/telescope-ui-select.nvim', 
   'norcalli/nvim-colorizer.lua',
   -- {
   --    "zbirenbaum/copilot-cmp",
@@ -139,7 +140,7 @@ return {
       imap <silent><script><expr> <c-space> copilot#Accept("\<CR>")
     ]])
   end },
-  'weilbith/nvim-code-action-menu',
+  -- 'weilbith/nvim-code-action-menu',
   'wesQ3/vim-windowswap',
   -- 'stevearc/profile.nvim',
   -- For more proper profiling, also check out https://github.com/nvim-lua/plenary.nvim#plenaryprofile

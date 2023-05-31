@@ -785,8 +785,15 @@ safeRequire('telescope').setup{
     layout_config = {
       scroll_speed = 3
     },
+  },
+  extensions = {
+    ["ui-select"] = {
+        require("telescope.themes").get_cursor {}
+    }
   }
 }
+require("telescope").load_extension("ui-select")
+
 local telescope_builtin = safeRequire("telescope.builtin")
 vim.keymap.set("n", "<c-p>", function ()
   telescope_builtin.find_files({ find_command = { 'fd', '--type', 'f' } })
@@ -1285,7 +1292,7 @@ local lsp_attach = function (x, bufnr)
   -- end, bufopts)
   -- vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, bufopts)
   vim.keymap.set('n', '<leader>r', vim.lsp.buf.rename, ext(bufopts, "desc", "Rename"))
-  vim.keymap.set('n', '<leader>ca', function() vim.cmd('CodeActionMenu') end, ext(bufopts, "desc", "Code Action Menu"))
+  vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, ext(bufopts, "desc", "Code Action Menu"))
   vim.keymap.set('n', 'gr', '<cmd>TroubleToggle lsp_references<cr>', ext(bufopts, "desc", "Go to References"))
   vim.keymap.set('n', '<leader>=', function() vim.lsp.buf.format { async = true } end, ext(bufopts, "desc", "Format Buffer"))
 end
