@@ -20,6 +20,15 @@ return {
   },
   "tpope/vim-surround",
   "tpope/vim-sleuth",
+  -- {
+  --   'nmac427/guess-indent.nvim',
+  --   init = function()
+  --     require('guess-indent').setup {
+  --       auto_cmd = true,
+  --       override_editorconfig = true
+  --     }
+  --   end,
+  -- },
   "tpope/vim-repeat",
   "numToStr/Comment.nvim",
   -- 'AndrewRadev/switch.vim',
@@ -242,4 +251,5 @@ return {
   { "chrisgrieser/nvim-spider", lazy = true },
   "bekaboo/dropbar.nvim",
   "bekaboo/deadcolumn.nvim",
+  "ThePrimeagen/refactoring.nvim"
 }

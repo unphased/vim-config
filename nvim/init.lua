@@ -1477,21 +1477,21 @@ local opts = {noremap = true} -- delete me later
 -- Normal Mode Swapping:
 -- Swap The Master Node relative to the cursor with it's siblings, Dot Repeatable
 vim.keymap.set("n", "{", function()
-	vim.opt.opfunc = "v:lua.STSSwapUpNormal_Dot"
-	return "g@l"
+  vim.opt.opfunc = "v:lua.STSSwapUpNormal_Dot"
+  return "g@l"
 end, { silent = true, expr = true })
 vim.keymap.set("n", "}", function()
-	vim.opt.opfunc = "v:lua.STSSwapDownNormal_Dot"
-	return "g@l"
+  vim.opt.opfunc = "v:lua.STSSwapDownNormal_Dot"
+  return "g@l"
 end, { silent = true, expr = true })
 -- Swap Current Node at the Cursor with it's siblings, Dot Repeatable
 vim.keymap.set("n", "]]", function()
-	vim.opt.opfunc = "v:lua.STSSwapCurrentNodeNextNormal_Dot"
-	return "g@l"
+  vim.opt.opfunc = "v:lua.STSSwapCurrentNodeNextNormal_Dot"
+  return "g@l"
 end, { silent = true, expr = true })
 vim.keymap.set("n", "[[", function()
-	vim.opt.opfunc = "v:lua.STSSwapCurrentNodePrevNormal_Dot"
-	return "g@l"
+  vim.opt.opfunc = "v:lua.STSSwapCurrentNodePrevNormal_Dot"
+  return "g@l"
 end, { silent = true, expr = true })
 --
 -- --> If the mappings above don't work, use these instead (no dot repeatable)
@@ -1515,9 +1515,21 @@ vim.keymap.set("x", "<C-Down>", '<cmd>STSSwapNextVisual<cr>', opts)
 vim.keymap.set("x", "<C-Up>", '<cmd>STSSwapPrevVisual<cr>', opts)
 
 -- end of Syntax Tree Surfer
---
---
 vim.g.copilot_filetypes = {markdown = true, yaml = true}
+
+-- load refactoring Telescope extension
+require("telescope").load_extension("refactoring")
+
+-- remap to open the Telescope refactoring menu in visual mode
+vim.api.nvim_set_keymap(
+  "n", "<leader>R", "<cmd>lua require('telescope').extensions.refactoring.refactors()<CR>", { noremap = true }
+)
+vim.api.nvim_set_keymap(
+  "v",
+  "<leader>r",
+  "<Esc><cmd>lua require('telescope').extensions.refactoring.refactors()<CR>",
+  { noremap = true }
+)
 
 -- putting here late so log global is present for it
 safeRequire("heirline_conf.heirline")
