@@ -34,9 +34,11 @@ config.color_scheme = 'TME';
 
 config.keys = {
   { key = 'F11'      , action = wezterm.action.ToggleFullScreen, }                                                 ,
-  { key = 'Backspace', mods = 'CTRL'                           , action = wezterm.action.SendString '\x1b\x7f' }   ,
-  { key = '-'        , mods = 'CTRL'                           , action = wezterm.action.DisableDefaultAssignment },
-  { key = '+'        , mods = 'CTRL'                           , action = wezterm.action.DisableDefaultAssignment },
+  { key = 'Backspace', mods = 'CTRL' , action = wezterm.action.SendString '\x1b\x7f' }   ,
+  { key = '=' , mods = 'CTRL' , action = wezterm.action.DisableDefaultAssignment },
+  { key = '-' , mods = 'CTRL' , action = wezterm.action.DisableDefaultAssignment },
+  { key = '=' , mods = 'ALT'  , action = wezterm.action.IncreaseFontSize },
+  { key = '-' , mods = 'ALT'  , action = wezterm.action.DecreaseFontSize },
 }
 
 config.hide_tab_bar_if_only_one_tab = true
