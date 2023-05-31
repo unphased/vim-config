@@ -918,7 +918,12 @@ local InactiveStatusline = {
 local SpecialStatusline = {
     condition = function()
         return conditions.buffer_matches({
-            buftype = { "nofile", "prompt", "help", "quickfix" },
+            buftype = {
+                "nofile",
+                "prompt",
+                "help",
+                "quickfix"
+            },
             filetype = { "^git.*", "fugitive" },
         })
     end,
@@ -1147,7 +1152,7 @@ local Tabpage = {
 }
 
 local TabpageClose = {
-    provider = "%999X  %X",
+    provider = "%999X \u{f0156} %X",
     hl = "TabLine",
 }
 
