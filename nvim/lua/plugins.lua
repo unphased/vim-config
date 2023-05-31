@@ -37,7 +37,7 @@ return {
   -- {
   --   'dundalek/lazy-lsp.nvim', dependencies = { 'neovim/nvim-lspconfig' }
   -- },
-  'unphased/nvim-treesitter-textobjects',
+  'nvim-treesitter/nvim-treesitter-textobjects',
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
