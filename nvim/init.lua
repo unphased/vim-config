@@ -1291,7 +1291,7 @@ local lsp_attach = function (x, bufnr)
   --   print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
   -- end, bufopts)
   -- vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, bufopts)
-  vim.keymap.set('n', '<leader>r', vim.lsp.buf.rename, ext(bufopts, "desc", "Rename"))
+  -- vim.keymap.set('n', '<leader>r', vim.lsp.buf.rename, ext(bufopts, "desc", "Rename"))
   vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, ext(bufopts, "desc", "Code Action Menu"))
   vim.keymap.set('n', 'gr', '<cmd>TroubleToggle lsp_references<cr>', ext(bufopts, "desc", "Go to References"))
   vim.keymap.set('n', '<leader>=', function() vim.lsp.buf.format { async = true } end, ext(bufopts, "desc", "Format Buffer"))
@@ -1530,6 +1530,10 @@ vim.api.nvim_set_keymap(
   "<Esc><cmd>lua require('telescope').extensions.refactoring.refactors()<CR>",
   { noremap = true }
 )
+
+vim.keymap.set("n", "<leader>r", function()
+  return ":IncRename " .. vim.fn.expand("<cword>")
+end, { expr = true })
 
 -- putting here late so log global is present for it
 safeRequire("heirline_conf.heirline")

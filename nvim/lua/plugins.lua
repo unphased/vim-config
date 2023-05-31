@@ -251,5 +251,11 @@ return {
   { "chrisgrieser/nvim-spider", lazy = true },
   "bekaboo/dropbar.nvim",
   "bekaboo/deadcolumn.nvim",
-  "ThePrimeagen/refactoring.nvim"
+  "ThePrimeagen/refactoring.nvim",
+  {
+    "smjonas/inc-rename.nvim",
+    config = function()
+      require("inc_rename").setup()
+    end,
+  }
 }
