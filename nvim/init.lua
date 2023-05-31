@@ -15,22 +15,32 @@ to solve the indent related niggles that remain
 - explore the alternative to composer (live-command.nvim previews macros and
 other stuff) (there is also nvim-neoclip)
 - make the i_I custom behavior i have dot-repeatable (i tried with gpt4 and failed)
-- get a better profiler tool and figure out why this file is sluggish (got perfanno and it is kind of pretty cool, but see if there are any other better profilers)
-- look into resolving wezterm performance issues (https://github.com/wez/wezterm/discussions/3664) and move away from alacritty/windows term/possibly eliminate tmux
+- get a better profiler tool and figure out why this file is sluggish (got perfanno and it is kind of pretty cool, but
+see if there are any other better profilers)
+- look into resolving wezterm performance issues (https://github.com/wez/wezterm/discussions/3664) and move away from
+alacritty/windows term/possibly eliminate tmux
 - reorganize the config into separate source files grouped by functionality
-- LOW still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults -- for now this is done with tab and shift tab and i might just keep this honestly, because the behavior of going to the next tab when at the last window didnt really work that intuitively.
-- (IMPL'd but broken) yank window to new tab in next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
-- my prized alt-, and friends automations (to be fair i've been getting good at manually leveraging dot-repeat which is decently good retraining) (for this one i think i should look into the newer knowledge i now have for being able to customize dot repeat? or nah...)
-- DONE via alt+p. Also, paste mode is deprecated now. \p for toggle paste and removing indent markers and stuff like that in paste mode to make it work like a copy-mode
+- LOW still want that one key to cycle windows and then tabs, even while trying to make the ctrl-w w, gt defaults --
+for now this is done with tab and shift tab and i might just keep this honestly, because the behavior of going to the
+  next tab when at the last window didnt really work that intuitively. - (IMPL'd but broken) yank window to new tab in
+  next/prev direction or into new tab (also like how this is consistent with how the analogous one works in tmux)
+- my prized alt-, and friends automations (to be fair i've been getting good at manually leveraging dot-repeat which is
+decently good retraining) (for this one i think i should look into the newer knowledge i now have for being able to
+customize dot repeat? or nah...)
+- DONE via alt+p. Also, paste mode is deprecated now. \p for toggle paste and removing indent markers and stuff like
+that in paste mode to make it work like a copy-mode
 - f10 handling for tmux (amazing though, i got this far without it, maybe i dont want to integrate from vim to tmux...)
 
 - implement insert mode ctrl arrows to do big word hops (backspace does a small word hop)
-- (super low prio) implement semantic highlight removal (i want this in possibly lua right now but also definitely dockerfile) by literally selecting them out at the highlight group level (ah dang, no worky for dockerls)
-- see if i can get trouble to show a list of just a type of severity of diag. hook to click on section. This might not be easily doable but if i can programmatically fetch the list i can just try to focus on the first of that type.
+- (super low prio) implement semantic highlight removal (i want this in possibly lua right now but also definitely
+dockerfile) by literally selecting them out at the highlight group level (ah dang, no worky for dockerls)
+- see if i can get trouble to show a list of just a type of severity of diag. hook to click on section. This might not
+be easily doable but if i can programmatically fetch the list i can just try to focus on the first of that type.
 - I THINK I DID THIS add update field back to heirline for diags' flexible entries.
 - NOT SURE IF THING figure out why dockerls capabilities doesn't include semantic tokens
-- highlight with a salient background the active window in nvim 
+- highlight with a salient background the active window in nvim
 - also toggle the showbreak on alt p
+
 
 --]]
 
@@ -51,6 +61,11 @@ vim.o.mousescroll = 'ver:3,hor:3'
 vim.o.showbreak = "→ "
 vim.o.linebreak = true
 vim.o.breakindent = true
+vim.o.textwidth = 119
+vim.o.colorcolumn = "120"
+
+vim.cmd('autocmd BufEnter * set formatoptions-=ro | set formatoptions+=n')
+vim.cmd('autocmd BufEnter * setlocal formatoptions-=ro | setlocal formatoptions+=n')
 
 -- settings that may require inclusion prior to Lazy loader
 
@@ -1548,6 +1563,9 @@ vim.api.nvim_set_keymap(
 vim.keymap.set("n", "<leader>r", function()
   return ":IncRename " .. vim.fn.expand("<cword>")
 end, { expr = true })
+
+-- not needed for default settings
+-- safeRequire('deadcolumn').setup{}
 
 -- putting here late so log global is present for it
 safeRequire("heirline_conf.heirline")
