@@ -46,23 +46,23 @@ be easily doable but if i can programmatically fetch the list i can just try to 
 
 -- traditional settings
 
-vim.o.title = true
-vim.o.number = true
-vim.o.undofile = true
-vim.o.undodir = vim.env.HOME .. "/.tmp"
+vim.o.title         = true
+vim.o.number        = true
+vim.o.undofile      = true
+vim.o.undodir       = vim.env.HOME .. "/.tmp"
 vim.o.termguicolors = true
-vim.o.ignorecase = true
-vim.o.smartcase = true
-vim.o.tabstop = 4
-vim.o.numberwidth = 3
--- vim.o.cmdheight = 0
-vim.o.updatetime = 300 -- useful for non-plugin word highlight
-vim.o.mousescroll = 'ver:3,hor:3'
-vim.o.showbreak = "→ "
-vim.o.linebreak = true
-vim.o.breakindent = true
-vim.o.textwidth = 119
-vim.o.colorcolumn = "120"
+vim.o.ignorecase    = true
+vim.o.smartcase     = true
+vim.o.tabstop       = 4
+vim.o.numberwidth   = 3
+-- vim.o.cmdheight  = 0
+vim.o.updatetime    = 300 -- useful for non-plugin word highlight
+vim.o.mousescroll   = 'ver:3,hor:3'
+vim.o.showbreak     = "→ "
+vim.o.linebreak     = true
+vim.o.breakindent   = true
+vim.o.textwidth     = 119
+vim.o.colorcolumn   = "120"
 
 vim.cmd('autocmd BufEnter * set formatoptions-=ro | set formatoptions+=n')
 vim.cmd('autocmd BufEnter * setlocal formatoptions-=ro | setlocal formatoptions+=n')
