@@ -145,6 +145,9 @@ vim.keymap.set("n", "<c-n>", function()
   vim.api.nvim_win_set_cursor(0, { line, col })
 end)
 
+-- Join lines selected in visual mode with Ctrl+N.
+vim.keymap.set("v", "<c-n>", ":join<cr>`<")
+
 -- make alt+p (historical reason: used to toggle paste mode) toggle in unison the indent markers and the listchars. Key the state off of the indent-blankline toggle state.
 vim.keymap.set("n", "<m-p>", function()
   local indent_blankline_enabled = vim.g.indent_blankline_enabled
@@ -1563,6 +1566,8 @@ vim.api.nvim_set_keymap(
 vim.keymap.set("n", "<leader>r", function()
   return ":IncRename " .. vim.fn.expand("<cword>")
 end, { expr = true })
+
+vim.cmd[[let g:lion_squeeze_spaces = 1]]
 
 -- not needed for default settings
 -- safeRequire('deadcolumn').setup{}
