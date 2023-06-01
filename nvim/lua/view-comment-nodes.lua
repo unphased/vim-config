@@ -25,7 +25,9 @@ end
 
 local comment_nodes = get_comment_nodes()
 
--- Inspect and print comment nodes
+-- Inspect, merge, and print comment nodes
+local merged_comments = {}
+local last_end_row = -1
 for _, node in ipairs(comment_nodes) do
   local start_row, start_col, end_row, end_col = node:range()
   local lines = vim.api.nvim_buf_get_lines(bufnr, start_row, end_row+1, false)
@@ -41,6 +43,49 @@ for _, node in ipairs(comment_nodes) do
     lines[i] = line
   end
 
+  if start_row == last_end_row + 1 and #merged_comments > 0 then
+    -- If the current comment node is consecutive to the last one, append its content
+    for _, line in ipairs(lines) do
+      table.insert(merged_comments[#merged_comments].content, line)
+    end
+    -- Update the end position
+    merged_comments[#merged_comments].end_pos = {end_row, end_col}
+  else
+    -- If the current comment node is not consecutive to the last one, add a new block
+    table.insert(merged_comments, {
+      start_pos = {start_row, start_col},
+      end_pos = {end_row, end_col},
+      content = lines
+    })
+  end
+
+  last_end_row = end_row
+end
+
+function shell_quote(s)
+    return "'" .. string.gsub(s, "'", "'\\''") .. "'"
+end
+
+-- Now, merged_comments contains blocks of consecutive comments
+for _, block in ipairs(merged_comments) do
+  -- filter out length 1 blocks
+  if #block.content == 1 then
+    goto continue
+  end
+  local command = "echo "..shell_quote(table.concat(block.content, "\n")).." | par 79"
+  local handle = io.popen(command, 'r')
+  local result = handle:read("*a")
+  handle:close()
+
+  print(vim.inspect({ 
+    start_pos = block.start_pos,
+    end_pos = block.end_pos,
+    original_content = block.content,
+    formatted_content = result
+  }))
+  ::continue::
+end
+
   --[[
   -- Yeah this is a text thing and 
   -- this is a second line for it and it is a really long line so i hope this lets it get reformatted by par so lets
@@ -50,20 +95,3 @@ for _, node in ipairs(comment_nodes) do
   -- Yeah this is a text thing and 
   -- this is a second line for it and it is a really long line so i hope this lets it get reformatted by par so lets
   -- see how it goes man
-
-  -- Only process multi-line comments
-  if #lines > 1 then
-    print('Original content:')
-    print(table.concat(lines, '\n'))
-
-    -- Run the comment through `par`
-    local input = table.concat(lines, '\n')
-    local par = io.popen('echo "'..input..'" | par 79', 'r')
-    local output = par:read('*a')
-    par:close()
-
-    -- Print the formatted comment
-    print('Formatted content:')
-    print(output)
-  end
-end
