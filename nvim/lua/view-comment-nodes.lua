@@ -80,16 +80,16 @@ for _, block in ipairs(merged_comments) do
   print(vim.inspect({ 
     start_pos = block.start_pos,
     end_pos = block.end_pos,
-    original_content = block.content,
-    formatted_content = result
   }))
+  print("Before:", "\n"..table.concat(block.content, "\n"))
+  print("After:", "\n"..result)
   ::continue::
 end
 
   --[[
-  -- Yeah this is a text thing and 
-  -- this is a second line for it and it is a really long line so i hope this lets it get reformatted by par so lets
-  -- see how it goes man
+    Yeah this is a text thing and 
+    this is a second line for it and it is a really long line so i hope this lets it get reformatted by par so lets
+    see how it goes man
   --]]
 
   -- Yeah this is a text thing and 
