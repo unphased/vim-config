@@ -66,12 +66,53 @@ function shell_quote(s)
     return "'" .. string.gsub(s, "'", "'\\''") .. "'"
 end
 
--- Now, merged_comments contains blocks of consecutive comments
+local comment_delimiters = {
+  lua = {
+    multiline = {
+      prefix = { '%-%-%[%[', '%-%-%[%[%=' }, -- '--[[', '--[=[' and so on
+      suffix = { '%]%]', '%-%-%]%]' } -- ']]', '--]]' and so on
+    }
+  },
+  cpp = {
+    multiline = {
+      prefix = { '/%*', '/%*%*' }, -- '/*', '/**' and so on
+      suffix = { '%*/' } -- '*/'
+    }
+  },
+  c = {
+    multiline = {
+      prefix = { '/%*', '/%*%*' }, -- '/*', '/**' and so on
+      suffix = { '%*/' } -- '*/'
+    }
+  }
+  -- Add other languages here
+}
+
 for _, block in ipairs(merged_comments) do
-  -- filter out length 1 blocks
   if #block.content == 1 then
     goto continue
   end
+  local comment_prefixes = comment_delimiters[lang].multiline.prefix
+  local comment_suffixes = comment_delimiters[lang].multiline.suffix
+  
+  for i, line in ipairs(block.content) do
+    -- Remove prefixes from the first line of a block
+    if i == 1 then
+      for _, prefix in ipairs(comment_prefixes) do
+        line = line:gsub("^%s*"..prefix, "")
+      end
+    end
+
+    -- Remove suffixes from the last line of a block
+    if i == #block.content then
+      for _, suffix in ipairs(comment_suffixes) do
+        line = line:gsub(suffix.."%s*$", "")
+      end
+    end
+    
+    block.content[i] = line
+  end
+
   local command = "echo "..shell_quote(table.concat(block.content, "\n")).." | par 79"
   local handle = io.popen(command, 'r')
   local result = handle:read("*a")
