@@ -82,23 +82,25 @@ function shell_quote(s)
     return "'" .. string.gsub(s, "'", "'\\''") .. "'"
 end
 
+-- i think we just need to order these by decreasing specificity so that the more correct ones get applied first.
+-- if we can reduce them all to single patterns then we can simplify the architecture as well.
 local comment_delimiters = {
   lua = {
     multiline = {
-      prefix = { '%-%-%[%[', '%-%-%[%[%=' }, -- '--[[', '--[=[' and so on
-      suffix = { '%]%]', '%-%-%]%]' } -- ']]', '--]]' and so on
+      prefix = { "%-%-%[=*%[" }, -- '--[[', '--[=[', and so on
+      suffix = { '%-*%]=*%]' } -- ']]', '--]]', '--]=]', and so on
     }
   },
   cpp = {
     multiline = {
-      prefix = { '/%*', '/%*%*' }, -- '/*', '/**' and so on
-      suffix = { '%*/' } -- '*/'
+      prefix = { '/%*+' }, -- '/*', '/**' and so on
+      suffix = { '%*+/' } -- '*/', '**/' and so on
     }
   },
   c = {
     multiline = {
-      prefix = { '/%*', '/%*%*' }, -- '/*', '/**' and so on
-      suffix = { '%*/' } -- '*/'
+      prefix = { '/%*+' }, -- '/*', '/**' and so on
+      suffix = { '%*+/' } -- '*/', '**/' and so on
     }
   }
   -- Add other languages here
