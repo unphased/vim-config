@@ -32,10 +32,25 @@ for _, node in ipairs(comment_nodes) do
   local start_row, start_col, end_row, end_col = node:range()
   local lines = vim.api.nvim_buf_get_lines(bufnr, start_row, end_row+1, false)
 
-  -- Process each line to include only the part within the node's range
+  -- local to_add = ""
+  -- if #lines == 1 then
+  --   local front_of_line = string.sub(lines[1], 1, start_col)
+  --   local is_solely_comment = front_of_line:match("^%s*$")
+  --   if is_solely_comment then
+  --     to_add = string.sub(lines[1], start_col + 1)
+  --   end
+  --   end
+  -- end
+
+  local is_content_before_comment_whitespace
+
   for i, line in ipairs(lines) do
     if i == 1 then -- For the first line, remove characters before the starting column
       line = string.sub(line, start_col + 1)
+      -- Extract the content before the comment on the same line and check if it's all whitespace
+      local line_before_comment = vim.api.nvim_buf_get_lines(bufnr, start_row, start_row + 1, false)[1]
+      local content_before_comment = string.sub(line_before_comment, 1, start_col)
+      is_content_before_comment_whitespace = content_before_comment:match("^%s*$") ~= nil
     end
     if i == #lines then -- For the last line, remove characters after the ending column
       line = string.sub(line, 1, end_col)
@@ -43,15 +58,15 @@ for _, node in ipairs(comment_nodes) do
     lines[i] = line
   end
 
-  if start_row == last_end_row + 1 and #merged_comments > 0 then
-    -- If the current comment node is consecutive to the last one, append its content
+  if start_row == last_end_row + 1 and #merged_comments > 0 and is_content_before_comment_whitespace then
+    -- If the current comment node is consecutive to the last one and the preceding part of the line before the comment is solely whitespace, append its content
     for _, line in ipairs(lines) do
       table.insert(merged_comments[#merged_comments].content, line)
     end
     -- Update the end position
     merged_comments[#merged_comments].end_pos = {end_row, end_col}
   else
-    -- If the current comment node is not consecutive to the last one, add a new block
+    -- If the current comment node is not consecutive to the last one or the preceding part of the line before the comment is not solely whitespace, add a new block
     table.insert(merged_comments, {
       start_pos = {start_row, start_col},
       end_pos = {end_row, end_col},
@@ -60,6 +75,7 @@ for _, node in ipairs(comment_nodes) do
   end
 
   last_end_row = end_row
+
 end
 
 function shell_quote(s)
