@@ -41,11 +41,29 @@ for _, node in ipairs(comment_nodes) do
     lines[i] = line
   end
 
-  print(vim.inspect({ 
-    start_pos = {start_row, start_col},
-    end_pos = {end_row, end_col},
-    content = lines
-  }))
+  --[[
+  -- Yeah this is a text thing and 
+  -- this is a second line for it and it is a really long line so i hope this lets it get reformatted by par so lets
+  -- see how it goes man
+  --]]
+
+  -- Yeah this is a text thing and 
+  -- this is a second line for it and it is a really long line so i hope this lets it get reformatted by par so lets
+  -- see how it goes man
+
+  -- Only process multi-line comments
+  if #lines > 1 then
+    print('Original content:')
+    print(table.concat(lines, '\n'))
+
+    -- Run the comment through `par`
+    local input = table.concat(lines, '\n')
+    local par = io.popen('echo "'..input..'" | par 79', 'r')
+    local output = par:read('*a')
+    par:close()
+
+    -- Print the formatted comment
+    print('Formatted content:')
+    print(output)
+  end
 end
-
-
