@@ -131,7 +131,8 @@ for _, block in ipairs(merged_comments) do
     block.content[i] = line
   end
 
-  local command = "echo "..shell_quote(table.concat(block.content, "\n")).." | par 79"
+  local command = "echo " .. shell_quote(table.concat(block.content, "\n"))
+    .. " | PARINIT=\"rTbgqR B=.,?'_A_a_@ Q=_s>|\" par 79"
   local handle = io.popen(command, 'r')
   local result = handle:read("*a")
   handle:close()
