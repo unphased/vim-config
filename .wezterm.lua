@@ -54,6 +54,7 @@ config.background = {
   -- This is the deepest/back-most layer. It will be rendered first
   {
     width = "100%",
+    height = "100%",
     source = {
       Gradient={
         preset="Warm",
