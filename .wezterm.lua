@@ -47,6 +47,7 @@ config.underline_thickness = 1.5
 
 config.window_background_opacity = 0.3
 config.win32_system_backdrop = 'Acrylic'
+config.win32_acrylic_accent_color = 'gold'
 
 config.font = wezterm.font('RobotoMono Nerd Font Mono')
 
