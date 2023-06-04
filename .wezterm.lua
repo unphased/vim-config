@@ -53,6 +53,7 @@ config.font = wezterm.font('RobotoMono Nerd Font Mono')
 config.background = {
   -- This is the deepest/back-most layer. It will be rendered first
   {
+    width = "100%",
     source = {
       Gradient={
         preset="Warm",
