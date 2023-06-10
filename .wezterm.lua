@@ -45,10 +45,24 @@ config.hide_tab_bar_if_only_one_tab = true
 config.font_size = 9.0
 config.underline_thickness = 1.5
 
-config.window_background_opacity = 0.7
+config.window_background_opacity = 0.3
 config.win32_system_backdrop = 'Acrylic'
+config.win32_acrylic_accent_color = '#111111'
 
 config.font = wezterm.font('RobotoMono Nerd Font Mono')
+
+-- config.background = {
+--   {
+--     width = "100%",
+--     height = "100%",
+--     source = {
+--       Gradient={
+--         preset="Warm",
+--         orientation = { Linear = { angle = -45.0 } },
+--       }
+--     },
+--   }
+-- }
 
 -- and finally, return the configuration to wezterm
 return config
