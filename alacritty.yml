@@ -51,18 +51,18 @@ draw_bold_text_with_bright_colors: false
 font:
   # The normal (roman) font face to use.
   normal:
-    family: "BitstreamVeraSansMono Nerd Font Mono" # should be "Menlo" or something on macOS.
-    style: Roman
+    family: "JetBrainsMonoNL Nerd Font Mono" # should be "Menlo" or something on macOS.
+    style: Regular
 
   # The bold font face
   bold:
-    family: "BitstreamVeraSansMono Nerd Font Mono" # should be "Menlo" or something on macOS.
+    family: "JetBrainsMonoNL Nerd Font Mono" # should be "Menlo" or something on macOS.
     style: Bold
 
   # The italic font face
   italic:
-    family: "BitstreamVeraSansMono Nerd Font Mono" # should be "Menlo" or something on macOS.
-    style: Oblique
+    family: "JetBrainsMonoNL Nerd Font Mono" # should be "Menlo" or something on macOS.
+    style: Italic
 
   antialias: true
 
