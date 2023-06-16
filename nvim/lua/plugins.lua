@@ -1,14 +1,15 @@
 return {
-  {
-    'unphased/zephyr-nvim',
-    lazy = false,
-    priority = 1000,
-    config = function ()
-      vim.cmd([[
-        colorscheme zephyr
-      ]])
-    end
-  },
+  -- {
+  --   'unphased/zephyr-nvim',
+  --   lazy = false,
+  --   priority = 1000,
+  --   config = function ()
+  --     vim.cmd([[
+  --       colorscheme zephyr
+  --     ]])
+  --   end
+  -- },
+  { 'dasupradyumna/midnight.nvim', lazy = false, priority = 1000 },
   {
      "nvim-neo-tree/neo-tree.nvim",
      branch = "v2.x",

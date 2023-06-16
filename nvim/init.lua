@@ -95,6 +95,8 @@ require("lazy").setup("plugins", {
   }
 })
 
+vim.cmd.colorscheme 'midnight'
+
 -- mappings
 
 --- from the vimL 
