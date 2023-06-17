@@ -1,18 +1,18 @@
 return {
-  -- {
-  --   'unphased/zephyr-nvim',
-  --   lazy = false,
-  --   priority = 1000,
-  --   config = function ()
-  --     vim.cmd([[
-  --       colorscheme zephyr
-  --     ]])
-  --   end
-  -- },
-  { 'dasupradyumna/midnight.nvim', lazy = false, priority = 1000 },
   {
-     "nvim-neo-tree/neo-tree.nvim",
-     branch = "v2.x",
+    'unphased/zephyr-nvim',
+    lazy = false,
+    priority = 1000,
+    config = function ()
+      vim.cmd([[
+        colorscheme zephyr
+        ]])
+    end
+  },
+  -- { 'dasupradyumna/midnight.nvim', lazy = false, priority = 1000 },
+  {
+    "nvim-neo-tree/neo-tree.nvim",
+    branch = "v2.x",
      dependencies = {
        "nvim-lua/plenary.nvim",
        "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
@@ -272,5 +272,21 @@ return {
       require("inc_rename").setup()
     end,
   },
-  'tommcdo/vim-lion'
+  'tommcdo/vim-lion',
+  -- {
+  --   "HampusHauffman/block.nvim",
+  --   config = function()
+  --     require("block").setup({
+  --       percent = 0.8,
+  --       depth = 10,
+  --       automatic = true,
+  --       colors = {
+  --          "#222222",
+  --          "#333333",
+  --          "#444444",
+  --          -- "#555555",
+  --       }
+  --     })
+  --   end
+  -- },
 }
