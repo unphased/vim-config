@@ -166,6 +166,9 @@ vim.keymap.set("n", "<m-p>", function()
   end
 end)
 
+-- a bind to let me clear the file and leave in insert mode
+vim.keymap.set("n", "<leader>C", ":%d<cr>i")
+
 -- make it easier to type a colon
 vim.keymap.set("n", ";", ":")
 
