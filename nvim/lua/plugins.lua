@@ -263,7 +263,7 @@ return {
     "ggandor/lightspeed.nvim"
   },
   { "chrisgrieser/nvim-spider", lazy = true },
-  "bekaboo/dropbar.nvim",
+  -- "bekaboo/dropbar.nvim",
   "bekaboo/deadcolumn.nvim",
   "ThePrimeagen/refactoring.nvim",
   {
