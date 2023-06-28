@@ -55,6 +55,8 @@ config.colors = {
 
 config.font = wezterm.font('RobotoMono Nerd Font Mono')
 
+config.default_domain = 'WSL:Ubuntu'
+
 -- config.background = {
 --   {
 --     width = "100%",
