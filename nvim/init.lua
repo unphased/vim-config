@@ -110,8 +110,10 @@ vim.keymap.set("i", "<2-LeftMouse>", "<Nop>")
 vim.keymap.set("i", "<3-LeftMouse>", "<Nop>")
 vim.keymap.set("i", "<4-LeftMouse>", "<Nop>")
 
--- Remember: I map at the terminal level ctrl+BS, alt/opt+BS both to ^[^?, so binds should use <m-bs>. I'm not sure how this works on windows terminal as well, but it does.
--- stronger normal mode move back via backspace
+-- Remember: I map at the terminal level ctrl+BS, alt/opt+BS both to
+-- ^[^?, so binds should use <m-bs>. I'm not sure how this works on
+-- windows terminal as well, but it does. stronger normal mode move back
+-- via backspace
 vim.keymap.set("n", "<M-BS>", "B")
 -- word delete. Note that <Cmd>normal db does NOT work because exiting normal mode puts the cursor at the wrong spot
 vim.keymap.set("i", "<M-BS>", "<C-W>")
@@ -145,6 +147,9 @@ end)
 
 -- Join lines selected in visual mode with Ctrl+N.
 vim.keymap.set("v", "<c-n>", ":join<cr>`<")
+
+-- run par to format selected region. useful probably only for comments.
+vim.keymap.set("v", "<c-p>", ':!par rTbgqR "B=.,?\'_A_a_@" "Q=_s>|" <cr>')
 
 -- make alt+p (historical reason: used to toggle paste mode) toggle in unison the indent markers and the listchars. Key the state off of the indent-blankline toggle state.
 vim.keymap.set("n", "<m-p>", function()

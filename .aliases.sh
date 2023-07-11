@@ -191,3 +191,7 @@ export EDITOR=nvim
 fixssh() {
   eval $(tmux show-env -s |grep '^SSH_')
 }
+
+# for adam costello's par
+PARINIT="rTbgqR B=.,?'_A_a_@ Q=_s>|"
+
