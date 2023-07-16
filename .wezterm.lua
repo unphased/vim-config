@@ -53,9 +53,16 @@ config.colors = {
   background = '#111111',
 }
 
-config.font = wezterm.font('RobotoMono Nerd Font Mono')
+local font = 'RobotoMono Nerd Font Mono'
+if wezterm.target_triple:find("darwin") then
+  font = 'JetBrainsMonoNL Nerd Font Mono'
+end
 
-config.default_domain = 'WSL:Ubuntu'
+config.font = wezterm.font(font)
+
+if wezterm.target_triple:find("windows") then
+  config.default_domain = 'WSL:Ubuntu'
+end
 
 -- config.background = {
 --   {
