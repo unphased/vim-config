@@ -238,19 +238,20 @@ return {
       require"gitlinker".setup()
     end
   },
-  {
-    'rmagatti/goto-preview',
-    init = function()
-      require('goto-preview').setup {
-        default_mappings = false,
-        post_open_hook = function(bufnr)
-          vim.cmd("setlocal winblend=10")
-          vim.keymap.set('n', '<Esc>', '<cmd>q<CR>', { buffer = bufnr, silent = true } )
-          vim.keymap.set('n', 'q', '<cmd>q<CR>', { buffer = bufnr, silent = true } )
-        end,
-      }
-    end
-  },
+  -- {
+  --   'rmagatti/goto-preview',
+  --   init = function()
+  --     require('goto-preview').setup {
+  --       default_mappings = false,
+  --       post_open_hook = function(bufnr)
+  --         vim.cmd("setlocal winblend=10")
+  --         vim.keymap.set('n', '<Esc>', '<cmd>q<CR>', { buffer = bufnr, silent = true } )
+  --         vim.keymap.set('n', 'q', '<cmd>q<CR>', { buffer = bufnr, silent = true } )
+  --       end,
+  --     }
+  --   end
+  -- },
+  "dnlhc/glance.nvim",
   "RRethy/vim-illuminate",
   "unphased/syntax-tree-surfer",
   {
