@@ -1317,7 +1317,7 @@ local lsp_attach = function (x, bufnr)
   local engine = x.name;
   log("lsp_attach:" .. engine .. "bufnr=" .. bufnr)
   local bufopts = { noremap=true, silent=true, buffer=bufnr }
-  vim.keymap.set('n', 'gD', '<cmd>TroubleToggle lsp_type_definitions<cr>', ext(bufopts, "desc", "Go to Type Definition (Trouble UI)"))
+  -- vim.keymap.set('n', 'gD', '<cmd>TroubleToggle lsp_type_definitions<cr>', ext(bufopts, "desc", "Go to Type Definition (Trouble UI)"))
   vim.keymap.set('n', 'gd', '<cmd>TroubleToggle lsp_definitions<cr>', ext(bufopts, "desc", "Go to Definition (Trouble UI)"))
   -- vim.keymap.set('n', 'gi', goto_preview.goto_preview_implementation, ext(bufopts, "desc", "Go to Implementation (preview window)"))
   -- mnemonic is "args"
@@ -1580,3 +1580,4 @@ vim.cmd[[let g:lion_squeeze_spaces = 1]]
 -- putting here late so log global is present for it
 safeRequire("heirline_conf.heirline")
 
+vim.keymap.set('n', 'gD', '<CMD>Glance definitions<CR>')
