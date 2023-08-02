@@ -1024,8 +1024,9 @@ safeRequire("colorizer").setup()
 
 -- general plugin specific binds (TODO: put together when refactoring the plugin configs into files)
 vim.keymap.set("n", "<leader>y", safeRequire("osc52").copy_operator, { expr = true, desc = "Copy to host term system clipboard via OSC 52" })
-vim.keymap.set("n", "<leader>yy", "<leader>c_", { remap = true, desc = "Copy entire line to host term system clipboard via OSC 52" })
+vim.keymap.set("n", "<leader>yy", "<leader>y_", { remap = true, desc = "Copy entire line to host term system clipboard via OSC 52" })
 vim.keymap.set("x", "<leader>y", safeRequire("osc52").copy_visual, { desc = "Copy visual selection to host term system clipboard via OSC 52" })
+vim.keymap.set("n", "<leader>Y", "ggVG<leader>y", { remap = true, desc = "Copy entire buffer to host clipboard via OSC 52"})
 
 -- We can explicitly use the server's own clipboard or fallback clipboard file if we somehow know
 -- that we want the buffer that's in there.
