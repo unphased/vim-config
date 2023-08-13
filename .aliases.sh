@@ -46,6 +46,8 @@ alias gds="git diff --stat"
 alias di="git diff-with-ignored"
 alias gc!="git commit --amend"
 
+alias gsp="git stash pop"
+
 # unfortunately the mnemonic of ext is sticking, so even though difftool is used to run sift 
 # i will keep using the "e"
 alias gde="GIT_EXTERNAL_DIFF=sift GIT_PAGER=less git diff --ext-diff"
