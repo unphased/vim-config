@@ -134,7 +134,8 @@ vim.keymap.set({ "x", "n" }, "H", "7h")
 vim.keymap.set({ "x", "n" }, "L", "7l")
 
 -- just a thing i got used to; makes it easy to put what you just typed into brackets
-vim.keymap.set("i", "<c-b>", "<esc>lve")
+-- vim.keymap.set("i", "<c-b>", "<esc>lve")
+vim.keymap.set("i", "<m-b>", "<esc>lve") -- also for some reason my muscle memory is for the alt version of this. sucks. let's actually free the ctrl b for something else then...
 
 -- Joining lines with Ctrl+N. Keep cursor stationary.
 vim.keymap.set("n", "<c-n>", function()
