@@ -51,7 +51,7 @@ return {
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
-    commit = "a9ce9fb7cccf59e0c2f65d26a14942356c93948e",
+    tag = "v0.9.1",
     dependencies = {
       -- show treesitter nodes
       "nvim-treesitter/playground", -- enable more advanced treesitter-aware text objects
