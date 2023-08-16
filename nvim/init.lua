@@ -219,6 +219,51 @@ vim.keymap.set("n", "<c-w><c-h>", "<c-w>H")
 vim.keymap.set("n", "<c-w><c-j>", "<c-w>J")
 vim.keymap.set("n", "<c-w><c-k>", "<c-w>K")
 
+-- combination next and repeat
+function enhanced_dot(count)
+  local poscursor = vim.fn.getpos('.')
+  local hlsearchCurrent = vim.v.hlsearch
+  local c = count
+  log("c: "..c)
+  vim.cmd("redir => searchcount")
+  vim.cmd("silent! %s///n") -- Assuming gdefault
+  vim.cmd("redir END")
+  local searchcount = vim.g.searchcount
+  local ct = 0
+  for num in searchcount:gmatch("%d+") do
+    ct = tonumber(num)
+    break -- assuming the first number is the count of matches
+  end
+  if searchcount == 'Error' then
+    ct = 0
+  end
+  vim.fn.setpos('.', poscursor)
+  if (c == '' and hlsearchCurrent == 1) then
+    c = ct
+    vim.cmd('echom "running dot '..c..' times (all matches)..."')
+  elseif c == '' then
+    vim.cmd('echom "put search on to run dot on all matches. aborting"')
+    return
+  end
+  log("ct: "..ct.." c: "..c)
+  if ct < c then
+    vim.cmd('echom "found fewer matches than requested ('..c..'), running only '..ct..' times"')
+    c = ct
+  end
+  while c > 0 do
+    if hlsearchCurrent == 1 then
+      vim.cmd("silent! normal n")
+      vim.cmd("normal .")
+    else
+      vim.cmd("normal! .j")
+    end
+    c = c - 1
+  end
+end
+
+vim.api.nvim_set_keymap('n', '<M-.>', ":lua enhanced_dot(vim.v.count1)<CR>", { noremap = true })
+vim.api.nvim_set_keymap('n', '<M->>', ":lua enhanced_dot('')<CR>", { noremap = true })
+
 -- filters out windows:
 -- - made by nvim-treesitter-context
 -- - made by Neotree
