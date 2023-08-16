@@ -267,6 +267,7 @@ key_bindings:
   - { key: Comma,    mods: Control,       chars: "\x1bcomma]"      }
   - { key: Period,   mods: Alt,           chars: "\x1b."           }
   - { key: Period,   mods: Command,       chars: "\x1b."           }
+  - { key: Period,   mods: Shift|Command, chars: "\x1b>"           }
   - { key: Key1,     mods: Alt,           chars: "\x1b1"           }
   - { key: Key2,     mods: Alt,           chars: "\x1b2"           }
   - { key: Key3,     mods: Alt,           chars: "\x1b3"           }
