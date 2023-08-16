@@ -224,7 +224,6 @@ function enhanced_dot(count)
   local poscursor = vim.fn.getpos('.')
   local hlsearchCurrent = vim.v.hlsearch
   local c = count
-  log("c: "..c)
   vim.cmd("redir => searchcount")
   vim.cmd("silent! %s///n") -- Assuming gdefault
   vim.cmd("redir END")
@@ -245,7 +244,6 @@ function enhanced_dot(count)
     vim.cmd('echom "put search on to run dot on all matches. aborting"')
     return
   end
-  log("ct: "..ct.." c: "..c)
   if ct < c then
     vim.cmd('echom "found fewer matches than requested ('..c..'), running only '..ct..' times"')
     c = ct
