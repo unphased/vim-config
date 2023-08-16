@@ -478,7 +478,7 @@ vim.cmd([[
   nnoremap + :res +4<CR>
   nnoremap _ :res -4<CR>
 
-  nnoremap <leader>f :NeoTreeRevealToggle<CR>
+  nnoremap <leader>f :NeoTreeReveal<CR>
   nnoremap fg :Neotree float reveal_file=<cfile> reveal_force_cwd<cr>
 
   nnoremap <c-m-s> :SudaWrite<CR>
@@ -617,7 +617,6 @@ vim.cmd([[
 
 ]])
 
--- CURRENTLY NOT WORKING AT ALL YET
 _G.MoveToPrevTab = function()
   -- There is only one window
   if (#vim.api.nvim_list_tabpages()) == 1 and vim.api.nvim_win_get_number(0) == 1 then
@@ -650,7 +649,6 @@ _G.MoveToPrevTab = function()
   vim.api.nvim_set_current_buf(current_buf)
 end
 
--- CURRENTLY THIS IS STILL NOT WORKING PROPERLY
 _G.MoveToNextTab = function()
   -- there is only one window
   local tabpages = vim.api.nvim_list_tabpages()
@@ -682,7 +680,7 @@ _G.MoveToNextTab = function()
   vim.api.nvim_set_current_buf(cur_buf)
 end
 
-vim.api.nvim_set_keymap('n', '<Leader>t', '<Cmd>lua MoveToNextTab()<CR>', {noremap = true, silent = true})
+-- vim.api.nvim_set_keymap('n', '<Leader>t', '<Cmd>lua MoveToNextTab()<CR>', {noremap = true, silent = true})
 
 -- yanking window to the next tab
 vim.keymap.set("n", "ygT", "<cmd>lua MoveToPrevTab()<CR>")
