@@ -1211,10 +1211,11 @@ cmp.setup({
   }),
   snippet = {
     expand = function(args)
-      snippy.lsp_expand(args.body)
+      require('snippy').expand_snippet(args.body)
     end
   }
 })
+
 
 -- Set configuration for specific filetype.
 cmp.setup.filetype('gitcommit', {
