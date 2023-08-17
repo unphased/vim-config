@@ -1629,3 +1629,29 @@ require('glance').setup({
     width = 0.2
   }
 })
+
+-- switch.vim config
+
+vim.cmd[[
+  " This entry duplicates builtins (true <-> false), but being here gives it an appropriate priority
+  au FileType cpp let g:switch_custom_definitions = [
+          \   switch#Words(['public', 'private']),
+          \   switch#Words(['first', 'second']),
+          \   switch#Words(['true', 'false']),
+          \ {
+            \  'const \([A-Za-z][A-Za-z0-9_:<>]*\)&': '\1',
+            \  '\%(const \)\@!\([A-Za-z][A-Za-z0-9_:<>]*\)' : 'const \1&'
+          \ }
+        \ ] + g:switch_custom_definitions
+
+  " highest priority defs are prepended last here
+  let g:switch_custom_definitions = [
+    \   switch#NormalizedCase(['show', 'hide']),
+    \   switch#NormalizedCase(['add', 'remove']),
+    \   switch#NormalizedCase(['before', 'after']),
+    \   switch#NormalizedCase(['begin', 'end']),
+    \   switch#NormalizedCaseWords(['yes', 'no']),
+    \   switch#NormalizedCaseWords(['on', 'off']),
+    \   switch#NormalizedCaseWords(['error', 'warn', 'info']),
+    \ ]
+]]
