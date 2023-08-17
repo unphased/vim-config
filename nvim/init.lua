@@ -1200,7 +1200,7 @@ cmp.setup({
     -- { name = 'vsnip' }, -- For vsnip users.
     -- { name = 'luasnip' }, -- For luasnip users.
     -- { name = 'ultisnips' }, -- For ultisnips users.
-    -- { name = 'snippy' }, -- For snippy users.
+    { name = 'snippy' }, -- For snippy users.
     { name = 'buffer' },
     { name = 'path',
       option = {
@@ -1208,7 +1208,12 @@ cmp.setup({
       },
     },
     { name = 'nvim_lsp_signature_help' },
-  })
+  }),
+  snippet = {
+    expand = function(args)
+      snippy.lsp_expand(args.body)
+    end
+  }
 })
 
 -- Set configuration for specific filetype.
@@ -1655,3 +1660,15 @@ vim.cmd[[
     \   switch#NormalizedCaseWords(['error', 'warn', 'info']),
     \ ]
 ]]
+
+require('snippy').setup({
+    mappings = {
+        is = {
+            ['<Tab>'] = 'expand_or_advance',
+            ['<S-Tab>'] = 'previous',
+        },
+        nx = {
+            ['<leader>x'] = 'cut_text',
+        },
+    },
+})

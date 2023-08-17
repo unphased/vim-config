@@ -291,4 +291,7 @@ return {
   --     })
   --   end
   -- },
+  'dcampos/nvim-snippy',
+  'honza/vim-snippets',
+  'dcampos/cmp-snippy'
 }
