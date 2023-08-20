@@ -1709,3 +1709,7 @@ require('lspconfig').emmet_language_server.setup({
     excludelanguages = {},
   },
 })
+
+-- note to self: Profiling!
+-- require'plenary.profile'.start("profile.log")
+-- require'plenary.profile'.stop()
