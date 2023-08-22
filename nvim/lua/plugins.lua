@@ -294,9 +294,4 @@ return {
   'dcampos/nvim-snippy',
   'honza/vim-snippets',
   'dcampos/cmp-snippy',
-  {
-    "m4xshen/hardtime.nvim",
-    dependencies = { "MunifTanjim/nui.nvim", "nvim-lua/plenary.nvim" },
-    opts = {}
-  },
 }
