@@ -182,7 +182,7 @@ vim.keymap.set("n", ";", ":")
 vim.keymap.set("n", "P", "P`[")
 
 -- turn F10 into escape
-vim.keymap.set({ "", "!" }, "<F10>", "<esc>")
+vim.keymap.set({ "", "i", "s" }, "<F10>", "<esc>") -- Applies to modes nvois, v should inlude s, but seems to not
 vim.keymap.set({ "c" }, "<F10>", "<c-c>")
 
 -- normal and visual mode backspace does what b does
@@ -1179,12 +1179,16 @@ cmp.setup({
       -- they way you will only jump inside the snippet region
       -- elseif luasnip.expand_or_jumpable() then
       --   luasnip.expand_or_jump()
+      elseif require'snippy'.can_expand_or_advance() then
+        require'snippy'.expand_or_advance()
       elseif has_words_before() then
+        log('has_words_before produced '..vim.inspect(has_words_before()))
         cmp.complete()
       else
+        log('cmp calling fallback')
         fallback()
       end
-    end, { "i", "s" }),
+    end, { "i", "s", "n" }),
 
     ["<S-Tab>"] = cmp.mapping(function(fallback)
       if cmp.visible() then
@@ -1212,6 +1216,7 @@ cmp.setup({
   }),
   snippet = {
     expand = function(args)
+      _G.log("snippy expand function")
       require('snippy').expand_snippet(args.body)
     end
   }
@@ -1681,11 +1686,11 @@ vim.cmd[[
 require('snippy').setup({
   mappings = {
     is = {
-      ['<C-Tab>'] = 'expand_or_advance',
+      ['<Tab>'] = 'expand_or_advance',
       ['<S-Tab>'] = 'previous',
     },
-    nx = {
-      ['<leader>x'] = 'cut_text',
+    x = {
+      ['<Tab>'] = 'cut_text',
     },
   },
 })
