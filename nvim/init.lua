@@ -1681,7 +1681,7 @@ vim.cmd[[
 require('snippy').setup({
   mappings = {
     is = {
-      ['<Tab>'] = 'expand_or_advance',
+      ['<C-Tab>'] = 'expand_or_advance',
       ['<S-Tab>'] = 'previous',
     },
     nx = {
