@@ -1133,9 +1133,8 @@ safeRequire("indent_blankline").setup({
 
 vim.opt.completeopt="menu,menuone,noselect"
 
-local cmp = safeRequire'cmp'
+local cmp = require'cmp'
 local lspkind = safeRequire('lspkind')
-
 
 local has_words_before = function()
   local line, col = unpack(vim.api.nvim_win_get_cursor(0))
@@ -1174,12 +1173,19 @@ cmp.setup({
     }),
     ["<Tab>"] = cmp.mapping(function(fallback)
       if cmp.visible() then
-        cmp.select_next_item()
+        if require'snippy'.can_expand_or_advance() then
+          log('using select behavior select')
+          cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
+        else
+          log('using select behavior insert')
+          cmp.select_next_item({ behavior = cmp.SelectBehavior.Insert })
+        end
       -- You could replace the expand_or_jumpable() calls with expand_or_locally_jumpable() 
       -- they way you will only jump inside the snippet region
       -- elseif luasnip.expand_or_jumpable() then
       --   luasnip.expand_or_jump()
       elseif require'snippy'.can_expand_or_advance() then
+        log('snippy calling expand_or_advance')
         require'snippy'.expand_or_advance()
       elseif has_words_before() then
         log('has_words_before produced '..vim.inspect(has_words_before()))
@@ -1188,13 +1194,21 @@ cmp.setup({
         log('cmp calling fallback')
         fallback()
       end
-    end, { "i", "s", "n" }),
+    end, { "i", "s" }),
 
     ["<S-Tab>"] = cmp.mapping(function(fallback)
       if cmp.visible() then
-        cmp.select_prev_item()
+        if require'snippy'.can_expand_or_advance() then
+          log('using select behavior select')
+          cmp.select_prev_item({ behavior = cmp.SelectBehavior.Select })
+        else
+          log('using select behavior insert')
+          cmp.select_prev_item({ behavior = cmp.SelectBehavior.Insert })
+        end
       -- elseif luasnip.jumpable(-1) then
       --   luasnip.jump(-1)
+      elseif require'snippy'.can_jump(-1) then
+        require'snippy'.previous()
       else
         fallback()
       end
@@ -1686,8 +1700,8 @@ vim.cmd[[
 require('snippy').setup({
   mappings = {
     is = {
-      ['<Tab>'] = 'expand_or_advance',
-      ['<S-Tab>'] = 'previous',
+      ['<C-Tab>'] = 'expand_or_advance',
+      ['<C-S-Tab>'] = 'previous',
     },
     x = {
       ['<Tab>'] = 'cut_text',
