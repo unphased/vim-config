@@ -1130,6 +1130,20 @@ safeRequire("indent_blankline").setup({
   show_current_context_start = true,
 })
 
+function ef_ten(direction)
+    local tmux_panes_count = vim.fn.system("tmux display -p '#{window_panes}'")
+    if tmux_panes_count == "1\n" or tmux_panes_count == "failed to connect to server\n" then
+        if direction == '+' then
+            vim.cmd("wincmd w")  -- next window
+        else
+            vim.cmd("wincmd W")  -- previous window
+        end
+    else
+        vim.fn.system("tmux select-pane -t :." .. direction)
+    end
+end
+vim.api.nvim_set_keymap('n', '<F10>', [[:lua ef_ten('+')<CR>]], {noremap = true})
+vim.api.nvim_set_keymap('n', '<S-F10>', [[:lua ef_ten('-')<CR>]], {noremap = true})
 
 vim.opt.completeopt="menu,menuone,noselect"
 
