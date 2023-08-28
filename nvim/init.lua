@@ -1509,6 +1509,8 @@ vim.cmd([[
   hi VertSplit guifg=#505760
 
   hi TSPlaygroundFocus guibg=#2f628e
+
+  hi TroublePreview cterm=bold ctermfg=yellow ctermbg=black guibg=#246333 guifg=NONE
 ]])
 
 -- for conflict-marker
