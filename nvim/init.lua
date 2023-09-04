@@ -1726,7 +1726,7 @@ require('snippy').setup({
 })
 
 require('lspconfig').emmet_language_server.setup({
-  filetypes = { "css", "eruby", "html", "javascript", "javascriptreact", "less", "sass", "scss", "svelte", "pug", "typescriptreact", "vue" },
+  filetypes = { "css", "eruby", "html", "javascript", "javascriptreact", "less", "sass", "scss", "svelte", "pug", "typescript", "typescriptreact", "vue" },
   init_options = {
     --- @type table<string, any> https://docs.emmet.io/customization/preferences/
     preferences = {},
