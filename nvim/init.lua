@@ -172,6 +172,10 @@ vim.keymap.set("n", "<m-p>", function()
   end
 end)
 
+vim.api.nvim_create_user_command("DiffChanged", ":w! /tmp/cur-vim-buf | :split term://sift % /tmp/cur-vim-buf", {})
+
+-- need to come up with a way to let q quit terminal when it has exited. oh well iq is not too bad right now
+
 -- a bind to let me clear the file and leave in insert mode
 vim.keymap.set("n", "<leader>C", ":%d<cr>i")
 
