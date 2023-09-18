@@ -1114,7 +1114,7 @@ vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Go to next diagnos
 vim.opt.list = true
 -- opting to not use eol since it's too noisy looking imo
 -- "eol:↴"
-vim.opt.listchars = "tab:→ ,extends:»,precedes:«,trail:·,nbsp:◆"
+vim.opt.listchars = "tab: →,extends:»,precedes:«,trail:·,nbsp:◆"
 
 vim.cmd("highlight IndentBlanklineContextChar guifg=#66666f gui=nocombine")
 vim.cmd("highlight IndentBlanklineContextStart gui=underdouble guisp=#66666f")
