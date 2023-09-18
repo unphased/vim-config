@@ -56,7 +56,7 @@ vim.o.updatetime    = 300 -- useful for non-plugin word highlight
 vim.o.mousescroll   = 'ver:3,hor:3'
 vim.o.showbreak     = "→ "
 vim.o.linebreak     = true
-vim.o.breakindent   = true
+vim.o.breakindent   = false
 vim.o.textwidth     = 119
 vim.o.colorcolumn   = "120"
 
