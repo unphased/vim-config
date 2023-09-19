@@ -85,7 +85,10 @@ return {
   -- "AndrewRadev/splitjoin.vim",
   "windwp/nvim-autopairs",
   -- "google/vim-searchindex", -- give search index output (i of n matches) that isn't clamped to 99
-  "lukas-reineke/indent-blankline.nvim",
+  {
+    "lukas-reineke/indent-blankline.nvim",
+    branch = "v3"
+  },
   {
     "folke/trouble.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
