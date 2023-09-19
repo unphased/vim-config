@@ -84,7 +84,7 @@ local function safeRequire(module)
   local success, res = pcall(require, module)
   if success then return res end
   vim.api.nvim_err_writeln("safeRequire caught an error while loading " .. module .. ", error: " .. res)
-  return nil
+  return { setup = function() end, load_extension = function() end }
 end
 
 -- plugins
