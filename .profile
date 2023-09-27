@@ -35,6 +35,7 @@ __git_complete d _git_diff
 if [[ $MSYSTEM == MSYS ]]; then
 	export PATH="$ORIGINAL_TEMP/../../Roaming/npm/:$PATH"
 	export PATH=/c/Program\ Files/nodejs/:/c/Python27/:/mingw64/bin/:$PATH
+	export PATH=/c/Program\ Files/neovim/bin/:$PATH
 fi
 
 echo 'Hi from ~/.profile'
