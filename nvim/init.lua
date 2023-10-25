@@ -1121,18 +1121,33 @@ vim.cmd("highlight IndentBlanklineContextStart gui=underdouble guisp=#66666f")
 vim.cmd("highlight IndentBlanklineIndent1 gui=nocombine guifg=#383838")
 vim.cmd("highlight IndentBlanklineIndent2 gui=nocombine guifg=#484848")
 
-safeRequire("indent_blankline").setup({
-  char = "▏",
-  char_highlight_list = {
-    "IndentBlanklineIndent1",
-    "IndentBlanklineIndent2",
+safeRequire("ibl").setup({
+  debounce = 100,
+  indent = {
+    char = "▏",
+    tab_char = "→",
   },
-  context_char = "▏",
-  space_char_blankline = " ",
-  show_end_of_line = true, -- no effect while eof not put in listchars.
-  show_current_context = true,
-  show_current_context_start = true,
+  whitespace = {
+    highlight = {
+      "IndentBlanklineIndent1",
+      "IndentBlanklineIndent2",
+    }
+  },
+  -- scope = {
+  --   exclude = { "lua" }
+  -- },
+  -- char = "▏",
+  -- char_highlight_list = {
+  --   "IndentBlanklineIndent1",
+  --   "IndentBlanklineIndent2",
+  -- },
+  -- context_char = "▏",
+  -- space_char_blankline = " ",
+  -- show_end_of_line = true, -- no effect while eof not put in listchars.
+  -- show_current_context = true,
+  -- show_current_context_start = true,
 })
+
 
 function ef_ten(direction)
     local tmux_panes_count = vim.fn.system("tmux display -p '#{window_panes}'")
