@@ -377,7 +377,7 @@ local ScrollBar = {
 }
 
 local LSPActive = {
-    hl = { fg = "green", bold = true },
+    hl = { fg = "green", bold = false },
 
     -- You can keep it simple,
     -- provider = " [LSP]",
