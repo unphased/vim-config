@@ -666,7 +666,7 @@ local GitSpace = {
     hl = { fg = "orange" },
     flexible = 15,
     {
-        utils.surround({ "", "" }, "muted_bg", {
+        utils.surround({ "", "" }, "status_bubble_bg", {
             {   -- git branch name
                 provider = function(self)
                     return " " .. self.status_dict.head
@@ -706,7 +706,7 @@ local GitSpace = {
         },
     },
     {
-        utils.surround({ "", "" }, "muted_bg", {
+        utils.surround({ "", "" }, "status_bubble_bg", {
             {   -- git branch name
                 provider = function(self)
                     return " " .. self.status_dict.head
@@ -850,7 +850,7 @@ local Navic = { flexible = 3, Navic, { provider = "" } }
 local Align = { provider = "%=" }
 local Space = { provider = " " }
 
-ViMode = utils.surround({ "", "" }, "muted_bg", { ViMode })
+ViMode = utils.surround({ "", "" }, "status_bubble_bg", { ViMode })
 
 local LazySpace = {
     condition = function()
@@ -1223,7 +1223,7 @@ vim.cmd([[au FileType * if index(['wipe', 'delete'], &bufhidden) >= 0 | set nobu
 local function setup_colors()
     return {
         bright_bg = utils.get_highlight("Folded").bg,
-        muted_bg = "#414352",
+        status_bubble_bg = "#196768",
         bright_fg = utils.get_highlight("Folded").fg,
         red = utils.get_highlight("DiagnosticError").fg,
         dark_red = utils.get_highlight("DiffDelete").bg,
