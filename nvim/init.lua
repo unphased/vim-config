@@ -429,8 +429,6 @@ vim.cmd([[
 
   highlight MatchParen guibg=#306868
 
-  highlight StatusLineLineNo gui=bold
-
   noremap <silent> <C-H> :<c-u>call TmuxWindow('h')<CR>
   noremap <silent> <C-J> :<c-u>call TmuxWindow('j')<CR>
   noremap <silent> <C-K> :<c-u>call TmuxWindow('k')<CR>

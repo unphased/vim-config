@@ -311,21 +311,24 @@ local FileLastModified = {
     end
 }
 
--- We're getting minimalists here!
-local RulerSpace = {
+local RulerLineNo = {
+    provider = "%l",
+    hl = { bold = true }
+}
+local RulerRestSpace = {
     -- %l = current line number
     -- %L = number of lines in the buffer
     -- %c = column number
     -- %P = percentage through file of displayed window
     flexible = 7,
     {
-        provider = "%#StatusLineLineNo#%l%#Normal#/%L:%c %P "
+        provider = "/%L:%c %P "
     }, {
-        provider = "%#StatusLineLineNo#%l%#Normal#/%L:%c "
+        provider = "/%L:%c "
     }, {
-        provider = "%#StatusLineLineNo#%l%#Normal#:%c "
+        provider = ":%c "
     }, {
-        provider = "%l "
+        provider = " "
     }
 }
 
@@ -908,12 +911,12 @@ local MacroRec = {
 local DefaultStatusline = {
     -- TODO make the workdir and filename render out in separate styles for visual distinction but allow copying an abspath
     ViMode, Space, LazySpace, GitSpace, Diagnostics, LSPActive, Align, WorkDir,
-    FileNameBlock, Align, FileTypeSpace, SearchCount, MacroRec, RulerExtraSpace, FileSize, RulerSpace, ScrollBar
+    FileNameBlock, Align, FileTypeSpace, SearchCount, MacroRec, RulerExtraSpace, FileSize, RulerLineNo, RulerRestSpace, ScrollBar
 }
 
 local InactiveStatusline = {
     condition = conditions.is_not_active,
-    Align, WorkDir, FileNameBlock, Space, Align, FileTypeSpace, RulerSpace
+    Align, WorkDir, FileNameBlock, Space, Align, FileTypeSpace, RulerLineNo, RulerRestSpace
 }
 
 local SpecialStatusline = {
