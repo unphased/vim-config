@@ -617,77 +617,57 @@ vim.cmd([[
   nnoremap / /\v
   vnoremap / /\v
 
+  function MoveToPrevTab()
+    "there is only one window
+    if tabpagenr('$') == 1 && winnr('$') == 1
+      return
+    endif
+    "preparing new window
+    let l:tab_nr = tabpagenr('$')
+    let l:cur_buf = bufnr('%')
+    if tabpagenr() != 1
+      close!
+      if l:tab_nr == tabpagenr('$')
+        tabprev
+      endif
+      sp
+    else
+      close!
+      exe "0tabnew"
+    endif
+    "opening current buffer in new window
+    exe "b".l:cur_buf
+  endfunc
+
+  function MoveToNextTab()
+    "there is only one window
+    if tabpagenr('$') == 1 && winnr('$') == 1
+      return
+    endif
+    "preparing new window
+    let l:tab_nr = tabpagenr('$')
+    let l:cur_buf = bufnr('%')
+    if tabpagenr() < tab_nr
+      close!
+      if l:tab_nr == tabpagenr('$')
+        tabnext
+      endif
+      sp
+    else
+      close!
+      tabnew
+    endif
+    "opening current buffer in new window
+    exe "b".l:cur_buf
+  endfunc
 
 ]])
-
-_G.MoveToPrevTab = function()
-  -- There is only one window
-  if (#vim.api.nvim_list_tabpages()) == 1 and vim.api.nvim_win_get_number(0) == 1 then
-    print "moveToPrevTab: Only one window. Doing nothing"
-    return
-  end
-
-  -- Preparing new window
-  local current_tabpage_number = vim.api.nvim_tabpage_get_number(0)
-  local current_buf = vim.api.nvim_get_current_buf()
-
-  if current_tabpage_number == 1 then
-    -- Close current window
-    vim.api.nvim_win_close(0, true)
-
-    if current_tabpage_number == vim.api.nvim_tabpage_get_number(0) then
-      -- Move to previous tabpage
-      vim.api.nvim_set_current_tabpage(vim.api.nvim_tabpage_get_previous(0))
-    end
-
-    -- Open new window in current tabpage
-    vim.api.nvim_open_win(vim.api.nvim_create_buf(false, true), true, {relative='editor', row=0, col=0})
-  else
-    -- Close current window and create new tabpage
-    vim.api.nvim_win_close(0, true)
-    vim.api.nvim_command('tabnew')
-  end
-
-  -- Open current buffer in new window
-  vim.api.nvim_set_current_buf(current_buf)
-end
-
-_G.MoveToNextTab = function()
-  -- there is only one window
-  local tabpages = vim.api.nvim_list_tabpages()
-  if (#tabpages) == 1 and vim.api.nvim_win_get_number(0) == 1 then
-    print "MoveToNextTab: There is only one window, doing nothing"
-    return
-  end
-
-  -- preparing new window
-  local tab_nr = vim.api.nvim_tabpage_get_number(0) -- vim.fn.tabpagenr()
-  local tab_nr_end = tabpages[#tabpages] -- vim.fn.tabpagenr("$")
-  local cur_buf = vim.api.nvim_get_current_buf()
-  
-  log("tab_nr: ", tab_nr)
-  log("tab_nr_end: ", tab_nr_end)
-
-  if tab_nr ~= tab_nr_end then
-    vim.api.nvim_command('close')
-    if tab_nr == vim.fn.tabpagenr() then
-      vim.api.nvim_command('tabnext')
-    end
-    vim.api.nvim_command('sp')
-  else
-    vim.api.nvim_command('close')
-    vim.api.nvim_command('tabnew')
-  end
-
-  -- opening current buffer in new window
-  vim.api.nvim_set_current_buf(cur_buf)
-end
 
 -- vim.api.nvim_set_keymap('n', '<Leader>t', '<Cmd>lua MoveToNextTab()<CR>', {noremap = true, silent = true})
 
 -- yanking window to the next tab
-vim.keymap.set("n", "ygT", "<cmd>lua MoveToPrevTab()<CR>")
-vim.keymap.set("n", "ygt", "<cmd>lua MoveToNextTab()<CR>")
+vim.keymap.set("n", "ygT", ":call MoveToPrevTab()<CR>")
+vim.keymap.set("n", "ygt", ":call MoveToNextTab()<CR>")
 
 -- implements a smart I to insert at the front of the line but after the comment symbol if applicable
 -- http://stackoverflow.com/a/22282505/340947
