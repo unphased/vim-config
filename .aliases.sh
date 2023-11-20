@@ -183,6 +183,9 @@ export PATH=$HOME/util:$PATH
 
 # source $HOME/.vim/work/aliases/rtr.sh
 
+# Not sure how i feel about this but it's how they want it done
+export PATH=$PATH:/usr/local/go/bin
+
 export EDITOR=nvim
 
 # for pip3 on macos (ehhhh)
