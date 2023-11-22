@@ -23,10 +23,7 @@ return {
       "nvim-tree/nvim-tree.lua",
     },
     config = function()
-      require("lsp-file-operations").setup({
-        debug = true,
-      })
-      -- print("lsp-file-operations setup called")
+      require("lsp-file-operations").setup()
     end,
   },
   "tpope/vim-surround",
