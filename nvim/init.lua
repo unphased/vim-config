@@ -1027,6 +1027,10 @@ end
 
 require("nvim-tree").setup({
   on_attach = my_on_attach,
+  update_focused_file = {
+    enable = true,
+    update_root = true
+  }
 })
 
 -- safeRequire("neo-tree").setup({
