@@ -11,13 +11,23 @@ return {
   },
   -- { 'dasupradyumna/midnight.nvim', lazy = false, priority = 1000 },
   {
-    "nvim-neo-tree/neo-tree.nvim",
-    branch = "v2.x",
-     dependencies = {
-       "nvim-lua/plenary.nvim",
-       "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
-       "MunifTanjim/nui.nvim",
-     }
+    "nvim-tree/nvim-tree.lua",
+    dependencies = {
+      "nvim-tree/nvim-web-devicons"
+    }
+  },
+  {
+    "antosha417/nvim-lsp-file-operations",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "nvim-tree/nvim-tree.lua",
+    },
+    config = function()
+      require("lsp-file-operations").setup({
+        debug = true,
+      })
+      -- print("lsp-file-operations setup called")
+    end,
   },
   "tpope/vim-surround",
   "tpope/vim-sleuth",
@@ -232,6 +242,7 @@ return {
     end
   },
   "folke/neodev.nvim",
+  'nvim-lua/plenary.nvim',
   {
     'ruifm/gitlinker.nvim',
     dependencies = { 'nvim-lua/plenary.nvim' },
