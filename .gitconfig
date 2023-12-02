@@ -42,7 +42,7 @@
   diffFilter = delta --color-only --features=interactive
 
 [core]
-  editor = vim
+  editor = nvim
   whitespace = cr-at-eol
   excludesfile = ~/.gitignore
   autocrlf = input
