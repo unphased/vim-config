@@ -1118,7 +1118,7 @@ vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Go to next diagnos
 vim.opt.list = true
 -- opting to not use eol since it's too noisy looking imo
 -- "eol:↴"
-vim.opt.listchars = "tab: →,extends:»,precedes:«,trail:·,nbsp:◆"
+vim.opt.listchars = "tab:→ ,extends:»,precedes:«,trail:·,nbsp:◆"
 
 vim.cmd("highlight IndentBlanklineContextChar guifg=#66666f gui=nocombine")
 vim.cmd("highlight IndentBlanklineContextStart gui=underdouble guisp=#66666f")
@@ -1427,7 +1427,7 @@ local lsp_attach = function (x, bufnr)
   vim.keymap.set('n', 'gD', '<cmd>TroubleToggle lsp_definitions<cr>', ext(bufopts, "desc", "Go to Definition (Trouble UI)"))
   -- vim.keymap.set('n', 'gi', goto_preview.goto_preview_implementation, ext(bufopts, "desc", "Go to Implementation (preview window)"))
   -- mnemonic is "args"
-  vim.keymap.set('n', '<leader>a', vim.lsp.buf.signature_help, ext(bufopts, "desc", "Signature help"))
+  vim.keymap.set('n', '<leader>S', vim.lsp.buf.signature_help, ext(bufopts, "desc", "Signature help"))
   -- vim.keymap.set('n', '<space>wa', vim.lsp.buf.add_workspace_folder, bufopts)
   -- vim.keymap.set('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, bufopts)
   -- vim.keymap.set('n', '<space>wl', function()
