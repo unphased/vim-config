@@ -55,7 +55,7 @@
   "telescope-fzf-native.nvim": { "branch": "main", "commit": "6c921ca12321edaa773e324ef64ea301a1d0da62" },
   "telescope-ui-select.nvim": { "branch": "master", "commit": "c261d903a78c2cda47a5e44488621f10f9dd7fcf" },
   "telescope.nvim": { "branch": "0.1.x", "commit": "d90956833d7c27e73c621a61f20b29fdb7122709" },
-  "text-case.nvim": { "branch": "main", "commit": "ebe3650101a3505044559f71ec4ea4c789292164" },
+  "text-case.nvim": { "branch": "main", "commit": "8f22e5fcbb8d591e04fa3e9780e2e16809278f9f" },
   "thesaurus_query.vim": { "branch": "master", "commit": "92be7e003236f4d43b86ad1b84d092fceb982ed4" },
   "trouble.nvim": { "branch": "main", "commit": "f1168feada93c0154ede4d1fe9183bf69bac54ea" },
   "undotree": { "branch": "master", "commit": "36ff7abb6b60980338344982ad4cdf03f7961ecd" },
