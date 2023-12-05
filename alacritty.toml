@@ -48,7 +48,7 @@ TERM = "alacritty"
 TESTENV = "testvalue"
 
 [font]
-antialias = false
+# antialias = false
 size = 9
 
 [font.bold]
@@ -69,6 +69,11 @@ family = "JetBrainsMono Nerd Font"
 [font.offset]
 x = 0
 y = 0
+
+# [[keyboard.bindings]]
+# chars = "\u000f"
+# key = "X"
+# mods = "Super|Alt|Shift"
 
 [[keyboard.bindings]]
 action = "SpawnNewInstance"
@@ -686,26 +691,33 @@ chars = "\u001B[24;12~"
 key = "F12"
 mods = "Super|Alt"
 
+[terminal]
+osc52 = "OnlyCopy"
+
 [mouse]
 hide_when_typing = true
+bindings = [
+    { mouse = "Middle", action = "PasteSelection" },
+    # { mouse = "Back", chars = "abc" }
+]
 
-[[mouse.bindings]]
-action = "PasteSelection"
-mouse = "Middle"
+# [[mouse.bindings]]
+# action = "PasteSelection"
+# mouse = "Middle"
+#
+# [[mouse.bindings]]
+# chars = "\u000F"
+# mouse = "Back"
+#
+# [[mouse.bindings]]
+# chars = "\u0002"
+# mouse = "Forward"
 
-[[mouse.bindings]]
-chars = "\u000F"
-mouse = "Back"
-
-[[mouse.bindings]]
-chars = "\u0002"
-mouse = "Forward"
-
-[mouse.double_click]
-threshold = 300
-
-[mouse.triple_click]
-threshold = 300
+# [mouse.double_click]
+# threshold = 300
+#
+# [mouse.triple_click]
+# threshold = 300
 
 [scrolling]
 history = 50000
