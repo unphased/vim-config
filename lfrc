@@ -1,3 +1,4 @@
+set info size:time
 # interpreter for shell commands
 set shell sh
 
