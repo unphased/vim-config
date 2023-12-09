@@ -427,7 +427,7 @@ vim.cmd([[
   highlight IlluminatedWordWrite gui=bold,underline
   highlight IlluminatedWordRead gui=bold
 
-  highlight MatchParen guibg=#306868
+  highlight MatchParen guibg=#683068
 
   noremap <silent> <C-H> :<c-u>call TmuxWindow('h')<CR>
   noremap <silent> <C-J> :<c-u>call TmuxWindow('j')<CR>
