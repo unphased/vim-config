@@ -929,18 +929,18 @@ draw_bold_text_with_bright_colors: false
 font:
   # The normal (roman) font face to use.
   normal:
-    family: "Bitstream Vera Sans Mono Nerd Font Mono" # should be "Menlo" or something on macOS.
+    family: "JetBrainsMono Nerd Font" # should be "Menlo" or something on macOS.
     # style: Regular
 
   # The bold font face
   bold:
-    family: "Bitstream Vera Sans Mono Nerd Font Mono" # should be "Menlo" or something on macOS.
+    family: "JetBrainsMono Nerd Font" # should be "Menlo" or something on macOS.
     style: Bold
   #
   # # The italic font face
   italic:
-    family: "Bitstream Vera Sans Mono Nerd Font Mono" # should be "Menlo" or something on macOS.
-    style: Oblique
+    family: "JetBrainsMono Nerd Font" # should be "Menlo" or something on macOS.
+    style: Italic
 
   antialias: false
 
@@ -976,7 +976,7 @@ colors:
   cursor:
     text: '0x0f640f'
     cursor: '0x00ff00'
-    shape: 'Block'
+    # shape: 'Block'
 
   # Normal colors
   normal:
@@ -1007,8 +1007,8 @@ bell:
 
 mouse_bindings:
   - { mouse: Middle, action: PasteSelection }
-  - { mouse: 8,  chars: "" }
-  - { mouse: 9,  chars: "" }
+  - { mouse: Back,  chars: "\x0f" }
+  - { mouse: Forward,  chars: "\x02" }
 
 mouse:
   double_click: { threshold: 300 }
