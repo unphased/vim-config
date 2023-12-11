@@ -847,10 +847,11 @@ safeRequire('telescope').setup{
     layout_config = {
       scroll_speed = 3
     },
+    border = false,
   },
   extensions = {
     ["ui-select"] = {
-        require("telescope.themes").get_cursor {}
+      require("telescope.themes").get_cursor { }
     }
   }
 }
@@ -1459,8 +1460,8 @@ local lsp_attach = function (x, bufnr)
   -- end, bufopts)
   -- vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, bufopts)
   -- vim.keymap.set('n', '<leader>r', vim.lsp.buf.rename, ext(bufopts, "desc", "Rename"))
-  vim.keymap.set('n', '<leader>a', vim.lsp.buf.code_action, ext(bufopts, "desc", "Code Action Menu"))
-  vim.keymap.set('v', '<leader>a', vim.lsp.buf.code_action, ext(bufopts, "desc", "Code Action Menu"))
+  vim.keymap.set('n', '<leader>ca', vim.lsp.with( vim.lsp.buf.code_action, {border = nil} ), ext(bufopts, "desc", "Code Action Menu"))
+  vim.keymap.set('v', '<leader>ca', vim.lsp.buf.code_action, ext(bufopts, "desc", "Code Action Menu"))
   vim.keymap.set('n', 'gr', '<cmd>TroubleToggle lsp_references<cr>', ext(bufopts, "desc", "Go to References"))
   vim.keymap.set('n', '<leader>=', function() vim.lsp.buf.format { async = true } end, ext(bufopts, "desc", "Format Buffer"))
 end
@@ -1561,6 +1562,8 @@ vim.cmd([[
   hi TroublePreview cterm=bold ctermfg=yellow ctermbg=black guibg=#246333 guifg=NONE
   " hi link CodeActionTitle NormalFloat
   " hi CodeActionHeader gui=underline
+
+  hi link TelescopeNormal NormalFloat 
 
 ]])
 
