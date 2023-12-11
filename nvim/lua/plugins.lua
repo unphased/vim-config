@@ -315,6 +315,7 @@ return {
       silent = false,
       signs = {
         position = "right_align",
+        -- show_label = true,
       },
       mappings = {
         code_action = '<leader>a',
