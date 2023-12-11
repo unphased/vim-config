@@ -726,6 +726,28 @@ _G.write_to_file = function (content, file)
   f:close()
 end
 
+function _G.put(...)
+  local objects = {}
+  for i = 1, select('#', ...) do
+    local v = select(i, ...)
+    table.insert(objects, vim.inspect(v))
+  end
+
+  print(table.concat(objects, '\n'))
+  return ...
+end
+
+_G.map = function(tbl, f)
+  if tbl == nil then
+    return nil
+  end
+  local t = {}
+  for k,v in pairs(tbl) do
+    t[k] = f(v, k)
+  end
+  return t
+end
+
 _G.log = function(...)
   local args = {...}
   local log_file_path = "/tmp/lua-nvim.log"

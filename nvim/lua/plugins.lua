@@ -314,7 +314,8 @@ return {
   --   opts = {},
   -- },
   {
-    "luckasRanarison/clear-action.nvim",
+    "unphased/clear-action.nvim",
+    branch = "combined",
     opts = {
       silent = true,
       signs = {
