@@ -308,5 +308,18 @@ return {
     config = function()
       require('textcase').setup {}
     end
+  },
+  {
+    "luckasRanarison/clear-action.nvim",
+    config = function ()
+      require('clear-action').setup({
+        opts = {
+          silent = false,
+          mappings = {
+            code_action = '<leader>a',
+          }
+        }
+      })
+    end
   }
 }

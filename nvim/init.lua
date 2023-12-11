@@ -1008,21 +1008,45 @@ safeRequire("trouble").setup({
   -- refer to the configuration section below
 })
 
+local nvimtree_api = require "nvim-tree.api"
+
+local git_add = function()
+  local node = nvimtree_api.tree.get_node_under_cursor()
+  local gs = node.git_status.file
+
+  -- If the current node is a directory get children status
+  if gs == nil then
+    gs = (node.git_status.dir.direct ~= nil and node.git_status.dir.direct[1]) 
+         or (node.git_status.dir.indirect ~= nil and node.git_status.dir.indirect[1])
+  end
+
+  -- If the file is untracked, unstaged or partially staged, we stage it
+  if gs == "??" or gs == "MM" or gs == "AM" or gs == " M" then
+    vim.cmd("silent !git add " .. node.absolute_path)
+
+  -- If the file is staged, we unstage
+  elseif gs == "M " or gs == "A " then
+    vim.cmd("silent !git restore --staged " .. node.absolute_path)
+  end
+
+  nvimtree_api.tree.reload()
+end
+
 local function my_on_attach(bufnr)
-  local api = require "nvim-tree.api"
 
   local function opts(desc)
     return { desc = "nvim-tree: " .. desc, buffer = bufnr, noremap = true, silent = true, nowait = true }
   end
 
   -- default mappings
-  api.config.mappings.default_on_attach(bufnr)
+  nvimtree_api.config.mappings.default_on_attach(bufnr)
 
   -- custom mappings
-  vim.keymap.set('n', '<C-t>', api.tree.change_root_to_parent, opts('Up'))
-  vim.keymap.set('n', '-', ':vertical res -5<CR>',             opts('Shrink Window (key override)'))
+  vim.keymap.set('n', '<C-t>', nvimtree_api.tree.change_root_to_parent, opts('Up'))
+  vim.keymap.set('n', '-', ':vertical res -5<CR>', opts('Shrink Window (key override)'))
+  vim.keymap.set('n', '?', nvimtree_api.tree.toggle_help, opts('Help'))
 
-  vim.keymap.set('n', '?',     api.tree.toggle_help,                  opts('Help'))
+  vim.keymap.set('n', 'ga', git_add, opts('Git Add'))
 end
 
 require("nvim-tree").setup({
@@ -1436,6 +1460,7 @@ local lsp_attach = function (x, bufnr)
   -- vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, bufopts)
   -- vim.keymap.set('n', '<leader>r', vim.lsp.buf.rename, ext(bufopts, "desc", "Rename"))
   vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, ext(bufopts, "desc", "Code Action Menu"))
+  vim.keymap.set('v', '<leader>ca', vim.lsp.buf.code_action, ext(bufopts, "desc", "Code Action Menu"))
   vim.keymap.set('n', 'gr', '<cmd>TroubleToggle lsp_references<cr>', ext(bufopts, "desc", "Go to References"))
   vim.keymap.set('n', '<leader>=', function() vim.lsp.buf.format { async = true } end, ext(bufopts, "desc", "Format Buffer"))
 end
