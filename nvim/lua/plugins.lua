@@ -313,11 +313,9 @@ return {
     "luckasRanarison/clear-action.nvim",
     config = function ()
       require('clear-action').setup({
-        opts = {
-          silent = false,
-          mappings = {
-            code_action = '<leader>a',
-          }
+        silent = true,
+        mappings = {
+          code_action = '<leader>a',
         }
       })
     end
