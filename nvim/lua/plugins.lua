@@ -315,7 +315,17 @@ return {
       silent = false,
       signs = {
         position = "right_align",
-        -- show_label = true,
+        label_fmt = function(actions)
+          local title = actions[1].title
+          return #title < 20 and title or title:sub(1, 20) .. "..." -- truncating
+        end,
+        show_label = true,
+      },
+      popup = {
+        border = false,
+        highlights = {
+          title = "NormalFloat",
+        },
       },
       mappings = {
         code_action = '<leader>a',

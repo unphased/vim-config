@@ -1559,6 +1559,9 @@ vim.cmd([[
   hi TSPlaygroundFocus guibg=#2f628e
 
   hi TroublePreview cterm=bold ctermfg=yellow ctermbg=black guibg=#246333 guifg=NONE
+  " hi link CodeActionTitle NormalFloat
+  " hi CodeActionHeader gui=underline
+
 ]])
 
 -- for conflict-marker
