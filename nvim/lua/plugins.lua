@@ -319,7 +319,7 @@ return {
     opts = {
       silent = true,
       signs = {
-        position = "right_align",
+        position = "eol",
         label_fmt = function(actions)
           local title = actions[1].title
           return #title < 20 and title or title:sub(1, 20) .. "…" -- truncating
