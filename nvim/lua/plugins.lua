@@ -42,7 +42,7 @@ return {
   'AndrewRadev/switch.vim',
   -- 'junegunn/fzf.vim',
   -- 'junegunn/fzf',
-  { 'nvim-telescope/telescope.nvim', dependencies = { 'nvim-lua/plenary.nvim' }, branch = "0.1.x" },
+  { 'nvim-telescope/telescope.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
   { 'nvim-telescope/telescope-fzf-native.nvim', build = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build' },
   'nvim-telescope/telescope-ui-select.nvim',
   'norcalli/nvim-colorizer.lua',
@@ -58,7 +58,7 @@ return {
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
-    commit = "15d327fe6324d8269451131ec34ad4f2a8ef1e01",
+    -- commit = "15d327fe6324d8269451131ec34ad4f2a8ef1e01",
     dependencies = {
       -- show treesitter nodes
       "nvim-treesitter/playground", -- enable more advanced treesitter-aware text objects
