@@ -229,18 +229,9 @@ function enhanced_dot(count)
   local poscursor = vim.fn.getpos('.')
   local hlsearchCurrent = vim.v.hlsearch
   local c = count
-  vim.cmd("redir => searchcount")
-  vim.cmd("silent! %s///n") -- Assuming gdefault
-  vim.cmd("redir END")
-  local searchcount = vim.g.searchcount
-  local ct = 0
-  for num in searchcount:gmatch("%d+") do
-    ct = tonumber(num)
-    break -- assuming the first number is the count of matches
-  end
-  if searchcount == 'Error' then
-    ct = 0
-  end
+  local searchInfo = vim.fn.searchcount({maxcount = 9999})
+  local ct = searchInfo.total
+
   vim.fn.setpos('.', poscursor)
   if (c == '' and hlsearchCurrent == 1) then
     c = ct
