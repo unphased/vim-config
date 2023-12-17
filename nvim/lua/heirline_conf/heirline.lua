@@ -996,10 +996,22 @@ local TablineBufnr = {
 -- we redefine the filename component, as we probably only want the tail and not the relative path
 local TablineFileName = {
     provider = function(self)
-        -- self.filename will be defined later, just keep looking at the example!
         local filename = self.filename
-        filename = filename == "" and "[No Name]" or vim.fn.fnamemodify(filename, ":t")
-        return filename
+        if filename == "" then
+            return "[No Name]"
+        elseif string.find(filename, "/index%.[tj]s$") then
+            -- Extract the last directory name
+            local last_dir = filename:match(".*/(.*)/index%.[tj]s$")
+            -- If the last directory name is found, format it accordingly
+            if last_dir then
+                return last_dir .. "/i"
+            else
+                return "i" -- Fallback if no directory is found
+            end
+        else
+            -- Just return the file name for non-index files
+            return vim.fn.fnamemodify(filename, ":t")
+        end
     end,
     hl = function(self)
         return { bold = self.is_active or self.is_visible, italic = true }
@@ -1043,8 +1055,8 @@ local TablineFileNameBlock = {
         if self.is_active then
             return "TabLineSel"
         -- why not?
-        -- elseif not vim.api.nvim_buf_is_loaded(self.bufnr) then
-        --     return { fg = "gray" }
+        elseif not vim.api.nvim_buf_is_loaded(self.bufnr) then
+            return { fg = "gray" }
         else
             return "TabLine"
         end
