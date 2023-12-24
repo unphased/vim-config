@@ -1087,7 +1087,7 @@ local TablineCloseButton = {
     end,
     { provider = " " },
     {
-        provider = "\u{2715} ",
+        provider = "\u{2715}",
         hl = { fg = "gray" },
         on_click = {
             callback = function(_, minwid)
