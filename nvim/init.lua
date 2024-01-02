@@ -1817,3 +1817,13 @@ require('lspconfig').emmet_language_server.setup({
 -- note to self: Profiling!
 -- require'plenary.profile'.start("profile.log")
 -- require'plenary.profile'.stop()
+
+-- Load which-key for keybinding docs
+local wk = require("which-key")
+
+-- Register TreesJ keybindings
+wk.register({
+  ["<leader>m"] = { function() require('treesj').toggle() end, "Toggle node under cursor (treesj)" },
+  ["<leader>J"] = { function() require('treesj').split() end, "Split node under cursor (treesj)" },
+  ["<leader>j"] = { function() require('treesj').join() end, "Join node under cursor (treesj)" },
+})
