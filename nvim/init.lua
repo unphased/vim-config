@@ -1827,3 +1827,23 @@ wk.register({
   ["<leader>J"] = { function() require('treesj').split() end, "Split node under cursor (treesj)" },
   ["<leader>j"] = { function() require('treesj').join() end, "Join node under cursor (treesj)" },
 })
+
+-- I only ever want these two options so why not just make it a single toggle
+function ToggleIndentation()
+    local current_indent = vim.bo.shiftwidth
+    if current_indent == 2 then
+        vim.bo.shiftwidth = 4
+        vim.bo.tabstop = 4
+    else
+        vim.bo.shiftwidth = 2
+        vim.bo.tabstop = 2
+    end
+
+    -- Re-indent the entire file
+    vim.api.nvim_command('normal! ggVG=')
+end
+
+-- Map the function to a keybinding
+-- TODO do something about how this is a little bit unsafe since it requires total trust in syntax parse.
+vim.api.nvim_set_keymap('n', '<leader>i', ':lua ToggleIndentation()<CR>', { noremap = true, silent = true })
+
