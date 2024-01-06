@@ -343,7 +343,9 @@ return {
     -- comma. Anyway though in the meantime im going to see if comma works for me as a place to do expandjoin
     dependencies = { 'nvim-treesitter/nvim-treesitter' },
     config = function()
-      require('treesj').setup({})
+      require('treesj').setup(
+        { use_default_keymaps = false }
+      )
     end,
   }
 }
