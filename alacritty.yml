@@ -24,6 +24,9 @@ window:
     columns: 120
     lines: 90
   dynamic_padding: true
+  padding:
+    x: 3
+    y: 3
   decorations: 'transparent'
 
 # When true, bold text is drawn using the bright variant of colors.
