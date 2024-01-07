@@ -993,7 +993,7 @@ telescope.setup{
             Layout.Box(results, { grow = 1 }),
             Layout.Box(prompt, { size = 3 }),
           }, { dir = "col", size = "30%" }),
-          Layout.Box(preview, { size = "50%" }),
+          Layout.Box(preview, { size = "70%" }),
         }, { dir = "row" }),
         minimal = Layout.Box({
           Layout.Box(results, { grow = 1 }),
