@@ -157,14 +157,14 @@ vim.keymap.set("n", "<m-p>", function()
   local indent_blankline_enabled = vim.g.indent_blankline_enabled
   if vim.wo.number then
     vim.g.indent_blankline_enabled = false
-    vim.cmd[[IndentBlanklineDisable]]
+    vim.cmd[[IBLDisable]]
     vim.wo.list = false
     vim.wo.number = false
     -- a bit tricky: toggle signs off
     vim.wo.signcolumn = "no"
     vim.wo.showbreak = ""
   else
-    vim.cmd[[IndentBlanklineEnable]]
+    vim.cmd[[IBLEnable]]
     vim.wo.list = true
     vim.wo.number = true
     vim.wo.signcolumn = "auto"
