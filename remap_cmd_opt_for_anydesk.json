@@ -2,7 +2,7 @@
   "title": "CTRL/CMD Key Swap",
   "rules": [
     {
-      "description": "swap left control/command keys for vncviewer",
+      "description": "swap left control/command keys for anydesk",
       "manipulators": [
         {
           "type": "basic",
