@@ -7,3 +7,4 @@ spell
 .search-*
 plugged/
 mthesaur.txt
+!.tmux.conf
