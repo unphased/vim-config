@@ -435,7 +435,8 @@ key_bindings:
   - { key: F12,      mods: Command|Shift,   chars: "\x1b[24;4~"            }
   - { key: Slash,    mods: Alt,             chars: "\x1b/"  }
   - { key: Slash,    mods: Command,             chars: "\x1b/"  }
-  # These are to make it so the tab switch binds i use in BTT work in all apps including this one
+  # The tab switch binds for BTT for macOS: bind to my (new!) contextual tab switch (I used to use F2/F3, but decided
+  # to free those up for more app specific use!)
   - { key: RBracket,    mods: Command|Shift,             chars: "\x1b[21;3~"  }
   - { key: LBracket,    mods: Command|Shift,             chars: "\x1b[21;4~"  }
   - { key: RBracket,    mods: Command,             chars: "\x1b]"  }
