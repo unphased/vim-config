@@ -2038,3 +2038,11 @@ end
 -- TODO do something about how this is a little bit unsafe since it requires total trust in syntax parse.
 vim.api.nvim_set_keymap('n', '<leader>i', ':lua ToggleIndentation()<CR>', { noremap = true, silent = true })
 
+vim.keymap.set('n', "<M-C-F11>", "<cmd>lua CycleWindowsOrBuffers(true)<cr>")
+vim.keymap.set('n', "<M-C-S-F11>", "<cmd>lua CycleWindowsOrBuffers(false)<cr>")
+
+-- stop visual paste from clobbering yank buffer
+vim.api.nvim_set_keymap('x', 'p', 'P', { silent = true })
+-- allow original p behavior with P
+vim.api.nvim_set_keymap('x', 'P', 'p', { silent = true })
+
