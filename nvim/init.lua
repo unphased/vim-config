@@ -653,6 +653,8 @@ vim.cmd([[
     exe "b".l:cur_buf
   endfunc
 
+  set foldmethod=indent
+
 ]])
 
 -- vim.api.nvim_set_keymap('n', '<Leader>t', '<Cmd>lua MoveToNextTab()<CR>', {noremap = true, silent = true})
@@ -2066,3 +2068,11 @@ vim.keymap.set('n', '<leader>e', require('ts-node-action').node_action, {
   desc = "Treesitter Node Action"
 })
 
+-- vim.o.foldtext = ''
+
+vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
+  group = vim.api.nvim_create_augroup("float_diagnostic", { clear = true }),
+  callback = function ()
+    vim.diagnostic.open_float(nil, {focus=false})
+  end
+})
