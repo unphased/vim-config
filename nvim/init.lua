@@ -653,7 +653,7 @@ vim.cmd([[
     exe "b".l:cur_buf
   endfunc
 
-  set foldmethod=indent
+  " set foldmethod=indent
 
 ]])
 
@@ -2068,7 +2068,7 @@ vim.keymap.set('n', '<leader>e', require('ts-node-action').node_action, {
   desc = "Treesitter Node Action"
 })
 
--- vim.o.foldtext = ''
+-- vim.o.foldtext = 'hello'
 
 vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
   group = vim.api.nvim_create_augroup("float_diagnostic", { clear = true }),
