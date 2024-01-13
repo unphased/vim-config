@@ -350,7 +350,7 @@ return {
   },
   'MunifTanjim/nui.nvim',
   {
-    'ckolkey/ts-node-action',
+    'unphased/ts-node-action',
     dependencies = { 'nvim-treesitter' },
     opts = {},
   },
