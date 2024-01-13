@@ -309,17 +309,17 @@ return {
       require('textcase').setup {}
     end
   },
-  {
-    'stevearc/dressing.nvim',
-    opts = {
-      select = {
-        backend = {
-          "nui",
-          "builtin"
-        }
-      }
-    },
-  },
+  -- {
+  --   'stevearc/dressing.nvim',
+  --   opts = {
+  --     select = {
+  --       backend = {
+  --         "nui",
+  --         "builtin"
+  --       }
+  --     }
+  --   },
+  -- },
   {
     "luckasRanarison/clear-action.nvim",
     opts = {
