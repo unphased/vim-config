@@ -1683,6 +1683,7 @@ safeRequire("mason-lspconfig").setup_handlers {
       on_attach = lsp_attach,
     }
   end,
+  -- ["tsserver"] = function () log "exception applied for mason lspconfig setup for tsserver as we want to use typescript-tools instead." end,
   -- Next, you can provide a dedicated handler for specific servers. Don't forget to bring capabilities and on_attach in.
   ["clangd"] = function ()
     safeRequire("lspconfig")["clangd"].setup {
