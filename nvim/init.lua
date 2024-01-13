@@ -1054,12 +1054,12 @@ telescope.setup{
     end,
   },
   extensions = {
-    ["ui-select"] = {
-      require("telescope.themes").get_cursor { }
-    }
+    -- ["ui-select"] = {
+    --   require("telescope.themes").get_cursor { }
+    -- }
   }
 }
-telescope.load_extension("ui-select")
+-- telescope.load_extension("ui-select")
 
 local telescope_builtin = safeRequire("telescope.builtin")
 vim.keymap.set("n", "<c-p>", function ()
