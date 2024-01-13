@@ -1987,7 +1987,21 @@ require('snippy').setup({
 })
 
 require('lspconfig').emmet_language_server.setup({
-  filetypes = { "css", "eruby", "html", "javascript", "javascriptreact", "less", "sass", "scss", "svelte", "pug", "typescript", "typescriptreact", "vue" },
+  filetypes = {
+    "css",
+    "eruby",
+    "html",
+    "javascript",
+    "javascriptreact",
+    "less",
+    "sass",
+    "scss",
+    "svelte",
+    "pug",
+    "typescript",
+    "typescriptreact",
+    "vue"
+  },
   init_options = {
     --- @type table<string, any> https://docs.emmet.io/customization/preferences/
     preferences = {},
@@ -2048,5 +2062,7 @@ vim.api.nvim_set_keymap('x', 'p', 'P', { silent = true })
 vim.api.nvim_set_keymap('x', 'P', 'p', { silent = true })
 
 -- node action config. Unfortunately the bind is not very mnemonic but e is super easy to reach.
-vim.keymap.set('n', '<leader>e', require('ts-node-action').node_action, { desc = "Treesitter Node Action" })
+vim.keymap.set('n', '<leader>e', require('ts-node-action').node_action, {
+  desc = "Treesitter Node Action"
+})
 
