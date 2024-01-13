@@ -1618,6 +1618,7 @@ null_ls.setup({
   fallback_severity = vim.diagnostic.severity.HINT,
   sources = {
     null_ls.builtins.code_actions.gitsigns,
+    null_ls.builtins.code_actions.ts_node_action,
   }
 })
 
@@ -1919,18 +1920,18 @@ telescope.load_extension("refactoring")
 
 -- remap to open the Telescope refactoring menu in visual mode
 vim.api.nvim_set_keymap(
-  "n", "<leader>R", "<cmd>lua require('telescope').extensions.refactoring.refactors()<CR>", { noremap = true }
+  "n", "<leader>R", "<cmd>lua require('telescope').extensions.refactoring.refactors()<CR>", { noremap = true, desc = "refactors ()" }
 )
 vim.api.nvim_set_keymap(
   "v",
   "<leader>r",
   "<Esc><cmd>lua require('telescope').extensions.refactoring.refactors()<CR>",
-  { noremap = true }
+  { noremap = true, desc = "Open refactoring menu in visual mode"}
 )
 
 vim.keymap.set("n", "<leader>r", function()
   return ":IncRename " .. vim.fn.expand("<cword>")
-end, { expr = true })
+end, { expr = true, desc = "Incremental Rename" })
 
 vim.cmd[[let g:lion_squeeze_spaces = 1]]
 
@@ -2046,6 +2047,6 @@ vim.api.nvim_set_keymap('x', 'p', 'P', { silent = true })
 -- allow original p behavior with P
 vim.api.nvim_set_keymap('x', 'P', 'p', { silent = true })
 
--- node action config
-vim.keymap.set('n', ',', require('ts-node-action').node_action, { desc = "Treesitter Node Action" })
+-- node action config. Unfortunately the bind is not very mnemonic but e is super easy to reach.
+vim.keymap.set('n', '<leader>e', require('ts-node-action').node_action, { desc = "Treesitter Node Action" })
 
