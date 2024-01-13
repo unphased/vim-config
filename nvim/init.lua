@@ -2071,9 +2071,10 @@ vim.keymap.set('n', '<leader>e', require('ts-node-action').node_action, {
 
 -- vim.o.foldtext = 'hello'
 
-vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
-  group = vim.api.nvim_create_augroup("float_diagnostic", { clear = true }),
-  callback = function ()
-    vim.diagnostic.open_float(nil, {focus=false})
-  end
-})
+-- Alright, so this one makes diags show up more easily, but i had to kill it because it would keep clobbering the popup for hover...
+-- vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
+--   group = vim.api.nvim_create_augroup("float_diagnostic", { clear = true }),
+--   callback = function ()
+--     vim.diagnostic.open_float(nil, {focus=false})
+--   end
+-- })
