@@ -366,5 +366,8 @@ return {
   --   dependencies = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
   --   opts = {},
   -- },
-  'yioneko/nvim-vtsls',
+  {
+    'yioneko/nvim-vtsls',
+    branch = 'feat-move-to-file-action'
+  }
 }
