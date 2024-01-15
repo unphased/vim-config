@@ -1683,7 +1683,7 @@ safeRequire("mason-lspconfig").setup_handlers {
       on_attach = lsp_attach,
     }
   end,
-  -- ["tsserver"] = function () log "exception applied for mason lspconfig setup for tsserver as we want to use typescript-tools instead." end,
+  ["tsserver"] = function () log "exception applied for mason lspconfig setup for tsserver as we want to use typescript-tools instead." end,
   -- Next, you can provide a dedicated handler for specific servers. Don't forget to bring capabilities and on_attach in.
   ["clangd"] = function ()
     safeRequire("lspconfig")["clangd"].setup {
@@ -1735,6 +1735,19 @@ safeRequire("mason-lspconfig").setup_handlers {
   --   })
   -- end
 }
+
+require("lspconfig.configs").vtsls = require("vtsls").lspconfig
+-- require("lspconfig").vtsls.setup({})
+require('vtsls').config({
+    -- -- customize handlers for commands
+    -- handlers = {
+    --     source_definition = function(err, locations) end,
+    --     file_references = function(err, locations) end,
+    --     code_action = function(err, actions) end,
+    -- },
+    -- -- automatically trigger renaming of extracted symbol
+    -- refactor_auto_rename = true,
+})
 
 safeRequire("yanky").setup({
   highlight = {
