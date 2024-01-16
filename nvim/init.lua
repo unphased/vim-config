@@ -1736,13 +1736,13 @@ safeRequire("mason-lspconfig").setup_handlers {
   -- end
 }
 
-local vtsls = require("vtsls")
-local vt_lspc = vtsls.lspconfig;
-vt_lspc.default_config.cmd = { "node", vim.fn.expand("$HOME") .. '/vtsls/packages/server/bin/vtsls.js', '--stdio' }
-log('xxx', vt_lspc)
-require('lspconfig.configs').vtsls = vt_lspc
-vtsls.config({})
-require("lspconfig").vtsls.setup({})
+-- local vtsls = require("vtsls")
+-- local vt_lspc = vtsls.lspconfig;
+-- vt_lspc.default_config.cmd = { "node", vim.fn.expand("$HOME") .. '/vtsls/packages/server/bin/vtsls.js', '--stdio' }
+-- log('xxx', vt_lspc)
+-- require('lspconfig.configs').vtsls = vt_lspc
+-- -- require("lspconfig").vtsls.setup({})
+-- vtsls.config({})
 -- vtsls.config({
 --   cmd = 
 --     -- -- customize handlers for commands
@@ -2101,3 +2101,12 @@ vim.keymap.set('n', '<leader>e', require('ts-node-action').node_action, {
 --     vim.diagnostic.open_float(nil, {focus=false})
 --   end
 -- })
+
+require("lspconfig").vtsls.setup({
+  cmd = { "node", vim.fn.expand("$HOME") .. '/vtsls/packages/server/bin/vtsls.js', '--stdio' },
+  settings = {
+     vtsls = {
+	enableMoveToFileCodeAction = true,
+    }
+  }
+})
