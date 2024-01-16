@@ -1736,18 +1736,28 @@ safeRequire("mason-lspconfig").setup_handlers {
   -- end
 }
 
-require("lspconfig.configs").vtsls = require("vtsls").lspconfig
--- require("lspconfig").vtsls.setup({})
-require('vtsls').config({
-    -- -- customize handlers for commands
-    -- handlers = {
-    --     source_definition = function(err, locations) end,
-    --     file_references = function(err, locations) end,
-    --     code_action = function(err, actions) end,
-    -- },
-    -- -- automatically trigger renaming of extracted symbol
-    -- refactor_auto_rename = true,
-})
+local vtsls = require("vtsls")
+local vt_lspc = vtsls.lspconfig;
+vt_lspc.default_config.cmd = { "node", vim.fn.expand("$HOME") .. '/vtsls/packages/server/bin/vtsls.js', '--stdio' }
+log('xxx', vt_lspc)
+require('lspconfig.configs').vtsls = vt_lspc
+vtsls.config({})
+require("lspconfig").vtsls.setup({})
+-- vtsls.config({
+--   cmd = 
+--     -- -- customize handlers for commands
+--     -- handlers = {
+--     --     source_definition = function(err, locations) end,
+--     --     file_references = function(err, locations) end,
+--     --     code_action = function(err, actions) end,
+--     -- },
+--     -- -- automatically trigger renaming of extracted symbol
+--     -- refactor_auto_rename = true,
+-- })
+-- require("lspconfig.configs").vtsls = vtsls_lspconfig
+-- vtsls_lspconfig.setup({
+--   cmd = { "node", vim.fn.expand("$HOME") .. '/vtsls/packages/server/bin/vtsls.js', '--stdio' }
+-- })
 
 safeRequire("yanky").setup({
   highlight = {
