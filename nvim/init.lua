@@ -2103,7 +2103,7 @@ vim.keymap.set('n', '<leader>e', require('ts-node-action').node_action, {
 -- })
 
 require("lspconfig").vtsls.setup({
-  cmd = { "node", vim.fn.expand("$HOME") .. '/vtsls/packages/server/bin/vtsls.js', '--stdio' },
+  -- cmd = { "node", vim.fn.expand("$HOME") .. '/vtsls/packages/server/bin/vtsls.js', '--stdio' },
   settings = {
      vtsls = {
 	enableMoveToFileCodeAction = true,
