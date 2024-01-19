@@ -2102,18 +2102,18 @@ vim.keymap.set('n', '<leader>e', require('ts-node-action').node_action, {
 --   end
 -- })
 
-require("lspconfig").vtsls.setup({
-  -- cmd = { "node", vim.fn.expand("$HOME") .. '/vtsls/packages/server/bin/vtsls.js', '--stdio' },
-  settings = {
-    vtsls = {
-      enableMoveToFileCodeAction = true,
-      -- refactor_move_to_file = {
-      --   -- controls how path is displayed for selection of destination file
-      --   -- "default" | "vscode" | function(path: string) -> string
-      --   path_display = "default",
-      --   -- If dressing.nvim is installed, telescope will be used for selection prompt. Use this to customize the opts for telescope picker.
-      --   -- telescope_opts = function(items) end,
-      -- }
-    }
-  }
-})
+-- require("lspconfig").vtsls.setup({
+--   -- cmd = { "node", vim.fn.expand("$HOME") .. '/vtsls/packages/server/bin/vtsls.js', '--stdio' },
+--   settings = {
+--     vtsls = {
+--       enableMoveToFileCodeAction = true,
+--       -- refactor_move_to_file = {
+--       --   -- controls how path is displayed for selection of destination file
+--       --   -- "default" | "vscode" | function(path: string) -> string
+--       --   path_display = "default",
+--       --   -- If dressing.nvim is installed, telescope will be used for selection prompt. Use this to customize the opts for telescope picker.
+--       --   -- telescope_opts = function(items) end,
+--       -- }
+--     }
+--   }
+-- })
