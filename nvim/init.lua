@@ -1766,8 +1766,11 @@ safeRequire("yanky").setup({
     timer = 1000,
   },
 })
-vim.keymap.set({"n","x"}, "p", "<Plug>(YankyPutAfter)")
-vim.keymap.set({"n","x"}, "P", "<Plug>(YankyPutBefore)")
+vim.keymap.set({"n"}, "p", "<Plug>(YankyPutAfter)")
+vim.keymap.set({"n"}, "P", "<Plug>(YankyPutBefore)")
+
+vim.keymap.set({"x"}, "P", "<Plug>(YankyPutAfter)")
+vim.keymap.set({"x"}, "p", "<Plug>(YankyPutBefore)")
 --- commenting these out because i'm never ever going to remember to use them
 -- vim.keymap.set({"n","x"}, "gp", "<Plug>(YankyGPutAfter)")
 -- vim.keymap.set({"n","x"}, "gP", "<Plug>(YankyGPutBefore)")
@@ -2082,10 +2085,13 @@ vim.api.nvim_set_keymap('n', '<leader>i', ':lua ToggleIndentation()<CR>', { nore
 vim.keymap.set('n', "<M-C-F11>", "<cmd>lua CycleWindowsOrBuffers(true)<cr>", { desc = "Cycle Windows or Buffers" })
 vim.keymap.set('n', "<M-C-S-F11>", "<cmd>lua CycleWindowsOrBuffers(false)<cr>", { desc = "Cycle Windows or Buffers Reverse" })
 
--- stop visual paste from clobbering yank buffer
-vim.api.nvim_set_keymap('x', 'p', 'P', { silent = true })
--- allow original p behavior with P
-vim.api.nvim_set_keymap('x', 'P', 'p', { silent = true })
+----- so the below is bad because of infinite recursion
+-- -- stop visual paste from clobbering yank register
+-- vim.api.nvim_set_keymap('x', 'p', 'P', { silent = true })
+-- -- allow original p behavior with P
+-- vim.api.nvim_set_keymap('x', 'P', 'p', { silent = true })
+
+-- see yanky config
 
 -- node action config. Unfortunately the bind is not very mnemonic but e is super easy to reach.
 vim.keymap.set('n', '<leader>e', require('ts-node-action').node_action, {
