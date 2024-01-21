@@ -270,7 +270,12 @@ return {
     end
   },
   {
-    "ggandor/leap.nvim"
+    "ggandor/leap.nvim",
+    keys = {
+      { "s", mode = { "n", "o" }, desc = "Leap forward to" },
+      { "S", mode = { "n", "o" }, desc = "Leap backward to" },
+      { "gs", mode = { "n", "o" }, desc = "Leap from windows" },
+    },
   },
   { "chrisgrieser/nvim-spider", lazy = true },
   -- "bekaboo/dropbar.nvim",
