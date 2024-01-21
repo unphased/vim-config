@@ -461,8 +461,6 @@ vim.cmd([[
   vnoremap << <
   vnoremap >> >
 
-  vmap S<CR> S<C-J>V2j=
-
   " Note gui=italic is what modern nvim seems to take, NOT cterm. likely related to 24bit color
   hi Comment cterm=italic gui=italic
   hi CopilotSuggestion gui=bold guibg=#202020
@@ -557,8 +555,8 @@ vim.cmd([[
   "" This enables the count and index indicator for search. Not enabled because we are using google/vim-searchindex and it does not limit to a count of 99
   " set shortmess-=S
 
-  " an intuitive way to surround a selection with newlines
-  vmap S<CR> S<C-J>V2j=
+  """ an intuitive way to surround a selection with newlines -- disabled for now to try to adjust to Leap -- also, this logic is wrong! I think!
+  " vmap S<CR> S<C-J>V2j=
 
   " The visual search implementation. I haven't seen this in a plugin so I maintain it here slightly modified with my binds
 
@@ -1979,29 +1977,29 @@ require('glance').setup({
 
 -- switch.vim config
 
-vim.cmd[[
-  " This entry duplicates builtins (true <-> false), but being here gives it an appropriate priority
-  au FileType cpp let g:switch_custom_definitions = [
-          \   switch#Words(['public', 'private']),
-          \   switch#Words(['first', 'second']),
-          \   switch#Words(['true', 'false']),
-          \ {
-            \  'const \([A-Za-z][A-Za-z0-9_:<>]*\)&': '\1',
-            \  '\%(const \)\@!\([A-Za-z][A-Za-z0-9_:<>]*\)' : 'const \1&'
-          \ }
-        \ ] + g:switch_custom_definitions
-
-  " highest priority defs are prepended last here
-  let g:switch_custom_definitions = [
-    \   switch#NormalizedCase(['show', 'hide']),
-    \   switch#NormalizedCase(['add', 'remove']),
-    \   switch#NormalizedCase(['before', 'after']),
-    \   switch#NormalizedCase(['begin', 'end']),
-    \   switch#NormalizedCaseWords(['yes', 'no']),
-    \   switch#NormalizedCaseWords(['on', 'off']),
-    \   switch#NormalizedCaseWords(['error', 'warn', 'info']),
-    \ ]
-]]
+-- vim.cmd[[
+--   " This entry duplicates builtins (true <-> false), but being here gives it an appropriate priority
+--   au FileType cpp let g:switch_custom_definitions = [
+--           \   switch#Words(['public', 'private']),
+--           \   switch#Words(['first', 'second']),
+--           \   switch#Words(['true', 'false']),
+--           \ {
+--             \  'const \([A-Za-z][A-Za-z0-9_:<>]*\)&': '\1',
+--             \  '\%(const \)\@!\([A-Za-z][A-Za-z0-9_:<>]*\)' : 'const \1&'
+--           \ }
+--         \ ] + g:switch_custom_definitions
+--
+--   " highest priority defs are prepended last here
+--   let g:switch_custom_definitions = [
+--     \   switch#NormalizedCase(['show', 'hide']),
+--     \   switch#NormalizedCase(['add', 'remove']),
+--     \   switch#NormalizedCase(['before', 'after']),
+--     \   switch#NormalizedCase(['begin', 'end']),
+--     \   switch#NormalizedCaseWords(['yes', 'no']),
+--     \   switch#NormalizedCaseWords(['on', 'off']),
+--     \   switch#NormalizedCaseWords(['error', 'warn', 'info']),
+--     \ ]
+-- ]]
 
 require('snippy').setup({
   mappings = {
@@ -2123,3 +2121,5 @@ require("lspconfig").vtsls.setup({
     }
   }
 })
+
+require('leap').create_default_mappings()

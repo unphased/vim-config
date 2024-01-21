@@ -39,7 +39,7 @@ return {
   -- },
   "tpope/vim-repeat",
   "numToStr/Comment.nvim",
-  'AndrewRadev/switch.vim',
+  -- 'AndrewRadev/switch.vim',
   -- 'junegunn/fzf.vim',
   -- 'junegunn/fzf',
   { 'nvim-telescope/telescope.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
@@ -270,7 +270,7 @@ return {
     end
   },
   {
-    "ggandor/lightspeed.nvim"
+    "ggandor/leap.nvim"
   },
   { "chrisgrieser/nvim-spider", lazy = true },
   -- "bekaboo/dropbar.nvim",
