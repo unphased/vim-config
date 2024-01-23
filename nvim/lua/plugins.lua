@@ -348,18 +348,18 @@ return {
       }
     }
   },
-  {
-    'Wansmer/treesj',
-    -- I am still committed to changing out semicolon (that one is a dumb streamliner for colon that ill get rid of)
-    -- and comma... I think clever-f has no downsides but i might convince myself to return to regular semicolon and
-    -- comma. Anyway though in the meantime im going to see if comma works for me as a place to do expandjoin
-    dependencies = { 'nvim-treesitter/nvim-treesitter' },
-    config = function()
-      require('treesj').setup(
-        { use_default_keymaps = false }
-      )
-    end,
-  },
+  -- {
+  --   'Wansmer/treesj',
+  --   -- I am still committed to changing out semicolon (that one is a dumb streamliner for colon that ill get rid of)
+  --   -- and comma... I think clever-f has no downsides but i might convince myself to return to regular semicolon and
+  --   -- comma. Anyway though in the meantime im going to see if comma works for me as a place to do expandjoin
+  --   dependencies = { 'nvim-treesitter/nvim-treesitter' },
+  --   config = function()
+  --     require('treesj').setup(
+  --       { use_default_keymaps = false }
+  --     )
+  --   end,
+  -- },
   'MunifTanjim/nui.nvim',
   {
     'unphased/ts-node-action',
@@ -372,8 +372,8 @@ return {
     dependencies = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
     opts = {},
   },
-  {
-    'yioneko/nvim-vtsls',
-    branch = 'feat-move-to-file-action'
-  }
+  -- {
+  --   'yioneko/nvim-vtsls',
+  --   branch = 'feat-move-to-file-action'
+  -- }
 }
