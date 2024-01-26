@@ -1788,6 +1788,8 @@ vim.cmd([[
 
   " pane/window split style: only vertical split style matters in vim since horizontal splits are made of statuslines.
   hi VertSplit guifg=#505760
+  hi link NvimTreeWinSeparator VertSplit
+  hi NvimTreeNormal guibg=#131320
 
   hi TSPlaygroundFocus guibg=#2f628e
 
