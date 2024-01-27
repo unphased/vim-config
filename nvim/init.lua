@@ -2054,28 +2054,28 @@ require('lspconfig').emmet_language_server.setup({
 -- require'plenary.profile'.stop()
 
 -- Load which-key for keybinding docs
-local wk = require("which-key")
+-- local wk = require("which-key")
 
 -- Register TreesJ keybindings
-wk.register({
-  ["<leader>m"] = { function() require('treesj').toggle() end, "Toggle node under cursor (treesj)" },
-  ["<leader>J"] = { function() require('treesj').split() end, "Split node under cursor (treesj)" },
-  ["<leader>j"] = { function() require('treesj').join() end, "Join node under cursor (treesj)" },
-})
+-- wk.register({
+--   ["<leader>m"] = { function() require('treesj').toggle() end, "Toggle node under cursor (treesj)" },
+--   ["<leader>J"] = { function() require('treesj').split() end, "Split node under cursor (treesj)" },
+--   ["<leader>j"] = { function() require('treesj').join() end, "Join node under cursor (treesj)" },
+-- })
 
 -- I only ever want these two options so why not just make it a single toggle
 function ToggleIndentation()
-    local current_indent = vim.bo.shiftwidth
-    if current_indent == 2 then
-        vim.bo.shiftwidth = 4
-        vim.bo.tabstop = 4
-    else
-        vim.bo.shiftwidth = 2
-        vim.bo.tabstop = 2
-    end
+  local current_indent = vim.bo.shiftwidth
+  if current_indent == 2 then
+    vim.bo.shiftwidth = 4
+    vim.bo.tabstop = 4
+  else
+    vim.bo.shiftwidth = 2
+    vim.bo.tabstop = 2
+  end
 
-    -- Re-indent the entire file
-    vim.api.nvim_command('normal! ggVG=')
+  -- Re-indent the entire file
+  vim.api.nvim_command('normal! ggVG=')
 end
 
 -- Map the function to a keybinding
