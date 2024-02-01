@@ -1,8 +1,8 @@
 {
-  "title": "CTRL/CMD Key Swap",
+  "title": "Opt/Cmd Key Swap",
   "rules": [
     {
-      "description": "swap left control/command keys for anydesk",
+      "description": "swap left opt/command keys for anydesk to make opt the windows key and cmd the alt key.",
       "manipulators": [
         {
           "type": "basic",
