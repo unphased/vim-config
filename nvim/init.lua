@@ -1654,7 +1654,7 @@ local lsp_attach = function (x, bufnr)
   log("lsp_attach:" .. engine .. "bufnr=" .. bufnr)
   local bufopts = { noremap=true, silent=true, buffer=bufnr }
   -- vim.keymap.set('n', 'gD', '<cmd>TroubleToggle lsp_type_definitions<cr>', ext(bufopts, "desc", "Go to Type Definition (Trouble UI)"))
-  vim.keymap.set('n', 'gD', '<cmd>TroubleToggle lsp_definitions<cr>', ext(bufopts, "desc", "Go to Definition (Trouble UI)"))
+  vim.keymap.set('n', 'gD', '<cmd>Trouble lsp_definitions<cr>', ext(bufopts, "desc", "Go to Definition (Trouble UI)"))
   -- vim.keymap.set('n', 'gi', goto_preview.goto_preview_implementation, ext(bufopts, "desc", "Go to Implementation (preview window)"))
   -- mnemonic is "args"
   vim.keymap.set('n', '<leader>S', vim.lsp.buf.signature_help, ext(bufopts, "desc", "Signature help"))
@@ -1821,7 +1821,7 @@ vim.keymap.set("n", "<F4>", ":UndotreeToggle<CR>")
 vim.keymap.set("i", "<F4>", "<Esc>:UndotreeToggle<CR>")
 
 vim.keymap.set("n", "<leader>t", ":Trouble document_diagnostics<CR>")
--- vim.keymap.set("n", "<leader>T", ":Trouble workspace_diagnostics<CR>")
+vim.keymap.set("n", "<leader>W", ":Trouble workspace_diagnostics<CR>")
 
 vim.keymap.set('n', "<leader>T", ":ThesaurusQueryReplaceCurrentWord<CR>")
 
