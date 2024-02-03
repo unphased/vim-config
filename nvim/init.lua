@@ -2134,3 +2134,6 @@ function CurBufDel()
   local bufnr = vim.fn.bufnr()
   vim.api.nvim_buf_delete(bufnr, {})
 end
+
+-- normal shift-X deletes prior to cursor, something i will never use.
+vim.keymap.set('n', 'X', CurBufDel, { desc = "Delete current buffer" })
