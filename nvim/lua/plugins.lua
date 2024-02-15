@@ -58,7 +58,7 @@ return {
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
-    commit = "15d327fe6324d8269451131ec34ad4f2a8ef1e01",
+    -- commit = "15d327fe6324d8269451131ec34ad4f2a8ef1e01",
     dependencies = {
       -- show treesitter nodes
       "nvim-treesitter/playground", -- enable more advanced treesitter-aware text objects
@@ -376,4 +376,5 @@ return {
   --   'yioneko/nvim-vtsls',
   --   branch = 'feat-move-to-file-action'
   -- }
+  'qpkorr/vim-bufkill',
 }
