@@ -2152,3 +2152,22 @@ function CloseAllBufsNotOpenInTabs()
     end
   end
 end
+
+function CloseAllButThisBuf()
+  local current_buf = vim.fn.bufnr()
+  for _, tab in ipairs(vim.fn.gettabinfo()) do
+    for _, buf in ipairs(vim.fn.tabpagebuflist(tab.tabnr)) do
+      if buf ~= current_buf then
+        vim.cmd('bunload ' .. buf)
+      end
+    end
+  end
+end
+
+function FlattenAllWindows()
+  CloseAllBufsNotOpenInTabs()
+  CloseAllButThisBuf()
+end
+
+vim.keymap.set('n', '<leader>cb', ':lua CloseAllBufsNotOpenInTabs()<CR>', { desc = "Close all buffers not already open in tabs" })
+vim.keymap.set('n', '<leader>cc', ':lua FlattenAllWindows()<CR>', { desc = "close all other buffers than windows open in tabs and go to buffer workflow" })
