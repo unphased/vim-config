@@ -2130,11 +2130,25 @@ require('leap').create_default_mappings()
 vim.api.nvim_set_hl(0, 'LeapBackdrop', { link = 'Comment' })
 
 -- a quick way to bufdel cur buffer to make it more practical to manipulate global buflist (poor man organizing bufline)
-function CurBufDel()
-  local bufnr = vim.fn.bufnr()
-  vim.api.nvim_buf_delete(bufnr, {})
-end
+-- function CurBufDel()
+--   local bufnr = vim.fn.bufnr()
+--   vim.api.nvim_buf_delete(bufnr, {})
+-- end
 
 -- normal shift-X deletes prior to cursor, something i will never use.
 vim.keymap.set('n', 'X', ':BD<CR>', { desc = "Delete current buffer with vim-bufkill" })
 
+function CloseAllBufsNotOpenInTabs()
+  local all_open_bufs = {}
+  for _, tab in ipairs(vim.fn.gettabinfo()) do
+    for _, buf in ipairs(vim.fn.tabpagebuflist(tab.tabnr)) do
+      all_open_bufs[buf] = true
+    end
+  end
+  -- find bufs not in this list
+  for _, buf in ipairs(vim.fn.getbufinfo()) do
+    if not all_open_bufs[buf.bufnr] then
+      vim.api.nvim_buf_delete(buf.bufnr, {})
+    end
+  end
+end
