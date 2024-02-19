@@ -2171,3 +2171,5 @@ end
 
 vim.keymap.set('n', '<leader>cb', ':lua CloseAllBufsNotOpenInTabs()<CR>', { desc = "Close all buffers not already open in tabs" })
 vim.keymap.set('n', '<leader>cc', ':lua FlattenAllWindows()<CR>', { desc = "close all other buffers than windows open in tabs and go to buffer workflow" })
+
+vim.keymap.set('i', '<M-NL>', '<CR>', { noremap = true, desc = "also newline"})
