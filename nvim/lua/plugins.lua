@@ -377,4 +377,11 @@ return {
   --   branch = 'feat-move-to-file-action'
   -- }
   'qpkorr/vim-bufkill',
+  {
+    "smilhey/cabinet.nvim", 
+    config = function () 
+        local cabinet = require("cabinet")
+        cabinet:setup()
+    end
+  },
 }
