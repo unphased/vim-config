@@ -172,6 +172,9 @@ vim.keymap.set("n", "<m-p>", function()
   end
 end)
 
+-- alt+shift+p will open a command history searcher, reminiscent of something like commands via cmd p in vscode
+vim.keymap.set("n", "<m-P>", ":Telescope command_history<CR>", { desc = 'Telescope command_history'})
+
 vim.api.nvim_create_user_command("DiffChanged", ":w! /tmp/cur-vim-buf | :split term://sift % /tmp/cur-vim-buf", {})
 
 -- need to come up with a way to let q quit terminal when it has exited. oh well iq is not too bad right now
