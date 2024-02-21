@@ -344,15 +344,16 @@ key_bindings:
   - { key: L,        mods: Command|Control, chars: "\x1b\x0C"           }
   - { key: L,        mods: Command|Shift, chars: "\x1bL"           }
   - { key: L,        mods: Alt|Shift,     chars: "\x1bL"           }
-  - { key: Y,        mods: Command,       chars: "\x1by"           }
-  - { key: Y,        mods: Alt,           chars: "\x1by"           }
-  - { key: O,        mods: Command,       chars: "\x1bo"           }
-  - { key: O,        mods: Alt,           chars: "\x1bo"           }
   - { key: M,        mods: Command,       chars: "\x1bm"           }
   - { key: M,        mods: Alt,           chars: "\x1bm"        }
   - { key: M,        mods: Command|Shift, chars: "\x1bM"        }
+  - { key: O,        mods: Command,       chars: "\x1bo"           }
+  - { key: O,        mods: Alt,           chars: "\x1bo"           }
+  - { key: P,        mods: Command|Shift, chars: "\x1bP"           }
   - { key: W,        mods: Alt,           chars: "\x1bw"        }
   - { key: W,        mods: Command,       chars: "\x1bw"        }
+  - { key: Y,        mods: Command,       chars: "\x1by"           }
+  - { key: Y,        mods: Alt,           chars: "\x1by"           }
   - { key: Z,        mods: Alt,           chars: "\x1bz"        }
   - { key: Z,        mods: Alt|Shift, chars: ""            }
   - { key: Z,        mods: Command,       chars: "\x1bz"        }
