@@ -172,9 +172,6 @@ vim.keymap.set("n", "<m-p>", function()
   end
 end)
 
--- alt+shift+p will open a command history searcher, reminiscent of something like commands via cmd p in vscode
-vim.keymap.set("n", "<m-P>", ":Telescope command_history<CR>", { desc = 'Telescope command_history'})
-
 vim.api.nvim_create_user_command("DiffChanged", ":w! /tmp/cur-vim-buf | :split term://sift % /tmp/cur-vim-buf", {})
 
 -- need to come up with a way to let q quit terminal when it has exited. oh well iq is not too bad right now
@@ -1077,6 +1074,30 @@ vim.keymap.set("n", "<f6>", telescope_builtin.oldfiles, { desc = "Telescope Rece
 vim.keymap.set("n", "<leader>b", telescope_builtin.buffers, { desc = "Telescope Buffers" })
 -- "vim help"
 vim.keymap.set('n', '<leader>h', telescope_builtin.help_tags, { desc = "Telescope Help Tags" })
+
+-- alt+shift+p will open a command history searcher, reminiscent of something like commands via cmd p in vscode
+vim.keymap.set("n", "<M-P>", function()
+    telescope_builtin.command_history({
+        filter_fn = function(cmd)
+            local patterns = {
+                "^w[aq;]?$",
+                "^qa?$",
+                "^e$",
+                "^mes$",
+                "^h ",
+                "^map ?",
+                "^%d+$"
+            }
+            for _, pattern in ipairs(patterns) do
+                if string.match(cmd, pattern) then
+                    return false -- A match was found, exclude this command
+                end
+            end
+            return true -- No matches were found, include this command
+        end
+    })
+end, { desc = 'Telescope command_history' })
+
 
 safeRequire("nvim-lastplace").setup({})
 safeRequire("nvim-autopairs").setup({ map_cr = false })
