@@ -143,13 +143,14 @@ hints:
       hyperlinks: true,
       post_processing: true,
       persist: false,
-      mouse.enabled: true,
+      mouse: {enabled: true, mods: "Shift"},
       binding: {key: "U", mods: "Control|Shift"},
-      regex: "(ipfs:|ipns:|magnet:|mailto:|gemini://|gopher://|https://|http://|news:|file:|git://|ssh:|ftp://)[^\u0000-\u001F\u007F-\u009F<>\"\\s{-}\\^⟨⟩`]+"
-    # },{
-    #   command: "echo",
-    #   args: ["-n", "Open URL: "],
-
+      regex: '(ipfs:|ipns:|magnet:|mailto:|gemini://|gopher://|https://|http://|news:|file:|git://|ssh:|ftp://)[^\u0000-\u001F\u007F-\u009F<>"\\s{-}\\^⟨⟩`]+'
+    }, {
+      command: "/Users/slu/util/alacritty-open-hint-code-loc.sh",
+      regex: '[a-z/.-]+:[0-9]+:[0-9]+',
+      binding: {key: "V", mods: "Control|Shift"},
+      mouse: {enabled: true, mods: "Shift"}
     }]
 
 # Visual Bell
