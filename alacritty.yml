@@ -350,6 +350,7 @@ key_bindings:
   - { key: O,        mods: Command,       chars: "\x1bo"           }
   - { key: O,        mods: Alt,           chars: "\x1bo"           }
   - { key: P,        mods: Command|Shift, chars: "\x1bP"           }
+  - { key: Q,        mods: Alt,           chars: "\x1bq"           }
   - { key: W,        mods: Alt,           chars: "\x1bw"        }
   - { key: W,        mods: Command,       chars: "\x1bw"        }
   - { key: Y,        mods: Command,       chars: "\x1by"           }
