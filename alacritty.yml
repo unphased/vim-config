@@ -145,10 +145,16 @@ hints:
       persist: false,
       mouse: {enabled: true, mods: "Shift"},
       binding: {key: "U", mods: "Control|Shift"},
-      regex: '(ipfs:|ipns:|magnet:|mailto:|gemini://|gopher://|https://|http://|news:|file:|git://|ssh:|ftp://)[^\u0000-\u001F\u007F-\u009F<>"\\s{-}\\^⟨⟩`]+'
+      regex: '(ipfs:|ipns:|magnet:|mailto:|gemini://|gopher://|https://|http://|news:|git://|ssh:|ftp://)[^\u0000-\u001F\u007F-\u009F<>"\\s{-}\\^⟨⟩`]+'
+    }, {
+      command: "/Users/slu/util/alacritty-open-hint-file-hyperlink.sh",
+      hyperlinks: true,
+      post_processing: true,
+      mouse: {enabled: true, mods: "Shift"},
+      binding: {key: "V", mods: "Control|Shift"},
     }, {
       command: "/Users/slu/util/alacritty-open-hint-code-loc.sh",
-      regex: '[a-z/.-]+:[0-9]+:[0-9]+',
+      regex: '(file:///)?[-a-z/\._]+:[0-9]+:[0-9]+',
       binding: {key: "V", mods: "Control|Shift"},
       mouse: {enabled: true, mods: "Shift"}
     }]
