@@ -139,14 +139,6 @@ colors:
 hints:
   enabled:
     [{
-      command: "open", # On Linux/BSD
-      hyperlinks: true,
-      post_processing: true,
-      persist: false,
-      mouse: {enabled: true, mods: "Shift"},
-      binding: {key: "U", mods: "Control|Shift"},
-      regex: '(ipfs:|ipns:|magnet:|mailto:|gemini://|gopher://|https://|http://|news:|git://|ssh:|ftp://)[^\u0000-\u001F\u007F-\u009F<>"\\s{-}\\^⟨⟩`]+'
-    }, {
       command: "/Users/slu/util/alacritty-open-hint-file-hyperlink.sh",
       hyperlinks: true,
       post_processing: true,
@@ -157,6 +149,14 @@ hints:
       regex: '(file:///)?[-a-z/\._]+:[0-9]+:[0-9]+',
       binding: {key: "V", mods: "Control|Shift"},
       mouse: {enabled: true, mods: "Shift"}
+    }, {
+      command: "open",  # On Linux/BSD
+      hyperlinks: true,
+      post_processing: true,
+      persist: false,
+      mouse: {enabled: true, mods: "Shift"},
+      binding: {key: "U", mods: "Control|Shift"},
+      regex: '(ipfs:|ipns:|magnet:|mailto:|gemini://|gopher://|https://|http://|news:|git://|ssh:|ftp://)[^\u0000-\u001F\u007F-\u009F<>"\\s{-}\\^⟨⟩`]+'
     }]
 
 # Visual Bell
