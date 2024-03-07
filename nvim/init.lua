@@ -2205,6 +2205,16 @@ local function setTimeout(callback, delay)
     timer:close()
     callback()
   end)
+
+  return timer
+end
+
+local function clearTimeout(timerId)
+  if timerId then
+    timerId:stop()
+    timerId:close()
+    timerId = nil
+  end
 end
 
 local function debounce(func, delay)
@@ -2215,7 +2225,7 @@ local function debounce(func, delay)
 
     if timerId then
       -- If a timer is already running, cancel it
-      timerId:close()
+      clearTimeout(timerId)
     end
 
     -- Start a new timer that will call the function after the specified delay
@@ -2226,10 +2236,10 @@ local function debounce(func, delay)
   end
 end
 
--- autocommand on window resize. i made a debounce but it wont be robust without a timeout of some sort. not sure
--- how to make that. 
+-- debounced autocommand on window resize. Assigns some simple files that record the current state enumerating nvim
+-- instances in tmux sessions/windows/panes and what their server sockets are.
 vim.api.nvim_create_autocmd({"VimResized"}, {
   callback = debounce(function ()
     log('winResizeHandler')
-  end, 2000)
+  end, 1300)
 })
