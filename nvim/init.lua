@@ -2198,4 +2198,38 @@ vim.keymap.set('n', '<leader>cc', ':lua FlattenAllWindows()<CR>', { desc = "clos
 
 vim.keymap.set('i', '<M-NL>', '<CR>', { noremap = true, desc = "also newline"})
 
+local function setTimeout(callback, delay)
+  local timer = vim.loop.new_timer()
 
+  timer:start(delay, 0, function()
+    timer:close()
+    callback()
+  end)
+end
+
+local function debounce(func, delay)
+  local timerId = nil
+
+  return function(...)
+    local args = {...} -- Store the vararg parameters in a table
+
+    if timerId then
+      -- If a timer is already running, cancel it
+      timerId:close()
+    end
+
+    -- Start a new timer that will call the function after the specified delay
+    timerId = setTimeout(function()
+      func(unpack(args)) -- Use `unpack` to pass the stored parameters to the function
+      timerId = nil
+    end, delay)
+  end
+end
+
+-- autocommand on window resize. i made a debounce but it wont be robust without a timeout of some sort. not sure
+-- how to make that. 
+vim.api.nvim_create_autocmd({"VimResized"}, {
+  callback = debounce(function ()
+    log('winResizeHandler')
+  end, 2000)
+})
