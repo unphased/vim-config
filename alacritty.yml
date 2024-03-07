@@ -143,7 +143,7 @@ hints:
       hyperlinks: true,
       post_processing: true,
       mouse: {enabled: true, mods: "Shift"},
-      binding: {key: "V", mods: "Control|Shift"},
+      binding: {key: "L", mods: "Control|Shift"},
     }, {
       command: "/Users/slu/util/alacritty-open-hint-code-loc.sh",
       regex: '(file:///)?[-a-z/\._]+:[0-9]+:[0-9]+',

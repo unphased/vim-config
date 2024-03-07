@@ -44,3 +44,5 @@
 **/annotated/log
 **/doxygen_out/**
 **/sm/*.map
+package-lock.json
+test-results/
