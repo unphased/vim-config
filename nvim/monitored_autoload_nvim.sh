@@ -57,8 +57,13 @@ NVIM_ARGS=(
 )
 
 if [ -f .nvim_autoload_monitor.pid ]; then
-  >&2 echo "nvim_autoload_monitor already running! Found it here: $(pwd) Aborting nvim launch"
-  exit 1
+  if kill -0 "$(cat .nvim_autoload_monitor.pid)" > /dev/null 2>&1; then
+    >&2 echo "pidfile found but proc is gone. Removing"
+    rm .nvim_autoload_monitor.pid
+  else
+    >&2 echo "nvim_autoload_monitor: nvim already running! Found it here: $(pwd) Aborting nvim launch"
+    exit 1
+  fi
 fi
 # initial launch passes given args
 nvim "$@" "${NVIM_ARGS[@]}"
