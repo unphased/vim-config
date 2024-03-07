@@ -57,7 +57,8 @@ NVIM_ARGS=(
 )
 
 if [ -f .nvim_autoload_monitor.pid ]; then
-  if kill -0 "$(cat .nvim_autoload_monitor.pid)" > /dev/null 2>&1; then
+  PID=$(cat .nvim_autoload_monitor.pid)
+  if kill -0 "$PID" > /dev/null 2>&1; then
     >&2 echo "pidfile found but proc is gone. Removing"
     rm .nvim_autoload_monitor.pid
   else
