@@ -390,8 +390,8 @@ return {
       local before = require('before')
       before.setup()
 
-      vim.keymap.set('n', '<C-h>', before.jump_to_last_edit, {})
-      vim.keymap.set('n', '<C-l>', before.jump_to_next_edit, {})
+      vim.keymap.set('n', '[(', before.jump_to_last_edit, { desc = 'jump to last edit' })
+      vim.keymap.set('n', '])', before.jump_to_next_edit, { desc = 'jump to next edit' })
     end
   }
 }
