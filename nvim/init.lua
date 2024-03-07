@@ -2238,11 +2238,35 @@ end
 
 -- debounced autocommand on window resize. Assigns some simple files that record the current state enumerating nvim
 -- instances in tmux sessions/windows/panes and what their server sockets are.
+
+-- helpful to record the files that are open in the nvim instances.
+local function isFileBuffer(buf)
+    -- Check if the buffer has a name and is listed
+    local name = vim.fn.bufname(buf)
+    local isListed = vim.fn.buflisted(buf)
+    return name and #name > 0 and isListed == 1
+end
+
+local function getAllBufferPaths()
+    local paths = {}
+    -- Iterate through each buffer by ID
+    for buf = 1, vim.fn.bufnr('$') do
+        -- Use the isFileBuffer check to determine if it's an actual file buffer
+        if isFileBuffer(buf) then
+            -- Get the full path of the buffer
+            local path = vim.fn.bufname(buf)
+            table.insert(paths, path)
+        end
+    end
+    return paths
+end
+
+-- TODO? I was going to add listing the open files or putting the cwd in here, but ... precision is just not a big deal here.
 vim.api.nvim_create_autocmd({"VimResized"}, {
   callback = debounce(function ()
     vim.schedule(function()
-      local ret = vim.fn.system({"nvim-update-win.sh",  tostring(vim.fn.getpid()), vim.v.servername})
+      local ret = vim.fn.system({"gtime", "nvim-update-win.sh",  tostring(vim.fn.getpid()), vim.v.servername})
       log('ret from nvim-update-win.sh', ret)
     end)
-  end, 1000)
+  end, 400)
 })

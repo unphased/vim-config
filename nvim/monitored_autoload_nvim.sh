@@ -62,7 +62,7 @@ if [ -f .nvim_autoload_monitor.pid ]; then
     >&2 echo "nvim_autoload_monitor: nvim already running! Found it here: $(pwd) Aborting nvim launch"
     exit 1
   else
-    >&2 echo "pidfile found but proc is gone. Removing"
+    >&2 echo "pidfile found but proc ${PID} is gone. Removing and continuing."
     rm .nvim_autoload_monitor.pid
   fi
 fi
