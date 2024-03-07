@@ -2240,6 +2240,9 @@ end
 -- instances in tmux sessions/windows/panes and what their server sockets are.
 vim.api.nvim_create_autocmd({"VimResized"}, {
   callback = debounce(function ()
-    log('winResizeHandler')
-  end, 1300)
+    vim.schedule(function()
+      local ret = vim.fn.system({"nvim-update-win.sh",  tostring(vim.fn.getpid()), vim.v.servername})
+      log('ret from nvim-update-win.sh', ret)
+    end)
+  end, 1000)
 })
