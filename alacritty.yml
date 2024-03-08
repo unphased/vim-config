@@ -151,7 +151,6 @@ hints:
       mouse: {enabled: true, mods: "Shift"}
     }, {
       command: "open",  # On Linux/BSD
-      hyperlinks: true,
       post_processing: true,
       persist: false,
       mouse: {enabled: true, mods: "Shift"},
