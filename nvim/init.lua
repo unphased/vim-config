@@ -2262,10 +2262,10 @@ local function getAllBufferPaths()
 end
 
 -- TODO? I was going to add listing the open files or putting the cwd in here, but ... precision is just not a big deal here.
-vim.api.nvim_create_autocmd({"VimResized"}, {
+vim.api.nvim_create_autocmd({"VimResized", "VimEnter", "FocusGained"}, {
   callback = debounce(function ()
     vim.schedule(function()
-      local ret = vim.fn.system({"gtime", "nvim-update-win.sh",  tostring(vim.fn.getpid()), vim.v.servername})
+      local ret = vim.fn.system({"nvim-update-win.sh",  tostring(vim.fn.getpid()), vim.v.servername, vim.fn.getcwd()})
       log('ret from nvim-update-win.sh', ret)
     end)
   end, 400)
