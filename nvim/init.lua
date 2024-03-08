@@ -1464,10 +1464,10 @@ cmp.setup({
     ["<Tab>"] = cmp.mapping(function(fallback)
       if cmp.visible() then
         if require'snippy'.can_expand_or_advance() then
-          log('using select behavior select')
+          -- log('Tab using select behavior select')
           cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
         else
-          log('using select behavior insert')
+          -- log('Tab using select behavior insert')
           cmp.select_next_item({ behavior = cmp.SelectBehavior.Insert })
         end
       -- You could replace the expand_or_jumpable() calls with expand_or_locally_jumpable() 
@@ -2268,7 +2268,8 @@ local function nvim_state_update(ev)
   end)
 end
 
-vim.api.nvim_create_autocmd({"VimResized", "BufEnter"}, {
+-- add BufEnter again... track the current buffer file
+vim.api.nvim_create_autocmd({"VimResized"}, {
   callback = debounce(nvim_state_update, 400)
 })
 
