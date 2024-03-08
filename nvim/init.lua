@@ -2272,6 +2272,6 @@ vim.api.nvim_create_autocmd({"VimResized", "BufEnter"}, {
   callback = debounce(nvim_state_update, 400)
 })
 
-vim.api.nvim_create_autocmd({"VimLeavePre", "VimEnter", "FocusGained"}, {
+vim.api.nvim_create_autocmd({"VimLeavePre", "VimEnter"}, {
   callback = nvim_state_update
 })
