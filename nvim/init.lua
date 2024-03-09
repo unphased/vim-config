@@ -1276,6 +1276,7 @@ local function my_on_attach(bufnr)
   vim.keymap.set('n', '?', nvimtree_api.tree.toggle_help, opts('Help'))
 
   vim.keymap.set('n', 'ga', git_add, opts('Git Add'))
+  -- vim.keymap.set('n', 'gC', git_commit, opts('Git Commit'))
 end
 
 require("nvim-tree").setup({
@@ -1286,39 +1287,6 @@ require("nvim-tree").setup({
   }
 })
 
--- safeRequire("neo-tree").setup({
---   auto_clean_after_session_restore = true, -- Automatically clean up broken neo-tree buffers saved in sessions
---   close_if_last_window = true,
---   sort_case_insensitive = true,
---   filesystem = {
---     follow_current_file = true,
---     use_libuv_file_watcher = true,
---     filtered_items = {
---       visible = true, -- This is what you want: If you set this to `true`, all "hide" just mean "dimmed out"
---       hide_dotfiles = false,
---       hide_gitignored = true,
---     },
---   },
---   source_selector = {
---     winbar = true,
---     statusline = false
---   },
---   -- log_level = "trace",
---   -- log_to_file = true,
---   --- below is not working unknown reason https://github.com/nvim-neo-tree/neo-tree.nvim/issues/486
---   event_handlers = {
---     {
---       event = "neo_tree_buffer_enter",
---       custom = "my custom handler",
---       handler = function ()
---         vim.cmd([[
---           " echom "neotree enter buf"
---           setlocal wrap
---         ]])
---       end
---     }
---   }
--- })
 
 vim.cmd([[ 
   set cursorline
