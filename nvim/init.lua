@@ -1261,6 +1261,29 @@ local git_add = function()
   nvimtree_api.tree.reload()
 end
 
+local make_executable = function()
+  local node = nvimtree_api.tree.get_node_under_cursor()
+  
+  if node.type == "file" then
+    -- Check if file is already executable
+    local is_executable = vim.fn.getfperm(node.absolute_path):sub(3, 3) == "x"
+    
+    if is_executable then
+      -- If the file is executable, remove executable permissions for the user
+      vim.cmd("silent !chmod -x " .. vim.fn.shellescape(node.absolute_path))
+      print("Removed executable permission from: " .. node.name)
+    else
+      -- If the file is not executable, add executable permissions for the user
+      vim.cmd("silent !chmod +x " .. vim.fn.shellescape(node.absolute_path))
+      print("Added executable permission to: " .. node.name)
+    end
+  else
+    print("Selected item is not a file")
+  end
+
+  nvimtree_api.tree.reload()
+end
+
 local function my_on_attach(bufnr)
 
   local function opts(desc)
@@ -1277,6 +1300,7 @@ local function my_on_attach(bufnr)
 
   vim.keymap.set('n', 'ga', git_add, opts('Git Add'))
   -- vim.keymap.set('n', 'gC', git_commit, opts('Git Commit'))
+  vim.keymap.set('n', 'ge', make_executable, opts('Make Executable'))
 end
 
 require("nvim-tree").setup({
