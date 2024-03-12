@@ -139,14 +139,14 @@ colors:
 hints:
   enabled:
     [{
-      command: "/Users/slu/util/alacritty-open-hint-file-hyperlink.sh",
+      command: "/Users/slu/util/alacritty-open-hint-file-link.sh",
       hyperlinks: true,
       post_processing: true,
       mouse: {enabled: true, mods: "Shift"},
       binding: {key: "L", mods: "Control|Shift"},
     }, {
       command: "/Users/slu/util/alacritty-open-hint-code-loc.sh",
-      regex: '(file:///)?[-a-z/\._]+:[0-9]+:[0-9]+',
+      regex: '(file://)?[-a-z/\._]+:[0-9]+:[0-9]+',
       binding: {key: "V", mods: "Control|Shift"},
       mouse: {enabled: true, mods: "Shift"}
     }, {
