@@ -400,6 +400,10 @@ vim.cmd([[
   " highlight DiffChange guibg=#13292e guifg=NONE
   " " highlight DiffText guibg=#452250 guifg=NONE
   " highlight DiffDelete guibg=#30181a guifg=NONE
+
+  hi @diff.plus.diff guibg=#203520 guifg=NONE
+  hi @diff.minus.diff guibg=#30181a guifg=NONE
+
   highlight GitSignsChangeInline guibg=#302ee8 guifg=NONE gui=bold
   " FYI this style is only gonna get used in inline previews
   highlight GitSignsDeleteInline guibg=#68221a guifg=NONE gui=bold
@@ -1105,7 +1109,7 @@ safeRequire("Comment").setup()
 
 safeRequire("nvim-treesitter.configs").setup({
   -- A list of parser names, or "all" (the four listed parsers should always be installed)
-  ensure_installed = { "c", "lua", "vim", "bash", "comment" },
+  ensure_installed = { "c", "lua", "vim", "bash", "comment", "gitcommit", "diff", "git_rebase" },
 
   -- Install parsers synchronously (only applied to `ensure_installed`)
   sync_install = false,
