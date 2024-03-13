@@ -249,7 +249,7 @@ function enhanced_dot(count)
       vim.cmd("silent! normal n")
       vim.cmd("normal .l")
     else
-      vim.cmd("normal! .j")
+      vim.cmd("normal .j")
     end
     c = c - 1
   end
