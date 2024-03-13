@@ -2255,7 +2255,7 @@ end
 
 local function nvim_state_update(ev)
   vim.schedule(function()
-    local ret = vim.fn.system({"nvim-update-win.sh", tostring(vim.fn.getpid()), vim.v.servername, vim.fn.getcwd(), ev.file, ev.event})
+    local ret = vim.fn.system({vim.env.HOME .. "/util/nvim-update-win.sh", tostring(vim.fn.getpid()), vim.v.servername, vim.fn.getcwd(), ev.file, ev.event})
     log(ev, 'ret from nvim-update-win.sh', ret)
   end)
 end
