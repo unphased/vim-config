@@ -393,5 +393,9 @@ return {
       vim.keymap.set('n', '[(', before.jump_to_last_edit, { desc = 'jump to last edit' })
       vim.keymap.set('n', '])', before.jump_to_next_edit, { desc = 'jump to next edit' })
     end
+  },
+  {
+    'AckslD/muren.nvim',
+    config = true,
   }
 }
