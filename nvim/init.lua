@@ -119,6 +119,11 @@ vim.keymap.set("i", "<M-BS>", "<C-W>")
 -- command mode word delete
 vim.keymap.set('c', "<M-BS>", '<C-W>', {noremap = true})
 
+-- navigation keys (meta and ctrl will just do the same since i'm used to that)
+-- note, cmd+left and right i have mapped to home and end at the terminal level usually
+vim.keymap.set({'i', 'n'}, '<M-Left>', '<C-Left>')
+vim.keymap.set({'i', 'n'}, '<M-Right>', '<C-Right>')
+
 vim.keymap.set("n", "<leader>w", ":set wrap!<cr>")
 
 --- disabling for now since regular works with cmp cmdline completion
