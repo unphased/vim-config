@@ -252,7 +252,7 @@ function enhanced_dot(count)
   while c > 0 do
     if hlsearchCurrent == 1 then
       vim.cmd("silent! normal n")
-      vim.cmd("normal .l")
+      vim.cmd("normal .$")
     else
       vim.cmd("normal .j")
     end
