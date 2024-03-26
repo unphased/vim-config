@@ -252,7 +252,7 @@ function enhanced_dot(count)
   while c > 0 do
     if hlsearchCurrent == 1 then
       vim.cmd("silent! normal n")
-      vim.cmd("normal .$")
+      vim.cmd("normal .$zz")
     else
       vim.cmd("normal .j")
     end
@@ -1405,7 +1405,6 @@ safeRequire("ibl").setup({
   -- show_current_context = true,
   -- show_current_context_start = true,
 })
-
 
 function ef_ten(direction)
     local tmux_panes_count = vim.fn.system("tmux display -p '#{window_panes}'")
