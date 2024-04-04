@@ -1,6 +1,19 @@
 live_config_reload = true
 
 [[hints.enabled]]
+command = "/home/slu/util/alacritty-open-hint-file-link.sh"
+hyperlinks = true
+post_processing = true
+mouse = {enabled = true, mods = "Shift"}
+binding = {key = "L", mods = "Control|Shift"}
+
+[[hints.enabled]]
+command = "/home/slu/util/alacritty-open-hint-code-loc.sh"
+regex = '(file://)?[-a-z/\._]+:[0-9]+:[0-9]+'
+binding = {key = "V", mods = "Control|Shift"}
+mouse = {enabled = true, mods = "Shift"}
+
+[[hints.enabled]]
 command = "xdg-open" # On Linux/BSD
 # command = "open" # On macOS
 # command = { program = "cmd", args = [ "/c", "start", "" ] } # On Windows
@@ -11,18 +24,6 @@ mouse.enabled = true
 binding = { key = "U", mods = "Control|Shift" }
 regex = "(ipfs:|ipns:|magnet:|mailto:|gemini://|gopher://|https://|http://|news:|file:|git://|ssh:|ftp://)[^\u0000-\u001F\u007F-\u009F<>\"\\s{-}\\^⟨⟩`]+"
 
-[[hints.enabled]]
-command = "/Users/slu/util/alacritty-open-hint-file-link.sh"
-hyperlinks = true
-post_processing = true
-mouse = {enabled = true, mods = "Shift"}
-binding = {key = "L", mods = "Control|Shift"}
-
-[[hints.enabled]]
-command = "/Users/slu/util/alacritty-open-hint-code-loc.sh"
-regex = '(file://)?[-a-z/\._]+:[0-9]+:[0-9]+'
-binding = {key = "V", mods = "Control|Shift"}
-mouse = {enabled = true, mods = "Shift"}
 
 [bell]
 animation = "EaseOutExpo"

@@ -46,5 +46,3 @@
 **/sm/*.map
 package-lock.json
 test-results/
-**/chatgpt_automation/output/*.html
-**/chatgpt_automation/conversations.json
