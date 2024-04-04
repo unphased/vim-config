@@ -1,7 +1,7 @@
 {
   "Comment.nvim": { "branch": "master", "commit": "0236521ea582747b58869cb72f70ccfa967d2e89" },
   "advanced-git-search.nvim": { "branch": "main", "commit": "98c87741278345edd15914862ef3886c9b055f6f" },
-  "alpha-nvim": { "branch": "main", "commit": "41283fb402713fc8b327e60907f74e46166f4cfd" },
+  "alpha-nvim": { "branch": "main", "commit": "1356b9ef31b985d541d94314f2cf73c61124bf1d" },
   "before.nvim": { "branch": "master", "commit": "4772995f3bc0d1e754b8a9c00c01965d5c1592aa" },
   "cabinet.nvim": { "branch": "main", "commit": "ea3b64d3122d1483ebd8d18ec273cbba03b861b6" },
   "clear-action.nvim": { "branch": "master", "commit": "29ca65333238607ff503950fdd5d122d73a3902f" },
@@ -67,7 +67,7 @@
   "undotree": { "branch": "master", "commit": "9dbbf3b7d19dda0d22ceca461818e4739ad8154d" },
   "vim-SearchHighlighting": { "branch": "master", "commit": "58d0ab863ab222a19e19e5f42b9cf87dae5a6224" },
   "vim-bufkill": { "branch": "master", "commit": "3113181d0c1bfb8719f3ddcd2e2f35a8d763d1e5" },
-  "vim-fugitive": { "branch": "master", "commit": "2e88f14a585c014691904ba8fe39e6ea851c9422" },
+  "vim-fugitive": { "branch": "master", "commit": "4bc9d989930e37989b038540cc49e63728d3f220" },
   "vim-illuminate": { "branch": "master", "commit": "305bf07b919ac526deb5193280379e2f8b599926" },
   "vim-ingo-library": { "branch": "master", "commit": "e8756022386161d081d14c047afaf76617505ef0" },
   "vim-lion": { "branch": "master", "commit": "ce46593ecd60e6051fb6e4d3986d2fc9f5a618b1" },
