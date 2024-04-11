@@ -73,25 +73,25 @@ TERM = "alacritty"
 TESTENV = "testvalue"
 
 [font]
-# antialias = false
-size = 9
+size = 11
 
 [font.bold]
-family = "JetBrainsMono Nerd Font"
+family = "IosevkaTerm Nerd Font Mono"
 style = "Bold"
 
-[font.glyph_offset]
-x = 0
-y = 0
-
 [font.italic]
-family = "JetBrainsMono Nerd Font"
+family = "IosevkaTerm Nerd Font Mono"
 style = "Italic"
 
 [font.normal]
-family = "JetBrainsMono Nerd Font"
+family = "IosevkaTerm Nerd Font Mono"
+style = "Regular"
 
 [font.offset]
+x = 0
+y = 0
+
+[font.glyph_offset]
 x = 0
 y = 0
 
@@ -113,12 +113,12 @@ mods = "Command"
 [[keyboard.bindings]]
 action = "IncreaseFontSize"
 key = "Equals"
-mods = "Command"
+mods = "Alt"
 
 [[keyboard.bindings]]
 action = "DecreaseFontSize"
 key = "Minus"
-mods = "Command"
+mods = "Alt"
 
 [[keyboard.bindings]]
 chars = "\u001F"
