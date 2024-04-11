@@ -409,10 +409,10 @@ vim.cmd([[
   hi @diff.plus.diff guibg=#203520 guifg=NONE
   hi @diff.minus.diff guibg=#30181a guifg=NONE
 
-  highlight GitSignsChangeInline guibg=#302ee8 guifg=NONE gui=bold
+  highlight GitSignsChangeInline guibg=#302ee8 guifg=NONE gui=underline
   " FYI this style is only gonna get used in inline previews
-  highlight GitSignsDeleteInline guibg=#68221a guifg=NONE gui=bold
-  highlight GitSignsAddInline guibg=#30582e guifg=NONE gui=bold
+  highlight GitSignsDeleteInline guibg=#68221a guifg=NONE gui=underline
+  highlight GitSignsAddInline guibg=#30582e guifg=NONE gui=underline
 
   " highlight GitSignsAddLnInline guibg=#30ff2e guifg=NONE
   " highlight GitSignsChangeLnInline guibg=#0000ff guifg=NONE

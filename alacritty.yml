@@ -277,14 +277,7 @@ scrolling:
 # (e.g. "\x1b[5~") is? Open another terminal (like xterm) without tmux,
 # then run `showkey -a` to get the sequence associated to a key combination.
 key_bindings:
-  - { key: N,        mods: Command,       action: SpawnNewInstance }
-  # NOTE NOTE we are currently using BTT to bind this in an app specific way and it works well.
-    # cannot bind to cmmand because of macos window default functionality stupidity.
-  - { key: Grave,    mods: Control|Alt, command: { program: "/Users/slu/util/macos-open-next-program.sh", args: ["alacritty"] } }
-  - { key: Grave,    mods: Shift|Control|Alt, command: { program: "/Users/slu/util/macos-open-next-program.sh", args: ["alacritty", "prev"] } }
-  # cmd+` isn't going to work due to system behavior
-  # - { key: Grave,    mods: Command, command: { program: "/Users/slu/util/macos-open-next-program.sh", args: ["alacritty"] } }
-  # - { key: Grave,    mods: Shift|Command, command: { program: "/Users/slu/util/macos-open-next-program.sh", args: ["alacritty", "prev"] } }
+  - { key: N,        mods: Command,       action: CreateNewWindow }
   - { key: V,        mods: Command,       action: Paste            }
   - { key: C,        mods: Command,       action: Copy             }
   - { key: Key0,     mods: Command,       action: ResetFontSize    }
