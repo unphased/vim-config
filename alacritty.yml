@@ -55,18 +55,21 @@ draw_bold_text_with_bright_colors: false
 font:
   # The normal (roman) font face to use.
   normal:
-    family: "JetBrainsMonoNL Nerd Font Mono" # should be "Menlo" or something on macOS.
-    style: Regular
+    family: "IosevkaTerm Nerd Font Mono"  # should be "Menlo" or something on macOS.
+    style: Medium
 
   # The bold font face
   bold:
-    family: "JetBrainsMonoNL Nerd Font Mono" # should be "Menlo" or something on macOS.
-    style: Bold
+    family: "IosevkaTerm Nerd Font Mono"  # should be "Menlo" or something on macOS.
+    style: Heavy
+  bold_italic:
+    family: "IosevkaTerm Nerd Font Mono"  # should be "Menlo" or something on macOS.
+    style: Heavy Italic
 
   # The italic font face
   italic:
-    family: "JetBrainsMonoNL Nerd Font Mono" # should be "Menlo" or something on macOS.
-    style: Italic
+    family: "IosevkaTerm Nerd Font Mono"  # should be "Menlo" or something on macOS.
+    style: Medium Italic
 
   antialias: true
 
