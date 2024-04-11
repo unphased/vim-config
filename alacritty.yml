@@ -89,6 +89,8 @@ font:
     x: 0
     y: 0
 
+  builtin_box_drawing: false
+
   # OS X only: use thin stroke font rendering. Thin strokes are suitable
   # for retina displays, but for non-retina you probably want this set to
   # false.
