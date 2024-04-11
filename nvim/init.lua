@@ -1823,6 +1823,8 @@ vim.cmd([[
 
   hi link TelescopeNormal NormalFloat 
 
+  highlight @comment.todo.comment cterm=bold,italic guibg=#c04322 guifg=white
+
 ]])
 
 -- for conflict-marker
