@@ -2278,3 +2278,10 @@ vim.api.nvim_create_autocmd({"VimResized"}, {
 vim.api.nvim_create_autocmd({"VimLeavePre", "VimEnter"}, {
   callback = nvim_state_update
 })
+
+require("spider").setup {
+  skipInsignificantPunctuation = false,
+  subwordMovement = true,
+  customPatterns = {}, -- check Custom Movement Patterns for details
+}
+
