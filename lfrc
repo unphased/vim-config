@@ -49,15 +49,15 @@ map O $mimeopen --ask $f
 #     esac
 # }}
 
-# cmd open $bat --paging=always "$f"
+cmd open $bat --paging=always "$f"
 
-cmd open ${{
-  case $(file --mime-type "$f" -b) in
-    application/json) jq . "$fx"
-    text/*) $EDITOR "$fx";;
-    *) bat --paging=always "$fx";;
-  esac
-}}
+# cmd open ${{
+#   case $(file --mime-type "$f" -b) in
+#     application/json) jq . "$fx"
+#     text/*) $EDITOR "$fx";;
+#     *) bat --paging=always "$fx";;
+#   esac
+# }}
 
 # mkdir command. See wiki if you want it to select created dir
 map a :push %mkdir<space>
