@@ -315,6 +315,7 @@ local RulerLineNo = {
     provider = "%l",
     hl = { bold = true }
 }
+
 local RulerRestSpace = {
     -- %l = current line number
     -- %L = number of lines in the buffer
@@ -332,9 +333,17 @@ local RulerRestSpace = {
     }
 }
 
+local prose = require 'nvim-prose'
 -- Additional info that belongs in ruler but need a lower prio 
 local RulerExtraSpace = {
     flexible = 4,
+    {
+        provider = function ()
+            local wc = prose.word_count()
+            local rt = prose.reading_time()
+            return wc .. " " .. rt .. " %o 0x%02B "
+        end
+    },
     {
         -- %o = byte offset of cursor in the file
         -- 0x%02B = cursor's byte value shown in hex
@@ -892,7 +901,8 @@ local SearchCount = {
     end,
 }
 
-local MacroRec = {
+-- only shows when cmdheight is 0
+local MacroRecShowIfCmdHidden = {
     condition = function()
         return vim.fn.reg_recording() ~= "" and vim.o.cmdheight == 0
     end,
@@ -911,7 +921,7 @@ local MacroRec = {
 local DefaultStatusline = {
     -- TODO make the workdir and filename render out in separate styles for visual distinction but allow copying an abspath
     ViMode, Space, LazySpace, GitSpace, Diagnostics, LSPActive, Align, WorkDir,
-    FileNameBlock, Align, FileTypeSpace, SearchCount, MacroRec, RulerExtraSpace, FileSize, RulerLineNo, RulerRestSpace, ScrollBar
+    FileNameBlock, Align, FileTypeSpace, SearchCount, MacroRecShowIfCmdHidden, RulerExtraSpace, FileSize, RulerLineNo, RulerRestSpace, ScrollBar
 }
 
 local InactiveStatusline = {

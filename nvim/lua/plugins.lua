@@ -397,5 +397,6 @@ return {
   {
     'AckslD/muren.nvim',
     config = true,
-  }
+  },
+  'skwee357/nvim-prose'
 }
