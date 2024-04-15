@@ -2046,6 +2046,7 @@ require('lspconfig').emmet_language_server.setup({
     "css",
     "eruby",
     "html",
+    "markdown",
     "javascript",
     "javascriptreact",
     "less",

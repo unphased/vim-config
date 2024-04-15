@@ -1,0 +1,6 @@
+# reveal-md span fragment for setting speaker notes for code line sections
+snippet spanfrag
+        <span class="fragment" ${2:data-fragment-index="1"} ${1:data-notes="$2"}>$3</span>
+# reveal-md code block with line fragment sections
+snippet code
+        <pre><code class="highlight ${1:typescript}" ${2:data-fragment-index="0"} ${3:data-line-numbers="1-999|${4:8|9|10}"}><script type="text/template">$5</script></code></pre>
