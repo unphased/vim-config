@@ -1461,6 +1461,13 @@ cmp.setup({
       behavior = cmp.ConfirmBehavior.Replace,
       select = false,
     }),
+    -- ["<c-x>"] = cmp.mapping(function(fallback)
+    --   if require'snippy'.is_active() then
+    --     vim.api.nvim_feedkeys('a'..'\0x7f', 's', true)
+    --   else
+    --     fallback()
+    --   end
+    -- end, { "s" }),
     ["<Tab>"] = cmp.mapping(function(fallback)
       if cmp.visible() then
         if require'snippy'.can_expand_or_advance() then
@@ -1502,7 +1509,7 @@ cmp.setup({
       else
         fallback()
       end
-    end, { "i", "s" }),
+    end, { "i", "s" })
   }),
   sources = cmp.config.sources({
     { name = 'nvim_lsp' },
