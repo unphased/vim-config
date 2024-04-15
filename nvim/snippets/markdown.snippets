@@ -1,6 +1,15 @@
-# reveal-md span fragment for setting speaker notes for code line sections
+# reveal-md span fragment for setting speaker notes for code line sections.
 snippet spanfrag
-        <span class="fragment" ${2:data-fragment-index="1"} ${1:data-notes="$2"}>$3</span>
+        <span class="fragment" ${3:data-fragment-index="1"} ${1:data-notes="$2"}>$4</span>
 # reveal-md code block with line fragment sections
 snippet code
         <pre><code class="highlight ${1:typescript}" ${2:data-fragment-index="0"} ${3:data-line-numbers="1-999|${4:8|9|10}"}><script type="text/template">$5</script></code></pre>
+# reveal-md comment for assigning class and attribs to element
+snippet elem
+        <!-- .element: class="fragment${2: }"${3: data-fragment-index="1"} data-notes="$1" -->
+# reveal-md vslide sep
+snippet vertical_separator
+        <!-- vsep -->
+# reveal-md slide sep
+snippet separator
+        <!-- separator -->
