@@ -297,7 +297,13 @@ local FileSize = {
                 return fsize..suffix[1]
             end
             local i = math.floor((math.log(fsize) / math.log(1024)))
-            return string.format("%.2f%s", fsize / math.pow(1024, i), suffix[i + 1]) .. ' '
+            local format = "%.0f%s"
+            if fsize < 10 then
+                format = "%.2f%s"
+            elseif fsize < 100 then
+                format = "%.1f%s"
+            end
+            return string.format(format, fsize / math.pow(1024, i), suffix[i + 1]) .. ' '
         end
     }, {
         provider = ""
