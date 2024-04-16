@@ -1856,7 +1856,7 @@ vim.keymap.set("i", "<F4>", "<Esc>:UndotreeToggle<CR>")
 vim.keymap.set("n", "<leader>t", ":Trouble document_diagnostics<CR>")
 vim.keymap.set("n", "<leader>W", ":Trouble workspace_diagnostics<CR>")
 
-vim.keymap.set('n', "<leader>T", ":ThesaurusQueryReplaceCurrentWord<CR>")
+vim.keymap.set('n', "<leader>T", ":OnlineThesaurusCurrentWord<CR>", { desc = "Thesaurus lookup" })
 
 -- set the icons for diagnostic
 vim.cmd [[

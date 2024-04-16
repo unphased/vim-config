@@ -307,7 +307,6 @@ return {
   'dcampos/nvim-snippy',
   'honza/vim-snippets',
   'dcampos/cmp-snippy',
-  'Ron89/thesaurus_query.vim',
   {
     'johmsalas/text-case.nvim',
     config = function()
