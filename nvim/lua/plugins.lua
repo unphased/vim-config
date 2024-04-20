@@ -397,5 +397,12 @@ return {
     'AckslD/muren.nvim',
     config = true,
   },
-  'skwee357/nvim-prose'
+  'skwee357/nvim-prose',
+  {
+    "mhanberg/output-panel.nvim",
+    event = "VeryLazy",
+    config = function()
+      require("output_panel").setup()
+    end
+  }
 }

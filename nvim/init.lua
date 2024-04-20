@@ -1682,7 +1682,7 @@ local trouble = require('trouble')
 -- keymaps!!
 local lsp_attach = function (x, bufnr)
   local engine = x.name;
-  log("lsp_attach:" .. engine .. "bufnr=" .. bufnr)
+  log("lsp_attach:" .. engine .. " bufnr=" .. bufnr)
   local bufopts = { noremap=true, silent=true, buffer=bufnr }
   -- vim.keymap.set('n', 'gD', '<cmd>TroubleToggle lsp_type_definitions<cr>', ext(bufopts, "desc", "Go to Type Definition (Trouble UI)"))
   vim.keymap.set('n', 'gD', '<cmd>Trouble lsp_definitions<cr>', ext(bufopts, "desc", "Go to Definition (Trouble UI)"))
@@ -1714,6 +1714,26 @@ safeRequire("mason-lspconfig").setup_handlers {
   end,
   ["tsserver"] = function () log "exception applied for mason lspconfig setup for tsserver as we want to use typescript-tools instead." end,
   -- Next, you can provide a dedicated handler for specific servers. Don't forget to bring capabilities and on_attach in.
+  -- ["tsserver"] = function ()
+  --   log('executing tsserver mason-lspconfig handler cb');
+  --   safeRequire("lspconfig")["tsserver"].setup {
+  --     capabilities = capabilities,
+  --     on_attach = lsp_attach,
+  --     settings = {
+  --       test_option = 'blargle',
+  --       typescript = {
+  --         tsserver = {
+  --           logDirectory = "/tmp/tsserver",
+  --           experimental = {
+  --             enableProjectDiagnostics = true
+  --           },
+  --           enableTracing = true,
+  --           trace = "verbose",
+  --         },
+  --       },
+  --     }
+  --   }
+  -- end,
   ["clangd"] = function ()
     safeRequire("lspconfig")["clangd"].setup {
       on_attach = lsp_attach,
