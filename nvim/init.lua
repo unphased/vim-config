@@ -1391,6 +1391,7 @@ safeRequire("ibl").setup({
       "IndentBlanklineIndent2",
     }
   },
+  -- scope = { enabled = false }, -- i set this for use from iOS terminal emulators
   -- scope = {
   --   exclude = { "lua" }
   -- },
