@@ -2152,6 +2152,14 @@ vim.keymap.set('n', '<leader>e', require('ts-node-action').node_action, {
   desc = "Treesitter Node Action"
 })
 
+vim.keymap.set('n', '<leader>E', function ()
+    local actions = require('ts-node-action').available_actions()
+    -- run the last one
+    log('actions and last', actions, actions[#actions].action())
+  end, {
+  desc = "Node Action -- last"
+})
+
 -- vim.o.foldtext = 'hello'
 
 -- Alright, so this one makes diags show up more easily, but i had to kill it because it would keep clobbering the popup for hover...
@@ -2294,7 +2302,7 @@ end
 local function nvim_state_update(ev)
   vim.schedule(function()
     local ret = vim.fn.system({vim.env.HOME .. "/util/nvim-update-win.sh", tostring(vim.fn.getpid()), vim.v.servername, vim.fn.getcwd(), ev.file, ev.event})
-    log(ev, 'ret from nvim-update-win.sh', ret)
+    -- log(ev, 'ret from nvim-update-win.sh', ret)
   end)
 end
 
