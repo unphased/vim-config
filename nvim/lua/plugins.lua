@@ -404,5 +404,6 @@ return {
     config = function()
       require("output_panel").setup()
     end
-  }
+  },
+  "tris203/precognition.nvim"
 }

@@ -201,6 +201,9 @@ vim.keymap.set({ "c" }, "<F10>", "<c-c>")
 vim.keymap.set({ "n", "v" }, " ", "<c-d>")
 vim.keymap.set({ "n", "v" }, "b", "<c-u>")
 
+----- the below is better to just leave as-is for original B behavior. the <BS> is what does b...
+-- vim.keymap.set({ "n", "v" }, "B", "b")
+
 -- ctrl+b to go back forward in jumplist
 vim.keymap.set("n", "<c-b>", "<tab>")
 
