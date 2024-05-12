@@ -1117,7 +1117,7 @@ safeRequire("Comment").setup()
 
 safeRequire("nvim-treesitter.configs").setup({
   -- A list of parser names, or "all" (the four listed parsers should always be installed)
-  ensure_installed = { "c", "lua", "vim", "bash", "comment", "gitcommit", "diff", "git_rebase" },
+  ensure_installed = { "markdown_inline", "c", "lua", "vim", "bash", "comment", "gitcommit", "diff", "git_rebase" },
 
   -- Install parsers synchronously (only applied to `ensure_installed`)
   sync_install = false,
@@ -1243,11 +1243,11 @@ safeRequire("nvim-treesitter.configs").setup({
   -- },
 })
 
-safeRequire("trouble").setup({
-  -- your configuration comes here
-  -- or leave it empty to use the default settings
-  -- refer to the configuration section below
-})
+-- safeRequire("trouble").setup({
+--   -- your configuration comes here
+--   -- or leave it empty to use the default settings
+--   -- refer to the configuration section below
+-- })
 
 local nvimtree_api = require "nvim-tree.api"
 
@@ -1682,14 +1682,13 @@ vim.keymap.set('n', '?', vim.lsp.buf.hover)
 
 -- local goto_preview = safeRequire('goto-preview')
 
-local trouble = require('trouble')
 -- keymaps!!
 local lsp_attach = function (x, bufnr)
   local engine = x.name;
   log("lsp_attach:" .. engine .. " bufnr=" .. bufnr)
   local bufopts = { noremap=true, silent=true, buffer=bufnr }
   -- vim.keymap.set('n', 'gD', '<cmd>TroubleToggle lsp_type_definitions<cr>', ext(bufopts, "desc", "Go to Type Definition (Trouble UI)"))
-  vim.keymap.set('n', 'gD', '<cmd>Trouble lsp_definitions<cr>', ext(bufopts, "desc", "Go to Definition (Trouble UI)"))
+  -- vim.keymap.set('n', 'gD', '<cmd>Trouble lsp_definitions<cr>', ext(bufopts, "desc", "Go to Definition (Trouble UI)"))
   -- vim.keymap.set('n', 'gi', goto_preview.goto_preview_implementation, ext(bufopts, "desc", "Go to Implementation (preview window)"))
   -- mnemonic is "args"
   vim.keymap.set('n', '<leader>S', vim.lsp.buf.signature_help, ext(bufopts, "desc", "Signature help"))
@@ -1702,7 +1701,7 @@ local lsp_attach = function (x, bufnr)
   -- vim.keymap.set('n', '<leader>r', vim.lsp.buf.rename, ext(bufopts, "desc", "Rename"))
   vim.keymap.set('n', '<leader>ca', vim.lsp.with( vim.lsp.buf.code_action, {border = nil} ), ext(bufopts, "desc", "Code Action Menu"))
   vim.keymap.set('v', '<leader>ca', vim.lsp.buf.code_action, ext(bufopts, "desc", "Code Action Menu"))
-  vim.keymap.set('n', 'gr', '<cmd>Trouble lsp_references<cr>', ext(bufopts, "desc", "Go to References"))
+  -- vim.keymap.set('n', 'gr', '<cmd>Trouble lsp_references<cr>', ext(bufopts, "desc", "Go to References"))
   vim.keymap.set('n', '<leader>=', function() vim.lsp.buf.format { async = true } end, ext(bufopts, "desc", "Format Buffer"))
 end
 
@@ -1877,8 +1876,8 @@ vim.cmd([[
 vim.keymap.set("n", "<F4>", ":UndotreeToggle<CR>")
 vim.keymap.set("i", "<F4>", "<Esc>:UndotreeToggle<CR>")
 
-vim.keymap.set("n", "<leader>t", ":Trouble document_diagnostics<CR>")
-vim.keymap.set("n", "<leader>W", ":Trouble workspace_diagnostics<CR>")
+-- vim.keymap.set("n", "<leader>t", ":Trouble document_diagnostics<CR>")
+-- vim.keymap.set("n", "<leader>W", ":Trouble workspace_diagnostics<CR>")
 
 vim.keymap.set('n', "<leader>T", ":OnlineThesaurusCurrentWord<CR>", { desc = "Thesaurus lookup" })
 
