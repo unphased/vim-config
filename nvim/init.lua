@@ -2325,3 +2325,18 @@ require("spider").setup {
   customPatterns = {}, -- check Custom Movement Patterns for details
 }
 
+
+-- vim.fn.matchadd("DiagnosticInfo", "\\(TODO:\\)")
+vim.fn.matchadd("DiagnosticWarn", "\\(HACK:\\)")
+vim.fn.matchadd("DiagnosticWarn", "\\(WARN:\\)")
+vim.fn.matchadd("DiagnosticWarn", "\\(WARNING:\\)")
+-- vim.fn.matchadd("DiagnosticWarn", "\\(XXX:\\)")
+-- vim.fn.matchadd("@comment.todo.comment", "\\(PERF:\\)")
+-- vim.fn.matchadd("Identifier", "\\(PERFORMANCE:\\)")
+-- vim.fn.matchadd("Identifier", "\\(OPTIM:\\)")
+-- vim.fn.matchadd("Identifier", "\\(OPTIMIZE:\\)")
+-- vim.fn.matchadd("DiagnosticHint", "\\(NOTE:\\)")
+-- vim.fn.matchadd("Identifier", "\\(TEST:\\)")
+-- vim.fn.matchadd("Identifier", "\\(TESTING:\\)")
+-- vim.fn.matchadd("Identifier", "\\(PASSED:\\)")
+-- vim.fn.matchadd("Identifier", "\\(FAILED:\\)")
