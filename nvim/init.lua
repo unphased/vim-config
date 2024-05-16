@@ -2340,3 +2340,10 @@ vim.fn.matchadd("DiagnosticWarn", "\\(WARNING:\\)")
 -- vim.fn.matchadd("Identifier", "\\(TESTING:\\)")
 -- vim.fn.matchadd("Identifier", "\\(PASSED:\\)")
 -- vim.fn.matchadd("Identifier", "\\(FAILED:\\)")
+
+function toggle_scrolloff()
+  local enable = vim.opt_local.scrolloff:get() == 0
+  vim.opt_local.scrolloff = enable and 8 or 0
+end
+
+vim.keymap.set('n', '<leader>z', ':lua toggle_scrolloff()<CR>', { desc = "Toggle scrolloff" })
