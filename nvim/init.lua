@@ -1313,6 +1313,7 @@ local function my_on_attach(bufnr)
   vim.keymap.set('n', 'ga', git_add, opts('Git Add'))
   -- vim.keymap.set('n', 'gC', git_commit, opts('Git Commit'))
   vim.keymap.set('n', 'ge', make_executable, opts('Make Executable'))
+  -- vim.keymap.set('n', 'go', open)
 end
 
 require("nvim-tree").setup({
