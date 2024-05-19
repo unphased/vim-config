@@ -113,8 +113,8 @@ return {
         desc = "Symbols (Trouble)",
       },
       {
-        "<leader>cl",
-        "<cmd>Trouble lsp toggle focus=false win.position=right<cr>",
+        "gr",
+        "<cmd>Trouble lsp toggle focus=false win.position=bottom<cr>",
         desc = "LSP Definitions / references / ... (Trouble)",
       },
       {
@@ -422,8 +422,8 @@ return {
       local before = require('before')
       before.setup()
 
-      vim.keymap.set('n', '[(', before.jump_to_last_edit, { desc = 'jump to last edit' })
-      vim.keymap.set('n', '])', before.jump_to_next_edit, { desc = 'jump to next edit' })
+      vim.keymap.set('n', '(', before.jump_to_last_edit, { desc = 'jump to last edit' })
+      vim.keymap.set('n', ')', before.jump_to_next_edit, { desc = 'jump to next edit' })
     end
   },
   {

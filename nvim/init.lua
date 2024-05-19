@@ -1838,7 +1838,10 @@ vim.cmd([[
   hi Search cterm=bold ctermfg=black ctermbg=yellow guibg=#a9291a guifg=NONE
   hi CurSearch cterm=bold ctermfg=black ctermbg=yellow guibg=#ff392a guifg=NONE
   hi IncSearch cterm=bold ctermfg=black ctermbg=cyan guibg=#f04050 guifg=NONE gui=NONE
-  hi Visual term=reverse ctermbg=238 guibg=#555540
+
+  hi CursorLine guibg=#393939
+
+  hi Visual term=reverse ctermbg=238 guibg=#655540
   hi NormalFloat guibg=#232336
   hi NonText guibg=#303030
 
@@ -1849,7 +1852,7 @@ vim.cmd([[
 
   hi TSPlaygroundFocus guibg=#2f628e
 
-  hi TroublePreview cterm=bold ctermfg=yellow ctermbg=black guibg=#246333 guifg=NONE
+  hi TroublePreview cterm=bold ctermfg=yellow ctermbg=black guibg=#14e343 guifg=NONE
   " hi link CodeActionTitle NormalFloat
   " hi CodeActionHeader gui=underline
 
@@ -2318,6 +2321,14 @@ vim.api.nvim_create_autocmd({"VimResized"}, {
 
 vim.api.nvim_create_autocmd({"VimLeavePre", "VimEnter"}, {
   callback = nvim_state_update
+})
+
+-- set deadcolumn not to appear for trouble v3 buffers
+vim.api.nvim_create_autocmd({"FileType"}, {
+  pattern = "Trouble",
+  callback = function()
+    vim.opt_local.colorcolumn = ""
+  end
 })
 
 require("spider").setup {
