@@ -2359,3 +2359,13 @@ function toggle_scrolloff()
 end
 
 vim.keymap.set('n', '<leader>z', ':lua toggle_scrolloff()<CR>', { desc = "Toggle scrolloff" })
+
+-- for easy reload automation
+vim.api.nvim_create_autocmd({"Signal"}, {
+  pattern = "SIGUSR1",
+  callback = function()
+    print("Received SIGUSR1, quitting Neovim...")
+    vim.cmd('qa!')  -- Quit all windows and exit Neovim
+  end,
+  desc = "Handle SIGUSR1 signal to quit Neovim"
+})
