@@ -1,4 +1,10 @@
 #!/bin/bash
 
-# Use watchexec to monitor configuration files and send SIGUSR1 to Neovim upon changes
-watchexec --exts lua --restart --stop-signal=USR1 -- /usr/bin/env nvim "$@"
+
+# no file watching, files, state needed! wewt.
+while [ "$?" != 55 ]; do
+  echo waiting a smidge
+  sleep 0.2
+  nvim -c ":autocmd BufWritePost * :qa" -c ":autocmd VimLeave * :cq 55" "$@"
+done
+
