@@ -438,5 +438,14 @@ return {
       require("output_panel").setup()
     end
   },
-  "tris203/precognition.nvim"
+  "tris203/precognition.nvim",
+  {
+    'stevearc/oil.nvim',
+    opts = {},
+    -- Optional dependencies
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    config = function()
+      require("oil").setup()
+    end
+  }
 }

@@ -2369,3 +2369,5 @@ vim.api.nvim_create_autocmd({"Signal"}, {
   end,
   desc = "Handle SIGUSR1 signal to quit Neovim"
 })
+
+vim.keymap.set("n", "<Leader>F", ":Oil --float<CR>")
