@@ -1318,6 +1318,8 @@ end
 
 require("nvim-tree").setup({
   on_attach = my_on_attach,
+  git = { enable = true },
+  -- log = { enable = true },
   update_focused_file = {
     enable = true,
     update_root = true
@@ -1852,7 +1854,7 @@ vim.cmd([[
 
   hi TSPlaygroundFocus guibg=#2f628e
 
-  hi TroublePreview cterm=bold ctermfg=yellow ctermbg=black guibg=#14e343 guifg=NONE
+  hi TroublePreview cterm=bold ctermfg=yellow ctermbg=black guibg=#247343 guifg=NONE
   " hi link CodeActionTitle NormalFloat
   " hi CodeActionHeader gui=underline
 

@@ -95,7 +95,6 @@ return {
   { "lukas-reineke/indent-blankline.nvim", main = 'ibl' },
   {
     "folke/trouble.nvim",
-    branch = "dev", -- IMPORTANT!
     keys = {
       {
         "<leader>xx",
