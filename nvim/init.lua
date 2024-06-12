@@ -2375,9 +2375,28 @@ vim.api.nvim_create_autocmd({"Signal"}, {
 vim.keymap.set("n", "<Leader>F", ":Oil --float<CR>")
 
 vim.cmd([[
-  vnoremap iq ?['"]<CR>lo/['"]<CR>h
+  vnoremap iq ?['"`]<CR>lo/['"`]<CR>h
   omap iq :normal viq<CR>
 
   vnoremap aq ?['"]<CR>o/['"]<CR>
   omap aq :normal vaq<CR>
+
+  " Now lets try to make this better
+
+  function! FindQuoteType()
+    let l:quote_chars = ['"', "'"]
+    let l:cur_char = getline('.')[col('.') - 1]
+
+    if index(l:quote_chars, l:cur_char) >= 0
+      return l:cur_char
+    else
+      let [l:before_quote, l:after_quote] = searchpos('\(["'']\)', 'bnc')
+      if l:after_quote == 0
+        return ''
+      else
+        return getline('.')[l:after_quote - 1]
+      endif
+    endif
+  endfunction
+
 ]])
