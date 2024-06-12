@@ -2384,19 +2384,35 @@ vim.cmd([[
   " Now lets try to make this better
 
   function! FindQuoteType()
-    let l:quote_chars = ['"', "'", "`"]
-    let l:cur_char = getline('.')[col('.') - 1]
+    let l:quote_chars = ['"', "'", '`']
+    let l:cur_pos = col('.')
+    let l:cur_line = getline('.')
 
-    if index(l:quote_chars, l:cur_char) >= 0
-      return l:cur_char
-    else
-      let [l:before_quote, l:after_quote] = searchpos('\(["''\`]\)', 'bnc')
-      if l:after_quote == 0
-        return ''
-      else
-        return getline('.')[l:after_quote - 1]
+    for l:quote in l:quote_chars
+      let l:left_pos = strridx(l:cur_line[:l:cur_pos - 1], l:quote)
+      let l:right_pos = stridx(l:cur_line, l:quote, l:cur_pos)
+
+      if l:left_pos >= 0 && l:right_pos > l:left_pos
+        return l:quote
       endif
+    endfor
+
+    return ''
+  endfunction
+
+  function! SelectQuote(type)
+    let l:quote = FindQuoteType()
+    if l:quote ==# ''
+      return
+    endif
+
+    if a:type ==# 'v'
+      execute "normal! vi" . l:quote
+    elseif a:type ==# 'o'
+      execute "normal! ?" . l:quote . "\<CR>lo/" . l:quote . "\<CR>h"
     endif
   endfunction
-  nnoremap <silent> <leader>tq :echom FindQuoteType()<CR>
+
+  vnoremap <silent> iq :<C-u>call SelectQuote('v')<CR>
+  omap <silent> iq :<C-u>call SelectQuote('o')<CR>
 ]])
