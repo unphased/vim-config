@@ -2377,4 +2377,7 @@ vim.keymap.set("n", "<Leader>F", ":Oil --float<CR>")
 vim.cmd([[
   vnoremap iq ?['"]<CR>lo/['"]<CR>h
   omap iq :normal viq<CR>
+
+  vnoremap aq ?['"]<CR>o/['"]<CR>
+  omap aq :normal vaq<CR>
 ]])
