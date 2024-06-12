@@ -2384,13 +2384,13 @@ vim.cmd([[
   " Now lets try to make this better
 
   function! FindQuoteType()
-    let l:quote_chars = ['"', "'"]
+    let l:quote_chars = ['"', "'", "`"]
     let l:cur_char = getline('.')[col('.') - 1]
 
     if index(l:quote_chars, l:cur_char) >= 0
       return l:cur_char
     else
-      let [l:before_quote, l:after_quote] = searchpos('\(["'']\)', 'bnc')
+      let [l:before_quote, l:after_quote] = searchpos('\(["''\`]\)', 'bnc')
       if l:after_quote == 0
         return ''
       else
@@ -2398,5 +2398,5 @@ vim.cmd([[
       endif
     endif
   endfunction
-
+  nnoremap <silent> <leader>tq :echom FindQuoteType()<CR>
 ]])
