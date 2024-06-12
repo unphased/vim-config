@@ -2400,19 +2400,21 @@ vim.cmd([[
     return ''
   endfunction
 
-  function! SelectQuote(type)
+  function! SelectQuote(mode)
     let l:quote = FindQuoteType()
     if l:quote ==# ''
       return
     endif
 
-    if a:type ==# 'v'
+    if a:mode ==# 'v'
       execute "normal! vi" . l:quote
-    elseif a:type ==# 'o'
-      execute "normal! ?" . l:quote . "\<CR>lo/" . l:quote . "\<CR>h"
+    elseif a:mode ==# 'a'
+      execute "normal! va" . l:quote
     endif
   endfunction
 
   vnoremap <silent> iq :<C-u>call SelectQuote('v')<CR>
-  omap <silent> iq :<C-u>call SelectQuote('o')<CR>
+  vnoremap <silent> aq :<C-u>call SelectQuote('a')<CR>
+  omap <silent> iq :normal viq<CR>
+  omap <silent> aq :normal vaq<CR>
 ]])
