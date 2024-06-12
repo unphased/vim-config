@@ -1718,28 +1718,28 @@ safeRequire("mason-lspconfig").setup_handlers {
       on_attach = lsp_attach,
     }
   end,
-  ["tsserver"] = function () log "exception applied for mason lspconfig setup for tsserver as we want to use typescript-tools instead." end,
+  -- ["tsserver"] = function () log "exception applied for mason lspconfig setup for tsserver as we want to use typescript-tools instead." end,
   -- Next, you can provide a dedicated handler for specific servers. Don't forget to bring capabilities and on_attach in.
-  -- ["tsserver"] = function ()
-  --   log('executing tsserver mason-lspconfig handler cb');
-  --   safeRequire("lspconfig")["tsserver"].setup {
-  --     capabilities = capabilities,
-  --     on_attach = lsp_attach,
-  --     settings = {
-  --       test_option = 'blargle',
-  --       typescript = {
-  --         tsserver = {
-  --           logDirectory = "/tmp/tsserver",
-  --           experimental = {
-  --             enableProjectDiagnostics = true
-  --           },
-  --           enableTracing = true,
-  --           trace = "verbose",
-  --         },
-  --       },
-  --     }
-  --   }
-  -- end,
+  ["tsserver"] = function ()
+    log('executing tsserver mason-lspconfig handler cb');
+    safeRequire("lspconfig")["tsserver"].setup {
+      capabilities = capabilities,
+      on_attach = lsp_attach,
+      settings = {
+        test_option = 'blargle',
+        typescript = {
+          tsserver = {
+            logDirectory = "/tmp/tsserver/",
+            experimental = {
+              enableProjectDiagnostics = true
+            },
+            enableTracing = true,
+            trace = "verbose",
+          },
+        },
+      }
+    }
+  end,
   ["clangd"] = function ()
     safeRequire("lspconfig")["clangd"].setup {
       on_attach = lsp_attach,
@@ -2373,3 +2373,8 @@ vim.api.nvim_create_autocmd({"Signal"}, {
 })
 
 vim.keymap.set("n", "<Leader>F", ":Oil --float<CR>")
+
+vim.cmd([[
+  vnoremap iq ?['"]<CR>lo/['"]<CR>h
+  omap iq :normal viq<CR>
+]])

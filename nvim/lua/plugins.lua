@@ -397,12 +397,12 @@ return {
     dependencies = { 'nvim-treesitter' },
     opts = {},
   },
-  {
-    "pmizio/typescript-tools.nvim",
-    -- branch = "feature/221-v2",
-    dependencies = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
-    opts = {},
-  },
+  -- {
+  --   "pmizio/typescript-tools.nvim",
+  --   -- branch = "feature/221-v2",
+  --   dependencies = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
+  --   opts = {},
+  -- },
   -- {
   --   'yioneko/nvim-vtsls',
   --   branch = 'feat-move-to-file-action'
