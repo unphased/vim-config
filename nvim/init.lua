@@ -2375,24 +2375,40 @@ vim.api.nvim_create_autocmd({"Signal"}, {
 vim.keymap.set("n", "<Leader>F", ":Oil --float<CR>")
 
 vim.cmd([[
-  vnoremap iq ?['"`]<CR>lo/['"`]<CR>h
-  omap iq :normal viq<CR>
-
-  vnoremap aq ?['"]<CR>o/['"]<CR>
-  omap aq :normal vaq<CR>
-
-  " Now lets try to make this better
 
   function! FindQuoteType()
     let l:quote_chars = ['"', "'", '`']
     let l:cur_pos = col('.')
-    let l:cur_line = getline('.')
+    let l:cur_line = line('.')
+    let l:lines = getline(1, '$')
 
     for l:quote in l:quote_chars
-      let l:left_pos = strridx(l:cur_line[:l:cur_pos - 1], l:quote)
-      let l:right_pos = stridx(l:cur_line, l:quote, l:cur_pos)
+      let l:left_pos = -1
+      let l:right_pos = -1
 
-      if l:left_pos >= 0 && l:right_pos > l:left_pos
+      " Search for the left quote
+      let l:line_idx = l:cur_line - 1
+      while l:line_idx >= 0
+        let l:line = l:lines[l:line_idx]
+        let l:left_pos = strridx(l:line, l:quote)
+        if l:left_pos >= 0 || l:line_idx == 0
+          break
+        endif
+        let l:line_idx -= 1
+      endwhile
+
+      " Search for the right quote
+      let l:line_idx = l:cur_line - 1
+      while l:line_idx < len(l:lines)
+        let l:line = l:lines[l:line_idx]
+        let l:right_pos = stridx(l:line, l:quote, l:line_idx == l:cur_line - 1 ? l:cur_pos : 0)
+        if l:right_pos >= 0
+          break
+        endif
+        let l:line_idx += 1
+      endwhile
+
+      if l:left_pos >= 0 && l:right_pos >= 0
         return l:quote
       endif
     endfor
@@ -2418,3 +2434,5 @@ vim.cmd([[
   omap <silent> iq :normal viq<CR>
   omap <silent> aq :normal vaq<CR>
 ]])
+
+vim.keymap.set('x', 'gci', ':normal gcc<CR>', { desc = 'Invert comments' })
