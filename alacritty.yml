@@ -464,10 +464,10 @@ keyboard:
   - { key: Slash,    mods: Command,             chars: "\x1b/"  }
   # The tab switch binds for BTT for macOS: bind to my (new!) contextual tab switch (I used to use F2/F3, but decided
   # to free those up for more app specific use!)
-  - { key: RBracket,    mods: Command|Shift,             chars: "\x1b[Y"  }
-  - { key: LBracket,    mods: Command|Shift,             chars: "\x1b[2Y"  }
-  - { key: RBracket,    mods: Command,             chars: "\x1b]"  }
-  - { key: LBracket,    mods: Command,             chars: "\x1b["  }
+  - { key: '{',    mods: Command|Shift,             chars: "\x1b[Y"  }
+  - { key: '}',    mods: Command|Shift,             chars: "\x1b[2Y"  }
+  - { key: '[',    mods: Command,             chars: "\x1b]"  }
+  - { key: ']',    mods: Command,             chars: "\x1b["  }
 
   # - { key: F1,       mods: Super|Control,   chars: "\x1b[1;11P"             }
   # - { key: F2,       mods: Super|Control,   chars: "\x1b[1;11Q"             }
