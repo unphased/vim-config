@@ -297,7 +297,7 @@ _G.CycleWindowsOrBuffers = function (forward)
     log("CycleWindowsOrBuffers only one window, cycling buffer " .. (forward and "forward" or "backward"))
     if forward then vim.cmd("bnext") else vim.cmd("bprevious") end
   elseif #tabs == 1 then
-    log("CycleWindowsOrBuffers only one tab, going forward to next window")
+    log("CycleWindowsOrBuffers only one tab, going forward to next window", forward)
     vim.cmd("wincmd " .. (forward and "w" or "W"))
   -- boundary
   elseif forward and wins_in_curtab[#wins_in_curtab] == curwin then
