@@ -13,15 +13,15 @@
   minus-non-emph-style = syntax "#200000"
   minus-emph-style = bold syntax "#680000"
 
-[delta "decorations"]
-  ; commit-style = raw
-  commit-decoration-style = bold yellow box ul
-  commit-style = yellow bold
-  ; file-style = omit
-  file-decoration-style = none
-  hunk-header-decoration-style = omit
-  hunk-header-line-number-style = magenta
-  hunk-header-style = file line-number syntax
+; [delta "decorations"]
+;   ; commit-style = raw
+;   commit-decoration-style = bold yellow box ul
+;   commit-style = yellow bold
+;   ; file-style = omit
+;   file-decoration-style = none
+;   hunk-header-decoration-style = omit
+;   hunk-header-line-number-style = magenta
+;   hunk-header-style = file line-number syntax
 
 [delta "line-numbers"]
   line-numbers-left-style = red
@@ -51,6 +51,7 @@
   ui = true
 [alias]
   lg = log --graph --date-order --pretty=format:'%C(bold magenta)%h%Creset -%C(auto)%d%Creset %s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+  lh = !util/git-log-hyperlink.sh
   s = "!f() { git status --short; ignored=$(git ignored); [ -n \"$ignored\" ] && echo \"$ignored\"; };f"
   unadd = reset HEAD
   ignore = update-index --skip-worktree
