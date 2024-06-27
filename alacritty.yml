@@ -28,7 +28,8 @@ window:
   padding:
     x: 3
     y: 3
-  decorations: 'transparent'
+  decorations: 'Buttonless'
+  option_as_alt: 'OnlyLeft'
 
 
 # Font configuration (changes require restart)
@@ -118,7 +119,7 @@ colors:
   cursor:
     text: '0x0f640f'
     cursor: '0x00ff00'
-    style: 'Block'
+    # style: 'Block'
 
   # Normal colors
   normal:
