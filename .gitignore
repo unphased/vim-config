@@ -8,3 +8,4 @@ spell
 plugged/
 mthesaur.txt
 !.tmux.conf
+.aider*
