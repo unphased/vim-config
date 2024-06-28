@@ -198,4 +198,6 @@ fixssh() {
 }
 
 # for adam costello's par
-PARINIT="rTbgqR B=.,?'_A_a_@ Q=_s>|"
+export PARINIT="rTbgqR B=.,?'_A_a_@ Q=_s>|"
+
+export MACHINE_ID=$(cat /opt/machine-id)

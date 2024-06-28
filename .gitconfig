@@ -5,6 +5,8 @@
   max-line-length = 2048
   wrap-max-lines = 10
   features = line-numbers decorations
+  hyperlinks = true
+  hyperlinks-file-link-format = "file://${MACHINE_ID}{path}{line}"
   syntax-theme = zenburn
   plus-style = bold syntax "#004000"
   plus-non-emph-style = syntax "#002000"
@@ -51,7 +53,6 @@
   ui = true
 [alias]
   lg = log --graph --date-order --pretty=format:'%C(bold magenta)%h%Creset -%C(auto)%d%Creset %s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
-  lh = !util/git-log-hyperlink.sh
   s = "!f() { git status --short; ignored=$(git ignored); [ -n \"$ignored\" ] && echo \"$ignored\"; };f"
   unadd = reset HEAD
   ignore = update-index --skip-worktree
