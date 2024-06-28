@@ -201,3 +201,6 @@ fixssh() {
 export PARINIT="rTbgqR B=.,?'_A_a_@ Q=_s>|"
 
 export MACHINE_ID=$(cat /opt/machine-id)
+export GIT_DELTA_HYPERLINK_FORMAT="file://$MACHINE_ID{path}:{line}"
+
+alias git="git --config-env=delta.hyperlinks-file-link-format=GIT_DELTA_HYPERLINK_FORMAT"

@@ -6,7 +6,6 @@
   wrap-max-lines = 10
   features = line-numbers decorations
   hyperlinks = true
-  hyperlinks-file-link-format = "file://${MACHINE_ID}{path}{line}"
   syntax-theme = zenburn
   plus-style = bold syntax "#004000"
   plus-non-emph-style = syntax "#002000"
