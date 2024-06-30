@@ -1519,6 +1519,7 @@ cmp.setup({
     end, { "i", "s" })
   }),
   sources = cmp.config.sources({
+    { name = 'cody' },
     { name = 'nvim_lsp' },
     -- { name = 'vsnip' }, -- For vsnip users.
     -- { name = 'luasnip' }, -- For luasnip users.
@@ -2436,3 +2437,4 @@ vim.cmd([[
 ]])
 
 vim.keymap.set('x', 'gci', ':normal gcc<CR>', { desc = 'Invert comments' })
+
