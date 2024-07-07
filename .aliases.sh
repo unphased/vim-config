@@ -205,4 +205,4 @@ export GIT_DELTA_HYPERLINK_FORMAT="file://$MACHINE_ID{path}:{line}"
 
 alias git="git --config-env=delta.hyperlinks-file-link-format=GIT_DELTA_HYPERLINK_FORMAT"
 
-alias aider='bash -c "trap \"echo -ne \\\033[23;0t\" INT TERM EXIT; echo -ne \"\033[22;0t\"; echo -ne \"\033]0;AIDER\007\"; aider"'
+alias aider='bash -c "trap \"echo -ne \\\\033[23;0t\" INT TERM EXIT; echo -ne \"\\033[22;0t\"; echo -ne \"\\033]0;AIDER\\007\"; aider"'
