@@ -206,9 +206,10 @@ export GIT_DELTA_HYPERLINK_FORMAT="file://$MACHINE_ID{path}:{line}"
 alias git="git --config-env=delta.hyperlinks-file-link-format=GIT_DELTA_HYPERLINK_FORMAT"
 
 aider_function() {
-    trap 'echo -ne "\033[23;0t"' INT TERM EXIT
-    echo -ne "\033[22;0t"
-    echo -ne "\033]0;AIDER\007"
-    command aider "$@"
+  # Restores title always
+  trap 'echo -ne "\033[23;0t"' INT TERM EXIT
+  echo -ne "\033[22;0t" # Push title to stack
+  echo -ne "\033]0;AIDER\007" # Set title
+  command aider "$@"
 }
 alias aider='aider_function'
