@@ -89,8 +89,9 @@ cmd trash %set -f; mv $fx ~/.trash
 # Custom preview command
 cmd preview ${{
     case $(file --mime-type "$f" -b) in
+        text/*) bat --color=always "$f";;
         application/json) jq -C . "$f";;
-        *) lf -remote "send $id \$bat --color=always \"$f\"";;
+        *) file -b "$f";;
     esac
 }}
 
