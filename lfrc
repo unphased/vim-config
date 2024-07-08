@@ -86,17 +86,8 @@ cmd trash %set -f; mv $fx ~/.trash
 # map <delete> trash
 # map <delete> delete
 
-# Custom preview command
-cmd preview ${{
-    case $(file --mime-type "$f" -b) in
-        text/*) bat --color=always "$f";;
-        application/json) jq -C . "$f";;
-        *) file -b "$f";;
-    esac
-}}
 
-# Use the custom preview command
-set previewer preview
+set previewer bat-lf-previewer
 
 # extract the current file with the right command
 # (xkcd link: https://xkcd.com/1168/)
