@@ -2378,10 +2378,13 @@ vim.keymap.set("n", "<Leader>F", ":Oil --float<CR>")
 local function abort_operator_pending_by_hitting_ESC()
   local mode = vim.api.nvim_get_mode().mode
   log('FocusLost: current vim mode:', mode)
+  if mode ~= "^v" then
+    return
+  end
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", true)
 end
 
--- NOTE NOTE which-key v3 will have automatic FocusLost handling, so this MAY be eliminated once the which-key switchover takes place. But this thing may be suitable to leave around to promote sanity. We'll see.
+-- NOTE NOTE which-key v3 will have automatic FocusLost handling, so we might want to eliminate it once the which-key switchover takes place. OTOH this seems to be sane behavior to clear out various non obvious editor states across focus changes, so poking a hole for visual mode should make it largely desirable.
 
 -- Autocmd to abort operator-pending state on FocusLost
 vim.api.nvim_create_autocmd("FocusLost", {
