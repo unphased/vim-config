@@ -2376,8 +2376,12 @@ vim.keymap.set("n", "<Leader>F", ":Oil --float<CR>")
 
 -- Function to abort operator-pending state
 local function abort_operator_pending()
-  if vim.fn.mode(1) == "no" then
-    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", true)
+  local mode = vim.api.nvim_get_mode().mode
+  log('Current mode:', mode)
+  if mode:find('^no') or mode:find('^o') then
+    vim.cmd('stopinsert')
+    vim.cmd('normal! <Esc>')
+    log('Aborted operator-pending state')
   end
 end
 
@@ -2385,7 +2389,9 @@ end
 vim.api.nvim_create_autocmd("FocusLost", {
   callback = function()
     log('FocusLost autocmd running')
-    abort_operator_pending()
+    vim.schedule(function()
+      abort_operator_pending()
+    end)
   end,
   desc = "Abort operator-pending state on FocusLost"
 })
