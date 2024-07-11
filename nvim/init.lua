@@ -662,20 +662,25 @@ local function tmux_window(dir)
   end
 end
 
+-- Global table to store visual selections for each buffer
+_G.visual_selections = {}
+
 local function store_visual_selection()
   local mode = vim.fn.mode()
+  local bufnr = vim.api.nvim_get_current_buf()
   if mode:find('^[vV\22]') then -- visual, visual-line, or visual-block mode
     local vstate = vim.fn.getpos('v')
-    vim.b.stored_visual_selection = { v = vstate, cur = vim.fn.getpos('.') }
+    _G.visual_selections[bufnr] = { v = vstate, cur = vim.fn.getpos('.') }
   else
-    vim.b.stored_visual_selection = nil
+    _G.visual_selections[bufnr] = nil
   end
-  log('store_visual_selection', vim.b.stored_visual_selection)
+  log('store_visual_selection', bufnr, _G.visual_selections[bufnr])
 end
 
 local function restore_visual_selection()
-  log('restore_visual_selection', vim.b.stored_visual_selection)
-  local selection = vim.b.stored_visual_selection
+  local bufnr = vim.api.nvim_get_current_buf()
+  local selection = _G.visual_selections[bufnr]
+  log('restore_visual_selection', bufnr, selection)
 
   if selection then
     -- Set the cursor position
@@ -690,7 +695,7 @@ local function restore_visual_selection()
     else
       log('already in visual mode lets see if assignment via marks works')
     end
-    vim.b.stored_visual_selection = nil -- Clear the stored selection after restoring
+    _G.visual_selections[bufnr] = nil -- Clear the stored selection after restoring
   else
     -- exit visual mode if necessary
     local mode = vim.fn.mode()
