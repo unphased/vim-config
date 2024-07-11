@@ -2377,10 +2377,8 @@ vim.keymap.set("n", "<Leader>F", ":Oil --float<CR>")
 -- Function to abort operator-pending state and close WhichKey
 local function abort_operator_pending_by_hitting_ESC()
   local mode = vim.api.nvim_get_mode().mode
-  log('Current mode:', mode)
-
-  vim.cmd('stopinsert')
-  vim.cmd('normal! <Esc>')
+  log('FocusLost: current vim mode:', mode)
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", true)
 end
 
 -- Autocmd to abort operator-pending state on FocusLost
@@ -2390,7 +2388,7 @@ vim.api.nvim_create_autocmd("FocusLost", {
       abort_operator_pending_by_hitting_ESC()
     end)
   end,
-  desc = "Abort operator-pending state or close WhichKey on FocusLost"
+  desc = "Abort operator-pending state or close WhichKey on FocusLost. Just indiscriminately mashing Esc"
 })
 
 -- vim.api.nvim_create_autocmd("FocusGained", {
