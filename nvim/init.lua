@@ -1414,6 +1414,16 @@ safeRequire("ibl").setup({
 })
 
 function ef_ten(direction)
+    local mode = vim.api.nvim_get_mode().mode
+    local is_visual = mode:sub(1,1) == "v" or mode == "V" or mode == ""
+
+    if is_visual then
+        -- Save the visual selection
+        vim.cmd("normal! gv")
+        local start_pos = vim.fn.getpos("'<")
+        local end_pos = vim.fn.getpos("'>")
+    end
+
     local tmux_panes_count = vim.fn.system("tmux display -p '#{window_panes}'")
     if tmux_panes_count == "1\n" or tmux_panes_count == "failed to connect to server\n" then
         if direction == '+' then
@@ -1423,6 +1433,13 @@ function ef_ten(direction)
         end
     else
         vim.fn.system("tmux select-pane -t :." .. direction)
+    end
+
+    if is_visual then
+        -- Restore the visual selection
+        vim.fn.setpos("'<", start_pos)
+        vim.fn.setpos("'>", end_pos)
+        vim.cmd("normal! gv")
     end
 end
 vim.api.nvim_set_keymap('n', '<F10>', [[:lua ef_ten('+')<CR>]], {noremap = true})
