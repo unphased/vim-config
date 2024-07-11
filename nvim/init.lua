@@ -2372,30 +2372,29 @@ vim.api.nvim_create_autocmd({"Signal"}, {
   desc = "Handle SIGUSR1 signal to quit Neovim"
 })
 
--- Log FocusLost event
-vim.api.nvim_create_autocmd("FocusLost", {
-  callback = function()
-    log("FocusLost event triggered")
-  end,
-  desc = "Log when FocusLost event occurs"
-})
-
 vim.keymap.set("n", "<Leader>F", ":Oil --float<CR>")
 
 -- Function to abort operator-pending state
 local function abort_operator_pending()
   if vim.fn.mode(1) == "no" then
     vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", true)
-    log("Aborted operator-pending state")
   end
 end
 
 -- Autocmd to abort operator-pending state on FocusLost
 vim.api.nvim_create_autocmd("FocusLost", {
   callback = function()
+    log('FocusLost autocmd running')
     abort_operator_pending()
   end,
   desc = "Abort operator-pending state on FocusLost"
+})
+
+vim.api.nvim_create_autocmd("FocusGained", {
+  callback = function ()
+    log('FocusGained autocmd running')
+  end,
+  desc = "FocusGained"
 })
 
 vim.cmd([[
