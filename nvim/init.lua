@@ -2381,6 +2381,8 @@ local function abort_operator_pending_by_hitting_ESC()
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", true)
 end
 
+-- NOTE NOTE which-key v3 will have automatic FocusLost handling, so this MAY be eliminated once the which-key switchover takes place. But this thing may be suitable to leave around to promote sanity. We'll see.
+
 -- Autocmd to abort operator-pending state on FocusLost
 vim.api.nvim_create_autocmd("FocusLost", {
   callback = function()
