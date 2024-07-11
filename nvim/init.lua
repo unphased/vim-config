@@ -1418,15 +1418,6 @@ function ef_ten(direction)
     local is_visual = mode ~= "^v"
     log('ef_ten is_visual', is_visual, mode)
 
-    local start_pos
-    local end_pos
-    if is_visual then
-        -- Save the visual selection
-        vim.cmd("normal! gv")
-        start_pos = vim.fn.getpos("'<")
-        end_pos = vim.fn.getpos("'>")
-    end
-
     local tmux_panes_count = vim.fn.system("tmux display -p '#{window_panes}'")
     if tmux_panes_count == "1\n" or tmux_panes_count == "failed to connect to server\n" then
         if direction == '+' then
@@ -1438,15 +1429,9 @@ function ef_ten(direction)
         vim.fn.system("tmux select-pane -t :." .. direction)
     end
 
-    if is_visual then
-        -- Restore the visual selection
-        vim.fn.setpos("'<", start_pos)
-        vim.fn.setpos("'>", end_pos)
-        vim.cmd("normal! gv")
-    end
 end
-vim.keymap.set({ 'n', 'v' }, '<F10>', [[:lua ef_ten('+')<CR>]], {noremap = true})
-vim.keymap.set({ 'n', 'v' }, '<S-F10>', [[:lua ef_ten('-')<CR>]], {noremap = true})
+vim.keymap.set({ 'n', 'v' }, '<F10>', function () ef_ten('+') end, {noremap = true})
+vim.keymap.set({ 'n', 'v' }, '<S-F10>', function () ef_ten('-') end, {noremap = true})
 
 vim.opt.completeopt="menu,menuone,noselect"
 
