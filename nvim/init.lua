@@ -191,7 +191,7 @@ vim.keymap.set("n", ";", ":")
 vim.keymap.set("n", "P", "P`[")
 
 -- turn F10 into escape
-vim.keymap.set({ "i", "s" }, "<F10>", "<esc>") -- Applies to modes nvois, v should inlude s, but seems to not
+vim.keymap.set({ "v", "i", "s" }, "<F10>", "<esc>") -- Applies to modes nvois, v should inlude s, but seems to not
 vim.keymap.set({ "c" }, "<F10>", "<c-c>")
 
 -- normal and visual mode backspace does what b does
@@ -380,18 +380,6 @@ vim.cmd([[
   endfunc
   inoremap ;wqa<CR> <ESC>:call MyConfirmSaveQuitAll()<CR>
 
-  " If cannot move in a direction, attempt to forward the directive to tmux
-  function! TmuxWindow(dir)
-    let nr=winnr()
-    silent! exe 'wincmd ' . a:dir
-    let newnr=winnr()
-    if newnr == nr && !has("gui_macvim")
-      let cmd = 'tmux select-pane -' . tr(a:dir, 'hjkl', 'LDUR')
-      call system(cmd)
-      " echo 'Executed ' . cmd
-    endif
-  endfun
-
   "   function Blah()
   "   python3 << EOF
   " from os.path import expanduser
@@ -431,16 +419,6 @@ vim.cmd([[
   highlight IlluminatedWordRead gui=bold
 
   highlight MatchParen guibg=#683068
-
-  noremap <silent> <C-H> :<c-u>call TmuxWindow('h')<CR>
-  noremap <silent> <C-J> :<c-u>call TmuxWindow('j')<CR>
-  noremap <silent> <C-K> :<c-u>call TmuxWindow('k')<CR>
-  noremap <silent> <C-L> :<c-u>call TmuxWindow('l')<CR>
-
-  noremap! <silent> <C-H> <ESC>:call TmuxWindow('h')<CR>
-  noremap! <silent> <C-J> <ESC>:call TmuxWindow('j')<CR>
-  noremap! <silent> <C-K> <ESC>:call TmuxWindow('k')<CR>
-  noremap! <silent> <C-L> <ESC>:call TmuxWindow('l')<CR>
 
   nmap ` %
   vmap ` %
@@ -666,6 +644,75 @@ vim.cmd([[
   " set foldmethod=indent
 
 ]])
+
+-- If cannot move in a direction, attempt to forward the directive to tmux
+local function tmux_window(dir)
+  local move_functions = {
+    h = vim.fn.winnr('h'),
+    j = vim.fn.winnr('j'),
+    k = vim.fn.winnr('k'),
+    l = vim.fn.winnr('l')
+  }
+  local target_win = move_functions[dir]
+  if target_win ~= vim.fn.winnr() then -- has somewhere to go
+    vim.api.nvim_set_current_win(vim.fn.win_getid(target_win))
+  else -- at some edge, fallback to tmux
+    local cmd = 'tmux select-pane -' .. string.gsub(dir, '[hjkl]', {h='L', j='D', k='U', l='R'})
+    vim.fn.system(cmd)
+  end
+end
+
+local function store_visual_selection()
+  local mode = vim.fn.mode()
+  if mode:find('^[vV\22]') then -- visual, visual-line, or visual-block mode
+    local vstate = vim.fn.getpos('v')
+    vim.b.stored_visual_selection = { v = vstate, cur = vim.fn.getpos('.') }
+  else
+    vim.b.stored_visual_selection = nil
+  end
+  log('store_visual_selection', vim.b.stored_visual_selection)
+end
+
+local function restore_visual_selection()
+  log('restore_visual_selection', vim.b.stored_visual_selection)
+  local selection = vim.b.stored_visual_selection
+
+  if selection then
+    -- Set the cursor position
+    vim.fn.setpos("'<", selection.v)
+    vim.fn.setpos("'>", selection.cur)
+    
+    -- Enter visual mode if necessary
+    local mode = vim.fn.mode()
+    if not mode:find('^[vV\22]') then -- visual, visual-line, or visual-block mode
+      vim.cmd('normal! gv')
+    end
+    vim.b.stored_visual_selection = nil -- Clear the stored selection after restoring
+  else
+    -- exit visual mode if necessary
+    local mode = vim.fn.mode()
+    if mode:find('^[vV\22]') then -- visual, visual-line, or visual-block mode
+      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', false)
+    end
+  end
+end
+
+local visual_selection_group = vim.api.nvim_create_augroup("VisualSelectionMemory", { clear = true })
+
+vim.api.nvim_create_autocmd("BufLeave", {
+  group = visual_selection_group,
+  callback = store_visual_selection
+})
+
+vim.api.nvim_create_autocmd("BufEnter", {
+  group = visual_selection_group,
+  callback = restore_visual_selection
+})
+
+vim.keymap.set({ "n", "v" }, "<C-h>", function() tmux_window('h') end, { noremap = true, desc = "Move to window on left, overflow to tmux" })
+vim.keymap.set({ "n", "v" }, "<C-j>", function() tmux_window('j') end, { noremap = true, desc = "Move to window below, overflow to tmux" })
+vim.keymap.set({ "n", "v" }, "<C-k>", function() tmux_window('k') end, { noremap = true, desc = "Move to window above, overflow to tmux" })
+vim.keymap.set({ "n", "v" }, "<C-l>", function() tmux_window('l') end, { noremap = true, desc = "Move to window on right, overflow to tmux" })
 
 -- vim.api.nvim_set_keymap('n', '<Leader>t', '<Cmd>lua MoveToNextTab()<CR>', {noremap = true, silent = true})
 
@@ -1430,8 +1477,8 @@ function ef_ten(direction)
     end
 
 end
-vim.keymap.set({ 'n', 'v' }, '<F10>', function () ef_ten('+') end, {noremap = true})
-vim.keymap.set({ 'n', 'v' }, '<S-F10>', function () ef_ten('-') end, {noremap = true})
+vim.keymap.set({ 'n' }, '<F10>', function () ef_ten('+') end, {noremap = true})
+vim.keymap.set({ 'n' }, '<S-F10>', function () ef_ten('-') end, {noremap = true})
 
 vim.opt.completeopt="menu,menuone,noselect"
 
@@ -2318,7 +2365,7 @@ local function nvim_state_update(ev)
   vim.schedule(function()
     local cmd = {vim.env.HOME .. "/util/nvim-update-win.sh", tostring(vim.fn.getpid()), vim.v.servername, vim.fn.getcwd(), ev.file, ev.event}
     local ret = vim.fn.system(cmd)
-    log(ev, cmd, 'nvim-update-win.sh -->', ret)
+    -- log(ev, cmd, 'nvim-update-win.sh -->', ret)
   end)
 end
 
