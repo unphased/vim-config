@@ -685,13 +685,17 @@ local function restore_visual_selection()
     -- Enter visual mode if necessary
     local mode = vim.fn.mode()
     if not mode:find('^[vV\22]') then -- visual, visual-line, or visual-block mode
+      log('not in visual mode, issuing normal gv')
       vim.cmd('normal! gv')
+    else
+      log('already in visual mode lets see if assignment via marks works')
     end
     vim.b.stored_visual_selection = nil -- Clear the stored selection after restoring
   else
     -- exit visual mode if necessary
     local mode = vim.fn.mode()
     if mode:find('^[vV\22]') then -- visual, visual-line, or visual-block mode
+      log('forced exit from visual mode due to no storage')
       vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', false)
     end
   end
