@@ -2388,7 +2388,7 @@ end
 -- Autocmd to abort operator-pending state on FocusLost
 vim.api.nvim_create_autocmd("FocusLost", {
   callback = function()
-    log('FocusLost autocmd running')
+    log('FocusLost')
     vim.schedule(function()
       abort_operator_pending()
     end)
@@ -2398,7 +2398,7 @@ vim.api.nvim_create_autocmd("FocusLost", {
 
 vim.api.nvim_create_autocmd("FocusGained", {
   callback = function ()
-    log('FocusGained autocmd running')
+    log('FocusGained')
   end,
   desc = "FocusGained"
 })
