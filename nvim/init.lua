@@ -191,7 +191,7 @@ vim.keymap.set("n", ";", ":")
 vim.keymap.set("n", "P", "P`[")
 
 -- turn F10 into escape
-vim.keymap.set({ "", "i", "s" }, "<F10>", "<esc>") -- Applies to modes nvois, v should inlude s, but seems to not
+vim.keymap.set({ "i", "s" }, "<F10>", "<esc>") -- Applies to modes nvois, v should inlude s, but seems to not
 vim.keymap.set({ "c" }, "<F10>", "<c-c>")
 
 -- normal and visual mode backspace does what b does
@@ -1415,13 +1415,16 @@ safeRequire("ibl").setup({
 
 function ef_ten(direction)
     local mode = vim.api.nvim_get_mode().mode
-    local is_visual = mode:sub(1,1) == "v" or mode == "V" or mode == ""
+    local is_visual = mode ~= "^v"
+    log('ef_ten is_visual', is_visual, mode)
 
+    local start_pos
+    local end_pos
     if is_visual then
         -- Save the visual selection
         vim.cmd("normal! gv")
-        local start_pos = vim.fn.getpos("'<")
-        local end_pos = vim.fn.getpos("'>")
+        start_pos = vim.fn.getpos("'<")
+        end_pos = vim.fn.getpos("'>")
     end
 
     local tmux_panes_count = vim.fn.system("tmux display -p '#{window_panes}'")
@@ -1442,8 +1445,8 @@ function ef_ten(direction)
         vim.cmd("normal! gv")
     end
 end
-vim.api.nvim_set_keymap('n', '<F10>', [[:lua ef_ten('+')<CR>]], {noremap = true})
-vim.api.nvim_set_keymap('n', '<S-F10>', [[:lua ef_ten('-')<CR>]], {noremap = true})
+vim.keymap.set({ 'n', 'v' }, '<F10>', [[:lua ef_ten('+')<CR>]], {noremap = true})
+vim.keymap.set({ 'n', 'v' }, '<S-F10>', [[:lua ef_ten('-')<CR>]], {noremap = true})
 
 vim.opt.completeopt="menu,menuone,noselect"
 
