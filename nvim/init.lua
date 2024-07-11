@@ -2340,7 +2340,6 @@ require("spider").setup {
   customPatterns = {}, -- check Custom Movement Patterns for details
 }
 
-
 -- vim.fn.matchadd("DiagnosticInfo", "\\(TODO:\\)")
 vim.fn.matchadd("DiagnosticWarn", "\\(HACK:\\)")
 vim.fn.matchadd("DiagnosticWarn", "\\(WARN:\\)")
