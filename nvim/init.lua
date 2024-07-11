@@ -2375,44 +2375,30 @@ vim.api.nvim_create_autocmd({"Signal"}, {
 vim.keymap.set("n", "<Leader>F", ":Oil --float<CR>")
 
 -- Function to abort operator-pending state and close WhichKey
-local function abort_operator_pending()
+local function abort_operator_pending_by_hitting_ESC()
   local mode = vim.api.nvim_get_mode().mode
   log('Current mode:', mode)
-  
-  -- Check if WhichKey is open
-  local which_key_open = vim.fn.exists('g:which_key_is_open') == 1 and vim.g.which_key_is_open == 1
 
-  if mode:find('^no') or mode:find('^o') or which_key_open then
-    vim.cmd('stopinsert')
-    vim.cmd('normal! <Esc>')
-    
-    -- Close WhichKey if it's open
-    if which_key_open then
-      vim.fn['which_key#close']()
-      log('Closed WhichKey')
-    end
-    
-    log('Aborted operator-pending state or closed WhichKey')
-  end
+  vim.cmd('stopinsert')
+  vim.cmd('normal! <Esc>')
 end
 
 -- Autocmd to abort operator-pending state on FocusLost
 vim.api.nvim_create_autocmd("FocusLost", {
   callback = function()
-    log('FocusLost')
     vim.schedule(function()
-      abort_operator_pending()
+      abort_operator_pending_by_hitting_ESC()
     end)
   end,
   desc = "Abort operator-pending state or close WhichKey on FocusLost"
 })
 
-vim.api.nvim_create_autocmd("FocusGained", {
-  callback = function ()
-    log('FocusGained')
-  end,
-  desc = "FocusGained"
-})
+-- vim.api.nvim_create_autocmd("FocusGained", {
+--   callback = function ()
+--     log('FocusGained')
+--   end,
+--   desc = "FocusGained"
+-- })
 
 vim.cmd([[
 
