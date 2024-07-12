@@ -655,68 +655,73 @@ local function tmux_window(dir)
   }
   local target_win = move_functions[dir]
   if target_win ~= vim.fn.winnr() then -- has somewhere to go
-    vim.api.nvim_set_current_win(vim.fn.win_getid(target_win))
+    -- vim.api.nvim_set_current_win(vim.fn.win_getid(target_win))
+    -- so the above would work but is actually too low level and screws visual cursor positions up by failing to reset visual mode state!
+
+    -- so, back to the typical way to switch buffers.
+    vim.cmd('silent! wincmd ' .. dir)
+
   else -- at some edge, fallback to tmux
     local cmd = 'tmux select-pane -' .. string.gsub(dir, '[hjkl]', {h='L', j='D', k='U', l='R'})
     vim.fn.system(cmd)
   end
 end
 
--- Global table to store visual selections for each buffer
-_G.visual_selections = {}
-
-local function store_visual_selection()
-  local mode = vim.fn.mode()
-  local bufnr = vim.api.nvim_get_current_buf()
-  if mode:find('^[vV\22]') then -- visual, visual-line, or visual-block mode
-    local vstate = vim.fn.getpos('v')
-    _G.visual_selections[bufnr] = { v = vstate, cur = vim.fn.getpos('.') }
-  else
-    _G.visual_selections[bufnr] = nil
-  end
-  log('store_visual_selection', bufnr, _G.visual_selections[bufnr])
-end
-
-local function restore_visual_selection()
-  local bufnr = vim.api.nvim_get_current_buf()
-  local selection = _G.visual_selections[bufnr]
-  log('restore_visual_selection', bufnr, selection)
-
-  if selection then
-    -- Set the cursor position
-    vim.fn.setpos("'<", selection.v)
-    vim.fn.setpos("'>", selection.cur)
-    
-    -- Enter visual mode if necessary
-    local mode = vim.fn.mode()
-    if not mode:find('^[vV\22]') then -- visual, visual-line, or visual-block mode
-      log('not in visual mode, issuing normal gv')
-      vim.cmd('normal! gv')
-    else
-      log('already in visual mode lets see if assignment via marks works')
-    end
-    _G.visual_selections[bufnr] = nil -- Clear the stored selection after restoring
-  else
-    -- exit visual mode if necessary
-    local mode = vim.fn.mode()
-    if mode:find('^[vV\22]') then -- visual, visual-line, or visual-block mode
-      log('forced exit from visual mode due to no storage')
-      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', false)
-    end
-  end
-end
-
-local visual_selection_group = vim.api.nvim_create_augroup("VisualSelectionMemory", { clear = true })
-
-vim.api.nvim_create_autocmd("BufLeave", {
-  group = visual_selection_group,
-  callback = store_visual_selection
-})
-
-vim.api.nvim_create_autocmd("BufEnter", {
-  group = visual_selection_group,
-  callback = restore_visual_selection
-})
+-- -- Global table to store visual selections for each buffer
+-- _G.visual_selections = {}
+--
+-- local function store_visual_selection()
+--   local mode = vim.fn.mode()
+--   local bufnr = vim.api.nvim_get_current_buf()
+--   if mode:find('^[vV\22]') then -- visual, visual-line, or visual-block mode
+--     local vstate = vim.fn.getpos('v')
+--     _G.visual_selections[bufnr] = { mode = mode, v = vstate, cur = vim.fn.getpos('.') }
+--   else
+--     _G.visual_selections[bufnr] = nil
+--   end
+--   log('store for ' .. bufnr .. ' mode ' .. (mode:find('^\22') and 'vblock' or mode), _G.visual_selections)
+-- end
+--
+-- local function restore_visual_selection()
+--   local bufnr = vim.api.nvim_get_current_buf()
+--   local selection = _G.visual_selections[bufnr]
+--   local mode = vim.fn.mode()
+--   log('restore for ' .. bufnr .. ' mode ' .. mode, selection)
+--
+--   if selection then
+--     -- Set the cursor position
+--     vim.fn.setpos("'>", selection.v)
+--     vim.fn.setpos("'<", selection.cur)
+--     vim.fn.setpos(".", selection.cur)
+--
+--     -- Enter visual mode if necessary
+--     if not mode:find('^[vV\22]') then -- visual, visual-line, or visual-block mode
+--       log('not in visual mode, issuing normal! gv after setting marks')
+--       vim.cmd('normal! gv')
+--     else
+--       log('already in visual mode, let us see if assignment via marks works')
+--     end
+--     _G.visual_selections[bufnr] = nil -- Clear the stored selection after restoring
+--   else
+--     -- exit visual mode if necessary
+--     if mode:find('^[vV\22]') then -- visual, visual-line, or visual-block mode
+--       log('we forced exit from visual mode due to no storage')
+--       vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', false)
+--     end
+--   end
+-- end
+--
+-- local visual_selection_group = vim.api.nvim_create_augroup("VisualSelectionMemory", { clear = true })
+--
+-- vim.api.nvim_create_autocmd("BufLeave", {
+--   group = visual_selection_group,
+--   callback = store_visual_selection
+-- })
+--
+-- vim.api.nvim_create_autocmd("BufEnter", {
+--   group = visual_selection_group,
+--   callback = restore_visual_selection
+-- })
 
 vim.keymap.set({ "n", "v" }, "<C-h>", function() tmux_window('h') end, { noremap = true, desc = "Move to window on left, overflow to tmux" })
 vim.keymap.set({ "n", "v" }, "<C-j>", function() tmux_window('j') end, { noremap = true, desc = "Move to window below, overflow to tmux" })
@@ -1904,7 +1909,7 @@ vim.cmd([[
 
   hi CursorLine guibg=#393939
 
-  hi Visual term=reverse ctermbg=238 guibg=#655540
+  hi Visual term=reverse ctermbg=238 guibg=#855540
   hi NormalFloat guibg=#232336
   hi NonText guibg=#303030
 
