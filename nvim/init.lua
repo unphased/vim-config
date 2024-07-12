@@ -2444,7 +2444,7 @@ vim.keymap.set("n", "<Leader>F", ":Oil --float<CR>")
 local function abort_operator_pending_by_hitting_ESC()
   local mode = vim.api.nvim_get_mode().mode
   log('FocusLost: current vim mode:', mode)
-  if mode ~= "^v" then
+  if mode:find("^[vV\22]") then
     return
   end
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", true)
