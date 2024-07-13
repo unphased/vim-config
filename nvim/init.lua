@@ -1928,6 +1928,29 @@ vim.cmd([[
 
   highlight @comment.todo.comment cterm=bold,italic guibg=#c04322 guifg=white
 
+
+]])
+
+-- vim.fn.matchadd("DiagnosticInfo", "\\(TODO:\\)")
+vim.fn.matchadd("SpecialWordMatchWarning", "\\(HACK:\\)")
+vim.fn.matchadd("SpecialWordMatchWarning", "\\(WARN:\\)")
+vim.fn.matchadd("SpecialWordMatchWarning", "\\(WARNING:\\)")
+-- vim.fn.matchadd("DiagnosticWarn", "\\(XXX:\\)")
+-- vim.fn.matchadd("@comment.todo.comment", "\\(PERF:\\)")
+-- vim.fn.matchadd("Identifier", "\\(PERFORMANCE:\\)")
+-- vim.fn.matchadd("Identifier", "\\(OPTIM:\\)")
+-- vim.fn.matchadd("Identifier", "\\(OPTIMIZE:\\)")
+-- vim.fn.matchadd("DiagnosticHint", "\\(NOTE:\\)")
+-- vim.fn.matchadd("Identifier", "\\(TEST:\\)")
+-- vim.fn.matchadd("Identifier", "\\(TESTING:\\)")
+-- vim.fn.matchadd("Identifier", "\\(PASSED:\\)")
+-- vim.fn.matchadd("Identifier", "\\(FAILED:\\)")
+
+vim.cmd([[
+
+hi link @comment.warning.comment SpecialWordMatchWarning
+hi SpecialWordMatchWarning cterm=bold,italic guibg=#b3a320 guifg=white
+
 ]])
 
 -- for conflict-marker
@@ -2405,21 +2428,6 @@ require("spider").setup {
   subwordMovement = true,
   customPatterns = {}, -- check Custom Movement Patterns for details
 }
-
--- vim.fn.matchadd("DiagnosticInfo", "\\(TODO:\\)")
-vim.fn.matchadd("DiagnosticWarn", "\\(HACK:\\)")
-vim.fn.matchadd("DiagnosticWarn", "\\(WARN:\\)")
-vim.fn.matchadd("DiagnosticWarn", "\\(WARNING:\\)")
--- vim.fn.matchadd("DiagnosticWarn", "\\(XXX:\\)")
--- vim.fn.matchadd("@comment.todo.comment", "\\(PERF:\\)")
--- vim.fn.matchadd("Identifier", "\\(PERFORMANCE:\\)")
--- vim.fn.matchadd("Identifier", "\\(OPTIM:\\)")
--- vim.fn.matchadd("Identifier", "\\(OPTIMIZE:\\)")
--- vim.fn.matchadd("DiagnosticHint", "\\(NOTE:\\)")
--- vim.fn.matchadd("Identifier", "\\(TEST:\\)")
--- vim.fn.matchadd("Identifier", "\\(TESTING:\\)")
--- vim.fn.matchadd("Identifier", "\\(PASSED:\\)")
--- vim.fn.matchadd("Identifier", "\\(FAILED:\\)")
 
 function toggle_scrolloff()
   local enable = vim.opt_local.scrolloff:get() == 0
