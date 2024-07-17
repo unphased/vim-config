@@ -2288,7 +2288,10 @@ vim.keymap.set('n', '<leader>E', function ()
 require('leap').create_default_mappings()
 -- Or just set to grey directly, e.g. { fg = '#777777' },
 -- if Comment is saturated.
-vim.api.nvim_set_hl(0, 'LeapBackdrop', { link = 'Comment' })
+-- vim.api.nvim_set_hl(0, 'LeapBackdrop', { link = 'Comment' })
+-- set leapbackdrop to a grey bgcolor:
+vim.api.nvim_set_hl(0, 'LeapBackdrop', { bg = '#4f3f3f' })
+vim.api.nvim_set_hl(0, 'LeapLabel', { bg='#ffffff', fg = '#000000', bold=true })
 
 -- a quick way to bufdel cur buffer to make it more practical to manipulate global buflist (poor man organizing bufline)
 -- function CurBufDel()
