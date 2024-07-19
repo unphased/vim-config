@@ -933,6 +933,8 @@ telescope.setup{
         ["<LeftMouse>"] = tele_actions.select_default,
         ["<ScrollWheelDown>"] = tele_actions.preview_scrolling_down,
         ["<ScrollWheelUp>"] = tele_actions.preview_scrolling_up,
+        ["<C-Down>"] = tele_actions.cycle_history_next,
+        ["<C-Up>"] = tele_actions.cycle_history_prev,
       }
     },
     scroll_strategy = "limit",
