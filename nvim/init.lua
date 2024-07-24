@@ -2544,3 +2544,11 @@ vim.cmd([[
 ]])
 
 vim.keymap.set('x', 'gci', ':normal gcc<CR>', { desc = 'Invert comments' })
+
+-- disable treesitter for tmux conf filetype, as it is particularly incapable of parsing my current conf file state.
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = {"tmux"}, -- Replace with the problematic filetypes
+  callback = function()
+    vim.cmd("TSBufDisable highlight")
+  end,
+})
