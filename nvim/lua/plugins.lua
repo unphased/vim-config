@@ -259,6 +259,7 @@ return {
       -- refer to the configuration section below
       plugins = {
         marks = false,
+        registers = false,
       }
     },
     keys = {
