@@ -98,7 +98,7 @@ return {
     keys = {
       {
         "<leader>xx",
-        "<cmd>Trouble diagnostics toggle<cr>",
+        "<cmd>Trouble diagnostics toggle focus=true<cr>",
         desc = "Diagnostics (Trouble)",
       },
       {
@@ -113,7 +113,7 @@ return {
       },
       {
         "<C-t>",
-        "<cmd>Trouble lsp toggle focus=false win.position=bottom<cr>",
+        "<cmd>Trouble lsp toggle focus=true<cr>",
         desc = "LSP Definitions / references / ... (Trouble)",
       },
       {
@@ -127,7 +127,18 @@ return {
         desc = "Quickfix List (Trouble)",
       },
     },
-    opts = {}, -- for default options, refer to the configuration section for custom setup.
+    opts = {
+      preview = {
+        type = "float",
+        relative = "editor",
+        border = "rounded",
+        title = "Preview",
+        title_pos = "center",
+        position = { 2, 10 },
+        size = { width = 0.90, height = 0.8 },
+        zindex = 200,
+      },
+    }, -- for default options, refer to the configuration section for custom setup.
   },
   -- "onsails/lspkind-nvim",
   { "jose-elias-alvarez/null-ls.nvim", dependencies = { 'nvim-lua/plenary.nvim' } },
