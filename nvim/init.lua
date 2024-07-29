@@ -662,8 +662,8 @@ local function tmux_window(dir)
     vim.cmd('silent! wincmd ' .. dir)
 
   else -- at some edge, fallback to tmux
-    local cmd = 'tmux select-pane -' .. string.gsub(dir, '[hjkl]', {h='L', j='D', k='U', l='R'})
-    vim.fn.system(cmd)
+    vim.system({ 'tmux', 'select-pane', '-' .. string.gsub(dir, '[hjkl]', {h='L', j='D', k='U', l='R'}) }):wait()
+    -- this has a race condition. TODO TODO TODO DO THIS: https://github.com/neovim/neovim/discussions/29905#discussioncomment-10182547
   end
 end
 
@@ -2421,12 +2421,12 @@ vim.api.nvim_create_autocmd({"VimLeavePre", "VimEnter"}, {
 })
 
 -- set deadcolumn not to appear for trouble v3 buffers
-vim.api.nvim_create_autocmd({"FileType"}, {
-  pattern = "Trouble",
-  callback = function()
-    vim.opt_local.colorcolumn = ""
-  end
-})
+-- vim.api.nvim_create_autocmd({"FileType"}, {
+--   pattern = "Trouble",
+--   callback = function()
+--     vim.opt_local.colorcolumn = ""
+--   end
+-- })
 
 require("spider").setup {
   skipInsignificantPunctuation = false,
