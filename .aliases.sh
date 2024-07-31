@@ -205,6 +205,7 @@ export GIT_DELTA_HYPERLINK_FORMAT="file://$MACHINE_ID{path}:{line}"
 
 alias git="git --config-env=delta.hyperlinks-file-link-format=GIT_DELTA_HYPERLINK_FORMAT"
 
+### This is bad it breaks terminal state for some reason.
 # aider_function() {
 #   # Restores title always
 #   trap 'echo -ne "\033[23;0t"' INT TERM EXIT
