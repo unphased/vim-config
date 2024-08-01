@@ -230,3 +230,4 @@ function git-undo() {
 # out of the box on macos (it isn't though, on account of /usr/local/n needing chowning) the default path does not work
 # on linux without perm shenanigans. So this is a good way to establish a better N prefix to use.
 export N_PREFIX=$HOME/.n
+export PATH=$N_PREFIX/bin:$PATH
