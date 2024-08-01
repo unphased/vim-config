@@ -225,3 +225,8 @@ function git-undo() {
         echo "Usage: git-undo [drop|revert] [number of commits]"
     fi
 }
+
+# just sets the N prefix to a sane and safe location in home dir. Although the default is reasonable and works almost
+# out of the box on macos (it isn't though, on account of /usr/local/n needing chowning) the default path does not work
+# on linux without perm shenanigans. So this is a good way to establish a better N prefix to use.
+export N_PREFIX=$HOME/.n
