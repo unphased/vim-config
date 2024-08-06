@@ -1910,7 +1910,7 @@ vim.cmd([[
   hi CurSearch cterm=bold ctermfg=black ctermbg=yellow guibg=#ff392a guifg=NONE
   hi IncSearch cterm=bold ctermfg=black ctermbg=cyan guibg=#f04050 guifg=NONE gui=NONE
 
-  hi CursorLine guibg=#19291e
+  hi CursorLine guibg=#181818
   set cursorline
 
   highlight ActiveCursorLine guibg=#222920
