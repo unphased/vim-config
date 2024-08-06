@@ -1921,8 +1921,8 @@ vim.cmd([[
   hi NonText guibg=#303030
 
   " pane/window split style: only vertical split style matters in vim since horizontal splits are made of statuslines.
-  hi VertSplit guifg=#505760
-  hi link NvimTreeWinSeparator VertSplit
+  hi WinSeparator guifg=#606780
+  hi link NvimTreeWinSeparator WinSeparator
   hi NvimTreeNormal guibg=#131320
 
   hi TSPlaygroundFocus guibg=#2f628e
@@ -1961,7 +1961,7 @@ hi SpecialWordMatchWarning cterm=bold,italic guibg=#b3a320 guifg=white
 ]])
 
 -- for conflict-marker
-vim.cmd([[ 
+vim.cmd([[
   " disable the default highlight group
   let g:conflict_marker_highlight_group = ''
 
