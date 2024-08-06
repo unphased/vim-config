@@ -1927,7 +1927,7 @@ vim.cmd([[
   hi NormalFloat guibg=#232336
   hi NonText guibg=#303030
 
-  " pane/window split style: only vertical split style matters in vim since horizontal splits are made of statuslines.
+  " pane/window split: only vertical split style matters in vim since horizontal splits are made of statuslines.
   hi WinSeparator guifg=#606780 guibg=#333338
   hi link NvimTreeWinSeparator WinSeparator
   hi NvimTreeNormal guibg=#131320
