@@ -1913,8 +1913,8 @@ vim.cmd([[
   hi CursorLine guibg=#181818
   set cursorline
 
-  highlight ActiveCursorLine guibg=#222920
-  highlight InactiveCursorLine guibg=#181818
+  highlight ActiveCursorLine guibg=#222e20
+  highlight InactiveCursorLine guibg=#1a1a1a
 
   highlight NormalModeBackground guibg=#050a13
   highlight InsertModeBackground guibg=#101228
