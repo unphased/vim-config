@@ -31,9 +31,11 @@ local function update_winhl(win_id, config, force_mode)
   if mode == 'i' then
     log("Applying insert mode background: " .. config.background.insert)
     table.insert(winhl_list, 'Normal:' .. config.background.insert)
+    table.insert(winhl_list, 'SignColumn:' .. config.background.insert)
   else
     log("Applying normal mode background: " .. config.background.normal)
     table.insert(winhl_list, 'Normal:' .. config.background.normal)
+    table.insert(winhl_list, 'SignColumn:' .. config.background.normal)
   end
 
   -- Set the winhl option
