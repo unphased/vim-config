@@ -14,7 +14,7 @@ local default_config = {
 local winhl_states = {}
 
 -- Function to update winhl
-local function update_winhl(win_id, config)
+local function update_winhl(win_id, config, force_mode)
   win_id = win_id or vim.api.nvim_get_current_win()
   local winhl_list = {}
 
@@ -26,8 +26,8 @@ local function update_winhl(win_id, config)
   end
 
   -- Insert mode state
-  local mode = vim.api.nvim_get_mode().mode
-  log("Current mode: " .. mode)
+  local mode = force_mode or (winhl_states[win_id] and winhl_states[win_id].mode) or 'n'
+  log("Current mode for window " .. win_id .. ": " .. mode)
   if mode == 'i' then
     log("Applying insert mode background: " .. config.background.insert)
     table.insert(winhl_list, 'Normal:' .. config.background.insert)
@@ -38,7 +38,7 @@ local function update_winhl(win_id, config)
 
   -- Set the winhl option
   local winhl_string = table.concat(winhl_list, ',')
-  log("Setting winhl to: " .. winhl_string)
+  log("Setting winhl for window " .. win_id .. " to: " .. winhl_string)
   vim.api.nvim_win_set_option(win_id, 'winhl', winhl_string)
 end
 
@@ -71,11 +71,25 @@ local function setup_autocmds(config)
     end,
   })
 
-  vim.api.nvim_create_autocmd({'InsertEnter', 'InsertLeave'}, {
+  vim.api.nvim_create_autocmd('InsertEnter', {
     group = augroup,
     callback = function()
-      log("InsertEnter/InsertLeave triggered")
-      update_winhl(nil, config)
+      local win_id = vim.api.nvim_get_current_win()
+      log("InsertEnter triggered for window " .. win_id)
+      winhl_states[win_id] = winhl_states[win_id] or {}
+      winhl_states[win_id].mode = 'i'
+      update_winhl(win_id, config, 'i')
+    end,
+  })
+
+  vim.api.nvim_create_autocmd('InsertLeave', {
+    group = augroup,
+    callback = function()
+      local win_id = vim.api.nvim_get_current_win()
+      log("InsertLeave triggered for window " .. win_id)
+      winhl_states[win_id] = winhl_states[win_id] or {}
+      winhl_states[win_id].mode = 'n'
+      update_winhl(win_id, config, 'n')
     end,
   })
 
