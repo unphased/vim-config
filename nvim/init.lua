@@ -1395,10 +1395,6 @@ require("nvim-tree").setup({
 })
 
 
-vim.cmd([[ 
-  set cursorline
-]])
-
 safeRequire("colorizer").setup()
 
 -- general plugin specific binds (TODO: put together when refactoring the plugin configs into files)
@@ -1914,7 +1910,18 @@ vim.cmd([[
   hi CurSearch cterm=bold ctermfg=black ctermbg=yellow guibg=#ff392a guifg=NONE
   hi IncSearch cterm=bold ctermfg=black ctermbg=cyan guibg=#f04050 guifg=NONE gui=NONE
 
-  hi CursorLine guibg=#192919
+  hi CursorLine guibg=#19291e
+  set cursorline
+
+  highlight ActiveCursorLine guibg=#222920
+  highlight InactiveCursorLine guibg=#181818
+
+  " cursorlines based on windows being active! Didn't know i could have this.
+  augroup CursorLineHighlight
+  autocmd!
+  autocmd WinEnter * setlocal winhl=CursorLine:ActiveCursorLine
+  autocmd WinLeave * setlocal winhl=CursorLine:InactiveCursorLine
+  augroup END
 
   hi Visual term=reverse ctermbg=238 guibg=#855540
   hi NormalFloat guibg=#232336
