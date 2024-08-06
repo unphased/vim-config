@@ -2141,7 +2141,12 @@ end, { expr = true, desc = "Incremental Rename" })
 vim.cmd[[let g:lion_squeeze_spaces = 1]]
 
 -- not needed for default settings
-require('deadcolumn').setup{ scope = 'visible' }
+require('deadcolumn').setup{
+  scope = 'visible',
+  blending = {
+    hlgroup = { 'InsertModeBackground', 'bg' }
+  }
+}
 
 -- putting here late so log global is present for it
 safeRequire("heirline_conf.heirline")
