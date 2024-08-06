@@ -1916,12 +1916,12 @@ vim.cmd([[
   highlight ActiveCursorLine guibg=#222920
   highlight InactiveCursorLine guibg=#181818
 
-  " cursorlines based on windows being active! Didn't know i could have this.
-  augroup CursorLineHighlight
-  autocmd!
-  autocmd WinEnter * setlocal winhl=CursorLine:ActiveCursorLine
-  autocmd WinLeave * setlocal winhl=CursorLine:InactiveCursorLine
-  augroup END
+  highlight NormalModeBackground guibg=#050a13
+  highlight InsertModeBackground guibg=#101228
+
+  " just replicating from what zephyr currently sets... These are probably superfluous.
+  highlight Normal guifg=#bbc2cf guibg=#050a13
+  highlight SignColumn guifg=#bbc2cf guibg=#050a13
 
   hi Visual term=reverse ctermbg=238 guibg=#855540
   hi NormalFloat guibg=#232336
@@ -1942,8 +1942,18 @@ vim.cmd([[
 
   highlight @comment.todo.comment cterm=bold,italic guibg=#c04322 guifg=white
 
-
 ]])
+
+require('winhl-manager').setup({
+  cursor_line = {
+    active = 'ActiveCursorLine',
+    inactive = 'InactiveCursorLine'
+  },
+  background = {
+    normal = 'NormalModeBackground',
+    insert = 'InsertModeBackground'
+  }
+})
 
 -- vim.fn.matchadd("DiagnosticInfo", "\\(TODO:\\)")
 vim.fn.matchadd("SpecialWordMatchWarning", "\\(HACK:\\)")
