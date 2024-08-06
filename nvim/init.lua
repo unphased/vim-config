@@ -1914,7 +1914,7 @@ vim.cmd([[
   hi CurSearch cterm=bold ctermfg=black ctermbg=yellow guibg=#ff392a guifg=NONE
   hi IncSearch cterm=bold ctermfg=black ctermbg=cyan guibg=#f04050 guifg=NONE gui=NONE
 
-  hi CursorLine guibg=#393939
+  hi CursorLine guibg=#192919
 
   hi Visual term=reverse ctermbg=238 guibg=#855540
   hi NormalFloat guibg=#232336
