@@ -26,14 +26,20 @@ local function update_winhl(win_id, config)
   end
 
   -- Insert mode state
-  if vim.api.nvim_get_mode().mode == 'i' then
+  local mode = vim.api.nvim_get_mode().mode
+  log("Current mode: " .. mode)
+  if mode == 'i' then
+    log("Applying insert mode background: " .. config.background.insert)
     table.insert(winhl_list, 'Normal:' .. config.background.insert)
   else
+    log("Applying normal mode background: " .. config.background.normal)
     table.insert(winhl_list, 'Normal:' .. config.background.normal)
   end
 
   -- Set the winhl option
-  vim.api.nvim_win_set_option(win_id, 'winhl', table.concat(winhl_list, ','))
+  local winhl_string = table.concat(winhl_list, ',')
+  log("Setting winhl to: " .. winhl_string)
+  vim.api.nvim_win_set_option(win_id, 'winhl', winhl_string)
 end
 
 -- Function to update all windows
@@ -68,6 +74,7 @@ local function setup_autocmds(config)
   vim.api.nvim_create_autocmd({'InsertEnter', 'InsertLeave'}, {
     group = augroup,
     callback = function()
+      log("InsertEnter/InsertLeave triggered")
       update_winhl(nil, config)
     end,
   })
