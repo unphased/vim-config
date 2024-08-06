@@ -57,8 +57,8 @@ vim.o.mousescroll   = 'ver:3,hor:3'
 vim.o.showbreak     = "→ "
 vim.o.linebreak     = true
 vim.o.breakindent   = false
-vim.o.textwidth     = 119
-vim.o.colorcolumn   = "120"
+vim.o.textwidth     = 120
+vim.o.colorcolumn   = "+1"
 
 vim.cmd('autocmd BufEnter * set formatoptions-=ro | set formatoptions+=n')
 vim.cmd('autocmd BufEnter * setlocal formatoptions-=ro | setlocal formatoptions+=n')
@@ -2131,7 +2131,7 @@ end, { expr = true, desc = "Incremental Rename" })
 vim.cmd[[let g:lion_squeeze_spaces = 1]]
 
 -- not needed for default settings
--- safeRequire('deadcolumn').setup{}
+require('deadcolumn').setup{ scope = 'visible' }
 
 -- putting here late so log global is present for it
 safeRequire("heirline_conf.heirline")
