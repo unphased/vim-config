@@ -77,16 +77,17 @@ TESTENV = "testvalue"
 size = 11
 
 [font.bold]
-family = "BitstreamVeraSansMono Nerd Font Mono"
+family = "IosevkaTerm Nerd Font Mono"
 style = "Bold"
 
 [font.italic]
-family = "BitstreamVeraSansMono Nerd Font Mono"
+family = "IosevkaTerm Nerd Font Mono"
 style = "Italic"
 
 [font.normal]
-family = "BitstreamVeraSansMono Nerd Font Mono"
+family = "IosevkaTerm Nerd Font Mono"
 style = "Regular"
+
 
 [font.offset]
 x = 0
