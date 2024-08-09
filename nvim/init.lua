@@ -57,8 +57,8 @@ vim.o.mousescroll   = 'ver:3,hor:3'
 vim.o.showbreak     = "→ "
 vim.o.linebreak     = true
 vim.o.breakindent   = false
-vim.o.textwidth     = 119
-vim.o.colorcolumn   = "120"
+vim.o.textwidth     = 120
+vim.o.colorcolumn   = "+1"
 
 vim.cmd('autocmd BufEnter * set formatoptions-=ro | set formatoptions+=n')
 vim.cmd('autocmd BufEnter * setlocal formatoptions-=ro | setlocal formatoptions+=n')
@@ -1395,10 +1395,6 @@ require("nvim-tree").setup({
 })
 
 
-vim.cmd([[ 
-  set cursorline
-]])
-
 safeRequire("colorizer").setup()
 
 -- general plugin specific binds (TODO: put together when refactoring the plugin configs into files)
@@ -1914,15 +1910,26 @@ vim.cmd([[
   hi CurSearch cterm=bold ctermfg=black ctermbg=yellow guibg=#ff392a guifg=NONE
   hi IncSearch cterm=bold ctermfg=black ctermbg=cyan guibg=#f04050 guifg=NONE gui=NONE
 
-  hi CursorLine guibg=#393939
+  hi CursorLine guibg=#181818
+  set cursorline
+
+  highlight ActiveCursorLine guibg=#222e20
+  highlight InactiveCursorLine guibg=#1a1a1a
+
+  highlight NormalModeBackground guibg=#050a13
+  highlight InsertModeBackground guibg=#101228
+
+  " just replicating from what zephyr currently sets... These are probably superfluous.
+  highlight Normal guifg=#bbc2cf guibg=#050a13
+  highlight SignColumn guifg=#bbc2cf guibg=#050a13
 
   hi Visual term=reverse ctermbg=238 guibg=#855540
   hi NormalFloat guibg=#232336
   hi NonText guibg=#303030
 
-  " pane/window split style: only vertical split style matters in vim since horizontal splits are made of statuslines.
-  hi VertSplit guifg=#505760
-  hi link NvimTreeWinSeparator VertSplit
+  " pane/window split: only vertical split style matters in vim since horizontal splits are made of statuslines.
+  hi WinSeparator guifg=#606780 guibg=#333338
+  hi link NvimTreeWinSeparator WinSeparator
   hi NvimTreeNormal guibg=#131320
 
   hi TSPlaygroundFocus guibg=#2f628e
@@ -1935,8 +1942,18 @@ vim.cmd([[
 
   highlight @comment.todo.comment cterm=bold,italic guibg=#c04322 guifg=white
 
-
 ]])
+
+require('winhl-manager').setup({
+  cursor_line = {
+    active = 'ActiveCursorLine',
+    inactive = 'InactiveCursorLine'
+  },
+  background = {
+    normal = 'NormalModeBackground',
+    insert = 'InsertModeBackground'
+  }
+})
 
 -- vim.fn.matchadd("DiagnosticInfo", "\\(TODO:\\)")
 vim.fn.matchadd("SpecialWordMatchWarning", "\\(HACK:\\)")
@@ -1961,7 +1978,7 @@ hi SpecialWordMatchWarning cterm=bold,italic guibg=#b3a320 guifg=white
 ]])
 
 -- for conflict-marker
-vim.cmd([[ 
+vim.cmd([[
   " disable the default highlight group
   let g:conflict_marker_highlight_group = ''
 
@@ -2124,7 +2141,12 @@ end, { expr = true, desc = "Incremental Rename" })
 vim.cmd[[let g:lion_squeeze_spaces = 1]]
 
 -- not needed for default settings
--- safeRequire('deadcolumn').setup{}
+require('deadcolumn').setup{
+  scope = 'visible',
+  blending = {
+    hlgroup = { 'InsertModeBackground', 'bg' }
+  }
+}
 
 -- putting here late so log global is present for it
 safeRequire("heirline_conf.heirline")
