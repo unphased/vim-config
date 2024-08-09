@@ -9,18 +9,19 @@ binding = {key = "L", mods = "Control|Shift"}
 
 [[hints.enabled]]
 command = "/home/slu/util/alacritty-open-hint-code-loc.sh"
-regex = '(file://)?[-0-9a-z/\._]+:[0-9]+:[0-9]+'
-binding = {key = "K", mods = "Control|Shift"}
+regex = '(file://)?[-0-9a-z/\._]+:[0-9]+(:[0-9]+)?'
+binding = {key = "V", mods = "Control|Shift"}
 mouse = {enabled = true, mods = "Shift"}
 
 [[hints.enabled]]
 command = "xdg-open" # On Linux/BSD
 # command = "open" # On macOS
 # command = { program = "cmd", args = [ "/c", "start", "" ] } # On Windows
-hyperlinks = true
+# hyperlinks = true
 post_processing = true
 persist = false
 mouse.enabled = true
+mouse.mods = "Shift"
 binding = { key = "U", mods = "Control|Shift" }
 regex = "(ipfs:|ipns:|magnet:|mailto:|gemini://|gopher://|https://|http://|news:|file:|git://|ssh:|ftp://)[^\u0000-\u001F\u007F-\u009F<>\"\\s{-}\\^⟨⟩`]+"
 
