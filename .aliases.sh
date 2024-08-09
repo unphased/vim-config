@@ -215,6 +215,14 @@ alias git="git --config-env=delta.hyperlinks-file-link-format=GIT_DELTA_HYPERLIN
 # }
 # alias aider='aider_function'
 
+# Temporarily pointing aider at local install. This may be temporary as pipx does a decent job of maintaining it
+# normally but This is the cleanest way i came up with so far to quickly target a local install IF ONE EXISTS.
+AIDER_VENV_PROGRAM=~/aider/venv/bin/aider
+if [[ -x "$AIDER_VENV_PROGRAM" ]]; then
+  echo "Note: aider is aliased to $AIDER_VENV_PROGRAM."
+  alias aider="$AIDER_VENV_PROGRAM"
+fi
+
 function git-undo() {
     if [ "$1" = "drop" ]; then
         git reset --hard HEAD~${2:-1}
