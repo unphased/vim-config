@@ -77,15 +77,15 @@ TESTENV = "testvalue"
 size = 11
 
 [font.bold]
-family = "IosevkaTerm Nerd Font Mono"
+family = "BitstreamVeraSansMono Nerd Font Mono"
 style = "Bold"
 
 [font.italic]
-family = "IosevkaTerm Nerd Font Mono"
+family = "BitstreamVeraSansMono Nerd Font Mono"
 style = "Italic"
 
 [font.normal]
-family = "IosevkaTerm Nerd Font Mono"
+family = "BitstreamVeraSansMono Nerd Font Mono"
 style = "Regular"
 
 [font.offset]
@@ -109,22 +109,32 @@ mods = "Alt"
 [[keyboard.bindings]]
 action = "ResetFontSize"
 key = "Key0"
-mods = "Command"
+mods = "Shift"
+
+[[keyboard.bindings]]
+action = "ReceiveChar"
+key = "Equals"
+mods = "Control"
 
 [[keyboard.bindings]]
 action = "IncreaseFontSize"
 key = "Equals"
-mods = "Alt"
+mods = "Control|Alt"
 
 [[keyboard.bindings]]
 action = "DecreaseFontSize"
 key = "Minus"
-mods = "Alt"
+mods = "Control|Alt"
 
 [[keyboard.bindings]]
 chars = "\u001F"
 key = "Minus"
 mods = "Control"
+
+# [[keyboard.bindings]]
+# chars = "\u001F"
+# key = "Minus"
+# mods = "Control"
 
 [[keyboard.bindings]]
 chars = "\u001B,"
