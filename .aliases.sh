@@ -215,6 +215,7 @@ alias git="git --config-env=delta.hyperlinks-file-link-format=GIT_DELTA_HYPERLIN
 # }
 # alias aider='aider_function'
 
+# Handy for LLM based auto edits e.g. aider
 function git-undo() {
     if [ "$1" = "drop" ]; then
         git reset --hard HEAD~${2:-1}
@@ -231,3 +232,16 @@ function git-undo() {
 # on linux without perm shenanigans. So this is a good way to establish a better N prefix to use.
 export N_PREFIX=$HOME/.n
 export PATH=$N_PREFIX/bin:$PATH
+# note on some systems specifically ones where i dont set up THIS script, it's fine and low effort to just run n with
+# sudo, it's not like that will affect the user running node.
+
+# Machine specific/contextual visual stuff!
+# - tmux status bar will have a salient color specific to machines/environments. To make this work an env var is
+#   provided for tmux config to leverage.
+# - non tmux shell environment will have entire shell bgcolor set to a subtler version of that color.
+# - root shells will have a salient bgcolor? (not sure about this one as root shell wont be running my zsh and easy to
+# recognize)
+
+# Still planning -- I might try to define these colors in the hardware mac address file. we'll see...
+
+
