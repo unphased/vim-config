@@ -2314,7 +2314,10 @@ vim.keymap.set('n', '<leader>E', function ()
 --   }
 -- })
 
-require('leap').create_default_mappings()
+require('leap').setup{}
+
+vim.keymap.set({'n'}, 's', '<Plug>(leap)')
+
 -- Or just set to grey directly, e.g. { fg = '#777777' },
 -- if Comment is saturated.
 -- vim.api.nvim_set_hl(0, 'LeapBackdrop', { link = 'Comment' })
