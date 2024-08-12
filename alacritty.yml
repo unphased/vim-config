@@ -20,14 +20,14 @@ env:
 # Falls back to size specified by window manager if set to 0x0.
 # (changes require restart)
 window:
-  opacity: 0.92
+  opacity: 0.52
   dimensions:
-    columns: 120
-    lines: 90
+    columns: 170
+    lines: 50
   dynamic_padding: true
   padding:
-    x: 3
-    y: 3
+    x: 2
+    y: 2
   decorations: 'Buttonless'
   option_as_alt: 'OnlyLeft'
 
@@ -112,7 +112,7 @@ colors:
 
   # Default colors
   primary:
-    background: '0x101310'
+    # background: '0x101310'
     foreground: '0xd6d6d6'
 
   # Colors the cursor will use if `custom_cursor_colors` is true
