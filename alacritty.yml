@@ -112,7 +112,7 @@ colors:
 
   # Default colors
   primary:
-    # background: '0x101310'
+    background: '0x101310'
     foreground: '0xd6d6d6'
 
   # Colors the cursor will use if `custom_cursor_colors` is true
@@ -142,6 +142,8 @@ colors:
     magenta: '0xb77ee0'
     cyan:    '0x54ced6'
     white:   '0xffffff'
+
+  transparent_background_colors: true
 
 hints:
   enabled:
