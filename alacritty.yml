@@ -469,6 +469,7 @@ keyboard:
   - { key: '}',    mods: Command|Shift,             chars: "\x1b[2Y"  }
   - { key: '[',    mods: Command,             chars: "\x1b]"  }
   - { key: ']',    mods: Command,             chars: "\x1b["  }
+  - { key: Return,  mods: Command,           action: ToggleSimpleFullscreen }
 
   # - { key: F1,       mods: Super|Control,   chars: "\x1b[1;11P"             }
   # - { key: F2,       mods: Super|Control,   chars: "\x1b[1;11Q"             }
