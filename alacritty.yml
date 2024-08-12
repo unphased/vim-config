@@ -20,7 +20,8 @@ env:
 # Falls back to size specified by window manager if set to 0x0.
 # (changes require restart)
 window:
-  opacity: 0.52
+  opacity: 0.4
+  blur: true
   dimensions:
     columns: 170
     lines: 50
@@ -30,7 +31,6 @@ window:
     y: 2
   decorations: 'Buttonless'
   option_as_alt: 'OnlyLeft'
-
 
 # Font configuration (changes require restart)
 #
