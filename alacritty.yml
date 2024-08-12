@@ -20,8 +20,8 @@ env:
 # Falls back to size specified by window manager if set to 0x0.
 # (changes require restart)
 window:
-  opacity: 0.4
-  blur: true
+  opacity: 0.90
+  blur: false
   dimensions:
     columns: 170
     lines: 50
