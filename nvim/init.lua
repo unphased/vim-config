@@ -2599,6 +2599,8 @@ function MakeTermWindow(command, size)
       vim.schedule(function()
         local win_id = vim.fn.win_getid()
         vim.api.nvim_win_close(win_id, true)
+        -- also need to delete this buffer.
+        vim.api.nvim_buf_delete(bufNum, {force = true})
       end)
     end
   })
@@ -2673,7 +2675,9 @@ if vim.g.neovide then
 
   -- some basic dev workflow edifice we can establish as an outcropping out of neovide:
   -- First, cmd D to git log browsing.
-  -- vim.keymap.set('n', '<D-d>', '')
+  vim.keymap.set('n', '<D-d>', function ()
+    MakeTermWindow('git log -p', '20')
+  end)
   -- horiz split for constructing a 
 
 end
