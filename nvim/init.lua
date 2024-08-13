@@ -2680,7 +2680,10 @@ if vim.g.neovide then
   -- some basic dev workflow edifice we can establish as an outcropping out of neovide:
   -- First, cmd D to git log browsing.
   vim.keymap.set('n', '<D-d>', function ()
-    MakeTermWindow('git log -p', '20', 'Git Log')
+    MakeTermWindow('git --no-pager log -p | head -n1000 | ~/.cargo/bin/delta --pager=cat; read -r -n1 key', '20', 'Git Log')
+  end)
+  vim.keymap.set('n', '<D-z>', function ()
+    MakeTermWindow('echo test; echo path is $PATH', '20', 'test')
   end)
   -- horiz split for constructing a 
 
