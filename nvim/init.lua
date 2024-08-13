@@ -2589,10 +2589,9 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 -- neovide
-
 if vim.g.neovide then
   -- Put anything you want to happen only in Neovide here
-  vim.g.neovide_scroll_animation_far_lines = 30
+  vim.g.neovide_scroll_animation_far_lines = 99999
   -- vim.g.neovide_window_blurred = true
   vim.g.neovide_cursor_vfx_mode = "sonicboom"
   vim.g.neovide_cursor_animation_length = 0.05
@@ -2653,5 +2652,10 @@ if vim.g.neovide then
   vim.g.neovide_light_radius = 5
 
   vim.g.neovide_refresh_rate_idle = 1
+
+  -- some basic dev workflow edifice we can establish as an outcropping out of neovide:
+  -- First, cmd D to git log browsing.
+  -- vim.keymap.set('n', '<D-d>', '')
+  -- horiz split for constructing a 
 
 end
