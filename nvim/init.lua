@@ -2589,13 +2589,13 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 -- helper
-function MakeTermWindow(command, size, name)
+function MakeTermWindowForNeovide(command, size, name)
   vim.cmd('botright ' .. size .. ' new')
 
   local bufNum = vim.api.nvim_get_current_buf()
   vim.bo[bufNum].buftype = 'nofile'
   vim.bo[bufNum].bufhidden = 'hide'
-  local chan_id = vim.fn.termopen({'/bin/sh', '-c', command}, {
+  local chan_id = vim.fn.termopen({'/bin/sh', '-c', command .. '; read -r -n1 key'}, {
     on_exit = function(job_id, exit_code, event_type)
       vim.schedule(function()
         local win_id = vim.fn.win_getid()
@@ -2680,10 +2680,10 @@ if vim.g.neovide then
   -- some basic dev workflow edifice we can establish as an outcropping out of neovide:
   -- First, cmd D to git log browsing.
   vim.keymap.set('n', '<D-d>', function ()
-    MakeTermWindow('git --no-pager log -p | head -n1000 | ~/.cargo/bin/delta --pager=cat; read -r -n1 key', '20', 'Git Log')
+    MakeTermWindowForNeovide('git --no-pager log -p | head -n3000 | ~/.cargo/bin/delta --pager=cat', '20', 'Git Log')
   end)
   vim.keymap.set('n', '<D-z>', function ()
-    MakeTermWindow('echo test; echo path is $PATH', '20', 'test')
+    MakeTermWindowForNeovide('echo test; echo path is $PATH', '20', 'test')
   end)
   -- horiz split for constructing a 
 
