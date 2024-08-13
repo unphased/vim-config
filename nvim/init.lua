@@ -2594,10 +2594,10 @@ function MakeTermWindow(command, size, orientation)
   vim.cmd('botright ' .. size .. ' ' .. split_cmd)
   
   local bufNum = vim.api.nvim_get_current_buf()
-  vim.bo[bufNum].buftype = 'terminal'
+  vim.bo[bufNum].buftype = 'nofile'
   
-  local chan_id = vim.api.nvim_open_term(bufNum, {})
-  vim.api.nvim_chan_send(chan_id, command .. '\n')
+  local chan_id = vim.fn.termopen(command)
+  vim.api.nvim_buf_set_option(bufNum, 'buftype', 'terminal')
 end
 
 -- neovide
