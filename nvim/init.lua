@@ -2595,7 +2595,14 @@ function MakeTermWindow(command, size)
   local bufNum = vim.api.nvim_get_current_buf()
   vim.bo[bufNum].buftype = 'nofile'
   
-  local chan_id = vim.fn.termopen(command)
+  local chan_id = vim.fn.termopen(command, {
+    on_exit = function(job_id, exit_code, event_type)
+      vim.schedule(function()
+        local win_id = vim.fn.win_getid()
+        vim.api.nvim_win_close(win_id, true)
+      end)
+    end
+  })
   vim.api.nvim_buf_set_option(bufNum, 'buftype', 'terminal')
 end
 
