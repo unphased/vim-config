@@ -2589,9 +2589,8 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 -- helper
-function MakeTermWindow(command, size, orientation)
-  local split_cmd = orientation == 'vertical' and 'vnew' or 'new'
-  vim.cmd('botright ' .. size .. ' ' .. split_cmd)
+function MakeTermWindow(command, size)
+  vim.cmd('botright ' .. size .. ' new')
   
   local bufNum = vim.api.nvim_get_current_buf()
   vim.bo[bufNum].buftype = 'nofile'
