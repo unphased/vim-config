@@ -2595,21 +2595,22 @@ function MakeTermWindowForNeovide(command, size, name)
   local bufNum = vim.api.nvim_get_current_buf()
   vim.bo[bufNum].buftype = 'nofile'
   vim.bo[bufNum].bufhidden = 'hide'
-  local chan_id = vim.fn.termopen({'/bin/sh', '-c', command .. '; read -r -n1 key'}, {
+  local chan_id = vim.fn.termopen({'/bin/sh', '-c', command}, {
     on_exit = function(job_id, exit_code, event_type)
-      vim.schedule(function()
-        local win_id = vim.fn.win_getid()
+      -- now that the output is done we scroll us to the top
+      vim.api.nvim_win_set_cursor(0, {1, 0})
+      -- set q keybind ON JUST THIS BUFFER to exit
+      local win_id = vim.fn.win_getid()
+      vim.keymap.set('n', 'q', function()
         vim.api.nvim_win_close(win_id, true)
-        -- also need to delete this buffer.
         vim.api.nvim_buf_delete(bufNum, {force = true})
-      end)
+      end, { noremap = true, silent = true, buffer = bufNum})
     end
   })
   vim.bo[bufNum].buftype = 'terminal'
   if name then
     vim.api.nvim_buf_set_name(bufNum, name)
   end
-  vim.cmd('startinsert') -- Start in insert mode
 end
 
 -- neovide
@@ -2683,7 +2684,7 @@ if vim.g.neovide then
     MakeTermWindowForNeovide('git --no-pager log -p | head -n3000 | ~/.cargo/bin/delta --pager=cat', '20', 'Git Log')
   end)
   vim.keymap.set('n', '<D-z>', function ()
-    MakeTermWindowForNeovide('echo test; echo path is $PATH', '20', 'test')
+    MakeTermWindowForNeovide('echo test; echo path is $PATH; echo here is a hyperlink:; printf "test lol"', '20', 'test')
   end)
   -- horiz split for constructing a 
 
