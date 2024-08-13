@@ -1910,6 +1910,10 @@ vim.cmd([[
   hi CurSearch cterm=bold ctermfg=black ctermbg=yellow guibg=#ff392a guifg=NONE
   hi IncSearch cterm=bold ctermfg=black ctermbg=cyan guibg=#f04050 guifg=NONE gui=NONE
 
+  hi NormalCursor guibg=#00ee00
+  hi InsertCursor guibg=#00eeff
+  set guicursor=n-v-c-sm:block-NormalCursor,i-ci-ve:ver30-InsertCursor,r-cr-o:hor20-ReplaceCursor
+
   hi CursorLine guibg=#181818
   set cursorline
 
@@ -2588,7 +2592,7 @@ vim.api.nvim_create_autocmd("FileType", {
 
 if vim.g.neovide then
   -- Put anything you want to happen only in Neovide here
-  vim.g.neovide_scroll_animation_far_lines = 99999
+  vim.g.neovide_scroll_animation_far_lines = 30
   -- vim.g.neovide_window_blurred = true
   vim.g.neovide_cursor_vfx_mode = "sonicboom"
   vim.g.neovide_cursor_animation_length = 0.05
@@ -2623,6 +2627,7 @@ if vim.g.neovide then
     change_scale_factor(1/1.05)
   end)
 
+  vim.keymap.set('i', '<D-s>', '<ESC>:w<CR>') -- Save
   vim.keymap.set('n', '<D-s>', ':w<CR>') -- Save
   vim.keymap.set('v', '<D-c>', '"+y') -- Copy
   vim.keymap.set('n', '<D-v>', '"+P') -- Paste normal mode
@@ -2635,5 +2640,18 @@ if vim.g.neovide then
   vim.api.nvim_set_keymap('!', '<D-v>', '<C-R>+', { noremap = true, silent = true})
   vim.api.nvim_set_keymap('t', '<D-v>', '<C-R>+', { noremap = true, silent = true})
   vim.api.nvim_set_keymap('v', '<D-v>', '<C-R>+', { noremap = true, silent = true})
+
+  ----- Except... this uses native fullscreen, and it sucks.
+  -- cmd+enter toggles fullscreen
+  -- vim.keymap.set('n', '<D-CR>', function()
+  --   vim.g.neovide_fullscreen = (not vim.g.neovide_fullscreen)
+  -- end, { noremap = true, desc = 'toggle neovide fullscreen' })
+
+  vim.g.neovide_floating_shadow = true
+  vim.g.neovide_floating_z_height = 10
+  vim.g.neovide_light_angle_degrees = 45
+  vim.g.neovide_light_radius = 5
+
+  vim.g.neovide_refresh_rate_idle = 1
 
 end

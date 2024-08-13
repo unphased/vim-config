@@ -1,4 +1,4 @@
-hs.hotkey.bind({"ctrl"}, "space", function()
+hs.hotkey.bind({"alt"}, "space", function()
     local app = hs.application.get("neovide")
     if app then
         if not app:mainWindow() then
