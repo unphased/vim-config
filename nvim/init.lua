@@ -2583,3 +2583,57 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.cmd("TSBufDisable highlight")
   end,
 })
+
+-- neovide
+
+if vim.g.neovide then
+  -- Put anything you want to happen only in Neovide here
+  vim.g.neovide_scroll_animation_far_lines = 99999
+  -- vim.g.neovide_window_blurred = true
+  vim.g.neovide_cursor_vfx_mode = "sonicboom"
+  vim.g.neovide_cursor_animation_length = 0.05
+  vim.g.neovide_hide_mouse_when_typing = true
+  vim.g.neovide_transparency = 0.9
+
+  -- these aucmds here make the buffers stop scrolling when swapping around buffers.
+  vim.api.nvim_create_autocmd("BufLeave", {
+    callback = function()
+      vim.g.neovide_scroll_animation_length = 0
+      -- vim.g.neovide_cursor_animation_length = 0
+    end,
+  })
+  vim.api.nvim_create_autocmd("BufEnter", {
+    callback = function()
+      vim.fn.timer_start(70, function()
+        vim.g.neovide_scroll_animation_length = 0.3
+        -- vim.g.neovide_cursor_animation_length = 0.08
+      end)
+    end,
+  })
+
+  -- this block is for size adjustment
+  vim.g.neovide_scale_factor = 1.0
+  local change_scale_factor = function(delta)
+    vim.g.neovide_scale_factor = vim.g.neovide_scale_factor * delta
+  end
+  vim.keymap.set("n", "<D-=>", function()
+    change_scale_factor(1.05)
+  end)
+  vim.keymap.set("n", "<D-->", function()
+    change_scale_factor(1/1.05)
+  end)
+
+  vim.keymap.set('n', '<D-s>', ':w<CR>') -- Save
+  vim.keymap.set('v', '<D-c>', '"+y') -- Copy
+  vim.keymap.set('n', '<D-v>', '"+P') -- Paste normal mode
+  vim.keymap.set('v', '<D-v>', '"+P') -- Paste visual mode
+  vim.keymap.set('c', '<D-v>', '<C-R>+') -- Paste command mode
+  vim.keymap.set('i', '<D-v>', '<ESC>l"+Pli') -- Paste insert mode
+
+  -- Allow clipboard copy paste in neovim
+  vim.api.nvim_set_keymap('', '<D-v>', '+p<CR>', { noremap = true, silent = true})
+  vim.api.nvim_set_keymap('!', '<D-v>', '<C-R>+', { noremap = true, silent = true})
+  vim.api.nvim_set_keymap('t', '<D-v>', '<C-R>+', { noremap = true, silent = true})
+  vim.api.nvim_set_keymap('v', '<D-v>', '<C-R>+', { noremap = true, silent = true})
+
+end
