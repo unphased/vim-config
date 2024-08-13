@@ -2589,11 +2589,12 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 -- helper
-function MakeTermWindow(command, size)
+function MakeTermWindow(command, size, name)
   vim.cmd('botright ' .. size .. ' new')
 
   local bufNum = vim.api.nvim_get_current_buf()
   vim.bo[bufNum].buftype = 'nofile'
+  vim.bo[bufNum].bufhidden = 'hide'
   local chan_id = vim.fn.termopen({'/bin/sh', '-c', command}, {
     on_exit = function(job_id, exit_code, event_type)
       vim.schedule(function()
@@ -2605,6 +2606,9 @@ function MakeTermWindow(command, size)
     end
   })
   vim.bo[bufNum].buftype = 'terminal'
+  if name then
+    vim.api.nvim_buf_set_name(bufNum, name)
+  end
   vim.cmd('startinsert') -- Start in insert mode
 end
 
@@ -2676,7 +2680,7 @@ if vim.g.neovide then
   -- some basic dev workflow edifice we can establish as an outcropping out of neovide:
   -- First, cmd D to git log browsing.
   vim.keymap.set('n', '<D-d>', function ()
-    MakeTermWindow('git log -p', '20')
+    MakeTermWindow('git log -p', '20', 'Git Log')
   end)
   -- horiz split for constructing a 
 
