@@ -2591,10 +2591,9 @@ vim.api.nvim_create_autocmd("FileType", {
 -- helper
 function MakeTermWindow(command, size)
   vim.cmd('botright ' .. size .. ' new')
-  
+
   local bufNum = vim.api.nvim_get_current_buf()
   vim.bo[bufNum].buftype = 'nofile'
-  
   local chan_id = vim.fn.termopen(command, {
     on_exit = function(job_id, exit_code, event_type)
       vim.schedule(function()
@@ -2603,7 +2602,7 @@ function MakeTermWindow(command, size)
       end)
     end
   })
-  vim.api.nvim_buf_set_option(bufNum, 'buftype', 'terminal')
+  vim.bo[bufNum].buftype = 'terminal'
 end
 
 -- neovide
