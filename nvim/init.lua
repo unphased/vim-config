@@ -2603,6 +2603,7 @@ function MakeTermWindow(command, size)
     end
   })
   vim.bo[bufNum].buftype = 'terminal'
+  vim.cmd('startinsert') -- Start in insert mode
 end
 
 -- neovide
