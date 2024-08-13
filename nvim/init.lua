@@ -2588,6 +2588,18 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
+-- helper
+function MakeTermWindow(command, size, orientation)
+  local split_cmd = orientation == 'vertical' and 'vnew' or 'new'
+  vim.cmd('botright ' .. size .. ' ' .. split_cmd)
+  
+  local bufNum = vim.api.nvim_get_current_buf()
+  vim.bo[bufNum].buftype = 'terminal'
+  
+  local chan_id = vim.api.nvim_open_term(bufNum, {})
+  vim.api.nvim_chan_send(chan_id, command .. '\n')
+end
+
 -- neovide
 if vim.g.neovide then
   -- Put anything you want to happen only in Neovide here
