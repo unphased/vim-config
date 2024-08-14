@@ -1449,7 +1449,7 @@ vim.cmd("highlight IndentBlanklineContextStart gui=underdouble guisp=#66666f")
 vim.cmd("highlight IndentBlanklineIndent1 gui=nocombine guifg=#383838")
 vim.cmd("highlight IndentBlanklineIndent2 gui=nocombine guifg=#484848")
 
-safeRequire("ibl").setup({
+require("ibl").setup({
   debounce = 100,
   indent = {
     char = "▏",
@@ -1653,12 +1653,12 @@ cmp.event:on(
   cmp_autopairs.on_confirm_done()
 )
 
-safeRequire("neodev").setup({
+require("lazydev").setup({
   -- add any options here, or leave empty to use the default settings
 })
 
-safeRequire("mason").setup({})
-safeRequire("mason-lspconfig").setup({
+require("mason").setup({})
+require("mason-lspconfig").setup({
   -- A list of servers to automatically install if they're not already installed. Example: { "rust_analyzer@nightly", "lua_ls" }
   -- This setting has no relation with the `automatic_installation` setting.
   ensure_installed = {
@@ -1677,9 +1677,10 @@ safeRequire("mason-lspconfig").setup({
 
 local null_ls = safeRequire("null-ls")
 
-safeRequire("mason-null-ls").setup({
+require("mason-null-ls").setup({
   ensure_installed = { "shellcheck" },
   automatic_setup = true,
+  automatic_installation = true,
   handlers = {
     function(source_name, methods)
       -- print("mason-null-ls-handler: source_name:" .. source_name)
@@ -1690,7 +1691,7 @@ safeRequire("mason-null-ls").setup({
       -- please add the below.
       safeRequire("mason-null-ls.automatic_setup")(source_name, methods)
     end,
-    pylint = function (source_name, methods)
+    pylint = function ()
       -- need to set PYTHONPATH via --source-roots
       null_ls.register(null_ls.builtins.diagnostics.pylint.with({
         env = function(params)
@@ -1701,13 +1702,13 @@ safeRequire("mason-null-ls").setup({
         end,
       }))
     end,
-    cspell = function(source_name, methods)
+    cspell = function()
       null_ls.register(null_ls.builtins.diagnostics.cspell.with({
         timeout = 20000,
         method = null_ls.methods.DIAGNOSTICS_ON_SAVE,
       }))
     end,
-    cpplint = function(source_name, methods)
+    cpplint = function()
       null_ls.register(null_ls.builtins.diagnostics.cpplint.with({
         args = { '--linelength=240' },
       }))
@@ -1777,7 +1778,7 @@ local lsp_attach = function (x, bufnr)
   vim.keymap.set('n', '<leader>=', function() vim.lsp.buf.format { async = true } end, ext(bufopts, "desc", "Format Buffer"))
 end
 
-safeRequire("mason-lspconfig").setup_handlers {
+require("mason-lspconfig").setup_handlers {
   -- The first entry (without a key) will be the default handler
   -- and will be called for each installed server that doesn't have
   -- a dedicated handler.
@@ -1832,12 +1833,10 @@ safeRequire("mason-lspconfig").setup_handlers {
       on_attach = lsp_attach,
       settings = {
         Lua = {
-          completion = {
-            callSnippet = "Replace"
-          },
           workspace = {
-            -- library = vim.api.nvim_get_runtime_file('', true),
-            checkThirdParty = false, -- THIS IS THE IMPORTANT LINE TO ADD
+            library = {
+              string.format('%s/.hammerspoon/Spoons/EmmyLua.spoon/annotations', os.getenv 'HOME')
+            }
           },
         }
       }

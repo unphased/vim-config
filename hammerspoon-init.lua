@@ -1,3 +1,4 @@
+hs.ipc.cliInstall()
 hs.loadSpoon("EmmyLua")
 
 hs.hotkey.bind({"alt"}, "space", function()

@@ -291,7 +291,7 @@ return {
         require'alpha'.setup(require'alpha.themes.startify'.config)
     end
   },
-  "folke/neodev.nvim",
+  "folke/lazydev.nvim",
   'nvim-lua/plenary.nvim',
   {
     'ruifm/gitlinker.nvim',
