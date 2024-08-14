@@ -2595,20 +2595,18 @@ function MakeTermWindowForNeovide(command, size, name)
   vim.bo[bufNum].buftype = 'nofile'
   vim.bo[bufNum].bufhidden = 'hide'
   vim.keymap.set('n', 'q', function()
-    vim.api.nvim_win_close(win_id, true)
     vim.api.nvim_buf_delete(bufNum, {force = true})
   end, { noremap = true, silent = true, buffer = bufNum})
   local chan_id = vim.fn.termopen({'/bin/sh', '-c', command}, {
     on_exit = function(job_id, exit_code, event_type)
       -- now that the output is done we scroll us to the top
       vim.api.nvim_win_set_cursor(0, {1, 0})
-      -- set q keybind ON JUST THIS BUFFER to exit
-      local win_id = vim.fn.win_getid()
     end
   })
   vim.bo[bufNum].buftype = 'terminal'
   if name then
     vim.api.nvim_buf_set_name(bufNum, name)
+    -- TODO this prevents two from being made at once
   end
 end
 
