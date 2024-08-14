@@ -1,3 +1,5 @@
+hs.loadSpoon("EmmyLua")
+
 hs.hotkey.bind({"alt"}, "space", function()
     local app = hs.application.get("neovide")
     if app then
