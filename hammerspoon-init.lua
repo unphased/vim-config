@@ -12,3 +12,7 @@ hs.hotkey.bind({"alt"}, "space", function()
         hs.application.launchOrFocus("neovide")
     end
 end)
+
+hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
+    hs.execute('open -a Terminal.app /Users/slu/util/screenshot-to-aichat')
+end)
