@@ -14,6 +14,6 @@ hs.hotkey.bind({"alt"}, "space", function()
 end)
 
 hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
-    hs.execute('/usr/sbin/screencapture -i /tmp/screencap.png')
+    hs.execute('bash -c "/usr/sbin/screencapture -i /tmp/screencap.png"')
     hs.execute('open "/Users/slu/.vim/AI screen help.terminal"')
 end)
