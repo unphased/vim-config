@@ -40,24 +40,24 @@ end
 
 hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
     hs.execute('bash -c "/usr/sbin/screencapture -i /tmp/screencap.png"')
-    
+
     local image = hs.image.imageFromPath("/tmp/screencap.png")
     if image then
         local imageView = hs.webview.newBrowser({x = 100, y = 100, w = 640, h = 480})
         imageView:url("file:///tmp/screencap.png")
         imageView:show()
-        
+
         local promptsDir = os.getenv("HOME") .. "/util/prompts"
         local markdownFiles = getMarkdownFiles(promptsDir)
         local buttons = createButtonsFromFiles(markdownFiles)
-        
+
         local chooser = hs.chooser.new(function(choice)
             if choice then
                 choice.fn()
             end
             imageView:delete()
         end)
-        
+
         chooser:choices(buttons)
         chooser:show()
     else
