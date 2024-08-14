@@ -2594,16 +2594,16 @@ function MakeTermWindowForNeovide(command, size, name)
   local bufNum = vim.api.nvim_get_current_buf()
   vim.bo[bufNum].buftype = 'nofile'
   vim.bo[bufNum].bufhidden = 'hide'
+  vim.keymap.set('n', 'q', function()
+    vim.api.nvim_win_close(win_id, true)
+    vim.api.nvim_buf_delete(bufNum, {force = true})
+  end, { noremap = true, silent = true, buffer = bufNum})
   local chan_id = vim.fn.termopen({'/bin/sh', '-c', command}, {
     on_exit = function(job_id, exit_code, event_type)
       -- now that the output is done we scroll us to the top
       vim.api.nvim_win_set_cursor(0, {1, 0})
       -- set q keybind ON JUST THIS BUFFER to exit
       local win_id = vim.fn.win_getid()
-      vim.keymap.set('n', 'q', function()
-        vim.api.nvim_win_close(win_id, true)
-        vim.api.nvim_buf_delete(bufNum, {force = true})
-      end, { noremap = true, silent = true, buffer = bufNum})
     end
   })
   vim.bo[bufNum].buftype = 'terminal'
@@ -2664,11 +2664,11 @@ if vim.g.neovide then
   vim.api.nvim_set_keymap('t', '<D-v>', '<C-R>+', { noremap = true, silent = true})
   vim.api.nvim_set_keymap('v', '<D-v>', '<C-R>+', { noremap = true, silent = true})
 
-  ----- Except... this uses native fullscreen, and it sucks.
+  ----- this uses native fullscreen, and it sucks. will be replaced soon with a hammerspoon solution.
   -- cmd+enter toggles fullscreen
-  -- vim.keymap.set('n', '<D-CR>', function()
-  --   vim.g.neovide_fullscreen = (not vim.g.neovide_fullscreen)
-  -- end, { noremap = true, desc = 'toggle neovide fullscreen' })
+  vim.keymap.set('n', '<D-CR>', function()
+    vim.g.neovide_fullscreen = (not vim.g.neovide_fullscreen)
+  end, { noremap = true, desc = 'toggle neovide fullscreen' })
 
   vim.g.neovide_floating_shadow = true
   vim.g.neovide_floating_z_height = 10
@@ -2679,8 +2679,11 @@ if vim.g.neovide then
 
   -- some basic dev workflow edifice we can establish as an outcropping out of neovide:
   -- First, cmd D to git log browsing.
+  vim.keymap.set('n', '<D-l>', function ()
+    MakeTermWindowForNeovide('git --no-pager log -p | head -n3000 | ~/.cargo/bin/delta --pager=cat', '40', 'Git Log')
+  end)
   vim.keymap.set('n', '<D-d>', function ()
-    MakeTermWindowForNeovide('git --no-pager log -p | head -n3000 | ~/.cargo/bin/delta --pager=cat', '20', 'Git Log')
+    MakeTermWindowForNeovide('git --no-pager diff | ~/.cargo/bin/delta --pager=cat', '40', 'Git Diff')
   end)
   vim.keymap.set('n', '<D-z>', function ()
     MakeTermWindowForNeovide('echo test; echo path is $PATH; echo here is a hyperlink:; printf "test lol"', '20', 'test')
