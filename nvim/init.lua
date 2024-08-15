@@ -2656,6 +2656,15 @@ if vim.g.neovide then
   vim.keymap.set('c', '<D-v>', '<C-R>+') -- Paste command mode
   vim.keymap.set('i', '<D-v>', '<ESC>l"+Pli') -- Paste insert mode
 
+  -- -- so for some reason this does not work with vim.keymap.set but it works like this. something wonky going on.
+  vim.api.nvim_set_keymap('n', '<D-p>', '<M-p>', { noremap = false })
+  -- vim.cmd[[
+  --   nmap <D-p> <m-p>
+  -- ]]
+  -- THIS DOES NOT WORK:
+  -- vim.keymap.set('n', '<D-p>', '<m-p>', { noremap = false })
+
+
   -- Allow clipboard copy paste in neovim
   vim.api.nvim_set_keymap('', '<D-v>', '+p<CR>', { noremap = true, silent = true})
   vim.api.nvim_set_keymap('!', '<D-v>', '<C-R>+', { noremap = true, silent = true})
