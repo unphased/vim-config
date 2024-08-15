@@ -146,12 +146,18 @@ return {
   "inkarkat/vim-ingo-library",
   { "inkarkat/vim-SearchHighlighting", init = function ()
     -- This is set to be disabled in favor of STS *maybe*
-    vim.keymap.set('n', '<CR>', '<Plug>SearchHighlightingStar', { silent = true } )
-    vim.cmd([[
-      nmap <silent> <CR> <Plug>SearchHighlightingStar
-      "" doesn't work
-      " vmap <silent> <CR> <Plug>SearchHighlightingStar
-    ]])
+    vim.keymap.set('n', '<CR>', function ()
+      if vim.bo.buftype == 'quickfix' or vim.bo.buftype == 'loclist' then
+        return '<CR>'
+      else
+        return '<Plug>SearchHighlightingStar'
+      end
+    end, { expr = true })
+    -- vim.cmd([[
+    --   nmap <silent> <CR> <Plug>SearchHighlightingStar
+    --   "" doesn't work
+    --   " vmap <silent> <CR> <Plug>SearchHighlightingStar
+    -- ]])
   end },
   -- {
   --   'VonHeikemen/lsp-zero.nvim',

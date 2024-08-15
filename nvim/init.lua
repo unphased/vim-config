@@ -2516,7 +2516,7 @@ vim.keymap.set("n", "<Leader>F", ":Oil --float<CR>")
 --   desc = "FocusGained"
 -- })
 
-vim.cmd([[
+vim.cmd[[
 
   function! FindQuoteType()
     let l:quote_chars = ['"', "'", '`']
@@ -2575,7 +2575,26 @@ vim.cmd([[
   vnoremap <silent> aq :<C-u>call SelectQuote('a')<CR>
   omap <silent> iq :normal viq<CR>
   omap <silent> aq :normal vaq<CR>
-]])
+
+  " provided by EgZvor from reddit, i am selectively activating some of it
+  " Working with marks
+  " noremap ` '
+  noremap ' `
+  noremap '' ``
+  " noremap `` ''
+  " sunmap '
+  " sunmap `
+  " sunmap ''
+  " sunmap ``
+
+  " Who needs lowercase marks?
+  " for ch in 'abcdefghijklmnopqrstuvwxyz'
+  "   exe 'nnoremap m' . ch .          ' m' . toupper(ch)
+  "   exe 'nnoremap m' . toupper(ch) . ' m' . ch
+  "   exe "nnoremap '" . ch .          ' `' . toupper(ch)
+  "   exe "nnoremap '" . toupper(ch) . ' `' . ch
+  " endfor
+]]
 
 vim.keymap.set('x', 'gci', ':normal gcc<CR>', { desc = 'Invert comments' })
 
