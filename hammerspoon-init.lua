@@ -4,7 +4,7 @@ hs.alert.show("Hammerspoon config reloaded")
 hs.loadSpoon("EmmyLua")
 
 -- watcher object must be assigned to global not to get GC'd
-myWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.vim/hammerspoon-init.lua/", function(files) hs.reload() end):start()
+myWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.vim/hammerspoon-init.lua/", hs.reload):start()
 
 hs.hotkey.bind({"alt"}, "space", function()
     local nv = hs.application.get("neovide")
@@ -21,18 +21,18 @@ hs.hotkey.bind({"alt"}, "space", function()
 end)
 
 -- Toggle Hammerspoon console
+local windowHolder
 hs.hotkey.bind("Ctrl-Cmd", "H", function()
-    if hs.console.hswindow() and hs.console.hswindow():isVisible() then
-        hs.closeConsole()
-        -- Find and focus the frontmost visible application
-        local apps = hs.application.visibleApplications()
-        for _, app in ipairs(apps) do
-            if app:name() ~= "Hammerspoon" then
-                app:activate()
-                break
-            end
+    local hspoon = hs.application(hs.processInfo.processID)
+    local conswin = hspoon:mainWindow()
+    if conswin and hspoon:isFrontmost() then
+        conswin:close()
+        if windowHolder and #windowHolder:role() ~= 0 then
+            windowHolder:becomeMain():focus()
         end
+        windowHolder = nil
     else
+        windowHolder = hs.window.frontmostWindow()
         hs.openConsole()
     end
 end)
