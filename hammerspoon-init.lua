@@ -3,11 +3,13 @@ hs.alert.show("Hammerspoon config reloaded")
 -- hs.ipc.cliInstall()
 hs.loadSpoon("EmmyLua")
 
+-- watcher object must be assigned to global not to get GC'd
 myWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.vim/hammerspoon-init.lua/", function(files) hs.reload() end):start()
 
 hs.hotkey.bind({"alt"}, "space", function()
     local nv = hs.application.get("neovide")
     if nv then
+        print("Type of nv:", type(nv))
         if nv:isFrontmost() then
             nv:hide()
         else

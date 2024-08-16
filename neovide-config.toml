@@ -4,4 +4,4 @@ frame = "none"
 
 [font]
 normal = ["IosevkaTerm Nerd Font Mono"]
-size = 12
+size = 16
