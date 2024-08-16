@@ -24,9 +24,16 @@ end)
 hs.hotkey.bind("Ctrl-Cmd", "H", function()
     if hs.console.hswindow() and hs.console.hswindow():isVisible() then
         hs.closeConsole()
+        -- Find and focus the frontmost visible application
+        local apps = hs.application.visibleApplications()
+        for _, app in ipairs(apps) do
+            if app:name() ~= "Hammerspoon" then
+                app:activate()
+                break
+            end
+        end
     else
         hs.openConsole()
-        -- Note: We don't call hs.focus() here to avoid changing focus when opening the console
     end
 end)
 
