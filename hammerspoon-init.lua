@@ -20,9 +20,15 @@ hs.hotkey.bind({"alt"}, "space", function()
     end
 end)
 
--- open hammerspoon console, as its very useful to troubleshoot issues
+-- Toggle Hammerspoon console
 hs.hotkey.bind("Ctrl-Cmd", "H", function()
-    hs.openConsole()
+    local console = hs.console.hswindow()
+    if console and console:isVisible() and console:isFocused() then
+        console:hide()
+    else
+        hs.openConsole()
+        hs.focus()
+    end
 end)
 
 local function getMarkdownFiles(directory)
