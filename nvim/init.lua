@@ -1143,7 +1143,9 @@ telescope.setup{
 
 local telescope_builtin = safeRequire("telescope.builtin")
 vim.keymap.set("n", "<c-p>", function ()
-  telescope_builtin.find_files({ find_command = { 'fd', '--type', 'f' } })
+  -- explicitly giving most likely path for fd because sometimes we launch neovim in neovide through a basic shell
+  -- without cargo in PATH.
+  telescope_builtin.find_files({ find_command = { os.getenv('HOME').. '/.cargo/bin/fd', '--type', 'f' } })
 end)
 -- hard to believe ctrl+G was not already bound by vim
 vim.keymap.set('n', '<c-g>', '<cmd>AdvancedGitSearch<CR>')
@@ -2633,7 +2635,7 @@ function MakeTermWindowVimAsPager(command, size, name)
       vim.api.nvim_win_set_cursor(0, {1, 0})
     end
   })
-  vim.bo[bufNum].buftype = 'terminal'
+  -- vim.bo[bufNum].buftype = 'terminal'
   if name then
     vim.api.nvim_buf_set_name(bufNum, name)
     -- TODO find a way to change name to prevent buf name clash
@@ -2656,6 +2658,7 @@ function MakeSimpleTermForCmd(command, size, name)
       vim.api.nvim_buf_delete(bufNum, {force = true})
     end
   })
+  vim.cmd('startinsert')
   -- vim.bo[bufNum].buftype = 'terminal'
   if name then
     vim.api.nvim_buf_set_name(bufNum, name)
@@ -2781,7 +2784,12 @@ if vim.g.neovide then
     MakeSimpleTermForCmd('~/util/commit-push-interactive.sh', '20', 'Git Commit')
   end)
 
+  vim.keymap.set('n', '<D-t>', function ()
+    MakeSimpleTermForCmd('zsh', '25', 'zsh')
+  end)
+
   -- override osc52 yank (not useful in neovide) with regular yank
   vim.keymap.set("n", "<leader>y", '"+y', { desc = "Copy to + clipboard (neovide override)" })
+  vim.keymap.set("n", "<leader>Y", 'ggVG"+y', { desc = "Copy entire buffer to clipboard (neovide override)"})
 
 end
