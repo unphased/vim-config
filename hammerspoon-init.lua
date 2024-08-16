@@ -42,6 +42,8 @@ hs.hotkey.bind("Ctrl-Cmd", "H", function()
     end
 end)
 
+
+
 local function getMarkdownFiles(directory)
     local files = hs.fs.dir(directory)
     local markdownFiles = {}

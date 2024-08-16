@@ -2609,8 +2609,8 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
--- helper
-function MakeTermWindowForNeovide(command, size, name)
+-- helper, very sad no hyperlink support in neovim yet. don't send in a long running command.
+function MakeTermWindowVimAsPager(command, size, name)
   vim.cmd('botright ' .. size .. ' new')
 
   local bufNum = vim.api.nvim_get_current_buf()
@@ -2628,7 +2628,7 @@ function MakeTermWindowForNeovide(command, size, name)
   vim.bo[bufNum].buftype = 'terminal'
   if name then
     vim.api.nvim_buf_set_name(bufNum, name)
-    -- TODO this prevents two from being made at once
+    -- TODO find a way to change name to prevent buf name clash
   end
 end
 
@@ -2709,15 +2709,16 @@ if vim.g.neovide then
   -- some basic dev workflow edifice we can establish as an outcropping out of neovide:
   -- First, cmd D to git log browsing.
   vim.keymap.set('n', '<D-l>', function ()
-    MakeTermWindowForNeovide('git --no-pager log -p | head -n3000 | ~/.cargo/bin/delta --pager=cat', '40', 'Git Log')
+    MakeTermWindowVimAsPager('git --no-pager log -p | head -n3000 | ~/.cargo/bin/delta --pager=cat', '40', 'Git Log')
   end)
   vim.keymap.set('n', '<D-d>', function ()
-    MakeTermWindowForNeovide('git --no-pager diff | ~/.cargo/bin/delta --pager=cat', '40', 'Git Diff')
+    MakeTermWindowVimAsPager('git --no-pager diff | ~/.cargo/bin/delta --pager=cat', '40', 'Git Diff')
   end)
   vim.keymap.set('n', '<D-z>', function ()
-    MakeTermWindowForNeovide('echo test; echo path is $PATH; echo here is a hyperlink:; printf "test lol"', '20', 'test')
+    MakeTermWindowVimAsPager('echo test; echo path is $PATH; echo here is a hyperlink:; printf "test lol"', '20', 'test')
   end)
-  -- horiz split for constructing a 
+
+  vim.keymap.set('n', '<D-z>', term)
 
 
   -- override osc52 yank (not useful in neovide) with regular yank
