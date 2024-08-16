@@ -2769,7 +2769,7 @@ if vim.g.neovide then
     MakeTermWindowVimAsPager('echo test; echo path is $PATH; echo here is a hyperlink:; printf "test lol"', '20', 'test')
   end)
 
-  -- commit
+  -- commit (ah this is a bit ridiculous opening vim to write a msg inside vim lol)
   vim.keymap.set('n', '<D-c>', function ()
     -- run ~/util/commit-push-interactive.sh in a terminal split
     MakeSimpleTermForCmd('~/util/commit-push-interactive.sh', '20', 'Git Commit')
