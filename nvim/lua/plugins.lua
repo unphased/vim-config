@@ -481,5 +481,12 @@ return {
       {"nvim-telescope/telescope.nvim"},
       {"stevearc/dressing.nvim"} -- optional: to have the same UI shown in the GIF
     }
+  },
+  {
+    "folke/persistence.nvim",
+    event = "BufReadPre", -- this will only start session saving when an actual file was opened
+    opts = {
+      -- add any custom options here
+    }
   }
 }

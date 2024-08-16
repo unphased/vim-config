@@ -2596,7 +2596,10 @@ vim.cmd[[
   " endfor
 ]]
 
-vim.keymap.set('x', 'gci', ':normal gcc<CR>', { desc = 'Invert comments' })
+-- this is useful for sections of code with two alternative impls to toggle between.
+vim.keymap.set('x', 'gci', ':normal gcc<CR>', { desc = 'Invert comments per line' })
+
+
 
 -- disable treesitter for tmux conf filetype, as it is particularly incapable of parsing my current conf file state.
 vim.api.nvim_create_autocmd("FileType", {
@@ -2635,7 +2638,7 @@ if vim.g.neovide then
   vim.g.neovide_scroll_animation_far_lines = 99999
   -- vim.g.neovide_window_blurred = true
   vim.g.neovide_cursor_vfx_mode = "sonicboom"
-  vim.g.neovide_cursor_animation_length = 0.05
+  vim.g.neovide_cursor_animation_length = 0.03
   vim.g.neovide_hide_mouse_when_typing = true
   vim.g.neovide_transparency = 0.9
 
@@ -2715,5 +2718,9 @@ if vim.g.neovide then
     MakeTermWindowForNeovide('echo test; echo path is $PATH; echo here is a hyperlink:; printf "test lol"', '20', 'test')
   end)
   -- horiz split for constructing a 
+
+
+  -- override osc52 yank (not useful in neovide) with regular yank
+  vim.keymap.set("n", "<leader>y", '"+y', { desc = "Copy to + clipboard (neovide override)" })
 
 end
