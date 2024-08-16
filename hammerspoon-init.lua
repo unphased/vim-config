@@ -20,7 +20,7 @@ hs.hotkey.bind({"alt"}, "space", function()
     end
 end)
 
--- Toggle Hammerspoon console
+-- Toggle Hammerspoon console. records focused window on open, so may return to the wrong window upon using it to close.
 local windowHolder
 hs.hotkey.bind("Ctrl-Cmd", "H", function()
     local hspoon = hs.application(hs.processInfo.processID)
