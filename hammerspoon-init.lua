@@ -1,24 +1,33 @@
 hs.alert.show("Hammerspoon config reloaded")
 
-hs.ipc.cliInstall()
+-- hs.ipc.cliInstall()
 hs.loadSpoon("EmmyLua")
 
 myWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.vim/hammerspoon-init.lua/", function(files) hs.reload() end):start()
 
 hs.hotkey.bind({"alt"}, "space", function()
-    local app = hs.application.get("neovide")
-    if app then
-        if not app:mainWindow() then
-            print('never happens (neovide no main window)')
-            -- app:selectMenuItem({"kitty", "New OS window"})
-        elseif app:isFrontmost() then
-            app:hide()
+    -- local app = hs.application.get("neovide")
+    -- if app then
+    --     if not app:mainWindow() then
+    --         print('never happens (neovide no main window)')
+    --         -- app:selectMenuItem({"kitty", "New OS window"})
+    --     elseif app:isFrontmost() then
+    --         app:hide()
+    --     else
+    --         app:activate()
+    --     end
+    -- else
+        local nv = hs.application.get("neovide")
+        if nv then
+            if nv:isFrontmost() then
+                nv:hide()
+            else
+                nv:activate()
+            end
         else
-            app:activate()
+            os.execute("pushd /Users/slu/.vim; /opt/homebrew/bin/neovide")
         end
-    else
-        hs.application.launchOrFocus("neovide")
-    end
+    -- end
 end)
 
 local function getMarkdownFiles(directory)
