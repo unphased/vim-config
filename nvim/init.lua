@@ -2599,7 +2599,12 @@ vim.cmd[[
 -- this is useful for sections of code with two alternative impls to toggle between.
 vim.keymap.set('x', 'gci', ':normal gcc<CR>', { desc = 'Invert comments per line' })
 
-
+require('possession').setup{
+  autosave = {
+    cwd = true
+  },
+  -- autoload = 'last_cwd'
+}
 
 -- disable treesitter for tmux conf filetype, as it is particularly incapable of parsing my current conf file state.
 vim.api.nvim_create_autocmd("FileType", {

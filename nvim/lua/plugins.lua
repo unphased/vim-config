@@ -457,13 +457,13 @@ return {
     config = true,
   },
   'skwee357/nvim-prose',
-  {
-    "mhanberg/output-panel.nvim",
-    event = "VeryLazy",
-    config = function()
-      require("output_panel").setup()
-    end
-  },
+  -- { -- -- does not play nice with possession for some reason
+  --   "mhanberg/output-panel.nvim",
+  --   event = "VeryLazy",
+  --   config = function()
+  --     require("output_panel").setup()
+  --   end
+  -- },
   "tris203/precognition.nvim",
   {
     'stevearc/oil.nvim',
@@ -482,11 +482,5 @@ return {
       {"stevearc/dressing.nvim"} -- optional: to have the same UI shown in the GIF
     }
   },
-  {
-    "folke/persistence.nvim",
-    event = "BufReadPre", -- this will only start session saving when an actual file was opened
-    opts = {
-      -- add any custom options here
-    }
-  }
+  'jedrzejboczar/possession.nvim'
 }
