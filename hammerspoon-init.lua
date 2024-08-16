@@ -17,7 +17,7 @@ hs.hotkey.bind({"alt"}, "space", function()
             app:activate()
         end
     else
-        hs.execute("bash -c 'open -a Terminal'")
+        hs.application.launchOrFocus("neovide")
     end
 end)
 
