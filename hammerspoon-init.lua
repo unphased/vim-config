@@ -11,6 +11,38 @@ myWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.vim/hammerspoon-init.lua/
     end)
 end):start()
 
+function cycleNeovideWindows()
+    local current = hs.window.focusedWindow()
+
+    local items = hs.fnutils.imap({hs.application.find('com.neovide.neovide')}, function(app)
+        local title = app:title()
+        local status
+        local win = app:mainWindow()
+
+        if win ~= nil then
+            title = win:title()
+        end
+
+        if win == current then
+            status = '[CURRENT]'
+        end
+
+        return {
+            text = title,
+            subText = status,
+            pid = app:pid(),
+        }
+    end)
+
+    local callback = function(result)
+        hs.application.applicationForPID(result.pid):activate()
+    end
+
+    hs.chooser.new(callback):choices(items):show()
+end
+
+-- hs.hotkey.bind({'cmd', 'ctrl'}, '`', cycleNeovideWindows)
+
 hs.hotkey.bind({"alt"}, "space", function()
     local nv = hs.application.get("neovide")
     if nv then
