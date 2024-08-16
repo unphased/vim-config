@@ -26,7 +26,6 @@ hs.hotkey.bind("Ctrl-Cmd", "H", function()
         hs.closeConsole()
     else
         hs.openConsole()
-        hs.focus()
     end
 end)
 
