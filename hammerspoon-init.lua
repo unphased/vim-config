@@ -16,8 +16,13 @@ hs.hotkey.bind({"alt"}, "space", function()
             nv:activate()
         end
     else
-        os.execute("pushd /Users/slu/.vim; /opt/homebrew/bin/neovide")
+        os.execute("pushd /Users/slu/.vim; /opt/homebrew/bin/neovide &")
     end
+end)
+
+-- open hammerspoon console, as its very useful to troubleshoot issues
+hs.hotkey.bind("Ctrl-Cmd", "H", function()
+    hs.openConsole()
 end)
 
 local function getMarkdownFiles(directory)
