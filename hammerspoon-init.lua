@@ -23,7 +23,7 @@ end)
 -- Toggle Hammerspoon console
 hs.hotkey.bind("Ctrl-Cmd", "H", function()
     local console = hs.console.hswindow()
-    if console and console:isVisible() and console:isFocused() then
+    if console and console:isVisible() then
         console:hide()
     else
         hs.openConsole()
