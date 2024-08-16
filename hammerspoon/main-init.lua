@@ -2,7 +2,7 @@
 hs.loadSpoon("EmmyLua")
 
 -- watcher object must be assigned to global not to get GC'd
-myWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.vim/hammerspoon-init.lua/", function(files)
+myWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.vim/hammerspoon/main-init.lua", function(files)
     -- Use a timer to delay the reload slightly
     hs.timer.doAfter(0.5, function()
         hs.reload()
@@ -71,8 +71,6 @@ hs.hotkey.bind("Ctrl-Cmd", "H", function()
         hs.openConsole()
     end
 end)
-
-
 
 local function getMarkdownFiles(directory)
     local files = hs.fs.dir(directory)
