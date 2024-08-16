@@ -857,7 +857,7 @@ vim.g.matchup_transmute_enabled = 1
 vim.opt.titlestring = "NVIM %f%h%m%r%w (%{tabpagenr()} of %{tabpagenr('$')})"
 
 -- plugin settings
-safeRequire("gitsigns").setup({
+require("gitsigns").setup({
   on_attach = function (bufnr)
     local gs = package.loaded.gitsigns
     local function map(mode, l, r, opts)
@@ -907,7 +907,7 @@ safeRequire("gitsigns").setup({
     changedelete = { text = "~", show_count = true },
     untracked = { text = "┆" },
   },
-  show_deleted = true,
+  show_deleted = false,
   numhl = true, -- Toggle with `:Gitsigns toggle_numhl`
   linehl = false, -- Toggle with `:Gitsigns toggle_linehl`
   word_diff = true, -- Toggle with `:Gitsigns toggle_word_diff`
@@ -2614,8 +2614,10 @@ function MakeTermWindowVimAsPager(command, size, name)
   vim.cmd('botright ' .. size .. ' new')
 
   local bufNum = vim.api.nvim_get_current_buf()
+  local winNum = vim.api.nvim_get_current_win()
   vim.bo[bufNum].buftype = 'nofile'
   vim.bo[bufNum].bufhidden = 'hide'
+  vim.wo[winNum].signcolumn = 'no'
   vim.keymap.set('n', 'q', function()
     vim.api.nvim_buf_delete(bufNum, {force = true})
   end, { noremap = true, silent = true, buffer = bufNum})
@@ -2631,6 +2633,55 @@ function MakeTermWindowVimAsPager(command, size, name)
     -- TODO find a way to change name to prevent buf name clash
   end
 end
+
+-- a one off terminal to run something and closes after
+function MakeSimpleTermForCmd(command, size, name)
+  vim.cmd('botright ' .. size .. ' new')
+
+  local bufNum = vim.api.nvim_get_current_buf()
+  local winNum = vim.api.nvim_get_current_win()
+  vim.bo[bufNum].buftype = 'nofile'
+  vim.bo[bufNum].bufhidden = 'hide'
+  vim.wo[winNum].number = false
+  vim.wo[winNum].signcolumn = 'no'
+
+  local chan_id = vim.fn.termopen({'/bin/sh', '-c', command}, {
+    on_exit = function(job_id, exit_code, event_type)
+      vim.api.nvim_buf_delete(bufNum, {force = true})
+    end
+  })
+  -- vim.bo[bufNum].buftype = 'terminal'
+  if name then
+    vim.api.nvim_buf_set_name(bufNum, name)
+    -- TODO find a way to change name to prevent buf name clash
+  end
+end
+
+-- open a terminal running shell. command works like a toggle
+vim.cmd[[
+  " Terminal Function
+  let g:term_buf = 0
+  let g:term_win = 0
+  function! TermToggle(height)
+    if win_gotoid(g:term_win)
+      hide
+    else
+      botright new
+      exec "resize " . a:height
+      try
+        exec "buffer " . g:term_buf
+      catch
+        call termopen($SHELL, {"detach": 0})
+        let g:term_buf = bufnr("")
+        set nonumber
+        set norelativenumber
+        set signcolumn=no
+      endtry
+      startinsert!
+      let g:term_win = win_getid()
+    endif
+  endfunction
+]]
 
 -- neovide
 if vim.g.neovide then
@@ -2718,8 +2769,11 @@ if vim.g.neovide then
     MakeTermWindowVimAsPager('echo test; echo path is $PATH; echo here is a hyperlink:; printf "test lol"', '20', 'test')
   end)
 
-  vim.keymap.set('n', '<D-z>', term)
-
+  -- commit
+  vim.keymap.set('n', '<D-c>', function ()
+    -- run ~/util/commit-push-interactive.sh in a terminal split
+    MakeSimpleTermForCmd('~/util/commit-push-interactive.sh', '20', 'Git Commit')
+  end)
 
   -- override osc52 yank (not useful in neovide) with regular yank
   vim.keymap.set("n", "<leader>y", '"+y', { desc = "Copy to + clipboard (neovide override)" })
