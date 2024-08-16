@@ -2599,11 +2599,12 @@ vim.cmd[[
 -- this is useful for sections of code with two alternative impls to toggle between.
 vim.keymap.set('x', 'gci', ':normal gcc<CR>', { desc = 'Invert comments per line' })
 
-require('possession').setup{
-  autosave = {
-    cwd = true
-  },
-  -- autoload = 'last_cwd'
+local sess_man_conf = require('session_manager.config')
+require('session_manager').setup{
+  autoload_mode = {
+    sess_man_conf.AutoloadMode.CurrentDir,
+    -- sess_man_conf.AutoloadMode.LastSession
+  }
 }
 
 -- disable treesitter for tmux conf filetype, as it is particularly incapable of parsing my current conf file state.

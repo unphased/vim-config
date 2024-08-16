@@ -482,5 +482,5 @@ return {
       {"stevearc/dressing.nvim"} -- optional: to have the same UI shown in the GIF
     }
   },
-  'jedrzejboczar/possession.nvim'
+  'Shatur/neovim-session-manager'
 }
