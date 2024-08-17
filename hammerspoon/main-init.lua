@@ -85,6 +85,7 @@ end
 local function getAllSessions()
     print("Getting all sessions...")
     local sessions = {}
+    local runningPaths = {}
     
     -- Add running Neovide instances
     local neovideInstances = findNeovideInstances()
@@ -96,23 +97,28 @@ local function getAllSessions()
                 path = cwd,
                 app = app
             })
+            runningPaths[cwd] = true
             print("Added running Neovide instance: " .. cwd)
         else
             print("Warning: Could not get working directory for Neovide instance with PID: " .. app:pid())
         end
     end
     
-    -- Add session files
+    -- Add session files that are not already running
     local sessionFiles = findSessionFiles()
     for _, file in ipairs(sessionFiles) do
-        table.insert(sessions, {
-            type = "file",
-            path = file
-        })
-        print("Added session file: " .. file)
+        if not runningPaths[file] then
+            table.insert(sessions, {
+                type = "file",
+                path = file
+            })
+            print("Added session file: " .. file)
+        else
+            print("Skipped session file (already running): " .. file)
+        end
     end
     
-    print("Total sessions found: " .. #sessions)
+    print("Total unique sessions found: " .. #sessions)
     return sessions
 end
 
