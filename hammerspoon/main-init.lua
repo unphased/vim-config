@@ -105,6 +105,8 @@ local function getAllSessions()
                 app = app
             })
             print("Added running Neovide instance: " .. cwd)
+        else
+            print("Warning: Could not get working directory for Neovide instance with PID: " .. app:pid())
         end
     end
     
@@ -126,7 +128,7 @@ function neovideSessions()
     print("Starting neovideSessions function...")
     local sessions = getAllSessions()
     local items = hs.fnutils.imap(sessions, function(session)
-        local text = session.path
+        local text = session.path or "Unknown path"
         local subText = session.type == "running" and "Running" or "Session file"
         print("Creating chooser item: " .. text .. " (" .. subText .. ")")
         return {
