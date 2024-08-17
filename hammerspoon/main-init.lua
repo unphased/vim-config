@@ -31,8 +31,16 @@ local home = os.getenv("HOME")
 local function findNeovideInstances()
     print("Finding Neovide instances...")
     local instances = hs.application.find('com.neovide.neovide')
-    print("Found " .. #instances .. " Neovide instance(s)")
-    return instances
+    local instancesTable = {}
+    if instances then
+        if type(instances) == "table" then
+            instancesTable = instances
+        else
+            table.insert(instancesTable, instances)
+        end
+    end
+    print("Found " .. #instancesTable .. " Neovide instance(s)")
+    return instancesTable
 end
 
 -- Get the working directory of a Neovide instance
