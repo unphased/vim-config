@@ -45,12 +45,15 @@ end
 -- Find existing session files
 local function findSessionFiles()
     local sessionDir = home .. "/.local/share/nvim/sessions"
-    local files = hs.fs.dir(sessionDir)
     local sessions = {}
-    for file in files do
-        if file:match("%.vim$") then
-            table.insert(sessions, sessionDir .. "/" .. file)
+    if hs.fs.attributes(sessionDir, "mode") == "directory" then
+        for file in hs.fs.dir(sessionDir) do
+            if file:match("%.vim$") then
+                table.insert(sessions, sessionDir .. "/" .. file)
+            end
         end
+    else
+        hs.alert.show("Session directory not found: " .. sessionDir)
     end
     return sessions
 end
