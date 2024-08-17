@@ -68,9 +68,9 @@ local function findSessionFiles()
         for file in hs.fs.dir(sessionDir) do
             if file ~= "." and file ~= ".." then
                 print("Found file: " .. file, type(file))
-                local s = file:gsub("__", "/")
+                local s = file:gsub("__", "/"):gsub('^' .. home, "~")
                 print("Converted to: " .. s)
-                table.insert(sessions, file:gsub("__", "/"))
+                table.insert(sessions, s)
             end
         end
     else
