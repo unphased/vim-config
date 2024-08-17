@@ -66,11 +66,9 @@ local function findSessionFiles()
         local iter, dir_obj = hs.fs.dir(sessionDir)
         if iter then
             for file in iter, dir_obj do
-                if file:match("%.vim$") then
-                    local fullPath = sessionDir .. "/" .. file
-                    table.insert(sessions, fullPath)
-                    print("Found session file: " .. file)
-                end
+                local fullPath = sessionDir .. "/" .. file
+                table.insert(sessions, fullPath)
+                print("Found file: " .. file)
             end
             dir_obj:close()
         end
@@ -78,7 +76,7 @@ local function findSessionFiles()
         print("Session directory not found: " .. sessionDir)
         hs.alert.show("Session directory not found: " .. sessionDir)
     end
-    print("Found " .. #sessions .. " session file(s)")
+    print("Found " .. #sessions .. " file(s)")
     return sessions
 end
 
