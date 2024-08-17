@@ -109,6 +109,8 @@ function neovideSessions()
     hs.chooser.new(callback):choices(items):show()
 end
 
+hs.hotkey.bind("Ctrl-Cmd", "S", neovideSessions)
+
 function cycleNeovideWindows()
     local current = hs.window.focusedWindow()
 
