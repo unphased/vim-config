@@ -3,6 +3,28 @@ hs.loadSpoon("EmmyLua")
 
 local home = os.getenv("HOME")
 
+-- SESSION TRIGGER CONCEPT
+-- * find existing sessions files as maintained by neovim-session-manager in their default location
+-- * find running neovide instances
+-- * present a picker list containing the union of above (note this means neovims open in dirs without established
+-- sessions will also be listed)
+-- * on selection, focus or open a neovide on the selected dir
+-- * TODO also find and list running non neovide neovim instances, identify if they are running in tmux, identify
+-- running terminals connected to tmux, focus those terminal apps and focus the tmux onto the corresponding
+-- session/window/pane. Yea this would be quite a lot...
+
+-- details: finding the session of a running instance
+-- * we aim to perform a union based on session path
+-- * hs grabs pid of neovide -> pgrep -P to look for child nvim pid -> lsof with nvim pid to get cwd.
+
+-- GO TO EDITOR CONCEPT
+-- if there exists zero neovide instances open, perform session trigger to choose a session to open (OR: open the most
+-- recently opened session, let's see)
+-- else if already focused on a neovide instance, perform the session trigger (self would be included, greyed, in the list)
+--      else (not focused):
+--          if one instance exists, focus it
+--          else more than one instance exists, focus the most recently focused one
+
 -- Helper functions
 
 -- Find all running Neovide instances
