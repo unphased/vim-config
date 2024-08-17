@@ -4,22 +4,3 @@ globals = {
     "vim",
     "hs",
 }
-
-read_globals = {
-    "os",
-    "io",
-    "string",
-    "math",
-    "table",
-    "print",
-    "tonumber",
-    "tostring",
-    "type",
-    "select",
-    "pairs",
-    "ipairs",
-    "assert",
-    "error",
-    "pcall",
-    "xpcall"
-}
