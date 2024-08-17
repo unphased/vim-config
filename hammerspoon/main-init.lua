@@ -51,8 +51,8 @@ local function getNeovideWorkingDir(pid)
         print("Found Neovim PID: " .. nvimPid)
         local cwd
         if hs.host.operatingSystemVersion()['productName'] == 'macOS' then
-            -- macOS: use lsof
-            cwd = hs.execute(string.format("lsof -a -p %s -d cwd -Fn | tail -n1 | sed 's/^n//'", nvimPid)):gsub("\n", "")
+            -- macOS: use lsof with correct -F option
+            cwd = hs.execute(string.format("lsof -a -p %s -d cwd -F n | tail -n1 | sed 's/^n//'", nvimPid)):gsub("\n", "")
         else
             -- Linux: use pwdx
             cwd = hs.execute(string.format("pwdx %s | cut -d' ' -f2-", nvimPid)):gsub("\n", "")
