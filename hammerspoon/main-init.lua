@@ -46,19 +46,14 @@ end
 -- Get the working directory of a Neovide instance
 local function getNeovideWorkingDir(pid)
     print("Getting working directory for Neovide with PID: " .. pid)
-    local nvimPid = hs.execute(string.format("pgrep -P %d", pid)):gsub("\n", "")
+    -- uh so we have to get the second child to get the nvim, since the first child is just a shell
+    local nvimShellPid = hs.execute(string.format("pgrep -P %d", pid)):gsub("\n", "")
+    local nvimPid = hs.execute(string.format("pgrep -P %s", nvimShellPid)):gsub("\n", "")
     if nvimPid ~= "" then
         print("Found Neovim PID: " .. nvimPid)
-        local cwd
-        if hs.host.operatingSystemVersion()['productName'] == 'macOS' then
-            -- macOS: use lsof with correct -F option
-            cwd = hs.execute(string.format("lsof -a -p %s -d cwd -F n | tail -n1 | sed 's/^n//'", nvimPid)):gsub("\n", "")
-        else
-            -- Linux: use pwdx
-            cwd = hs.execute(string.format("pwdx %s | cut -d' ' -f2-", nvimPid)):gsub("\n", "")
-        end
+        local cwd = hs.execute(string.format("lsof -a -p %s -d cwd -F n | tail -n1 | sed 's/^n//'", nvimPid)):gsub("\n$", "")
         print("Working directory: " .. cwd)
-        return cwd
+        return cwd:gsub('^' .. home, "~")
     end
     print("Failed to get working directory")
     return nil
@@ -70,16 +65,13 @@ local function findSessionFiles()
     local sessionDir = home .. "/.local/share/nvim/sessions"
     local sessions = {}
     if hs.fs.attributes(sessionDir, "mode") == "directory" then
-        local iter, dir_obj = hs.fs.dir(sessionDir)
-        if iter then
-            for file in iter, dir_obj do
-                if file ~= "." and file ~= ".." then
-                    local fullPath = sessionDir .. "/" .. file
-                    table.insert(sessions, fullPath)
-                    print("Found file: " .. file)
-                end
+        for file in hs.fs.dir(sessionDir) do
+            if file ~= "." and file ~= ".." then
+                print("Found file: " .. file, type(file))
+                local s = file:gsub("__", "/")
+                print("Converted to: " .. s)
+                table.insert(sessions, file:gsub("__", "/"))
             end
-            dir_obj:close()
         end
     else
         print("Session directory not found: " .. sessionDir)
@@ -115,7 +107,7 @@ local function getAllSessions()
     for _, file in ipairs(sessionFiles) do
         table.insert(sessions, {
             type = "file",
-            path = file:match("(.+)%.vim$")
+            path = file
         })
         print("Added session file: " .. file)
     end
