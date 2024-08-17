@@ -66,9 +66,11 @@ local function findSessionFiles()
         local iter, dir_obj = hs.fs.dir(sessionDir)
         if iter then
             for file in iter, dir_obj do
-                local fullPath = sessionDir .. "/" .. file
-                table.insert(sessions, fullPath)
-                print("Found file: " .. file)
+                if file ~= "." and file ~= ".." then
+                    local fullPath = sessionDir .. "/" .. file
+                    table.insert(sessions, fullPath)
+                    print("Found file: " .. file)
+                end
             end
             dir_obj:close()
         end
