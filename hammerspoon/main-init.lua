@@ -149,7 +149,34 @@ function neovideSessions()
     hs.chooser.new(callback):choices(items):show()
 end
 
-hs.hotkey.bind("Ctrl-Cmd", "S", neovideSessions)
+hs.hotkey.bind("Ctrl-Cmd", "S", function()
+    local neovideInstances = findNeovideInstances()
+    local focusedWindow = hs.window.focusedWindow()
+    local focusedApp = focusedWindow and focusedWindow:application()
+    
+    if #neovideInstances == 0 then
+        -- No Neovide instances open, perform session trigger
+        neovideSessions()
+    elseif focusedApp and focusedApp:bundleID() == 'com.neovide.neovide' then
+        -- Already focused on a Neovide instance, perform session trigger
+        neovideSessions()
+    else
+        -- Not focused on Neovide, but instances exist
+        if #neovideInstances == 1 then
+            -- Only one instance, focus it
+            neovideInstances[1]:activate()
+        else
+            -- Multiple instances, focus the most recently focused one
+            local mostRecentNeovide = table.remove(neovideInstances, 1)
+            for _, instance in ipairs(neovideInstances) do
+                if instance:focusedWindow() and instance:focusedWindow():lastFocused() > mostRecentNeovide:focusedWindow():lastFocused() then
+                    mostRecentNeovide = instance
+                end
+            end
+            mostRecentNeovide:activate()
+        end
+    end
+end)
 
 function cycleNeovideWindows()
     print("Starting cycleNeovideWindows function...")
