@@ -29,37 +29,49 @@ local home = os.getenv("HOME")
 
 -- Find all running Neovide instances
 local function findNeovideInstances()
-    return hs.application.find('com.neovide.neovide')
+    print("Finding Neovide instances...")
+    local instances = hs.application.find('com.neovide.neovide')
+    print("Found " .. #instances .. " Neovide instance(s)")
+    return instances
 end
 
 -- Get the working directory of a Neovide instance
 local function getNeovideWorkingDir(pid)
+    print("Getting working directory for Neovide with PID: " .. pid)
     local nvimPid = hs.execute(string.format("pgrep -P %d", pid)):gsub("\n", "")
     if nvimPid ~= "" then
+        print("Found Neovim PID: " .. nvimPid)
         local cwd = hs.execute(string.format("lsof -p %s | grep cwd | awk '{print $NF}'", nvimPid)):gsub("\n", "")
+        print("Working directory: " .. cwd)
         return cwd
     end
+    print("Failed to get working directory")
     return nil
 end
 
 -- Find existing session files
 local function findSessionFiles()
+    print("Finding session files...")
     local sessionDir = home .. "/.local/share/nvim/sessions"
     local sessions = {}
     if hs.fs.attributes(sessionDir, "mode") == "directory" then
         for file in hs.fs.dir(sessionDir) do
             if file:match("%.vim$") then
                 table.insert(sessions, sessionDir .. "/" .. file)
+                print("Found session file: " .. file)
             end
         end
     else
+        print("Session directory not found: " .. sessionDir)
         hs.alert.show("Session directory not found: " .. sessionDir)
     end
+    print("Found " .. #sessions .. " session file(s)")
     return sessions
 end
 
 -- Combine Neovide instances and session files
 local function getAllSessions()
+    print("Getting all sessions...")
     local sessions = {}
     
     -- Add running Neovide instances
@@ -72,6 +84,7 @@ local function getAllSessions()
                 path = cwd,
                 app = app
             })
+            print("Added running Neovide instance: " .. cwd)
         end
     end
     
@@ -82,16 +95,20 @@ local function getAllSessions()
             type = "file",
             path = file:match("(.+)%.vim$")
         })
+        print("Added session file: " .. file)
     end
     
+    print("Total sessions found: " .. #sessions)
     return sessions
 end
 
 function neovideSessions()
+    print("Starting neovideSessions function...")
     local sessions = getAllSessions()
     local items = hs.fnutils.imap(sessions, function(session)
         local text = session.path
         local subText = session.type == "running" and "Running" or "Session file"
+        print("Creating chooser item: " .. text .. " (" .. subText .. ")")
         return {
             text = text,
             subText = subText,
@@ -101,21 +118,29 @@ function neovideSessions()
 
     local callback = function(choice)
         if choice then
+            print("User selected: " .. choice.text)
             if choice.session.type == "running" then
+                print("Activating running Neovide instance")
                 choice.session.app:activate()
             else
+                print("Launching Neovide at: " .. choice.session.path)
                 launch_neovide_at(choice.session.path)
             end
+        else
+            print("User cancelled selection")
         end
     end
 
+    print("Showing chooser with " .. #items .. " items")
     hs.chooser.new(callback):choices(items):show()
 end
 
 hs.hotkey.bind("Ctrl-Cmd", "S", neovideSessions)
 
 function cycleNeovideWindows()
+    print("Starting cycleNeovideWindows function...")
     local current = hs.window.focusedWindow()
+    print("Current focused window: " .. (current and current:title() or "None"))
 
     local items = hs.fnutils.imap({hs.application.find('com.neovide.neovide')}, function(app)
         local title = app:title()
@@ -130,6 +155,7 @@ function cycleNeovideWindows()
             status = '[CURRENT]'
         end
 
+        print("Creating chooser item: " .. title .. (status and (" " .. status) or ""))
         return {
             text = title,
             subText = status,
@@ -138,29 +164,42 @@ function cycleNeovideWindows()
     end)
 
     local callback = function(result)
-        hs.application.applicationForPID(result.pid):activate()
+        if result then
+            print("User selected: " .. result.text)
+            print("Activating Neovide with PID: " .. result.pid)
+            hs.application.applicationForPID(result.pid):activate()
+        else
+            print("User cancelled selection")
+        end
     end
 
+    print("Showing chooser with " .. #items .. " items")
     hs.chooser.new(callback):choices(items):show()
 end
 
 -- hs.hotkey.bind({'cmd', 'ctrl'}, '`', cycleNeovideWindows)
 
 function launch_neovide_at(path)
+    print("Launching Neovide at path: " .. path)
     os.execute("pushd " .. path .. "; /opt/homebrew/bin/neovide &")
 end
 
 hs.hotkey.bind({"alt"}, "space", function()
+    print("Alt+Space hotkey triggered")
     local nv = hs.application.get("com.neovide.neovide")
     if nv then
+        print("Neovide instance found")
         print("Type of nv:", type(nv))
         print("nv is", nv)
         if nv:isFrontmost() then
+            print("Neovide is frontmost, hiding")
             nv:hide()
         else
+            print("Neovide is not frontmost, activating")
             nv:activate()
         end
     else
+        print("No Neovide instance found, launching new one")
         launch_neovide_at(home .. "/.vim")
     end
 end)
