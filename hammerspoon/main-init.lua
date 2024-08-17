@@ -3,29 +3,88 @@ hs.loadSpoon("EmmyLua")
 
 local home = os.getenv("HOME")
 
--- SESSION TRIGGER CONCEPT
--- * find existing sessions files as maintained by neovim-session-manager in their default location
--- * find running neovide instances
--- * present a picker list containing the union of above (note this means neovims open in dirs without established
--- sessions will also be listed)
--- * on selection, focus or open a neovide on the selected dir
--- * TODO also find and list running non neovide neovim instances, identify if they are running in tmux, identify
--- running terminals connected to tmux, focus those terminal apps and focus the tmux onto the corresponding
--- session/window/pane. Yea this would be quite a lot...
+-- Helper functions
 
--- details: finding the session of a running instance
--- * we aim to perform a union based on session path
--- * hs grabs pid of neovide -> pgrep -P to look for child nvim pid -> lsof with nvim pid to get cwd.
+-- Find all running Neovide instances
+local function findNeovideInstances()
+    return hs.application.find('com.neovide.neovide')
+end
 
--- GO TO EDITOR CONCEPT
--- if there exists zero neovide instances open, perform session trigger to choose a session to open (OR: open the most
--- recently opened session, let's see)
--- else if already focused on a neovide instance, perform the session trigger (self would be included, greyed, in the list)
---      else (not focused):
---          if one instance exists, focus it
---          else more than one instance exists, focus the most recently focused one
+-- Get the working directory of a Neovide instance
+local function getNeovideWorkingDir(pid)
+    local nvimPid = hs.execute(string.format("pgrep -P %d", pid)):gsub("\n", "")
+    if nvimPid ~= "" then
+        local cwd = hs.execute(string.format("lsof -p %s | grep cwd | awk '{print $NF}'", nvimPid)):gsub("\n", "")
+        return cwd
+    end
+    return nil
+end
+
+-- Find existing session files
+local function findSessionFiles()
+    local sessionDir = home .. "/.local/share/nvim/sessions"
+    local files = hs.fs.dir(sessionDir)
+    local sessions = {}
+    for file in files do
+        if file:match("%.vim$") then
+            table.insert(sessions, sessionDir .. "/" .. file)
+        end
+    end
+    return sessions
+end
+
+-- Combine Neovide instances and session files
+local function getAllSessions()
+    local sessions = {}
+    
+    -- Add running Neovide instances
+    local neovideInstances = findNeovideInstances()
+    for _, app in ipairs(neovideInstances) do
+        local cwd = getNeovideWorkingDir(app:pid())
+        if cwd then
+            table.insert(sessions, {
+                type = "running",
+                path = cwd,
+                app = app
+            })
+        end
+    end
+    
+    -- Add session files
+    local sessionFiles = findSessionFiles()
+    for _, file in ipairs(sessionFiles) do
+        table.insert(sessions, {
+            type = "file",
+            path = file:match("(.+)%.vim$")
+        })
+    end
+    
+    return sessions
+end
 
 function neovideSessions()
+    local sessions = getAllSessions()
+    local items = hs.fnutils.imap(sessions, function(session)
+        local text = session.path
+        local subText = session.type == "running" and "Running" or "Session file"
+        return {
+            text = text,
+            subText = subText,
+            session = session
+        }
+    end)
+
+    local callback = function(choice)
+        if choice then
+            if choice.session.type == "running" then
+                choice.session.app:activate()
+            else
+                launch_neovide_at(choice.session.path)
+            end
+        end
+    end
+
+    hs.chooser.new(callback):choices(items):show()
 end
 
 function cycleNeovideWindows()
