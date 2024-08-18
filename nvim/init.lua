@@ -2666,6 +2666,10 @@ function MakeSimpleTermForCmd(command, size, name)
   end
 end
 
+
+-- nvim term really needs tlc for pasting
+vim.keymap.set('t', '<M-v>', '<C-\\><C-n>"+pi')
+
 -- open a terminal running shell. command works like a toggle
 vim.cmd[[
   " Terminal Function
@@ -2736,6 +2740,7 @@ if vim.g.neovide then
   vim.keymap.set('n', '<D-v>', '"+P') -- Paste normal mode
   vim.keymap.set('v', '<D-v>', '"+P') -- Paste visual mode
   vim.keymap.set('c', '<D-v>', '<C-R>+') -- Paste command mode
+  vim.keymap.set('t', '<D-v>', '<C-\\><C-n>"+pi') -- Paste to term
   vim.keymap.set('i', '<D-v>', '<ESC>l"+Pli') -- Paste insert mode
 
   -- -- so for some reason this does not work with vim.keymap.set but it works like this. something wonky going on.
@@ -2748,10 +2753,8 @@ if vim.g.neovide then
 
 
   -- Allow clipboard copy paste in neovim
-  vim.api.nvim_set_keymap('', '<D-v>', '+p<CR>', { noremap = true, silent = true})
-  vim.api.nvim_set_keymap('!', '<D-v>', '<C-R>+', { noremap = true, silent = true})
-  vim.api.nvim_set_keymap('t', '<D-v>', '<C-R>+', { noremap = true, silent = true})
-  vim.api.nvim_set_keymap('v', '<D-v>', '<C-R>+', { noremap = true, silent = true})
+  -- vim.api.nvim_set_keymap('', '<D-v>', '+p<CR>', { noremap = true, silent = true})
+  -- vim.api.nvim_set_keymap('!', '<D-v>', '<C-R>+', { noremap = true, silent = true})
 
   ----- this uses native fullscreen, and it sucks. will be replaced soon with a hammerspoon solution.
   -- cmd+enter toggles fullscreen
@@ -2789,7 +2792,7 @@ if vim.g.neovide then
   end)
 
   -- override osc52 yank (not useful in neovide) with regular yank
-  vim.keymap.set("n", "<leader>y", '"+y', { desc = "Copy to + clipboard (neovide override)" })
+  vim.keymap.set({"n", 'x'}, "<leader>y", '"+y', { desc = "Copy to + clipboard (neovide override)" })
   vim.keymap.set("n", "<leader>Y", 'ggVG"+y', { desc = "Copy entire buffer to clipboard (neovide override)"})
 
 end
