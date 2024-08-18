@@ -86,6 +86,7 @@ local function getAllSessions()
         if cwd then
             table.insert(sessions, {
                 type = "running",
+                focused = app:isFrontmost(),
                 path = cwd,
                 app = app
             })
@@ -102,6 +103,7 @@ local function getAllSessions()
         if not runningPaths[file] then
             table.insert(sessions, {
                 type = "file",
+                focused = false,
                 path = file
             })
             print("Added session file: " .. file)
@@ -111,10 +113,11 @@ local function getAllSessions()
     end
     
     print("Total unique sessions found: " .. #sessions)
+    print("Dumping sessions:", hs.inspect(sessions))
     return sessions
 end
 
-function neovideSessions()
+local function neovideSessions()
     print("Starting neovideSessions function...")
     local sessions = getAllSessions()
     local items = hs.fnutils.imap(sessions, function(session)
@@ -124,9 +127,11 @@ function neovideSessions()
         return {
             text = text,
             subText = subText,
+            valid = not session.focused,
             session = session
         }
     end)
+    print('items:', hs.inspect(items))
 
     local callback = function(choice)
         if choice then
@@ -144,7 +149,11 @@ function neovideSessions()
     end
 
     print("Showing chooser with " .. #items .. " items")
-    hs.chooser.new(callback):choices(items):show()
+    local chooser = hs.chooser.new(callback)
+    chooser:invalidCallback(function ()
+        print("Invalid callback called")
+    end)
+    chooser:choices(items):show()
 end
 
 hs.hotkey.bind("Ctrl-Cmd", "S", function()
@@ -152,10 +161,8 @@ hs.hotkey.bind("Ctrl-Cmd", "S", function()
     local focusedWindow = hs.window.focusedWindow()
     local focusedApp = focusedWindow and focusedWindow:application()
     
-    if #neovideInstances == 0 then
-        -- No Neovide instances open, perform session trigger
-        neovideSessions()
-    elseif focusedApp and focusedApp:bundleID() == 'com.neovide.neovide' then
+    -- No Neovide instances open, perform session trigger
+    if #neovideInstances == 0 or (focusedApp and focusedApp:bundleID() == 'com.neovide.neovide') then
         -- Already focused on a Neovide instance, perform session trigger
         neovideSessions()
     else
@@ -164,16 +171,15 @@ hs.hotkey.bind("Ctrl-Cmd", "S", function()
             -- Only one instance, focus it
             neovideInstances[1]:activate()
         else
-            -- Multiple instances, focus the most recently focused one
-            local mostRecentNeovide = table.remove(neovideInstances, 1)
-            for _, instance in ipairs(neovideInstances) do
-                local instanceWindow = instance:focusedWindow()
-                local mostRecentWindow = mostRecentNeovide:focusedWindow()
-                if instanceWindow and mostRecentWindow and instanceWindow:lastFocused() > mostRecentWindow:lastFocused() then
-                    mostRecentNeovide = instance
+            -- Multiple instances, focus the most recently focused one. iterate through orderedwindows to get there.
+            local orderedWindows = hs.window.orderedWindows()
+            for _, window in ipairs(orderedWindows) do
+                if window:application():bundleID() == 'com.neovide.neovide' then
+                    print('activating a neovide instance during orderedWindows iteration.')
+                    window:application():activate()
+                    break
                 end
             end
-            mostRecentNeovide:activate()
         end
     end
 end)
