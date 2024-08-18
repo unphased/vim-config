@@ -32,12 +32,8 @@ local function findNeovideInstances()
     print("Finding Neovide instances...")
     local instances = hs.application.find('com.neovide.neovide')
     local instancesTable = {}
-    if instances then
-        if type(instances) == "table" then
-            instancesTable = instances
-        else
-            table.insert(instancesTable, instances)
-        end
+    for app in instances do
+        table.insert(instancesTable, app)
     end
     print("Found " .. #instancesTable .. " Neovide instance(s)")
     return instancesTable
