@@ -167,7 +167,9 @@ hs.hotkey.bind("Ctrl-Cmd", "S", function()
             -- Multiple instances, focus the most recently focused one
             local mostRecentNeovide = table.remove(neovideInstances, 1)
             for _, instance in ipairs(neovideInstances) do
-                if instance:focusedWindow() and instance:focusedWindow():lastFocused() > mostRecentNeovide:focusedWindow():lastFocused() then
+                local instanceWindow = instance:focusedWindow()
+                local mostRecentWindow = mostRecentNeovide:focusedWindow()
+                if instanceWindow and mostRecentWindow and instanceWindow:lastFocused() > mostRecentWindow:lastFocused() then
                     mostRecentNeovide = instance
                 end
             end
