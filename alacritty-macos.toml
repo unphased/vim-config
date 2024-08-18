@@ -105,7 +105,7 @@ bindings = [
 { key = "Key0",    mods =  "Command",       action = "ResetFontSize"    },
 { key = "Equals",  mods =  "Command",       action = "IncreaseFontSize" },
 { key = "Minus",   mods =  "Command",       action = "DecreaseFontSize" },
-{ key = "Return",  mods =  "Shift",         chars =  "\u001b\u000a"       },
+{ key = "Return",  mods =  "Shift",         chars =  "\u001b\u000d"       },
 { key = "Comma",   mods =  "Alt",           chars =  "\u001b,"          },
 { key = "Comma",   mods =  "Command",       chars =  "\u001b,"          },
 { key = "Comma",   mods =  "Control",       chars =  "\u001bcomma]"     },

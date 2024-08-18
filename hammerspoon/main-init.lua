@@ -121,7 +121,10 @@ local function neovideSessions()
     print("Starting neovideSessions function...")
     local sessions = getAllSessions()
     local items = hs.fnutils.imap(sessions, function(session)
-        local text = session.path or "Unknown path"
+        local invalid = not not session.focused;
+        local text = invalid and hs.styledtext.new(session.path .. " (current)", {
+            color = { hex = "#5F5050", alpha = 1 },
+        }) or session.path or "Unknown path"
         local subText = session.type == "running" and "Running" or "Session file"
         print("Creating chooser item: " .. text .. " (" .. subText .. ")")
         return {

@@ -482,5 +482,6 @@ return {
       {"stevearc/dressing.nvim"} -- optional: to have the same UI shown in the GIF
     }
   },
-  'Shatur/neovim-session-manager'
+  'Shatur/neovim-session-manager',
+  'Vimjas/vim-python-pep8-indent'
 }
