@@ -35,6 +35,7 @@ local function findNeovideInstances()
     return instances
 end
 
+-- there are 2 impls of this list fetch because the one ordered by access time is probably slower
 local function findNeovideInstancesAccessOrder()
     print("Listing Neovides by window order...")
     local instances = {}
@@ -80,7 +81,7 @@ local function findSessionFiles()
         end
         table.sort(files, function(a, b) return a.modTime > b.modTime end)
         for _, file in ipairs(files) do
-            print("Found file: " .. file.name, type(file.name))
+            print("Found file: " .. file.name .. ' with time ' .. file.modTime)
             local s = file.name:gsub("__", "/"):gsub('^' .. home, "~")
             print("Converted to: " .. s)
             table.insert(sessions, s)
