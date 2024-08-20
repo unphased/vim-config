@@ -141,8 +141,13 @@ end
 local function neovideSessions()
     print("Starting neovideSessions function...")
     local sessions = getAllSessions()
+    local hasAFocusedNeovide = false
     local items = hs.fnutils.imap(sessions, function(session)
         local invalid = not not session.focused;
+        if invalid then
+            print('has a focused neovim, it is the session ' .. session.path)
+            hasAFocusedNeovide = true
+        end
         local text = invalid and hs.styledtext.new(session.path .. " (current)", {
             color = { hex = "#5F5050", alpha = 1 },
         }) or session.path or "Unknown path"
@@ -165,7 +170,7 @@ local function neovideSessions()
                 choice.session.app:activate()
             else
                 print("Launching Neovide at: " .. choice.session.path)
-                launch_neovide_at(choice.session.path)
+                launchNeovideAtDir(choice.session.path)
             end
         else
             print("User cancelled selection")
@@ -177,7 +182,11 @@ local function neovideSessions()
     chooser:invalidCallback(function ()
         print("Invalid callback called")
     end)
-    chooser:choices(items):show()
+    chooser:choices(items)
+    chooser:show()
+    if hasAFocusedNeovide then
+        chooser:selectedRow(2)
+    end
 end
 
 hs.hotkey.bind("Ctrl-Cmd", "S", function()
@@ -208,49 +217,7 @@ hs.hotkey.bind("Ctrl-Cmd", "S", function()
     end
 end)
 
-function cycleNeovideWindows()
-    print("Starting cycleNeovideWindows function...")
-    local current = hs.window.focusedWindow()
-    print("Current focused window: " .. (current and current:title() or "None"))
-
-    local items = hs.fnutils.imap({hs.application.find('com.neovide.neovide')}, function(app)
-        local title = app:title()
-        local status
-        local win = app:mainWindow()
-
-        if win ~= nil then
-            title = win:title()
-        end
-
-        if win == current then
-            status = '[CURRENT]'
-        end
-
-        print("Creating chooser item: " .. title .. (status and (" " .. status) or ""))
-        return {
-            text = title,
-            subText = status,
-            pid = app:pid(),
-        }
-    end)
-
-    local callback = function(result)
-        if result then
-            print("User selected: " .. result.text)
-            print("Activating Neovide with PID: " .. result.pid)
-            hs.application.applicationForPID(result.pid):activate()
-        else
-            print("User cancelled selection")
-        end
-    end
-
-    print("Showing chooser with " .. #items .. " items")
-    hs.chooser.new(callback):choices(items):show()
-end
-
--- hs.hotkey.bind({'cmd', 'ctrl'}, '`', cycleNeovideWindows)
-
-function launch_neovide_at(path)
+function launchNeovideAtDir(path)
     print("Launching Neovide at path: " .. path)
     os.execute("pushd " .. path .. "; PATH=$HOME/.cargo/bin:$PATH /opt/homebrew/bin/neovide &")
 end
@@ -271,7 +238,7 @@ hs.hotkey.bind({"alt"}, "space", function()
         end
     else
         print("No Neovide instance found, launching new one")
-        launch_neovide_at(home .. "/.vim")
+        launchNeovideAtDir(home .. "/.vim")
     end
 end)
 
