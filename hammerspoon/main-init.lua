@@ -35,6 +35,19 @@ local function findNeovideInstances()
     return instances
 end
 
+local function findNeovideInstancesAccessOrder()
+    print("Listing Neovides by window order...")
+    local instances = {}
+    local orderedWindows = hs.window.orderedWindows()
+    for _, window in ipairs(orderedWindows) do
+        local app = window:application();
+        if app:bundleID() == 'com.neovide.neovide' then
+            table.insert(instances, app)
+        end
+    end
+    return instances
+end
+
 -- Get the working directory of a Neovide instance
 local function getNeovideWorkingDir(pid)
     print("Getting working directory for Neovide with PID: " .. pid)
@@ -80,7 +93,7 @@ local function getAllSessions()
     local runningPaths = {}
     
     -- Add running Neovide instances
-    local neovideInstances = findNeovideInstances()
+    local neovideInstances = findNeovideInstancesAccessOrder()
     for _, app in ipairs(neovideInstances) do
         local cwd = getNeovideWorkingDir(app:pid())
         if cwd then
@@ -231,7 +244,7 @@ end
 
 function launch_neovide_at(path)
     print("Launching Neovide at path: " .. path)
-    os.execute("pushd " .. path .. "; /opt/homebrew/bin/neovide &")
+    os.execute("pushd " .. path .. "; PATH=$HOME/.cargo/bin:$PATH /opt/homebrew/bin/neovide &")
 end
 
 hs.hotkey.bind({"alt"}, "space", function()

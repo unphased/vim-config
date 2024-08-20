@@ -179,6 +179,7 @@ export FZF_DEFAULT_COMMAND="fd --type file"
 
 # set PATH so it includes user's private bin directories
 export PATH="$HOME/.cargo/bin:$HOME/bin:$HOME/.local/bin:$PATH"
+
 export PATH=$HOME/util:$PATH
 
 # source $HOME/.vim/work/aliases/rtr.sh
