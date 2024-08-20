@@ -70,13 +70,20 @@ local function findSessionFiles()
     local sessionDir = home .. "/.local/share/nvim/sessions"
     local sessions = {}
     if hs.fs.attributes(sessionDir, "mode") == "directory" then
+        local files = {}
         for file in hs.fs.dir(sessionDir) do
             if file ~= "." and file ~= ".." then
-                print("Found file: " .. file, type(file))
-                local s = file:gsub("__", "/"):gsub('^' .. home, "~")
-                print("Converted to: " .. s)
-                table.insert(sessions, s)
+                local fullPath = sessionDir .. "/" .. file
+                local modTime = hs.fs.attributes(fullPath, "modification")
+                table.insert(files, {name = file, modTime = modTime})
             end
+        end
+        table.sort(files, function(a, b) return a.modTime > b.modTime end)
+        for _, file in ipairs(files) do
+            print("Found file: " .. file.name, type(file.name))
+            local s = file.name:gsub("__", "/"):gsub('^' .. home, "~")
+            print("Converted to: " .. s)
+            table.insert(sessions, s)
         end
     else
         print("Session directory not found: " .. sessionDir)
