@@ -20,17 +20,17 @@ env:
 # Falls back to size specified by window manager if set to 0x0.
 # (changes require restart)
 window:
-  opacity: 0.92
+  opacity: 0.93
+  blur: false
   dimensions:
-    columns: 120
-    lines: 90
+    columns: 170
+    lines: 50
   dynamic_padding: true
   padding:
-    x: 3
-    y: 3
+    x: 2
+    y: 2
   decorations: 'Buttonless'
   option_as_alt: 'OnlyLeft'
-
 
 # Font configuration (changes require restart)
 #
@@ -142,6 +142,8 @@ colors:
     magenta: '0xb77ee0'
     cyan:    '0x54ced6'
     white:   '0xffffff'
+
+  transparent_background_colors: true
 
 hints:
   enabled:
@@ -469,6 +471,7 @@ keyboard:
   - { key: '}',    mods: Command|Shift,             chars: "\x1b[2Y"  }
   - { key: '[',    mods: Command,             chars: "\x1b]"  }
   - { key: ']',    mods: Command,             chars: "\x1b["  }
+  - { key: Return,  mods: Command,           action: ToggleSimpleFullscreen }
 
   # - { key: F1,       mods: Super|Control,   chars: "\x1b[1;11P"             }
   # - { key: F2,       mods: Super|Control,   chars: "\x1b[1;11Q"             }

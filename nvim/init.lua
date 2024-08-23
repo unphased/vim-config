@@ -857,7 +857,7 @@ vim.g.matchup_transmute_enabled = 1
 vim.opt.titlestring = "NVIM %f%h%m%r%w (%{tabpagenr()} of %{tabpagenr('$')})"
 
 -- plugin settings
-safeRequire("gitsigns").setup({
+require("gitsigns").setup({
   on_attach = function (bufnr)
     local gs = package.loaded.gitsigns
     local function map(mode, l, r, opts)
@@ -907,7 +907,7 @@ safeRequire("gitsigns").setup({
     changedelete = { text = "~", show_count = true },
     untracked = { text = "┆" },
   },
-  show_deleted = true,
+  show_deleted = false,
   numhl = true, -- Toggle with `:Gitsigns toggle_numhl`
   linehl = false, -- Toggle with `:Gitsigns toggle_linehl`
   word_diff = true, -- Toggle with `:Gitsigns toggle_word_diff`
@@ -1143,7 +1143,9 @@ telescope.setup{
 
 local telescope_builtin = safeRequire("telescope.builtin")
 vim.keymap.set("n", "<c-p>", function ()
-  telescope_builtin.find_files({ find_command = { 'fd', '--type', 'f' } })
+  -- explicitly giving most likely path for fd because sometimes we launch neovim in neovide through a basic shell
+  -- without cargo in PATH.
+  telescope_builtin.find_files({ find_command = { os.getenv('HOME').. '/.cargo/bin/fd', '--type', 'f' } })
 end)
 -- hard to believe ctrl+G was not already bound by vim
 vim.keymap.set('n', '<c-g>', '<cmd>AdvancedGitSearch<CR>')
@@ -1444,38 +1446,37 @@ vim.opt.list = true
 -- "eol:↴"
 vim.opt.listchars = "tab:→ ,extends:»,precedes:«,trail:·,nbsp:◆"
 
-vim.cmd("highlight IndentBlanklineContextChar guifg=#66666f gui=nocombine")
-vim.cmd("highlight IndentBlanklineContextStart gui=underdouble guisp=#66666f")
 vim.cmd("highlight IndentBlanklineIndent1 gui=nocombine guifg=#383838")
 vim.cmd("highlight IndentBlanklineIndent2 gui=nocombine guifg=#484848")
+vim.cmd("highlight IblScope gui=nocombine guifg=#584868")
 
-safeRequire("ibl").setup({
+require("ibl").setup({
   debounce = 100,
   indent = {
     char = "▏",
     tab_char = "→",
-  },
-  whitespace = {
     highlight = {
       "IndentBlanklineIndent1",
       "IndentBlanklineIndent2",
-    }
+    },
   },
-  -- scope = { enabled = false }, -- i set this for use from iOS terminal emulators
-  -- scope = {
-  --   exclude = { "lua" }
-  -- },
-  -- char = "▏",
-  -- char_highlight_list = {
-  --   "IndentBlanklineIndent1",
-  --   "IndentBlanklineIndent2",
-  -- },
-  -- context_char = "▏",
-  -- space_char_blankline = " ",
-  -- show_end_of_line = true, -- no effect while eof not put in listchars.
-  -- show_current_context = true,
-  -- show_current_context_start = true,
+  scope = {
+    enabled = true,
+    char = '▎',
+    show_start = true,
+    show_end = true,
+    show_exact_scope = true,
+    include = {
+      node_type = { lua = { "return_statement", "table_constructor" } },
+    }
+  }, -- i set this for use from iOS terminal emulators
 })
+
+-- require('mini.indentscope').setup{
+--   options = {
+--     try_as_border = true
+--   }
+-- }
 
 function ef_ten(direction)
     local mode = vim.api.nvim_get_mode().mode
@@ -1510,9 +1511,10 @@ end
 cmp.setup({
   formatting = {
     format = lspkind.cmp_format({
-      mode = 'symbol_text',
+      mode = 'symbol',
       maxwidth = 50, -- prevent the popup from showing more than provided characters (e.g 50 will not show more than 50 characters)
       ellipsis_char = '…', -- when popup menu exceed maxwidth, the truncated part would show ellipsis_char instead (must define maxwidth first)
+      symbol_map = { Codeium = "" },
 
       -- The function below will be called before any actual modifications from lspkind
       -- so that you can provide more controls on popup customization. (See [#30](https://github.com/onsails/lspkind-nvim/pull/30))
@@ -1530,8 +1532,9 @@ cmp.setup({
   mapping = cmp.mapping.preset.insert({
     ['<C-b>'] = cmp.mapping.scroll_docs(-4),
     ['<C-f>'] = cmp.mapping.scroll_docs(4),
-    --- removing c-space from cmp behavior to make room for it for copilot
-    -- ['<C-Space>'] = cmp.mapping.complete(),
+    ---- bringing ctrl-space back as i am no longer using copilot
+    ---- it is used for now to target codeium.
+    ['<C-Space>'] = cmp.mapping.complete({ config = { sources = { { name = 'codeium' } } } }),
     ['<C-e>'] = cmp.mapping.abort(),
     ["<CR>"] = cmp.mapping.confirm({
       behavior = cmp.ConfirmBehavior.Replace,
@@ -1594,11 +1597,15 @@ cmp.setup({
     -- { name = 'ultisnips' }, -- For ultisnips users.
     { name = 'snippy' }, -- For snippy users.
     { name = 'buffer' },
+    { name = 'codeium', option = {
+      keyword_length = 0
+    } },
     { name = 'path',
       option = {
         -- Options go into this table
       },
     },
+    
     { name = 'nvim_lsp_signature_help' },
   }),
   snippet = {
@@ -1608,7 +1615,6 @@ cmp.setup({
     end
   }
 })
-
 
 -- Set configuration for specific filetype.
 cmp.setup.filetype('gitcommit', {
@@ -1653,12 +1659,12 @@ cmp.event:on(
   cmp_autopairs.on_confirm_done()
 )
 
-safeRequire("neodev").setup({
+require("lazydev").setup({
   -- add any options here, or leave empty to use the default settings
 })
 
-safeRequire("mason").setup({})
-safeRequire("mason-lspconfig").setup({
+require("mason").setup({})
+require("mason-lspconfig").setup({
   -- A list of servers to automatically install if they're not already installed. Example: { "rust_analyzer@nightly", "lua_ls" }
   -- This setting has no relation with the `automatic_installation` setting.
   ensure_installed = {
@@ -1677,9 +1683,10 @@ safeRequire("mason-lspconfig").setup({
 
 local null_ls = safeRequire("null-ls")
 
-safeRequire("mason-null-ls").setup({
+require("mason-null-ls").setup({
   ensure_installed = { "shellcheck" },
   automatic_setup = true,
+  automatic_installation = true,
   handlers = {
     function(source_name, methods)
       -- print("mason-null-ls-handler: source_name:" .. source_name)
@@ -1690,7 +1697,7 @@ safeRequire("mason-null-ls").setup({
       -- please add the below.
       safeRequire("mason-null-ls.automatic_setup")(source_name, methods)
     end,
-    pylint = function (source_name, methods)
+    pylint = function ()
       -- need to set PYTHONPATH via --source-roots
       null_ls.register(null_ls.builtins.diagnostics.pylint.with({
         env = function(params)
@@ -1701,13 +1708,13 @@ safeRequire("mason-null-ls").setup({
         end,
       }))
     end,
-    cspell = function(source_name, methods)
+    cspell = function()
       null_ls.register(null_ls.builtins.diagnostics.cspell.with({
         timeout = 20000,
         method = null_ls.methods.DIAGNOSTICS_ON_SAVE,
       }))
     end,
-    cpplint = function(source_name, methods)
+    cpplint = function()
       null_ls.register(null_ls.builtins.diagnostics.cpplint.with({
         args = { '--linelength=240' },
       }))
@@ -1720,7 +1727,7 @@ safeRequire("mason-null-ls").setup({
 })
 
 null_ls.setup({
-  debug = true,
+  -- debug = true,
   -- this is for cspell to default to hints and not errors (yeesh)
   fallback_severity = vim.diagnostic.severity.HINT,
   sources = {
@@ -1777,7 +1784,7 @@ local lsp_attach = function (x, bufnr)
   vim.keymap.set('n', '<leader>=', function() vim.lsp.buf.format { async = true } end, ext(bufopts, "desc", "Format Buffer"))
 end
 
-safeRequire("mason-lspconfig").setup_handlers {
+require("mason-lspconfig").setup_handlers {
   -- The first entry (without a key) will be the default handler
   -- and will be called for each installed server that doesn't have
   -- a dedicated handler.
@@ -1832,12 +1839,10 @@ safeRequire("mason-lspconfig").setup_handlers {
       on_attach = lsp_attach,
       settings = {
         Lua = {
-          completion = {
-            callSnippet = "Replace"
-          },
           workspace = {
-            -- library = vim.api.nvim_get_runtime_file('', true),
-            checkThirdParty = false, -- THIS IS THE IMPORTANT LINE TO ADD
+            library = {
+              string.format('%s/.hammerspoon/Spoons/EmmyLua.spoon/annotations', os.getenv 'HOME')
+            }
           },
         }
       }
@@ -1909,6 +1914,10 @@ vim.cmd([[
   hi Search cterm=bold ctermfg=black ctermbg=yellow guibg=#a9291a guifg=NONE
   hi CurSearch cterm=bold ctermfg=black ctermbg=yellow guibg=#ff392a guifg=NONE
   hi IncSearch cterm=bold ctermfg=black ctermbg=cyan guibg=#f04050 guifg=NONE gui=NONE
+
+  hi NormalCursor guibg=#00ee00
+  hi InsertCursor guibg=#00eeff
+  set guicursor=n-v-c-sm:block-NormalCursor,i-ci-ve:ver30-InsertCursor,r-cr-o:hor20-ReplaceCursor
 
   hi CursorLine guibg=#181818
   set cursorline
@@ -2314,7 +2323,10 @@ vim.keymap.set('n', '<leader>E', function ()
 --   }
 -- })
 
-require('leap').create_default_mappings()
+require('leap').setup{}
+
+vim.keymap.set({'n'}, 's', '<Plug>(leap)')
+
 -- Or just set to grey directly, e.g. { fg = '#777777' },
 -- if Comment is saturated.
 -- vim.api.nvim_set_hl(0, 'LeapBackdrop', { link = 'Comment' })
@@ -2468,6 +2480,8 @@ end
 
 vim.keymap.set('n', '<leader>z', ':lua toggle_scrolloff()<CR>', { desc = "Toggle scrolloff" })
 
+vim.o.scrolloff = 3;
+
 -- for easy reload automation
 vim.api.nvim_create_autocmd({"Signal"}, {
   pattern = "SIGUSR1",
@@ -2510,7 +2524,7 @@ vim.keymap.set("n", "<Leader>F", ":Oil --float<CR>")
 --   desc = "FocusGained"
 -- })
 
-vim.cmd([[
+vim.cmd[[
 
   function! FindQuoteType()
     let l:quote_chars = ['"', "'", '`']
@@ -2569,9 +2583,45 @@ vim.cmd([[
   vnoremap <silent> aq :<C-u>call SelectQuote('a')<CR>
   omap <silent> iq :normal viq<CR>
   omap <silent> aq :normal vaq<CR>
-]])
 
-vim.keymap.set('x', 'gci', ':normal gcc<CR>', { desc = 'Invert comments' })
+  " provided by EgZvor from reddit, i am selectively activating some of it
+  " Working with marks
+  " noremap ` '
+  " noremap ' `
+  " noremap '' ``
+  " noremap `` ''
+  " sunmap '
+  " sunmap `
+  " sunmap ''
+  " sunmap ``
+
+  " Who needs lowercase marks?
+  " for ch in 'abcdefghijklmnopqrstuvwxyz'
+  "   exe 'nnoremap m' . ch .          ' m' . toupper(ch)
+  "   exe 'nnoremap m' . toupper(ch) . ' m' . ch
+  "   exe "nnoremap '" . ch .          ' `' . toupper(ch)
+  "   exe "nnoremap '" . toupper(ch) . ' `' . ch
+  " endfor
+
+
+  " for ESM typescript `gf`
+  augroup TypeScriptIncludeExpr
+  autocmd!
+  autocmd FileType typescript setlocal includeexpr=substitute(v:fname,'\\.js$','.ts','')
+  augroup END
+
+]]
+
+-- this is useful for sections of code with two alternative impls to toggle between.
+vim.keymap.set('x', 'gci', ':normal gcc<CR>', { desc = 'Invert comments per line' })
+
+local sess_man_conf = require('session_manager.config')
+require('session_manager').setup{
+  autoload_mode = {
+    sess_man_conf.AutoloadMode.CurrentDir,
+    -- sess_man_conf.AutoloadMode.LastSession
+  }
+}
 
 -- disable treesitter for tmux conf filetype, as it is particularly incapable of parsing my current conf file state.
 vim.api.nvim_create_autocmd("FileType", {
@@ -2580,3 +2630,183 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.cmd("TSBufDisable highlight")
   end,
 })
+
+-- helper, very sad no hyperlink support in neovim yet. don't send in a long running command.
+function MakeTermWindowVimAsPager(command, size, name)
+  vim.cmd('botright ' .. size .. ' new')
+
+  local bufNum = vim.api.nvim_get_current_buf()
+  local winNum = vim.api.nvim_get_current_win()
+  vim.bo[bufNum].buftype = 'nofile'
+  vim.bo[bufNum].bufhidden = 'hide'
+  vim.wo[winNum].signcolumn = 'no'
+  vim.keymap.set('n', 'q', function()
+    vim.api.nvim_buf_delete(bufNum, {force = true})
+  end, { noremap = true, silent = true, buffer = bufNum})
+  local chan_id = vim.fn.termopen({'/bin/sh', '-c', command}, {
+    on_exit = function(job_id, exit_code, event_type)
+      -- now that the output is done we scroll us to the top
+      vim.api.nvim_win_set_cursor(0, {1, 0})
+    end
+  })
+  -- vim.bo[bufNum].buftype = 'terminal'
+  if name then
+    vim.api.nvim_buf_set_name(bufNum, name)
+    -- TODO find a way to change name to prevent buf name clash
+  end
+end
+
+-- a one off terminal to run something and closes after
+function MakeSimpleTermForCmd(command, size, name)
+  vim.cmd('botright ' .. size .. ' new')
+
+  local bufNum = vim.api.nvim_get_current_buf()
+  local winNum = vim.api.nvim_get_current_win()
+  vim.bo[bufNum].buftype = 'nofile'
+  vim.bo[bufNum].bufhidden = 'hide'
+  vim.wo[winNum].number = false
+  vim.wo[winNum].signcolumn = 'no'
+
+  local chan_id = vim.fn.termopen({'/bin/sh', '-c', command}, {
+    on_exit = function(job_id, exit_code, event_type)
+      vim.api.nvim_buf_delete(bufNum, {force = true})
+    end
+  })
+  vim.cmd('startinsert')
+  -- vim.bo[bufNum].buftype = 'terminal'
+  if name then
+    vim.api.nvim_buf_set_name(bufNum, name)
+    -- TODO find a way to change name to prevent buf name clash
+  end
+end
+
+
+-- nvim term really needs tlc for pasting
+vim.keymap.set('t', '<M-v>', '<C-\\><C-n>"+pi')
+
+-- open a terminal running shell. command works like a toggle
+vim.cmd[[
+  " Terminal Function
+  let g:term_buf = 0
+  let g:term_win = 0
+  function! TermToggle(height)
+    if win_gotoid(g:term_win)
+      hide
+    else
+      botright new
+      exec "resize " . a:height
+      try
+        exec "buffer " . g:term_buf
+      catch
+        call termopen($SHELL, {"detach": 0})
+        let g:term_buf = bufnr("")
+        set nonumber
+        set norelativenumber
+        set signcolumn=no
+      endtry
+      startinsert!
+      let g:term_win = win_getid()
+    endif
+  endfunction
+]]
+
+-- neovide
+if vim.g.neovide then
+  -- Put anything you want to happen only in Neovide here
+  vim.g.neovide_scroll_animation_far_lines = 99999
+  -- vim.g.neovide_window_blurred = true
+  vim.g.neovide_cursor_vfx_mode = "sonicboom"
+  vim.g.neovide_cursor_animation_length = 0.03
+  vim.g.neovide_hide_mouse_when_typing = true
+  vim.g.neovide_transparency = 0.9
+
+  -- these aucmds here make the buffers stop scrolling when swapping around buffers.
+  vim.api.nvim_create_autocmd("BufLeave", {
+    callback = function()
+      vim.g.neovide_scroll_animation_length = 0
+      -- vim.g.neovide_cursor_animation_length = 0
+    end,
+  })
+  vim.api.nvim_create_autocmd("BufEnter", {
+    callback = function()
+      vim.fn.timer_start(70, function()
+        vim.g.neovide_scroll_animation_length = 0.3
+        -- vim.g.neovide_cursor_animation_length = 0.08
+      end)
+    end,
+  })
+
+  -- this block is for size adjustment
+  vim.g.neovide_scale_factor = 1.0
+  local change_scale_factor = function(delta)
+    vim.g.neovide_scale_factor = vim.g.neovide_scale_factor * delta
+  end
+  vim.keymap.set("n", "<D-=>", function()
+    change_scale_factor(1.05)
+  end)
+  vim.keymap.set("n", "<D-->", function()
+    change_scale_factor(1/1.05)
+  end)
+
+  vim.keymap.set('i', '<D-s>', '<ESC>:w<CR>') -- Save
+  vim.keymap.set('n', '<D-s>', ':w<CR>') -- Save
+  vim.keymap.set('v', '<D-c>', '"+y') -- Copy
+  vim.keymap.set('n', '<D-v>', '"+P') -- Paste normal mode
+  vim.keymap.set('v', '<D-v>', '"+P') -- Paste visual mode
+  vim.keymap.set('c', '<D-v>', '<C-R>+') -- Paste command mode
+  vim.keymap.set('t', '<D-v>', '<C-\\><C-n>"+pi') -- Paste to term
+  vim.keymap.set('i', '<D-v>', '<ESC>l"+Pli') -- Paste insert mode
+
+  -- -- so for some reason this does not work with vim.keymap.set but it works like this. something wonky going on.
+  vim.api.nvim_set_keymap('n', '<D-p>', '<M-p>', { noremap = false })
+  -- vim.cmd[[
+  --   nmap <D-p> <m-p>
+  -- ]]
+  -- THIS DOES NOT WORK:
+  -- vim.keymap.set('n', '<D-p>', '<m-p>', { noremap = false })
+
+
+  -- Allow clipboard copy paste in neovim
+  -- vim.api.nvim_set_keymap('', '<D-v>', '+p<CR>', { noremap = true, silent = true})
+  -- vim.api.nvim_set_keymap('!', '<D-v>', '<C-R>+', { noremap = true, silent = true})
+
+  ----- this uses native fullscreen, and it sucks. will be replaced soon with a hammerspoon solution.
+  -- cmd+enter toggles fullscreen
+  vim.keymap.set('n', '<D-CR>', function()
+    vim.g.neovide_fullscreen = (not vim.g.neovide_fullscreen)
+  end, { noremap = true, desc = 'toggle neovide fullscreen' })
+
+  vim.g.neovide_floating_shadow = true
+  vim.g.neovide_floating_z_height = 10
+  vim.g.neovide_light_angle_degrees = 45
+  vim.g.neovide_light_radius = 5
+
+  vim.g.neovide_refresh_rate_idle = 1
+
+  -- some basic dev workflow edifice we can establish as an outcropping out of neovide:
+  -- First, cmd D to git log browsing.
+  vim.keymap.set('n', '<D-l>', function ()
+    MakeTermWindowVimAsPager('git --no-pager log -p | head -n3000 | ~/.cargo/bin/delta --pager=cat', '40', 'Git Log')
+  end)
+  vim.keymap.set('n', '<D-d>', function ()
+    MakeTermWindowVimAsPager('git --no-pager diff | ~/.cargo/bin/delta --pager=cat', '40', 'Git Diff')
+  end)
+  vim.keymap.set('n', '<D-z>', function ()
+    MakeTermWindowVimAsPager('echo test; echo path is $PATH; echo here is a hyperlink:; printf "test lol"', '20', 'test')
+  end)
+
+  -- commit (ah this is a bit ridiculous opening vim to write a msg inside vim lol)
+  vim.keymap.set('n', '<D-c>', function ()
+    -- run ~/util/commit-push-interactive.sh in a terminal split
+    MakeSimpleTermForCmd('~/util/commit-push-interactive.sh', '20', 'Git Commit')
+  end)
+
+  vim.keymap.set('n', '<D-t>', function ()
+    MakeSimpleTermForCmd('zsh', '25', 'zsh')
+  end)
+
+  -- override osc52 yank (not useful in neovide) with regular yank
+  vim.keymap.set({"n", 'x'}, "<leader>y", '"+y', { desc = "Copy to + clipboard (neovide override)" })
+  vim.keymap.set("n", "<leader>Y", 'ggVG"+y', { desc = "Copy entire buffer to clipboard (neovide override)"})
+
+end

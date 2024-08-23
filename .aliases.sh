@@ -179,6 +179,7 @@ export FZF_DEFAULT_COMMAND="fd --type file"
 
 # set PATH so it includes user's private bin directories
 export PATH="$HOME/.cargo/bin:$HOME/bin:$HOME/.local/bin:$PATH"
+
 export PATH=$HOME/util:$PATH
 
 # source $HOME/.vim/work/aliases/rtr.sh
@@ -215,6 +216,14 @@ alias git="git --config-env=delta.hyperlinks-file-link-format=GIT_DELTA_HYPERLIN
 # }
 # alias aider='aider_function'
 
+# Temporarily pointing aider at local install. This may be temporary as pipx does a decent job of maintaining it
+# normally but This is the cleanest way i came up with so far to quickly target a local install IF ONE EXISTS.
+AIDER_VENV_PROGRAM=~/aider/venv/bin/aider
+if [[ -x "$AIDER_VENV_PROGRAM" ]]; then
+  echo "Note: aider is aliased to $AIDER_VENV_PROGRAM."
+  alias aider="$AIDER_VENV_PROGRAM"
+fi
+
 function git-undo() {
     if [ "$1" = "drop" ]; then
         git reset --hard HEAD~${2:-1}
@@ -231,3 +240,16 @@ function git-undo() {
 # on linux without perm shenanigans. So this is a good way to establish a better N prefix to use.
 export N_PREFIX=$HOME/.n
 export PATH=$N_PREFIX/bin:$PATH
+# note on some systems specifically ones where i dont set up THIS script, it's fine and low effort to just run n with
+# sudo, it's not like that will affect the user running node.
+
+# Machine specific/contextual visual stuff!
+# - tmux status bar will have a salient color specific to machines/environments. To make this work an env var is
+#   provided for tmux config to leverage.
+# - non tmux shell environment will have entire shell bgcolor set to a subtler version of that color.
+# - root shells will have a salient bgcolor? (not sure about this one as root shell wont be running my zsh and easy to
+# recognize)
+
+# Still planning -- I might try to define these colors in the hardware mac address file. we'll see...
+
+

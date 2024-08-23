@@ -1,0 +1,18 @@
+[window.dimensions]
+columns = 200
+lines = 50
+[window.position]
+x = 0
+y = 0
+[window.padding]
+x = 4
+y = 4
+[window]
+decorations = "None"
+opacity = 0.9
+# blur = true
+
+[[keyboard.bindings]]
+key = "Return"
+mods = "Command"
+action = "ToggleSimpleFullscreen"

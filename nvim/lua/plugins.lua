@@ -146,12 +146,18 @@ return {
   "inkarkat/vim-ingo-library",
   { "inkarkat/vim-SearchHighlighting", init = function ()
     -- This is set to be disabled in favor of STS *maybe*
-    vim.keymap.set('n', '<CR>', '<Plug>SearchHighlightingStar', { silent = true } )
-    vim.cmd([[
-      nmap <silent> <CR> <Plug>SearchHighlightingStar
-      "" doesn't work
-      " vmap <silent> <CR> <Plug>SearchHighlightingStar
-    ]])
+    vim.keymap.set('n', '<CR>', function ()
+      if vim.bo.buftype == 'quickfix' or vim.bo.buftype == 'loclist' then
+        return '<CR>'
+      else
+        return '<Plug>SearchHighlightingStar'
+      end
+    end, { expr = true })
+    -- vim.cmd([[
+    --   nmap <silent> <CR> <Plug>SearchHighlightingStar
+    --   "" doesn't work
+    --   " vmap <silent> <CR> <Plug>SearchHighlightingStar
+    -- ]])
   end },
   -- {
   --   'VonHeikemen/lsp-zero.nvim',
@@ -208,12 +214,12 @@ return {
   },
   "gbprod/yanky.nvim",
   "mbbill/undotree",
-  { 'github/copilot.vim', init = function()
-    vim.cmd([[
-      let g:copilot_no_tab_map = v:true
-      imap <silent><script><expr> <c-space> copilot#Accept("\<CR>")
-    ]])
-  end },
+  -- { 'github/copilot.vim', init = function()
+  --   vim.cmd([[
+  --     let g:copilot_no_tab_map = v:true
+  --     imap <silent><script><expr> <c-space> copilot#Accept("\<CR>")
+  --   ]])
+  -- end },
   -- 'weilbith/nvim-code-action-menu',
   'wesQ3/vim-windowswap',
   -- 'stevearc/profile.nvim',
@@ -291,7 +297,7 @@ return {
         require'alpha'.setup(require'alpha.themes.startify'.config)
     end
   },
-  "folke/neodev.nvim",
+  "folke/lazydev.nvim",
   'nvim-lua/plenary.nvim',
   {
     'ruifm/gitlinker.nvim',
@@ -324,11 +330,11 @@ return {
   },
   {
     "ggandor/leap.nvim",
-    keys = {
-      { "s", mode = { "n", "o" }, desc = "Leap forward to" },
-      { "S", mode = { "n", "o" }, desc = "Leap backward to" },
-      { "gs", mode = { "n", "o" }, desc = "Leap from windows" },
-    },
+    -- keys = {
+    --   { "s", mode = { "n", "o" }, desc = "Leap forward to" },
+    --   -- { "S", mode = { "n", "o" }, desc = "Leap backward to" },
+    --   -- { "gs", mode = { "n", "o" }, desc = "Leap from windows" },
+    -- },
   },
   { "chrisgrieser/nvim-spider", lazy = true },
   -- "bekaboo/dropbar.nvim",
@@ -451,13 +457,13 @@ return {
     config = true,
   },
   'skwee357/nvim-prose',
-  {
-    "mhanberg/output-panel.nvim",
-    event = "VeryLazy",
-    config = function()
-      require("output_panel").setup()
-    end
-  },
+  -- { -- -- does not play nice with possession for some reason
+  --   "mhanberg/output-panel.nvim",
+  --   event = "VeryLazy",
+  --   config = function()
+  --     require("output_panel").setup()
+  --   end
+  -- },
   "tris203/precognition.nvim",
   {
     'stevearc/oil.nvim',
@@ -467,5 +473,60 @@ return {
     config = function()
       require("oil").setup()
     end
-  }
+  },
+  {
+    "LintaoAmons/bookmarks.nvim",
+    -- tag = "v0.5.4", -- optional, pin the plugin at specific version for stability
+    dependencies = {
+      {"nvim-telescope/telescope.nvim"},
+      {"stevearc/dressing.nvim"} -- optional: to have the same UI shown in the GIF
+    }
+  },
+  'Shatur/neovim-session-manager',
+  'Vimjas/vim-python-pep8-indent',
+  {
+    "mikavilpas/yazi.nvim",
+    event = "VeryLazy",
+    ---@type LazySpec
+    keys = {
+      {
+        "<leader>-",
+        "<cmd>Yazi<cr>",
+        desc = "Open yazi at the current file",
+      },
+      {
+        "<leader>cw",
+        "<cmd>Yazi cwd<cr>",
+        desc = "Open the file manager in nvim's working directory" ,
+      },
+      {
+        -- NOTE: this requires a version of yazi that includes
+        -- https://github.com/sxyazi/yazi/pull/1305 from 2024-07-18
+        '<c-up>',
+        "<cmd>Yazi toggle<cr>",
+        desc = "Resume the last yazi session",
+      },
+    },
+    ---@type YaziConfig
+    opts = {
+      -- if you want to open yazi instead of netrw, see below for more info
+      open_for_directories = false,
+      keymaps = {
+        show_help = '<f1>',
+      },
+    },
+  },
+  -- { 'echasnovski/mini.indentscope', version = '*' },
+  {
+    "Exafunction/codeium.nvim",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "hrsh7th/nvim-cmp",
+    },
+    config = function()
+      require("codeium").setup({
+      })
+    end
+  },
+
 }
