@@ -1446,38 +1446,37 @@ vim.opt.list = true
 -- "eol:↴"
 vim.opt.listchars = "tab:→ ,extends:»,precedes:«,trail:·,nbsp:◆"
 
-vim.cmd("highlight IndentBlanklineContextChar guifg=#66666f gui=nocombine")
-vim.cmd("highlight IndentBlanklineContextStart gui=underdouble guisp=#66666f")
 vim.cmd("highlight IndentBlanklineIndent1 gui=nocombine guifg=#383838")
 vim.cmd("highlight IndentBlanklineIndent2 gui=nocombine guifg=#484848")
+vim.cmd("highlight IblScope gui=nocombine guifg=#584868")
 
 require("ibl").setup({
   debounce = 100,
   indent = {
     char = "▏",
     tab_char = "→",
-  },
-  whitespace = {
     highlight = {
       "IndentBlanklineIndent1",
       "IndentBlanklineIndent2",
-    }
+    },
   },
-  -- scope = { enabled = false }, -- i set this for use from iOS terminal emulators
-  -- scope = {
-  --   exclude = { "lua" }
-  -- },
-  -- char = "▏",
-  -- char_highlight_list = {
-  --   "IndentBlanklineIndent1",
-  --   "IndentBlanklineIndent2",
-  -- },
-  -- context_char = "▏",
-  -- space_char_blankline = " ",
-  -- show_end_of_line = true, -- no effect while eof not put in listchars.
-  -- show_current_context = true,
-  -- show_current_context_start = true,
+  scope = {
+    enabled = true,
+    char = '▎',
+    show_start = true,
+    show_end = true,
+    show_exact_scope = true,
+    include = {
+      node_type = { lua = { "return_statement", "table_constructor" } },
+    }
+  }, -- i set this for use from iOS terminal emulators
 })
+
+-- require('mini.indentscope').setup{
+--   options = {
+--     try_as_border = true
+--   }
+-- }
 
 function ef_ten(direction)
     local mode = vim.api.nvim_get_mode().mode
@@ -1512,9 +1511,10 @@ end
 cmp.setup({
   formatting = {
     format = lspkind.cmp_format({
-      mode = 'symbol_text',
+      mode = 'symbol',
       maxwidth = 50, -- prevent the popup from showing more than provided characters (e.g 50 will not show more than 50 characters)
       ellipsis_char = '…', -- when popup menu exceed maxwidth, the truncated part would show ellipsis_char instead (must define maxwidth first)
+      symbol_map = { Codeium = "" },
 
       -- The function below will be called before any actual modifications from lspkind
       -- so that you can provide more controls on popup customization. (See [#30](https://github.com/onsails/lspkind-nvim/pull/30))
@@ -1532,8 +1532,9 @@ cmp.setup({
   mapping = cmp.mapping.preset.insert({
     ['<C-b>'] = cmp.mapping.scroll_docs(-4),
     ['<C-f>'] = cmp.mapping.scroll_docs(4),
-    --- removing c-space from cmp behavior to make room for it for copilot
-    -- ['<C-Space>'] = cmp.mapping.complete(),
+    ---- bringing ctrl-space back as i am no longer using copilot
+    ---- it is used for now to target codeium.
+    ['<C-Space>'] = cmp.mapping.complete({ config = { sources = { { name = 'codeium' } } } }),
     ['<C-e>'] = cmp.mapping.abort(),
     ["<CR>"] = cmp.mapping.confirm({
       behavior = cmp.ConfirmBehavior.Replace,
@@ -1596,11 +1597,15 @@ cmp.setup({
     -- { name = 'ultisnips' }, -- For ultisnips users.
     { name = 'snippy' }, -- For snippy users.
     { name = 'buffer' },
+    { name = 'codeium', option = {
+      keyword_length = 0
+    } },
     { name = 'path',
       option = {
         -- Options go into this table
       },
     },
+    
     { name = 'nvim_lsp_signature_help' },
   }),
   snippet = {
@@ -1610,7 +1615,6 @@ cmp.setup({
     end
   }
 })
-
 
 -- Set configuration for specific filetype.
 cmp.setup.filetype('gitcommit', {
@@ -1723,7 +1727,7 @@ require("mason-null-ls").setup({
 })
 
 null_ls.setup({
-  debug = true,
+  -- debug = true,
   -- this is for cspell to default to hints and not errors (yeesh)
   fallback_severity = vim.diagnostic.severity.HINT,
   sources = {
@@ -2476,6 +2480,8 @@ end
 
 vim.keymap.set('n', '<leader>z', ':lua toggle_scrolloff()<CR>', { desc = "Toggle scrolloff" })
 
+vim.o.scrolloff = 3;
+
 -- for easy reload automation
 vim.api.nvim_create_autocmd({"Signal"}, {
   pattern = "SIGUSR1",
@@ -2581,8 +2587,8 @@ vim.cmd[[
   " provided by EgZvor from reddit, i am selectively activating some of it
   " Working with marks
   " noremap ` '
-  noremap ' `
-  noremap '' ``
+  " noremap ' `
+  " noremap '' ``
   " noremap `` ''
   " sunmap '
   " sunmap `
@@ -2596,6 +2602,14 @@ vim.cmd[[
   "   exe "nnoremap '" . ch .          ' `' . toupper(ch)
   "   exe "nnoremap '" . toupper(ch) . ' `' . ch
   " endfor
+
+
+  " for ESM typescript `gf`
+  augroup TypeScriptIncludeExpr
+  autocmd!
+  autocmd FileType typescript setlocal includeexpr=substitute(v:fname,'\\.js$','.ts','')
+  augroup END
+
 ]]
 
 -- this is useful for sections of code with two alternative impls to toggle between.

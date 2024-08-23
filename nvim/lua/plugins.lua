@@ -214,12 +214,12 @@ return {
   },
   "gbprod/yanky.nvim",
   "mbbill/undotree",
-  { 'github/copilot.vim', init = function()
-    vim.cmd([[
-      let g:copilot_no_tab_map = v:true
-      imap <silent><script><expr> <c-space> copilot#Accept("\<CR>")
-    ]])
-  end },
+  -- { 'github/copilot.vim', init = function()
+  --   vim.cmd([[
+  --     let g:copilot_no_tab_map = v:true
+  --     imap <silent><script><expr> <c-space> copilot#Accept("\<CR>")
+  --   ]])
+  -- end },
   -- 'weilbith/nvim-code-action-menu',
   'wesQ3/vim-windowswap',
   -- 'stevearc/profile.nvim',
@@ -487,6 +487,7 @@ return {
   {
     "mikavilpas/yazi.nvim",
     event = "VeryLazy",
+    ---@type LazySpec
     keys = {
       {
         "<leader>-",
@@ -514,5 +515,18 @@ return {
         show_help = '<f1>',
       },
     },
-  }
+  },
+  -- { 'echasnovski/mini.indentscope', version = '*' },
+  {
+    "Exafunction/codeium.nvim",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "hrsh7th/nvim-cmp",
+    },
+    config = function()
+      require("codeium").setup({
+      })
+    end
+  },
+
 }
