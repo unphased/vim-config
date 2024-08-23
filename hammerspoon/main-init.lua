@@ -99,7 +99,7 @@ local function getAllSessions()
     print("Getting all sessions...")
     local sessions = {}
     local runningPaths = {}
-    
+
     -- Add running Neovide instances
     local neovideInstances = findNeovideInstancesAccessOrder()
     for _, app in ipairs(neovideInstances) do
@@ -117,7 +117,7 @@ local function getAllSessions()
             print("Warning: Could not get working directory for Neovide instance with PID: " .. app:pid())
         end
     end
-    
+
     -- Add session files that are not already running
     local sessionFiles = findSessionFiles()
     for _, file in ipairs(sessionFiles) do
@@ -132,12 +132,14 @@ local function getAllSessions()
             print("Skipped session file (already running): " .. file)
         end
     end
-    
+
     print("Total unique sessions found: " .. #sessions)
     print("Dumping sessions:", hs.inspect(sessions))
     return sessions
 end
 
+--- @type nil | hs.chooser
+local openChooser = nil
 local function neovideSessions()
     print("Starting neovideSessions function...")
     local sessions = getAllSessions()
@@ -163,6 +165,7 @@ local function neovideSessions()
     print('items:', hs.inspect(items))
 
     local callback = function(choice)
+        openChooser = nil
         if choice then
             print("User selected: " .. choice.text)
             if choice.session.type == "running" then
@@ -184,16 +187,21 @@ local function neovideSessions()
     end)
     chooser:choices(items)
     chooser:show()
+    openChooser = chooser
     if hasAFocusedNeovide then
         chooser:selectedRow(2)
     end
 end
 
 hs.hotkey.bind("Ctrl-Cmd", "S", function()
+    if openChooser then
+        openChooser:select()
+        return
+    end
     local neovideInstances = findNeovideInstances()
     local focusedWindow = hs.window.focusedWindow()
     local focusedApp = focusedWindow and focusedWindow:application()
-    
+
     -- No Neovide instances open, perform session trigger
     if #neovideInstances == 0 or (focusedApp and focusedApp:bundleID() == 'com.neovide.neovide') then
         -- Already focused on a Neovide instance, perform session trigger
