@@ -1514,7 +1514,7 @@ cmp.setup({
       mode = 'symbol',
       maxwidth = 50, -- prevent the popup from showing more than provided characters (e.g 50 will not show more than 50 characters)
       ellipsis_char = '…', -- when popup menu exceed maxwidth, the truncated part would show ellipsis_char instead (must define maxwidth first)
-      symbol_map = { Codeium = "" },
+      symbol_map = { Codeium = "", Cody = "*" },
 
       -- The function below will be called before any actual modifications from lspkind
       -- so that you can provide more controls on popup customization. (See [#30](https://github.com/onsails/lspkind-nvim/pull/30))
@@ -1534,7 +1534,8 @@ cmp.setup({
     ['<C-f>'] = cmp.mapping.scroll_docs(4),
     ---- bringing ctrl-space back as i am no longer using copilot
     ---- it is used for now to target codeium.
-    ['<C-Space>'] = cmp.mapping.complete({ config = { sources = { { name = 'codeium' } } } }),
+    ['<C-Space>'] = cmp.mapping.complete({ config = { sources = { { name = 'cody' }, { name = 'codeium'} } } }),
+    ['<C-S-Space>'] = cmp.mapping.complete({ config = { sources = { { name = 'codeium' } } } }),
     ['<C-e>'] = cmp.mapping.abort(),
     ["<CR>"] = cmp.mapping.confirm({
       behavior = cmp.ConfirmBehavior.Replace,
@@ -1597,15 +1598,16 @@ cmp.setup({
     -- { name = 'ultisnips' }, -- For ultisnips users.
     { name = 'snippy' }, -- For snippy users.
     { name = 'buffer' },
-    { name = 'codeium', option = {
-      keyword_length = 0
-    } },
+    { name = 'cody' },
+    { name = 'codeium' },
+    -- option = {
+    --   keyword_length = 0
+    -- }
     { name = 'path',
       option = {
         -- Options go into this table
       },
     },
-    
     { name = 'nvim_lsp_signature_help' },
   }),
   snippet = {
@@ -2751,11 +2753,17 @@ if vim.g.neovide then
   vim.keymap.set('i', '<D-s>', '<ESC>:w<CR>') -- Save
   vim.keymap.set('n', '<D-s>', ':w<CR>') -- Save
   vim.keymap.set('v', '<D-c>', '"+y') -- Copy
-  vim.keymap.set('n', '<D-v>', '"+P') -- Paste normal mode
-  vim.keymap.set('v', '<D-v>', '"+P') -- Paste visual mode
-  vim.keymap.set('c', '<D-v>', '<C-R>+') -- Paste command mode
-  vim.keymap.set('t', '<D-v>', '<C-\\><C-n>"+pi') -- Paste to term
-  vim.keymap.set('i', '<D-v>', '<ESC>l"+Pli') -- Paste insert mode
+  -- vim.keymap.set('n', '<D-v>', '"+P') -- Paste normal mode
+  -- vim.keymap.set('v', '<D-v>', '"+P') -- Paste visual mode
+  -- vim.keymap.set('c', '<D-v>', '<C-R>+') -- Paste command mode
+  -- vim.keymap.set('t', '<D-v>', '<C-\\><C-n>"+pi') -- Paste to term
+  -- vim.keymap.set('i', '<D-v>', '<ESC>l"+Pli') -- Paste insert mode
+  vim.keymap.set(
+    {'n', 'v', 's', 'x', 'o', 'i', 'l', 'c', 't'},
+    '<D-v>',
+    function() vim.api.nvim_paste(vim.fn.getreg('+'), true, -1) end,
+    { noremap = true, silent = true }
+  )
 
   -- -- so for some reason this does not work with vim.keymap.set but it works like this. something wonky going on.
   vim.api.nvim_set_keymap('n', '<D-p>', '<M-p>', { noremap = false })
@@ -2764,11 +2772,6 @@ if vim.g.neovide then
   -- ]]
   -- THIS DOES NOT WORK:
   -- vim.keymap.set('n', '<D-p>', '<m-p>', { noremap = false })
-
-
-  -- Allow clipboard copy paste in neovim
-  -- vim.api.nvim_set_keymap('', '<D-v>', '+p<CR>', { noremap = true, silent = true})
-  -- vim.api.nvim_set_keymap('!', '<D-v>', '<C-R>+', { noremap = true, silent = true})
 
   ----- this uses native fullscreen, and it sucks. will be replaced soon with a hammerspoon solution.
   -- cmd+enter toggles fullscreen
