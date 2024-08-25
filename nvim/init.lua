@@ -1534,7 +1534,7 @@ cmp.setup({
     ['<C-f>'] = cmp.mapping.scroll_docs(4),
     ---- bringing ctrl-space back as i am no longer using copilot
     ---- it is used for now to target codeium.
-    ['<C-Space>'] = cmp.mapping.complete({ config = { sources = { { name = 'cody' } } } }),
+    ['<C-Space>'] = cmp.mapping.complete({ config = { sources = { { name = 'cody' }, { name = 'codeium'} } } }),
     ['<C-S-Space>'] = cmp.mapping.complete({ config = { sources = { { name = 'codeium' } } } }),
     ['<C-e>'] = cmp.mapping.abort(),
     ["<CR>"] = cmp.mapping.confirm({
