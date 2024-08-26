@@ -95,6 +95,7 @@ local function findSessionFiles()
 end
 
 -- Combine Neovide instances and session files
+local openChooserInstanceCount = 0
 local function getAllSessions()
     print("Getting all sessions...")
     local sessions = {}
@@ -117,6 +118,7 @@ local function getAllSessions()
             print("Warning: Could not get working directory for Neovide instance with PID: " .. app:pid())
         end
     end
+    openChooserInstanceCount = #neovideInstances
 
     -- Add session files that are not already running
     local sessionFiles = findSessionFiles()
@@ -166,6 +168,7 @@ local function neovideSessions()
 
     local callback = function(choice)
         openChooser = nil
+        openChooserInstanceCount = 0
         if choice then
             print("User selected: " .. choice.text)
             if choice.session.type == "running" then
@@ -194,9 +197,17 @@ local function neovideSessions()
 end
 
 hs.hotkey.bind("Ctrl-Cmd", "S", function()
+    -- special contextual behavior -- if i'm trying to mash the key and the menu is already open, choose the selected
+    -- item (usually the 2nd item) but only if it is an open instance, e.g. if 2 or more instances are already open,
+    -- otherwise close the chooser instead of selecting the selected one.
     if openChooser then
-        openChooser:select()
-        return
+        if openChooserInstanceCount > 1 then
+            openChooser:select()
+            return
+        else
+            openChooser:cancel()
+            return
+        end
     end
     local neovideInstances = findNeovideInstances()
     local focusedWindow = hs.window.focusedWindow()
