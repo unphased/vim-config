@@ -312,8 +312,11 @@ _G.CycleWindowsOrBuffers = function (forward)
   end
 end
 
-vim.keymap.set("n", "<tab>", "<cmd>lua CycleWindowsOrBuffers(true)<cr>")
-vim.keymap.set("n", "<s-tab>", "<cmd>lua CycleWindowsOrBuffers(false)<cr>")
+vim.keymap.set("n", "<tab>", function () CycleWindowsOrBuffers(true) end)
+vim.keymap.set("n", "<s-tab>", function () CycleWindowsOrBuffers(false) end)
+
+vim.keymap.set("n", "}", ":silent bnext<CR>")
+vim.keymap.set("n", "{", ":silent bprev<CR>")
 
 -- dumping vimL code that I didnt bother porting yet here for expedient bringup
 vim.cmd([[
@@ -2090,14 +2093,14 @@ local opts = {noremap = true} -- delete me later
 
 -- Normal Mode Swapping:
 -- Swap The Master Node relative to the cursor with it's siblings, Dot Repeatable
-vim.keymap.set("n", "{", function()
-  vim.opt.opfunc = "v:lua.STSSwapUpNormal_Dot"
-  return "g@l"
-end, { silent = true, expr = true })
-vim.keymap.set("n", "}", function()
-  vim.opt.opfunc = "v:lua.STSSwapDownNormal_Dot"
-  return "g@l"
-end, { silent = true, expr = true })
+-- vim.keymap.set("n", "{", function()
+--   vim.opt.opfunc = "v:lua.STSSwapUpNormal_Dot"
+--   return "g@l"
+-- end, { silent = true, expr = true })
+-- vim.keymap.set("n", "}", function()
+--   vim.opt.opfunc = "v:lua.STSSwapDownNormal_Dot"
+--   return "g@l"
+-- end, { silent = true, expr = true })
 -- Swap Current Node at the Cursor with it's siblings, Dot Repeatable
 vim.keymap.set("n", "]]", function()
   vim.opt.opfunc = "v:lua.STSSwapCurrentNodeNextNormal_Dot"
