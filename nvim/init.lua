@@ -2808,7 +2808,14 @@ if vim.g.neovide then
   vim.keymap.set({'n', 't'}, '<D-d>', function ()
     if vim.bo.buftype == 'terminal' then
       -- In terminal buffer (normal or insert mode)
-      MakeTermWindowVimAsPager('git diff HEAD^', '50', 'Git DIFF PREV')
+      -- if such a window already exists, launch the next itereation of it!
+      for _, bufName in get_current_tab_buffer_names() do
+        ---@type string
+        local bufName = bufName
+        if (bufName:find()) then
+        end
+      end
+      MakeTermWindowVimAsPager('git diff HEAD^', '50', 'Git DIFF PREV 1')
     else
       -- In non-terminal buffer
       MakeTermWindowVimAsPager('git --no-pager diff | ~/.cargo/bin/delta --pager=cat', '40', 'Git Diff')
