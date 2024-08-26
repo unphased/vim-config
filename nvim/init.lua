@@ -2638,29 +2638,18 @@ function MakeTermWindowVimAsPager(command, size, name, target_buf)
   local bufNum, winNum
 
   if target_buf then
-    -- Use the target buffer if provided
-    bufNum = target_buf
-    winNum = vim.fn.bufwinnr(target_buf)
-    if winNum == -1 then
-      -- If the buffer isn't in any window, open it in a new window
-      vim.cmd('botright ' .. size .. ' split')
-      vim.cmd('buffer ' .. target_buf)
-    else
-      -- If the buffer is already in a window, switch to it
-      vim.cmd(winNum .. 'wincmd w')
-    end
-    -- Clear the buffer content
-    vim.api.nvim_buf_set_lines(bufNum, 0, -1, false, {})
+    -- i need to abandon the current buffer in this window: Create a new buffer, switch this window to it, then delete
+    -- the old defunct buffer (or not! would be nice to be able to re-view it with future features)
+    vim.cmd('enew')
   else
     -- Create a new window and buffer if no target is provided
     vim.cmd('botright ' .. size .. ' new')
-    bufNum = vim.api.nvim_get_current_buf()
-    winNum = vim.api.nvim_get_current_win()
   end
 
+  bufNum = vim.api.nvim_get_current_buf()
   vim.bo[bufNum].buftype = 'nofile'
   vim.bo[bufNum].bufhidden = 'hide'
-  vim.wo[winNum].signcolumn = 'no'
+  vim.wo[vim.api.nvim_get_current_win()].signcolumn = 'no'
 
   vim.keymap.set('n', 'q', function()
     vim.api.nvim_buf_delete(bufNum, {force = true})
