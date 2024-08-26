@@ -2635,8 +2635,6 @@ vim.api.nvim_create_autocmd("FileType", {
 
 -- helper, very sad no hyperlink support in neovim yet. don't send in a long running command.
 function MakeTermWindowVimAsPager(command, size, name, target_buf)
-  local bufNum, winNum
-
   if target_buf then
     -- i need to abandon the current buffer in this window: Create a new buffer, switch this window to it, then delete
     -- the old defunct buffer (or not! would be nice to be able to re-view it with future features)
@@ -2646,10 +2644,15 @@ function MakeTermWindowVimAsPager(command, size, name, target_buf)
     vim.cmd('botright ' .. size .. ' new')
   end
 
-  bufNum = vim.api.nvim_get_current_buf()
+  local bufNum = vim.api.nvim_get_current_buf()
   vim.bo[bufNum].buftype = 'nofile'
   vim.bo[bufNum].bufhidden = 'hide'
   vim.wo[vim.api.nvim_get_current_win()].signcolumn = 'no'
+
+  if target_buf then
+    -- delete the buffer now that we have switched away from it TODO sometimes may want to keep it, add option for that
+    vim.api.nvim_buf_delete(target_buf, {force = true})
+  end
 
   vim.keymap.set('n', 'q', function()
     vim.api.nvim_buf_delete(bufNum, {force = true})
@@ -2663,7 +2666,7 @@ function MakeTermWindowVimAsPager(command, size, name, target_buf)
   })
 
   if name then
-    local bufferName = 'term://' .. name
+    local bufferName = 'term:' .. name
     log('setting buf name to '.. bufferName)
     vim.api.nvim_buf_set_name(bufNum, bufferName)
     -- TODO find a way to change name to prevent buf name clash
