@@ -2653,6 +2653,7 @@ function MakeTermWindowVimAsPager(command, size, name)
   })
   -- vim.bo[bufNum].buftype = 'terminal'
   if name then
+    log('setting buf name to '.. name)
     vim.api.nvim_buf_set_name(bufNum, name)
     -- TODO find a way to change name to prevent buf name clash
   end
@@ -2793,6 +2794,10 @@ if vim.g.neovide then
   end)
   vim.keymap.set('n', '<D-d>', function ()
     MakeTermWindowVimAsPager('git --no-pager diff | ~/.cargo/bin/delta --pager=cat', '40', 'Git Diff')
+  end)
+  vim.keymap.set('t', '<D-d>', function ()
+    -- start to step backward. try by stacking the splits to see how well that works.
+    MakeTermWindowVimAsPager('git diff HEAD^', '50', 'Git DIFF PREV')
   end)
   vim.keymap.set('n', '<D-z>', function ()
     MakeTermWindowVimAsPager('echo test; echo path is $PATH; echo here is a hyperlink:; printf "test lol"', '20', 'test')
