@@ -2792,12 +2792,14 @@ if vim.g.neovide then
   vim.keymap.set('n', '<D-l>', function ()
     MakeTermWindowVimAsPager('git --no-pager log -p | head -n3000 | ~/.cargo/bin/delta --pager=cat', '40', 'Git Log')
   end)
-  vim.keymap.set('n', '<D-d>', function ()
-    MakeTermWindowVimAsPager('git --no-pager diff | ~/.cargo/bin/delta --pager=cat', '40', 'Git Diff')
-  end)
-  vim.keymap.set('t', '<D-d>', function ()
-    -- start to step backward. try by stacking the splits to see how well that works.
-    MakeTermWindowVimAsPager('git diff HEAD^', '50', 'Git DIFF PREV')
+  vim.keymap.set({'n', 't'}, '<D-d>', function ()
+    if vim.bo.buftype == 'terminal' then
+      -- In terminal buffer (normal or insert mode)
+      MakeTermWindowVimAsPager('git diff HEAD^', '50', 'Git DIFF PREV')
+    else
+      -- In non-terminal buffer
+      MakeTermWindowVimAsPager('git --no-pager diff | ~/.cargo/bin/delta --pager=cat', '40', 'Git Diff')
+    end
   end)
   vim.keymap.set('n', '<D-z>', function ()
     MakeTermWindowVimAsPager('echo test; echo path is $PATH; echo here is a hyperlink:; printf "test lol"', '20', 'test')
