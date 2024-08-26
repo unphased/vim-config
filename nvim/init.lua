@@ -2634,30 +2634,53 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 -- helper, very sad no hyperlink support in neovim yet. don't send in a long running command.
-function MakeTermWindowVimAsPager(command, size, name)
-  vim.cmd('botright ' .. size .. ' new')
+function MakeTermWindowVimAsPager(command, size, name, target_buf)
+  local bufNum, winNum
 
-  local bufNum = vim.api.nvim_get_current_buf()
-  local winNum = vim.api.nvim_get_current_win()
+  if target_buf then
+    -- Use the target buffer if provided
+    bufNum = target_buf
+    winNum = vim.fn.bufwinnr(target_buf)
+    if winNum == -1 then
+      -- If the buffer isn't in any window, open it in a new window
+      vim.cmd('botright ' .. size .. ' split')
+      vim.cmd('buffer ' .. target_buf)
+    else
+      -- If the buffer is already in a window, switch to it
+      vim.cmd(winNum .. 'wincmd w')
+    end
+    -- Clear the buffer content
+    vim.api.nvim_buf_set_lines(bufNum, 0, -1, false, {})
+  else
+    -- Create a new window and buffer if no target is provided
+    vim.cmd('botright ' .. size .. ' new')
+    bufNum = vim.api.nvim_get_current_buf()
+    winNum = vim.api.nvim_get_current_win()
+  end
+
   vim.bo[bufNum].buftype = 'nofile'
   vim.bo[bufNum].bufhidden = 'hide'
   vim.wo[winNum].signcolumn = 'no'
+
   vim.keymap.set('n', 'q', function()
     vim.api.nvim_buf_delete(bufNum, {force = true})
   end, { noremap = true, silent = true, buffer = bufNum})
-  local chan_id = vim.fn.termopen({'/bin/sh', '-c', command}, {
+
+  local chan_id = vim.fn.termopen({'/bin/sh', '-c', "echo 'Launching " .. command .. ":' && " .. command}, {
     on_exit = function(job_id, exit_code, event_type)
       -- now that the output is done we scroll us to the top
       vim.api.nvim_win_set_cursor(0, {1, 0})
     end
   })
-  -- vim.bo[bufNum].buftype = 'terminal'
+
   if name then
     local bufferName = 'term://' .. name
     log('setting buf name to '.. bufferName)
     vim.api.nvim_buf_set_name(bufNum, bufferName)
     -- TODO find a way to change name to prevent buf name clash
   end
+
+  return bufNum
 end
 
 -- a one off terminal to run something and closes after
@@ -2720,7 +2743,7 @@ function get_current_tab_buffer_names()
         local buf = vim.api.nvim_win_get_buf(win)
         local name = vim.api.nvim_buf_get_name(buf)
         if name ~= "" then
-            table.insert(buffers, name)
+            table.insert(buffers, { name = name, buf = buf })
         end
     end
     return buffers
@@ -2803,22 +2826,31 @@ if vim.g.neovide then
   -- some basic dev workflow edifice we can establish as an outcropping out of neovide:
   -- First, cmd D to git log browsing.
   vim.keymap.set('n', '<D-l>', function ()
-    MakeTermWindowVimAsPager('git --no-pager log -p | head -n3000 | ~/.cargo/bin/delta --pager=cat', '40', 'Git Log')
+    MakeTermWindowVimAsPager('git --no-pager log -p | head -n5000 | ~/.cargo/bin/delta --pager=none', '40', 'Git Log')
   end)
   vim.keymap.set({'n', 't'}, '<D-d>', function ()
     if vim.bo.buftype == 'terminal' then
       -- In terminal buffer (normal or insert mode)
-      -- if such a window already exists, launch the next itereation of it!
-      for _, bufName in get_current_tab_buffer_names() do
-        ---@type string
-        local bufName = bufName
-        if (bufName:find()) then
+      local max_diff_num = 0
+      local max_diff_bufnum
+      for _, data in ipairs(get_current_tab_buffer_names()) do
+        local bufName = data.name
+        local diff_num = bufName:match("Git DIFF PREV (%d+)")
+        if diff_num then
+          max_diff_num = math.max(max_diff_num, tonumber(diff_num) or 0)
+          max_diff_bufnum = data.buf
         end
       end
-      MakeTermWindowVimAsPager('git diff HEAD^', '50', 'Git DIFF PREV 1')
+
+      -- Increment the max number for the new diff
+      local new_diff_num = max_diff_num + 1
+      local commits_back = string.rep("^", new_diff_num)
+      MakeTermWindowVimAsPager('git --no-pager diff HEAD' .. commits_back .. " | ~/.cargo/bin/delta --pager=none",
+        '50', 'Git DIFF PREV ' .. new_diff_num, new_diff_num == 1 and nil or max_diff_bufnum)
+
     else
       -- In non-terminal buffer
-      MakeTermWindowVimAsPager('git --no-pager diff | ~/.cargo/bin/delta --pager=cat', '40', 'Git Diff')
+      MakeTermWindowVimAsPager('git --no-pager diff | ~/.cargo/bin/delta --pager=none', '40', 'Git Diff')
     end
   end)
   vim.keymap.set('n', '<D-z>', function ()
