@@ -2484,29 +2484,6 @@ vim.keymap.set('n', '<leader>z', ':lua toggle_scrolloff()<CR>', { desc = "Toggle
 
 vim.o.scrolloff = 3;
 
--- Function to list buffer names in current tab
-function list_buffer_names_in_current_tab()
-  local current_tab = vim.api.nvim_get_current_tabpage()
-  local wins = vim.api.nvim_tabpage_list_wins(current_tab)
-  local buffer_names = {}
-
-  for _, win in ipairs(wins) do
-    local buf = vim.api.nvim_win_get_buf(win)
-    local name = vim.api.nvim_buf_get_name(buf)
-    if name ~= "" then
-      table.insert(buffer_names, name)
-    end
-  end
-
-  print("Buffers in current tab:")
-  for i, name in ipairs(buffer_names) do
-    print(i .. ": " .. name)
-  end
-end
-
--- Keybinding to list buffer names
-vim.keymap.set('n', '<leader>lb', list_buffer_names_in_current_tab, { desc = "List buffer names in current tab" })
-
 -- for easy reload automation
 vim.api.nvim_create_autocmd({"Signal"}, {
   pattern = "SIGUSR1",
@@ -2676,8 +2653,9 @@ function MakeTermWindowVimAsPager(command, size, name)
   })
   -- vim.bo[bufNum].buftype = 'terminal'
   if name then
-    log('setting buf name to '.. name)
-    vim.api.nvim_buf_set_name(bufNum, name)
+    local bufferName = 'term://' .. name
+    log('setting buf name to '.. bufferName)
+    vim.api.nvim_buf_set_name(bufNum, bufferName)
     -- TODO find a way to change name to prevent buf name clash
   end
 end
@@ -2735,6 +2713,18 @@ vim.cmd[[
     endif
   endfunction
 ]]
+
+function get_current_tab_buffer_names()
+    local buffers = {}
+    for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+        local buf = vim.api.nvim_win_get_buf(win)
+        local name = vim.api.nvim_buf_get_name(buf)
+        if name ~= "" then
+            table.insert(buffers, name)
+        end
+    end
+    return buffers
+end
 
 -- neovide
 if vim.g.neovide then
