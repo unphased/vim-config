@@ -331,10 +331,13 @@ vim.cmd([[
       resize
       vertical resize
       let t:zoomed = 1
+      echo "Zoomed!"
     endif
   endfunction
   command! ZoomToggle call s:ZoomToggle()
   nnoremap <Leader><Leader> :ZoomToggle<CR>
+  " Automatically reset zoom when a window is closed.
+  autocmd WinClosed * if exists('t:zoomed') && t:zoomed | let t:zoomed = 0 | echo "Zoom reset!" | endif
 
   " my quit method: ctrl+q first attempts to quit nvim. if there are unsaved changes, ask if you want to save them first.
   function! MyConfirmQuitAllNoSave()
@@ -739,8 +742,11 @@ vim.keymap.set({ "n", "v", "i" }, "<C-l>", function() tmux_window('l') end, { no
 -- vim.api.nvim_set_keymap('n', '<Leader>t', '<Cmd>lua MoveToNextTab()<CR>', {noremap = true, silent = true})
 
 -- yanking window to the next tab
-vim.keymap.set("n", "ygT", ":call MoveToPrevTab()<CR>")
-vim.keymap.set("n", "ygt", ":call MoveToNextTab()<CR>")
+vim.keymap.set("n", "yT", ":call MoveToPrevTab()<CR>", { desc = "Move window to prev tab" })
+vim.keymap.set("n", "yt", ":call MoveToNextTab()<CR>", { desc = "Move window to next tab" })
+
+vim.keymap.set('n', 'mt', ':+tabmove<CR>', { desc = "Move tab to the right" })
+vim.keymap.set('n', 'mT', ':-tabmove<CR>', { desc = "Move tab to the left" })
 
 -- implements a smart I to insert at the front of the line but after the comment symbol if applicable
 -- http://stackoverflow.com/a/22282505/340947

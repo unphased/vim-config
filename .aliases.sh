@@ -206,23 +206,30 @@ export GIT_DELTA_HYPERLINK_FORMAT="file://$MACHINE_ID{path}:{line}"
 
 alias git="git --config-env=delta.hyperlinks-file-link-format=GIT_DELTA_HYPERLINK_FORMAT"
 
-### This is bad it breaks terminal state for some reason.
-# aider_function() {
-#   # Restores title always
-#   trap 'echo -ne "\033[23;0t"' INT TERM EXIT
-#   echo -ne "\033[22;0t" # Push title to stack
-#   echo -ne "\033]0;AIDER\007" # Set title
-#   aider "$@"
-# }
-# alias aider='aider_function'
-
 # Temporarily pointing aider at local install. This may be temporary as pipx does a decent job of maintaining it
 # normally but This is the cleanest way i came up with so far to quickly target a local install IF ONE EXISTS.
 AIDER_VENV_PROGRAM=~/aider/venv/bin/aider
+AIDER_CMD=aider
 if [[ -x "$AIDER_VENV_PROGRAM" ]]; then
   echo "Note: aider is aliased to $AIDER_VENV_PROGRAM."
-  alias aider="$AIDER_VENV_PROGRAM"
+  AIDER_CMD="$AIDER_VENV_PROGRAM"
 fi
+
+aider_function() {
+  # Push title to stack
+  echo -ne "\033[22;0t"
+  # Set title
+  echo -ne "\033]0;AIDER\007"
+  # Set trap to restore title when exiting aider
+  trap 'echo -ne "\033[23;0t"; trap - INT TERM EXIT' INT TERM EXIT
+  "$AIDER_CMD" "$@"
+  # Restore the title after aider finishes
+  echo -ne "\033[23;0t"
+  # Remove the trap after finishing
+  trap - INT TERM EXIT
+}
+
+alias aider='aider_function'
 
 function git-undo() {
     if [ "$1" = "drop" ]; then
