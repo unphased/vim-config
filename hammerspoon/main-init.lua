@@ -3,6 +3,44 @@ hs.loadSpoon("EmmyLua")
 
 local home = os.getenv("HOME")
 
+local socket = require "socket"
+local function dump(o)
+   if type(o) == 'table' then
+      local s = '{ '
+      for k,v in pairs(o) do
+         if type(k) ~= 'number' then k = '"'..k..'"' end
+         s = s .. '['..k..'] = ' .. dump(v) .. ','
+      end
+      return s .. '} '
+   else
+      return tostring(o)
+   end
+end
+
+_G.l = function(...)
+  local args = {...}
+  local log_file_path = "/tmp/lua-hs.log"
+  local log_file = io.open(log_file_path, "a")
+  if log_file == nil then
+    print("Could not open log file: " .. log_file_path)
+    return
+  end
+  io.output(log_file)
+  io.write(socket.gettime() .. " >>> ")
+  for i, payload in ipairs(args) do
+    local ty = type(payload)
+    if ty == "table" then
+      io.write(string.format("%d -> %s\n", i, dump(payload)))
+    elseif ty == "function" then
+      io.write(string.format("%d -> [function]\n", i))
+    else
+      io.write(string.format("%d -> %s\n", i, payload))
+    end
+  end
+  io.close(log_file)
+end
+l('running main-init.lua');
+
 -- SESSION TRIGGER CONCEPT
 -- * find existing sessions files as maintained by neovim-session-manager in their default location
 -- * find running neovide instances
@@ -38,9 +76,12 @@ end
 -- there are 2 impls of this list fetch because the one ordered by access time is probably slower
 local function findNeovideInstancesAccessOrder()
     print("Listing Neovides by window order...")
+    l('fNIAO')
     local instances = {}
     local orderedWindows = hs.window.orderedWindows()
+    l('fNIAO 1')
     for _, window in ipairs(orderedWindows) do
+        l('fNIAO 2 ' .. window:title())
         local app = window:application();
         if app:bundleID() == 'com.neovide.neovide' then
             table.insert(instances, app)
@@ -97,12 +138,14 @@ end
 -- Combine Neovide instances and session files
 local openChooserInstanceCount = 0
 local function getAllSessions()
+    l('gAS')
     print("Getting all sessions...")
     local sessions = {}
     local runningPaths = {}
 
     -- Add running Neovide instances
     local neovideInstances = findNeovideInstancesAccessOrder()
+    l('gAS 1')
     for _, app in ipairs(neovideInstances) do
         local cwd = getNeovideWorkingDir(app:pid())
         if cwd then
@@ -119,9 +162,11 @@ local function getAllSessions()
         end
     end
     openChooserInstanceCount = #neovideInstances
+    l('gAS 2')
 
     -- Add session files that are not already running
     local sessionFiles = findSessionFiles()
+    l('gAS 3')
     for _, file in ipairs(sessionFiles) do
         if not runningPaths[file] then
             table.insert(sessions, {
@@ -134,6 +179,7 @@ local function getAllSessions()
             print("Skipped session file (already running): " .. file)
         end
     end
+    l('gAS 4')
 
     print("Total unique sessions found: " .. #sessions)
     print("Dumping sessions:", hs.inspect(sessions))
@@ -143,6 +189,7 @@ end
 --- @type nil | hs.chooser
 local openChooser = nil
 local function neovideSessions()
+    l(5)
     print("Starting neovideSessions function...")
     local sessions = getAllSessions()
     local hasAFocusedNeovide = false
@@ -165,6 +212,7 @@ local function neovideSessions()
         }
     end)
     print('items:', hs.inspect(items))
+    l(6)
 
     local callback = function(choice)
         openChooser = nil
@@ -185,11 +233,13 @@ local function neovideSessions()
 
     print("Showing chooser with " .. #items .. " items")
     local chooser = hs.chooser.new(callback)
+    l(7)
     chooser:invalidCallback(function ()
         print("Invalid callback called")
     end)
     chooser:choices(items)
     chooser:show()
+    l(8)
     openChooser = chooser
     if hasAFocusedNeovide then
         chooser:selectedRow(2)
@@ -209,9 +259,13 @@ hs.hotkey.bind("Ctrl-Cmd", "S", function()
             return
         end
     end
+    l(1)
     local neovideInstances = findNeovideInstances()
+    l(2)
     local focusedWindow = hs.window.focusedWindow()
+    l(3)
     local focusedApp = focusedWindow and focusedWindow:application()
+    l(4)
 
     -- No Neovide instances open, perform session trigger
     if #neovideInstances == 0 or (focusedApp and focusedApp:bundleID() == 'com.neovide.neovide') then

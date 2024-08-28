@@ -15,7 +15,9 @@ hs.hotkey.bind("Ctrl-Cmd", "H", function()
     end
 end)
 
+
 local home = os.getenv("HOME")
+
 -- watcher object must be assigned to global not to get GC'd
 myWatcher = hs.pathwatcher.new(home .. "/.vim/hammerspoon/main-init.lua", function(files)
     -- Use a timer to delay the reload slightly
