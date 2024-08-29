@@ -324,41 +324,36 @@ hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
 
     local image = hs.image.imageFromPath("/tmp/screencap.png")
     if image then
+
         local size = image:size()
         local imageView = hs.webview.newBrowser({x = 0, y = 0, w = size.w, h = size.h})
-        imageView:url("file:///tmp/screencap.png")
-        imageView:show()
 
         local terminalWindow = nil
-        local createdTimer = nil
-
         windowWatcher.setTerminalWindowCreatedCallback(function(win)
-            if createdTimer then
-                createdTimer:stop()
-                createdTimer = nil
-            end
+            windowWatcher.setTerminalWindowCreatedCallback(nil)
             terminalWindow = win
             print("Terminal window created and tracked")
         end)
-
+        hs.timer.doAfter(1, function()
+            if (not terminalWindow) then
+                print("No Terminal window created within 1 second, resetting callbacks")
+               windowWatcher.setTerminalWindowDestroyedCallback(nil)
+            end
+        end)
         windowWatcher.setTerminalWindowDestroyedCallback(function(win)
             if win == terminalWindow then
                 print("Tracked Terminal window closed, deleting imageView")
                 imageView:delete()
-                windowWatcher.setTerminalWindowCreatedCallback(nil)
-                windowWatcher.setTerminalWindowDestroyedCallback(nil)
             end
         end)
+
+        imageView:url("file:///tmp/screencap.png")
+        imageView:show()
 
         local cmd = 'open ' .. home .. '/util/AI\\ screen\\ help.terminal'
         print('running cmd '.. cmd)
         hs.execute(cmd)
 
-        createdTimer = hs.timer.doAfter(1, function()
-            print("No Terminal window created within 1 second, resetting callbacks")
-            windowWatcher.setTerminalWindowCreatedCallback(nil)
-            windowWatcher.setTerminalWindowDestroyedCallback(nil)
-        end)
     else
         hs.alert.show("Failed to capture screenshot")
     end

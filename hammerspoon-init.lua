@@ -29,7 +29,7 @@ end):start()
 
 files_to_load = {
     home .. "/.vim/hammerspoon/main-init.lua",
-    home .. "/.vim/hammerspoon/window-watcher.lua",
+    -- home .. "/.vim/hammerspoon/window-watcher.lua",
 }
 
 for _, file in pairs(files_to_load) do
