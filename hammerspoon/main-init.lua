@@ -350,21 +350,8 @@ hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
         local cmd = 'open ' .. home .. '/util/AI\\ screen\\ help.terminal'
         print('running cmd '.. cmd)
         hs.execute(cmd)
-        imageView:delete()
+        -- imageView:delete()
 
-        -- local promptsDir = home .. "/util/prompts"
-        -- local markdownFiles = getMarkdownFiles(promptsDir)
-        -- local buttons = createChoicesFromFiles(markdownFiles)
-
-        -- local chooser = hs.chooser.new(function(choice)
-        --     if choice then
-        --         hs.execute(string.format('open "%s/util/AI screen help.terminal"', home))
-        --     end
-        --     imageView:delete()
-        -- end)
-
-        -- chooser:choices(buttons)
-        -- chooser:show()
     else
         hs.alert.show("Failed to capture screenshot")
     end
