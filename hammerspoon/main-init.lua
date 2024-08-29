@@ -326,8 +326,9 @@ hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
     if image then
         local size = image:size()
         local imageView = hs.webview.newBrowser({x = 0, y = 0, w = size.w, h = size.h})
+        imageView:shadow(true)
 
-        windowWatcher.queueSRCB(function(win)
+        windowWatcher.specifyRelatedWebView(imageView, function(win)
             print("Terminal window closed, deleting imageView")
             imageView:delete()
         end)
