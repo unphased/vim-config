@@ -917,7 +917,7 @@ require("gitsigns").setup({
     untracked = { text = "┆" },
   },
   show_deleted = false,
-  numhl = true, -- Toggle with `:Gitsigns toggle_numhl`
+  numhl = false, -- Toggle with `:Gitsigns toggle_numhl`
   linehl = false, -- Toggle with `:Gitsigns toggle_linehl`
   word_diff = true, -- Toggle with `:Gitsigns toggle_word_diff`
   current_line_blame = true, -- Toggle with `:Gitsigns toggle_current_line_blame`
@@ -1930,8 +1930,11 @@ vim.cmd([[
   hi InsertCursor guibg=#00eeff
   set guicursor=n-v-c-sm:block-NormalCursor,i-ci-ve:ver30-InsertCursor,r-cr-o:hor20-ReplaceCursor
 
-  hi CursorLine guibg=#181818
+  hi CursorLine guibg=#222e20
   set cursorline
+
+  hi CursorLineNr guifg=#bbc2cf guibg=#222e20
+  hi CursorLineSign guibg=#222e20
 
   highlight ActiveCursorLine guibg=#222e20
   highlight InactiveCursorLine guibg=#1a1a1a
@@ -2023,10 +2026,29 @@ vim.keymap.set('n', "<leader>T", ":OnlineThesaurusCurrentWord<CR>", { desc = "Th
 
 -- set the icons for diagnostic
 vim.cmd [[
-  sign define DiagnosticSignError text=✘  linehl= texthl=DiagnosticSignError numhl=
-  sign define DiagnosticSignWarn text= linehl= texthl=DiagnosticSignWarn numhl= 
+  " These hl groups are standard names i have seen set from the colorscheme, but it is better to take over specifying them here
+  hi DiagnosticError guifg=#e95678
+  hi DiagnosticErrorLinehl guibg=#1a0403
+  hi DiagnosticWarn guifg=#f7bb3b
+  hi DiagnosticWarnLinehl guibg=#1a1810
+  hi DiagnosticInfo guifg=#315f7f
+  hi DiagnosticHint guifg=#56405e
+
+  hi link DiagnosticSignError DiagnosticError
+  hi link DiagnosticSignWarn DiagnosticWarn
+  hi link DiagnosticSignInfo DiagnosticInfo
+  hi link DiagnosticSignHint DiagnosticHint
+
+  hi DiagnosticUnderlineError gui=undercurl guisp=#e95678
+  hi DiagnosticUnderlineWarn gui=undercurl guisp=#f7bb3b
+  hi DiagnosticUnderlineInfo gui=undercurl guisp=#315f7f
+  hi DiagnosticUnderlineHint gui=undercurl guisp=#56405e
+
+  sign define DiagnosticSignError text=✘  linehl=DiagnosticErrorLinehl texthl=DiagnosticSignError numhl= 
+  sign define DiagnosticSignWarn text= linehl=DiagnosticWarnLinehl texthl=DiagnosticSignWarn numhl=
   sign define DiagnosticSignInfo text=  linehl= texthl=DiagnosticSignInfo numhl= 
   sign define DiagnosticSignHint text=⚑  linehl= texthl=DiagnosticSignHint numhl=
+
 ]]
 
 -- helper for stevearc/profile.nvim
