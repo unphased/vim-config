@@ -319,31 +319,53 @@ local currentFilePath = debug.getinfo(1, "S").source:sub(2)
 local currentDir = currentFilePath:match("(.*/)") or ""
 local windowWatcher = dofile(currentDir .. "window-watcher.lua")
 
+-- Table to store pairs of windows and their associated cleanup callbacks
+local trackedWindows = {}
+
 hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
     hs.execute('bash -c "/usr/sbin/screencapture -i /tmp/screencap.png"')
 
     local image = hs.image.imageFromPath("/tmp/screencap.png")
     if image then
-
         local size = image:size()
         local imageView = hs.webview.newBrowser({x = 0, y = 0, w = size.w, h = size.h})
 
-        local terminalWindow = nil
-        windowWatcher.setTerminalWindowCreatedCallback(function(win)
+        local createdCallback = function(win)
             windowWatcher.setTerminalWindowCreatedCallback(nil)
-            terminalWindow = win
             print("Terminal window created and tracked")
-        end)
-        hs.timer.doAfter(1, function()
-            if (not terminalWindow) then
-                print("No Terminal window created within 1 second, resetting callbacks")
-               windowWatcher.setTerminalWindowDestroyedCallback(nil)
-            end
-        end)
-        windowWatcher.setTerminalWindowDestroyedCallback(function(win)
-            if win == terminalWindow then
+
+            -- Create cleanup callback
+            local cleanupCallback = function()
                 print("Tracked Terminal window closed, deleting imageView")
                 imageView:delete()
+                -- Remove this pair from trackedWindows
+                for i, pair in ipairs(trackedWindows) do
+                    if pair.window == win then
+                        table.remove(trackedWindows, i)
+                        break
+                    end
+                end
+            end
+
+            -- Add the pair to trackedWindows
+            table.insert(trackedWindows, {window = win, cleanup = cleanupCallback})
+        end
+
+        windowWatcher.setTerminalWindowCreatedCallback(createdCallback)
+
+        hs.timer.doAfter(1, function()
+            if #trackedWindows == 0 then
+                print("No Terminal window created within 1 second, resetting callbacks")
+                windowWatcher.setTerminalWindowCreatedCallback(nil)
+            end
+        end)
+
+        windowWatcher.setTerminalWindowDestroyedCallback(function(win)
+            for _, pair in ipairs(trackedWindows) do
+                if pair.window == win then
+                    pair.cleanup()
+                    break
+                end
             end
         end)
 
@@ -353,7 +375,6 @@ hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
         local cmd = 'open ' .. home .. '/util/AI\\ screen\\ help.terminal'
         print('running cmd '.. cmd)
         hs.execute(cmd)
-
     else
         hs.alert.show("Failed to capture screenshot")
     end
