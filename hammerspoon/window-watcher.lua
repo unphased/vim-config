@@ -1,14 +1,14 @@
 local function windowWatcherCallback(win, appName, event)
     if event == hs.window.filter.windowCreated then
-        hs.alert.show(appName .. " window created")
+        print(appName .. " window created")
         -- Example: Automatically move new Chrome windows to a specific position
         -- if appName == "Google Chrome" then
         --     win:moveToScreen(hs.screen.primaryScreen())
         -- end
     elseif event == hs.window.filter.windowDestroyed then
-        hs.alert.show(appName .. " window closed")
+        print(appName .. " window closed")
     elseif event == hs.window.filter.windowFocused then
-        hs.alert.show(appName .. " window focused")
+        print(appName .. " window focused")
     end
 end
 

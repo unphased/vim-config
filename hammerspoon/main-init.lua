@@ -315,36 +315,13 @@ hs.hotkey.bind({"alt"}, "space", function()
     end
 end)
 
-local function getMarkdownFiles(directory)
-    local markdownFiles = {}
-    for file in hs.fs.dir(directory) do
-        if file:match("%.md$") then
-            table.insert(markdownFiles, file)
-        end
-    end
-    print("Markdown files found:", hs.inspect(markdownFiles))
-    return markdownFiles
-end
-
-local function createChoicesFromFiles(files)
-    local buttons = {}
-    for i, file in ipairs(files) do
-        local choice = {
-            text = file:gsub("%.md$", ""),
-            subText = file,
-            file = file
-        }
-        table.insert(buttons, choice)
-    end
-    return buttons
-end
-
 hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
     hs.execute('bash -c "/usr/sbin/screencapture -i /tmp/screencap.png"')
 
     local image = hs.image.imageFromPath("/tmp/screencap.png")
     if image then
-        local imageView = hs.webview.newBrowser({x = 0, y = 0, w = 640, h = 480})
+        local size = image:size()
+        local imageView = hs.webview.newBrowser({x = 0, y = 0, w = size.w, h = size.h})
         imageView:url("file:///tmp/screencap.png")
         imageView:show()
         local cmd = 'open ' .. home .. '/util/AI\\ screen\\ help.terminal'
