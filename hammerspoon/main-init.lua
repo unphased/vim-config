@@ -326,15 +326,15 @@ local function getMarkdownFiles(directory)
     return markdownFiles
 end
 
-local function createButtonsFromFiles(files)
+local function createChoicesFromFiles(files)
     local buttons = {}
     for i, file in ipairs(files) do
-        local button = {
+        local choice = {
             text = file:gsub("%.md$", ""),
             subText = file,
             file = file
         }
-        table.insert(buttons, button)
+        table.insert(buttons, choice)
     end
     return buttons
 end
@@ -344,23 +344,27 @@ hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
 
     local image = hs.image.imageFromPath("/tmp/screencap.png")
     if image then
-        local imageView = hs.webview.newBrowser({x = 100, y = 100, w = 640, h = 480})
+        local imageView = hs.webview.newBrowser({x = 0, y = 0, w = 640, h = 480})
         imageView:url("file:///tmp/screencap.png")
         imageView:show()
+        local cmd = 'open ' .. home .. '/util/AI\\ screen\\ help.terminal'
+        print('running cmd '.. cmd)
+        hs.execute(cmd)
+        imageView:delete()
 
-        local promptsDir = home .. "/util/prompts"
-        local markdownFiles = getMarkdownFiles(promptsDir)
-        local buttons = createButtonsFromFiles(markdownFiles)
+        -- local promptsDir = home .. "/util/prompts"
+        -- local markdownFiles = getMarkdownFiles(promptsDir)
+        -- local buttons = createChoicesFromFiles(markdownFiles)
 
-        local chooser = hs.chooser.new(function(choice)
-            if choice then
-                hs.execute(string.format('open "%s/util/prompts/%s"', home, choice.file))
-            end
-            imageView:delete()
-        end)
+        -- local chooser = hs.chooser.new(function(choice)
+        --     if choice then
+        --         hs.execute(string.format('open "%s/util/AI screen help.terminal"', home))
+        --     end
+        --     imageView:delete()
+        -- end)
 
-        chooser:choices(buttons)
-        chooser:show()
+        -- chooser:choices(buttons)
+        -- chooser:show()
     else
         hs.alert.show("Failed to capture screenshot")
     end
