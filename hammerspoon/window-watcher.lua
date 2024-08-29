@@ -15,11 +15,22 @@ local function windowWatcherCallback(win, appName, event)
         end
     elseif event == hs.window.filter.windowDestroyed then
         print(appName .. " window destroyed")
+        local didRemoveATerminalWin = false
         for i, assoc in ipairs(windowAssociations) do
             if assoc.win == win then
                 assoc.cb()
                 table.remove(windowAssociations, i)
+                didRemoveATerminalWin = true
                 print('windowAssociations len ' .. #windowAssociations)
+            end
+        end
+
+        -- clean up terminal app when the last one tracked by us is removed
+        if didRemoveATerminalWin --[[ and appName == "Terminal"]] and #windowAssociations == 0 then
+            local terminalApp = win:application()
+            if terminalApp and 0 == #terminalApp:allWindows() then
+                print('A tracked Terminal window was just closed, Terminal app has no more windows: closing Terminal.')
+                terminalApp:kill()
             end
         end
     elseif event == hs.window.filter.windowFocused then
