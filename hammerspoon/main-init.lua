@@ -330,10 +330,9 @@ local function createButtonsFromFiles(files)
     local buttons = {}
     for i, file in ipairs(files) do
         local button = {
-            title = file:gsub("%.md$", ""),
-            fn = function()
-                hs.execute(string.format('open "%s/util/prompts/%s"', home, file))
-            end
+            text = file:gsub("%.md$", ""),
+            subText = file,
+            file = file
         }
         table.insert(buttons, button)
     end
@@ -355,7 +354,7 @@ hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
 
         local chooser = hs.chooser.new(function(choice)
             if choice then
-                choice.fn()
+                hs.execute(string.format('open "%s/util/prompts/%s"', home, choice.file))
             end
             imageView:delete()
         end)
