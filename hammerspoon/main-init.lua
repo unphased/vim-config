@@ -317,7 +317,7 @@ end)
 
 local currentFilePath = debug.getinfo(1, "S").source:sub(2)
 local currentDir = currentFilePath:match("(.*/)") or ""
-local windowWatcher = require(currentDir .. "window-watcher")
+local windowWatcher = dofile(currentDir .. "window-watcher.lua")
 
 hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
     hs.execute('bash -c "/usr/sbin/screencapture -i /tmp/screencap.png"')
