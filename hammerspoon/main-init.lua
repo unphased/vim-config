@@ -316,14 +316,13 @@ hs.hotkey.bind({"alt"}, "space", function()
 end)
 
 local function getMarkdownFiles(directory)
-    local mdfiles = hs.fs.dir(directory)
-    print("files:", mdfiles)
     local markdownFiles = {}
-    for file in mdfiles do
+    for file in hs.fs.dir(directory) do
         if file:match("%.md$") then
             table.insert(markdownFiles, file)
         end
     end
+    print("Markdown files found:", hs.inspect(markdownFiles))
     return markdownFiles
 end
 
