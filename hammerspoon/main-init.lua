@@ -327,17 +327,9 @@ hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
         local size = image:size()
         local imageView = hs.webview.newBrowser({x = 0, y = 0, w = size.w, h = size.h})
 
-        windowWatcher.queueCallback(function(win)
-            if win then
-                print("Terminal window created, attaching cleanup callback")
-                win:setCloseCallback(function()
-                    print("Terminal window closed, deleting imageView")
-                    imageView:delete()
-                end)
-            else
-                print("No Terminal window created, cleaning up")
-                imageView:delete()
-            end
+        windowWatcher.queueSRCB(function(win)
+            print("Terminal window closed, deleting imageView")
+            imageView:delete()
         end)
 
         imageView:url("file:///tmp/screencap.png")
