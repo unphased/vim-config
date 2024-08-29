@@ -1,3 +1,4 @@
+---@type { [winid: number]: { destroyed: function(win: hs.window.window) } }
 local callbackRegistry = {}
 
 local function windowWatcherCallback(win, appName, event)
