@@ -19,6 +19,7 @@ local function queueCallback(callback)
         for i, cb in ipairs(pendingCallbacks) do
             if cb == callback then
                 table.remove(pendingCallbacks, i)
+                callback(nil)  -- Call the callback with nil if no window was created
                 break
             end
         end

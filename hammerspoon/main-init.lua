@@ -328,16 +328,14 @@ hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
         local imageView = hs.webview.newBrowser({x = 0, y = 0, w = size.w, h = size.h})
 
         windowWatcher.queueCallback(function(win)
-            print("Terminal window created, attaching cleanup callback")
-            win:setCloseCallback(function()
-                print("Terminal window closed, deleting imageView")
-                imageView:delete()
-            end)
-        end)
-
-        hs.timer.doAfter(1, function()
-            if imageView:hswindow() == nil then
-                print("No Terminal window created within 1 second, cleaning up")
+            if win then
+                print("Terminal window created, attaching cleanup callback")
+                win:setCloseCallback(function()
+                    print("Terminal window closed, deleting imageView")
+                    imageView:delete()
+                end)
+            else
+                print("No Terminal window created, cleaning up")
                 imageView:delete()
             end
         end)
