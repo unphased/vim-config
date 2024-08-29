@@ -1,46 +1,32 @@
----@type { [winid: number]: { destroyed: function(win: hs.window.window) } }
-local callbackRegistry = {}
+local pendingCallbacks = {}
 
 local function windowWatcherCallback(win, appName, event)
-    if event == hs.window.filter.windowCreated then
-        print(appName .. " window created")
-        if appName == "Terminal" and callbackRegistry[win:id()] then
-            callbackRegistry[win:id()].created(win)
+    if event == hs.window.filter.windowCreated and appName == "Terminal" then
+        print("Terminal window created")
+        for i, callback in ipairs(pendingCallbacks) do
+            callback(win)
+            table.remove(pendingCallbacks, i)
         end
-    elseif event == hs.window.filter.windowDestroyed then
-        print(appName .. " window closed")
-        if appName == "Terminal" and callbackRegistry[win:id()] then
-            callbackRegistry[win:id()].destroyed(win)
-            callbackRegistry[win:id()] = nil  -- Remove the callbacks after execution
-        end
-    elseif event == hs.window.filter.windowFocused then
-        print(appName .. " window focused")
     end
 end
 
 local myWindowFilter = hs.window.filter.new():setDefaultFilter({})
-myWindowFilter:subscribe({
-    hs.window.filter.windowCreated,
-    hs.window.filter.windowDestroyed,
-    hs.window.filter.windowFocused,
-}, windowWatcherCallback)
+myWindowFilter:subscribe(hs.window.filter.windowCreated, windowWatcherCallback)
 
-local function registerCallbacks(createdCallback, destroyedCallback)
-    local windowId = hs.host.uuid()
-    callbackRegistry[windowId] = {
-        created = createdCallback,
-        destroyed = destroyedCallback
-    }
-    return windowId
-end
-
-local function unregisterCallbacks(windowId)
-    callbackRegistry[windowId] = nil
+local function queueCallback(callback)
+    table.insert(pendingCallbacks, callback)
+    hs.timer.doAfter(1, function()
+        for i, cb in ipairs(pendingCallbacks) do
+            if cb == callback then
+                table.remove(pendingCallbacks, i)
+                break
+            end
+        end
+    end)
 end
 
 hs.alert.show("Window watcher loaded")
 
 return {
-    registerCallbacks = registerCallbacks,
-    unregisterCallbacks = unregisterCallbacks
+    queueCallback = queueCallback
 }
