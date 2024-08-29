@@ -1,16 +1,16 @@
-local terminalWindowCreatedCallback = nil
-local terminalWindowDestroyedCallback = nil
+local callbackRegistry = {}
 
 local function windowWatcherCallback(win, appName, event)
     if event == hs.window.filter.windowCreated then
         print(appName .. " window created")
-        if appName == "Terminal" and terminalWindowCreatedCallback then
-            terminalWindowCreatedCallback(win)
+        if appName == "Terminal" and callbackRegistry[win:id()] then
+            callbackRegistry[win:id()].created(win)
         end
     elseif event == hs.window.filter.windowDestroyed then
         print(appName .. " window closed")
-        if appName == "Terminal" and terminalWindowDestroyedCallback then
-            terminalWindowDestroyedCallback(win)
+        if appName == "Terminal" and callbackRegistry[win:id()] then
+            callbackRegistry[win:id()].destroyed(win)
+            callbackRegistry[win:id()] = nil  -- Remove the callbacks after execution
         end
     elseif event == hs.window.filter.windowFocused then
         print(appName .. " window focused")
@@ -24,17 +24,22 @@ myWindowFilter:subscribe({
     hs.window.filter.windowFocused,
 }, windowWatcherCallback)
 
-local function setTerminalWindowCreatedCallback(callback)
-    terminalWindowCreatedCallback = callback
+local function registerCallbacks(createdCallback, destroyedCallback)
+    local windowId = hs.host.uuid()
+    callbackRegistry[windowId] = {
+        created = createdCallback,
+        destroyed = destroyedCallback
+    }
+    return windowId
 end
 
-local function setTerminalWindowDestroyedCallback(callback)
-    terminalWindowDestroyedCallback = callback
+local function unregisterCallbacks(windowId)
+    callbackRegistry[windowId] = nil
 end
 
 hs.alert.show("Window watcher loaded")
 
 return {
-    setTerminalWindowCreatedCallback = setTerminalWindowCreatedCallback,
-    setTerminalWindowDestroyedCallback = setTerminalWindowDestroyedCallback
+    registerCallbacks = registerCallbacks,
+    unregisterCallbacks = unregisterCallbacks
 }

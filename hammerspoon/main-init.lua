@@ -319,9 +319,6 @@ local currentFilePath = debug.getinfo(1, "S").source:sub(2)
 local currentDir = currentFilePath:match("(.*/)") or ""
 local windowWatcher = dofile(currentDir .. "window-watcher.lua")
 
--- Table to store pairs of windows and their associated cleanup callbacks
-local trackedWindows = {}
-
 hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
     hs.execute('bash -c "/usr/sbin/screencapture -i /tmp/screencap.png"')
 
@@ -330,42 +327,22 @@ hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
         local size = image:size()
         local imageView = hs.webview.newBrowser({x = 0, y = 0, w = size.w, h = size.h})
 
-        local createdCallback = function(win)
-            windowWatcher.setTerminalWindowCreatedCallback(nil)
-            print("Terminal window created and tracked")
-
-            -- Create cleanup callback
-            local cleanupCallback = function()
+        local windowId = windowWatcher.registerCallbacks(
+            function(win)
+                print("Terminal window created and tracked")
+            end,
+            function(win)
                 print("Tracked Terminal window closed, deleting imageView")
                 imageView:delete()
-                -- Remove this pair from trackedWindows
-                for i, pair in ipairs(trackedWindows) do
-                    if pair.window == win then
-                        table.remove(trackedWindows, i)
-                        break
-                    end
-                end
+                windowWatcher.unregisterCallbacks(windowId)
             end
-
-            -- Add the pair to trackedWindows
-            table.insert(trackedWindows, {window = win, cleanup = cleanupCallback})
-        end
-
-        windowWatcher.setTerminalWindowCreatedCallback(createdCallback)
+        )
 
         hs.timer.doAfter(1, function()
-            if #trackedWindows == 0 then
-                print("No Terminal window created within 1 second, resetting callbacks")
-                windowWatcher.setTerminalWindowCreatedCallback(nil)
-            end
-        end)
-
-        windowWatcher.setTerminalWindowDestroyedCallback(function(win)
-            for _, pair in ipairs(trackedWindows) do
-                if pair.window == win then
-                    pair.cleanup()
-                    break
-                end
+            if not imageView:isShowing() then
+                print("No Terminal window created within 1 second, cleaning up")
+                windowWatcher.unregisterCallbacks(windowId)
+                imageView:delete()
             end
         end)
 
