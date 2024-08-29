@@ -315,7 +315,9 @@ hs.hotkey.bind({"alt"}, "space", function()
     end
 end)
 
-local windowWatcher = require("window-watcher")
+local currentFilePath = debug.getinfo(1, "S").source:sub(2)
+local currentDir = currentFilePath:match("(.*/)") or ""
+local windowWatcher = require(currentDir .. "window-watcher")
 
 hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
     hs.execute('bash -c "/usr/sbin/screencapture -i /tmp/screencap.png"')
