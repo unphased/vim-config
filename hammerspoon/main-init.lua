@@ -357,6 +357,4 @@ hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
     end
 end)
 
-l("About to show Hammerspoon config loaded alert")
-hs.alert.show("Hammerspoon config loaded", 5)
-print("Hammerspoon config loaded")
+hs.alert.show("Main hammerspoon config loaded")
