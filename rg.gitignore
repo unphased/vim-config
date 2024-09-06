@@ -7,6 +7,8 @@
 !.*.conf
 !.eslintrc.json
 !.eslintrc.js
+!.eslintrc.cjs
+!.eslintrc.mjs
 !.github/
 !.gitlab/
 !.dockerignore
@@ -46,3 +48,4 @@
 **/sm/*.map
 package-lock.json
 test-results/
+.aider*

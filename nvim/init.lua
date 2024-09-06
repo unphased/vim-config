@@ -277,12 +277,23 @@ local function filter_to_real_wins(window_list)
     -- log("win config", win, vim.api.nvim_win_get_config(win))
     local buf =  vim.api.nvim_win_get_buf(win)
     -- log("win buftype filetype", win, vim.api.nvim_buf_get_option(buf, "buftype"), vim.api.nvim_buf_get_option(buf, "filetype"))
-    local buftype = vim.api.nvim_buf_get_option(buf, "buftype")
-    if vim.api.nvim_win_get_config(win).focusable and buftype ~= "nofile" and buftype ~= "nowrite" and buftype ~= "help" and buftype ~= "quickfix" then
+    local buftype = vim.api.nvim_get_option_value("buftype", { buf = buf })
+    local modifiable = vim.api.nvim_get_option_value("modifiable", { buf = buf })
+    if vim.api.nvim_win_get_config(win).focusable and buftype ~= "nofile" and buftype ~= "nowrite" and buftype ~= "help" and buftype ~= "quickfix" and modifiable then
       table.insert(real_wins, win)
     end
   end
   return real_wins
+end
+
+-- Return the first index with the given value (or nil if not found).
+local function indexOf(array, value)
+  for i, v in ipairs(array) do
+    if v == value then
+      return i
+    end
+  end
+  return nil
 end
 
 -- cycle thruogh the windows with tab. If the current tab has only one window, actually cycle through all the buffers which are not already open in other tabs (if applicable).
@@ -292,13 +303,22 @@ _G.CycleWindowsOrBuffers = function (forward)
   local tabs = vim.api.nvim_list_tabpages()
   local curtab = vim.api.nvim_get_current_tabpage()
   local wins_in_curtab = filter_to_real_wins(vim.api.nvim_tabpage_list_wins(curtab))
-  -- log("wins, tabs, curtab, wins_in_curtab", wins, tabs, curtab, wins_in_curtab)
+  log("curwin, wins, tabs, curtab, wins_in_curtab", curwin, wins, tabs, curtab, wins_in_curtab)
   if #wins == 1 then
     log("CycleWindowsOrBuffers only one window, cycling buffer " .. (forward and "forward" or "backward"))
     if forward then vim.cmd("bnext") else vim.cmd("bprevious") end
   elseif #tabs == 1 then
     log("CycleWindowsOrBuffers only one tab, going forward to next window", forward)
-    vim.cmd("wincmd " .. (forward and "w" or "W"))
+    -- vim.cmd("wincmd " .. (forward and "w" or "W"))
+    -- the above is wrong as it wont take into account the filter
+    local curWinIdx = indexOf(wins, curwin)
+    local targetWinIdx = curWinIdx + 1
+    if targetWinIdx > #wins then
+      targetWinIdx = 1
+    end
+    log('targeting win index ' .. targetWinIdx)
+    local targetWin = wins[targetWinIdx]
+    vim.api.nvim_set_current_win(targetWin)
   -- boundary
   elseif forward and wins_in_curtab[#wins_in_curtab] == curwin then
     log("CycleWindowsOrBuffers in last window in tab so going forward to next tab")
@@ -312,8 +332,8 @@ _G.CycleWindowsOrBuffers = function (forward)
   end
 end
 
-vim.keymap.set("n", "<tab>", function () CycleWindowsOrBuffers(true) end)
-vim.keymap.set("n", "<s-tab>", function () CycleWindowsOrBuffers(false) end)
+vim.keymap.set("n", "<tab>", function () CycleWindowsOrBuffers(true) end, { desc = 'cycle windows or buffers' })
+vim.keymap.set("n", "<s-tab>", function () CycleWindowsOrBuffers(false) end, { desc = 'cycle windows or buffers (back)' })
 
 vim.keymap.set("n", "}", ":silent bnext<CR>")
 vim.keymap.set("n", "{", ":silent bprev<CR>")
@@ -1443,11 +1463,6 @@ vim.keymap.set("v", "<leader>p", ":!pbpaste<CR>", { desc = "Paste from pbpaste" 
 --   float={border=_border}
 -- }
 
--- vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "Open diagnostic in float" })
-vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Go to previous diagnostic" })
-vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Go to next diagnostic" })
--- vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Set diagnostics to location list" })
-
 -- indent-blankline
 
 vim.opt.list = true
@@ -2044,12 +2059,22 @@ vim.cmd [[
   hi DiagnosticUnderlineInfo gui=undercurl guisp=#315f7f
   hi DiagnosticUnderlineHint gui=undercurl guisp=#56405e
 
-  sign define DiagnosticSignError text=✘  linehl=DiagnosticErrorLinehl texthl=DiagnosticSignError numhl= 
-  sign define DiagnosticSignWarn text= linehl=DiagnosticWarnLinehl texthl=DiagnosticSignWarn numhl=
+  sign define DiagnosticSignError text=✘  linehl= texthl=DiagnosticSignError numhl= 
+  sign define DiagnosticSignWarn text= linehl= texthl=DiagnosticSignWarn numhl=
   sign define DiagnosticSignInfo text=  linehl= texthl=DiagnosticSignInfo numhl= 
   sign define DiagnosticSignHint text=⚑  linehl= texthl=DiagnosticSignHint numhl=
 
 ]]
+
+-- vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "Open diagnostic in float" })
+vim.keymap.set("n", "[d", function() vim.diagnostic.jump({count=-1, float=true}) end, { desc = "Go to previous diagnostic" })
+vim.keymap.set("n", "]d", function() vim.diagnostic.jump({count=1, float=true}) end, { desc = "Go to next diagnostic" })
+-- vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Set diagnostics to location list" })
+
+vim.diagnostic.config({
+  virtual_text = true,
+  severity_sort = true,
+})
 
 -- helper for stevearc/profile.nvim
 -- local should_profile = os.getenv("NVIM_PROFILE")
@@ -2892,6 +2917,15 @@ if vim.g.neovide then
 
   -- override osc52 yank (not useful in neovide) with regular yank
   vim.keymap.set({"n", 'x'}, "<leader>y", '"+y', { desc = "Copy to + clipboard (neovide override)" })
+
   vim.keymap.set("n", "<leader>Y", 'ggVG"+y', { desc = "Copy entire buffer to clipboard (neovide override)"})
 
+  vim.keymap.set('n', '<D-.>', ":lua enhanced_dot(vim.v.count1)<CR>", { noremap = true, desc = 'enhanced_dot' })
+  vim.keymap.set('n', '<D->>', ":lua enhanced_dot('')<CR>", { noremap = true, desc = 'enhanced_dot all' })
+
+  vim.keymap.set('n', '<D-}>', "<cmd>lua CycleWindowsOrBuffers(true)<cr>", { desc = 'cycle windows or buffers forward'})
+  vim.keymap.set('n', '<D-{>', "<cmd>lua CycleWindowsOrBuffers(false)<cr>", { desc = 'cycle windows or buffers backward'})
 end
+
+-- shift enter in insert mode will insert a newline above the current line and go there.
+vim.keymap.set('i', '<S-CR>', '<ESC>O', { noremap = true, silent = true })

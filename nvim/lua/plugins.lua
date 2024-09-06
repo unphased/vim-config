@@ -128,7 +128,13 @@ return {
       },
     },
     opts = {
+      modes = {
+        diagnostics = {
+          sort = { "filename", "pos", "severity", "message" },
+        }
+      },
       preview = {
+        scratch = true,
         type = "float",
         relative = "editor",
         border = "rounded",
