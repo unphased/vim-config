@@ -1214,7 +1214,17 @@ safeRequire("nvim-lastplace").setup({})
 safeRequire("nvim-autopairs").setup({ map_cr = false })
 safeRequire("Comment").setup()
 
-safeRequire("nvim-treesitter.configs").setup({
+require("nvim-treesitter.configs").setup({
+
+  incremental_selection = {
+    enable = true,
+    keymaps = {
+      init_selection = "<S-CR>",
+      node_incremental = "<S-CR>",
+      node_decremental = "<BS>",
+    },
+  },
+
   -- A list of parser names, or "all" (the four listed parsers should always be installed)
   ensure_installed = { "markdown_inline", "c", "lua", "vim", "bash", "comment", "gitcommit", "diff", "git_rebase" },
 
