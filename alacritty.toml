@@ -74,7 +74,7 @@ TERM = "alacritty"
 TESTENV = "testvalue"
 
 [font]
-size = 11
+size = 9
 
 [font.bold]
 family = "IosevkaTerm Nerd Font Mono"
