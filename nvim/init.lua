@@ -771,11 +771,11 @@ vim.keymap.set('n', 'mT', ':-tabmove<CR>', { desc = "Move tab to the left" })
 -- implements a smart I to insert at the front of the line but after the comment symbol if applicable
 -- http://stackoverflow.com/a/22282505/340947
 local is_comment_ts_hl = function()
-  local hl = require'nvim-treesitter-playground.hl-info'.get_treesitter_hl()
+  local insp = vim.inspect_pos().treesitter;
+  log('insp', insp)
   -- loop
-  for _, v in ipairs(hl) do
-    -- if any contain 'comment': typical values seen are: { "* **@error**", "* **@comment**", "* **@spell**", "* **@spell**" }
-    if string.find(v, 'comment') then
+  for _, v in ipairs(insp) do
+    if v.capture == 'comment' then
       return true
     end
   end
