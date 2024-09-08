@@ -2839,10 +2839,10 @@ if vim.g.neovide then
     vim.g.neovide_scale_factor = vim.g.neovide_scale_factor * delta
   end
   vim.keymap.set("n", "<D-=>", function()
-    change_scale_factor(1.05)
+    change_scale_factor(1.002)
   end)
   vim.keymap.set("n", "<D-->", function()
-    change_scale_factor(1/1.05)
+    change_scale_factor(1/1.002)
   end)
 
   vim.keymap.set('i', '<D-s>', '<ESC>:w<CR>') -- Save

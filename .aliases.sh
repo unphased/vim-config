@@ -231,6 +231,8 @@ aider_function() {
 
 alias aider='aider_function'
 
+alias nv="neovide"
+
 function git-undo() {
     if [ "$1" = "drop" ]; then
         git reset --hard HEAD~${2:-1}
