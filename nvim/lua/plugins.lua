@@ -38,7 +38,13 @@ return {
   --   end,
   -- },
   "tpope/vim-repeat",
-  "numToStr/Comment.nvim",
+  {
+    "folke/ts-comments.nvim",
+    opts = {},
+    event = "VeryLazy",
+    enabled = vim.fn.has("nvim-0.10.0") == 1,
+  },
+  -- "numToStr/Comment.nvim",
   -- 'AndrewRadev/switch.vim',
   -- 'junegunn/fzf.vim',
   -- 'junegunn/fzf',
@@ -59,14 +65,13 @@ return {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
     -- commit = "15d327fe6324d8269451131ec34ad4f2a8ef1e01",
-    dependencies = {
+    -- dependencies = {
       -- show treesitter nodes
-      "nvim-treesitter/playground", -- enable more advanced treesitter-aware text objects
       -- removing this dependency because specifying my own fork of nvim-treesitter-textobjects now.
       -- "nvim-treesitter/nvim-treesitter-textobjects", -- add rainbow highlighting to parens and brackets
       -- "p00f/nvim-ts-rainbow",
-      "JoosepAlviste/nvim-ts-context-commentstring"
-    }
+      -- "JoosepAlviste/nvim-ts-context-commentstring"
+    -- }
   }, -- show nerd font icons for LSP types in completion menu
   "nvim-treesitter/nvim-treesitter-context",
   "onsails/lspkind-nvim", -- status line plugin
@@ -523,17 +528,17 @@ return {
     },
   },
   -- { 'echasnovski/mini.indentscope', version = '*' },
-  -- {
-  --   "Exafunction/codeium.nvim",
-  --   dependencies = {
-  --     "nvim-lua/plenary.nvim",
-  --     "hrsh7th/nvim-cmp",
-  --   },
-  --   config = function()
-  --     require("codeium").setup({
-  --     })
-  --   end
-  -- },
+  {
+    "Exafunction/codeium.nvim",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "hrsh7th/nvim-cmp",
+    },
+    config = function()
+      require("codeium").setup({
+      })
+    end
+  },
   {
     "sourcegraph/sg.nvim",
     dependencies = { "nvim-lua/plenary.nvim", --[[ "nvim-telescope/telescope.nvim ]] },
