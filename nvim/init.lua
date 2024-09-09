@@ -312,9 +312,12 @@ _G.CycleWindowsOrBuffers = function (forward)
     -- vim.cmd("wincmd " .. (forward and "w" or "W"))
     -- the above is wrong as it wont take into account the filter
     local curWinIdx = indexOf(wins, curwin)
-    local targetWinIdx = curWinIdx + 1
+    local targetWinIdx = curWinIdx + (forward and 1 or -1)
     if targetWinIdx > #wins then
       targetWinIdx = 1
+    end
+    if targetWinIdx < 1 then
+      targetWinIdx = #wins
     end
     log('targeting win index ' .. targetWinIdx)
     local targetWin = wins[targetWinIdx]
