@@ -2727,7 +2727,7 @@ function MakeTermWindowVimAsPager(command, size, name, target_buf)
     vim.api.nvim_buf_delete(bufNum, {force = true})
   end, { noremap = true, silent = true, buffer = bufNum})
 
-  local chan_id = vim.fn.termopen({'/bin/sh', '-c', "echo 'Launching " .. command .. ":' && " .. command}, {
+  local chan_id = vim.fn.termopen({'/bin/sh', '-c', "printf 'in dir '; pwd; echo 'Launching " .. command .. ":' && " .. command}, {
     on_exit = function(job_id, exit_code, event_type)
       -- now that the output is done we scroll us to the top
       vim.api.nvim_win_set_cursor(0, {1, 0})
