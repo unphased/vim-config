@@ -318,7 +318,6 @@ end)
 local currentFilePath = debug.getinfo(1, "S").source:sub(2)
 local currentDir = currentFilePath:match("(.*/)") or ""
 local windowWatcher = dofile(currentDir .. "window-watcher.lua")
-
 hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
     hs.execute('bash -c "/usr/sbin/screencapture -i /tmp/screencap.png"')
 
@@ -336,12 +335,18 @@ hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
         imageView:url("file:///tmp/screencap.png")
         imageView:show()
 
-        local cmd = 'open ' .. home .. '/util/AI\\ screen\\ help.terminal'
+        -- local cmd = 'open ' .. home .. '/util/AI\\ screen\\ help.terminal'
+        local cmd = 'open -a iTerm ' .. home .. '/util/screenshot-to-aichat'
         print('running cmd '.. cmd)
         hs.execute(cmd)
     else
         hs.alert.show("Failed to capture screenshot")
     end
+end)
+
+hs.hotkey.bind({"option", "shift"}, "R", function ()
+    print('making a screenshot')
+    hs.execute('bash -c "/usr/sbin/screencapture -i $HOME/automated_screencaps/$(date +%s).png"')
 end)
 
 hs.alert.show("Main hammerspoon config loaded")
