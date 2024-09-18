@@ -41,10 +41,8 @@ local function windowWatcherCallback(win, appName, event)
         for i, assoc in ipairs(windowAssociations) do
             if assoc.win == win then
                 local screen = win:screen()
-                local frame = win:frame()
-                assoc.wv:moveToScreen(screen)
-                -- assoc.wv:setFrame(frame)
                 assoc.wv:show()
+                assoc.wv:hswindow():moveToScreen(screen)
             end
         end
     end
