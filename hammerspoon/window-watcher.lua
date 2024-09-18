@@ -37,9 +37,13 @@ local function windowWatcherCallback(win, appName, event)
         end
     elseif event == hs.window.filter.windowFocused then
         print(appName .. " window focused")
-        -- focus the corresponding wv/win!
+        -- focus the corresponding wv/win and bring it to the same space!
         for i, assoc in ipairs(windowAssociations) do
             if assoc.win == win then
+                local screen = win:screen()
+                local frame = win:frame()
+                assoc.wv:moveToScreen(screen)
+                assoc.wv:setFrame(frame)
                 assoc.wv:show()
             end
         end
