@@ -6,11 +6,13 @@ local windowAssociations = {} -- windows that on destroying must run associated 
 local function windowWatcherCallback(win, appName, event)
     if event == hs.window.filter.windowCreated then
         print(appName .. " window created")
-        if appName == "Terminal" then
+        if appName == "iTerm2" then
             if pendingCallback then
                 print("Terminal window created in time, cb registered.")
                 table.insert(windowAssociations, { wv = pendingWV, win = win, cb = pendingCallback })
                 print('windowAssociations len ' .. #windowAssociations)
+            else
+                print("i saw an iterm window but there is no pendingCallback...")
             end
         end
     elseif event == hs.window.filter.windowDestroyed then
@@ -29,7 +31,7 @@ local function windowWatcherCallback(win, appName, event)
         if didRemoveATerminalWin --[[ and appName == "Terminal"]] and #windowAssociations == 0 then
             local terminalApp = win:application()
             if terminalApp and 0 == #terminalApp:allWindows() then
-                print('A tracked Terminal window was just closed, Terminal app has no more windows: closing Terminal.')
+                print('A tracked iTerm window was just closed, iTerm app has no more windows: closing iTerm.')
                 terminalApp:kill()
             end
         end
@@ -53,8 +55,8 @@ myWindowFilter:subscribe( {
 local function specifyRelatedWebView(wv, closeCallback)
     pendingCallback = closeCallback
     pendingWV = wv
-    print('pendingCallback set')
-    hs.timer.doAfter(0.2, function()
+    print('pendiingCallback set')
+    hs.timer.doAfter(1, function()
         pendingCallback = nil
         pendingWV = nil
         print('pendingCallback now nil')

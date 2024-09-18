@@ -318,13 +318,12 @@ end)
 local currentFilePath = debug.getinfo(1, "S").source:sub(2)
 local currentDir = currentFilePath:match("(.*/)") or ""
 local windowWatcher = dofile(currentDir .. "window-watcher.lua")
-hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
-    hs.execute('bash -c "/usr/sbin/screencapture -i /tmp/screencap.png"')
-
+local function ai_screenshot()
     local image = hs.image.imageFromPath("/tmp/screencap.png")
     if image then
         local size = image:size()
         local imageView = hs.webview.newBrowser({x = 0, y = 0, w = size.w, h = size.h})
+        if imageView == nil then return end
         imageView:shadow(true)
 
         windowWatcher.specifyRelatedWebView(imageView, function(win)
@@ -342,6 +341,11 @@ hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
     else
         hs.alert.show("Failed to capture screenshot")
     end
+end
+
+hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
+    hs.execute('bash -c "/usr/sbin/screencapture -i /tmp/screencap.png"')
+    ai_screenshot()
 end)
 
 hs.hotkey.bind({"option", "shift"}, "R", function ()
@@ -350,18 +354,16 @@ hs.hotkey.bind({"option", "shift"}, "R", function ()
 end)
 
 -- Variable to store the timestamp of the last Shift+Option+Y press
-local lastShiftOptYPress = 0
+local lastShiftOptYPress = os.time()
 
 hs.hotkey.bind({"option", "shift"}, "Y", function ()
     local currentTime = os.time()
-    print('Processing new images since last Shift+Option+Y press')
-    
-    -- TODO: Add your script here to process images newer than lastShiftOptYPress
-    -- For example:
-    -- hs.execute(string.format('bash -c "your_script_here.sh %d"', lastShiftOptYPress))
-    
-    -- Update the timestamp for the next press
+    local cmd = string.format(home .. '/util/imgcat-to-aichat.sh %d', lastShiftOptYPress)
+    print('running cmd ' .. cmd)
+    hs.execute(cmd)
     lastShiftOptYPress = currentTime
+    -- now the image has been prepped.
+    ai_screenshot()
 end)
 
 hs.alert.show("Main hammerspoon config loaded")

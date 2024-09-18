@@ -155,21 +155,21 @@ return {
   { "jose-elias-alvarez/null-ls.nvim", dependencies = { 'nvim-lua/plenary.nvim' } },
   "jay-babu/mason-null-ls.nvim",
   "inkarkat/vim-ingo-library",
-  { "inkarkat/vim-SearchHighlighting", init = function ()
-    -- This is set to be disabled in favor of STS *maybe*
-    vim.keymap.set('n', '<CR>', function ()
-      if vim.bo.buftype == 'quickfix' or vim.bo.buftype == 'loclist' then
-        return '<CR>'
-      else
-        return '<Plug>SearchHighlightingStar'
-      end
-    end, { expr = true })
-    -- vim.cmd([[
-    --   nmap <silent> <CR> <Plug>SearchHighlightingStar
-    --   "" doesn't work
-    --   " vmap <silent> <CR> <Plug>SearchHighlightingStar
-    -- ]])
-  end },
+  -- { "inkarkat/vim-SearchHighlighting", init = function ()
+  --   -- This is set to be disabled in favor of STS *maybe*
+  --   vim.keymap.set('n', '<CR>', function ()
+  --     if vim.bo.buftype == 'quickfix' or vim.bo.buftype == 'loclist' then
+  --       return '<CR>'
+  --     else
+  --       return '<Plug>SearchHighlightingStar'
+  --     end
+  --   end, { expr = true })
+  --   -- vim.cmd([[
+  --   --   nmap <silent> <CR> <Plug>SearchHighlightingStar
+  --   --   "" doesn't work
+  --   --   " vmap <silent> <CR> <Plug>SearchHighlightingStar
+  --   -- ]])
+  -- end },
   -- {
   --   'VonHeikemen/lsp-zero.nvim',
   --   branch = 'v2.x',
@@ -475,7 +475,37 @@ return {
   --     require("output_panel").setup()
   --   end
   -- },
-  "tris203/precognition.nvim",
+  -- {
+  --   -- precognition provides a preview line under cursor in normal mode to help learn word hops
+  --   "tris203/precognition.nvim",
+  --   --event = "VeryLazy",
+  --   opts = {
+  --   -- startVisible = true,
+  --   -- showBlankVirtLine = true,
+  --   -- highlightColor = { link = "Comment" },
+  --   -- hints = {
+  --   --      Caret = { text = "^", prio = 2 },
+  --   --      Dollar = { text = "$", prio = 1 },
+  --   --      MatchingPair = { text = "%", prio = 5 },
+  --   --      Zero = { text = "0", prio = 1 },
+  --   --      w = { text = "w", prio = 10 },
+  --   --      b = { text = "b", prio = 9 },
+  --   --      e = { text = "e", prio = 8 },
+  --   --      W = { text = "W", prio = 7 },
+  --   --      B = { text = "B", prio = 6 },
+  --   --      E = { text = "E", prio = 5 },
+  --   -- },
+  --   -- gutterHints = {
+  --   --     G = { text = "G", prio = 10 },
+  --   --     gg = { text = "gg", prio = 9 },
+  --   --     PrevParagraph = { text = "{", prio = 8 },
+  --   --     NextParagraph = { text = "}", prio = 8 },
+  --   -- },
+  --   -- disabled_fts = {
+  --   --     "startify",
+  --   -- },
+  --   },
+  -- },
   {
     'stevearc/oil.nvim',
     opts = {},
@@ -539,15 +569,26 @@ return {
       })
     end
   },
+  -- {
+  --   "sourcegraph/sg.nvim",
+  --   dependencies = { "nvim-lua/plenary.nvim", --[[ "nvim-telescope/telescope.nvim ]] },
+  --
+  --   -- If you have a recent version of lazy.nvim, you don't need to add this!
+  --   build = "nvim -l build/init.lua",
+  --   config = function ()
+  --     require('sg').setup{}
+  --   end
+  -- },
   {
-    "sourcegraph/sg.nvim",
-    dependencies = { "nvim-lua/plenary.nvim", --[[ "nvim-telescope/telescope.nvim ]] },
-
-    -- If you have a recent version of lazy.nvim, you don't need to add this!
-    build = "nvim -l build/init.lua",
-    config = function ()
-      require('sg').setup{}
-    end
+    'MeanderingProgrammer/render-markdown.nvim',
+    opts = {
+      code = {
+        left_pad = 3
+      }
+    },
+    dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.nvim' }, -- if you use the mini.nvim suite
+    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.icons' }, -- if you use standalone mini plugins
+    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
   },
 
 }

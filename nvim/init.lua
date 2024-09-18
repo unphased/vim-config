@@ -126,6 +126,8 @@ vim.keymap.set({'i', 'n'}, '<M-Right>', '<C-Right>')
 
 vim.keymap.set("n", "<leader>w", ":set wrap!<cr>")
 
+vim.keymap.set('n', '<CR>', '*')
+
 --- disabling for now since regular works with cmp cmdline completion
 -- vim.keymap.set({ "n", "v" }, "/", "/\\V")
 vim.keymap.set({ "n", "x" }, "k", "gk")
@@ -1635,8 +1637,8 @@ cmp.setup({
     -- { name = 'ultisnips' }, -- For ultisnips users.
     { name = 'snippy' }, -- For snippy users.
     { name = 'buffer' },
-    { name = 'cody' },
-    -- { name = 'codeium' },
+    -- { name = 'cody' },
+    { name = 'codeium' },
     -- option = {
     --   keyword_length = 0
     -- }
@@ -1833,8 +1835,8 @@ require("mason-lspconfig").setup_handlers {
       on_attach = lsp_attach,
     }
   end,
-  ["tsserver"] = function () log "exception applied for mason lspconfig setup for tsserver as we want to use typescript-tools instead." end,
-  -- Next, you can provide a dedicated handler for specific servers. Don't forget to bring capabilities and on_attach in.
+  -- ["ts_ls"] = function () log "exception applied for mason lspconfig setup for tsserver as we want to use typescript-tools instead." end,
+
   -- ["tsserver"] = function ()
   --   log('executing tsserver mason-lspconfig handler cb');
   --   safeRequire("lspconfig")["tsserver"].setup {
@@ -1902,6 +1904,49 @@ require("mason-lspconfig").setup_handlers {
   --     }
   --   })
   -- end
+}
+
+-- local lspconf_util = require 'lspconfig.util'
+-- local function get_typescript_server_path(root_dir)
+--
+--   local global_ts = '/Users/slu/Web-OneFrontend/AccuWeather.Web.Frontend/node_modules/typescript/lib'
+--   -- Alternative location if installed as root:
+--   -- local global_ts = '/usr/local/lib/node_modules/typescript/lib'
+--   local found_ts = ''
+--   local function check_dir(path)
+--     found_ts =  lspconf_util.path.join(path, 'node_modules', 'typescript', 'lib')
+--     if lspconf_util.path.exists(found_ts) then
+--       return path
+--     end
+--   end
+--   if lspconf_util.search_ancestors(root_dir, check_dir) then
+--     return found_ts
+--   else
+--     return global_ts
+--   end
+-- end
+--
+-- require'lspconfig'.volar.setup{
+--   on_new_config = function(new_config, new_root_dir)
+--     new_config.init_options.typescript.tsdk = get_typescript_server_path(new_root_dir)
+--   end,
+-- }
+
+require'lspconfig'.ts_ls.setup{
+  init_options = {
+    plugins = {
+      {
+        name = "@vue/typescript-plugin",
+        location = "/Users/slu/.n/lib/node_modules/@vue/typescript-plugin/",
+        languages = {"javascript", "typescript", "vue"},
+      },
+    },
+  },
+  filetypes = {
+    "javascript",
+    "typescript",
+    "vue",
+  },
 }
 
 -- local vtsls = require("vtsls")
