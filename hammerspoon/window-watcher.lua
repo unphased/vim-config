@@ -43,7 +43,7 @@ local function windowWatcherCallback(win, appName, event)
                 local screen = win:screen()
                 local frame = win:frame()
                 assoc.wv:moveToScreen(screen)
-                assoc.wv:setFrame(frame)
+                -- assoc.wv:setFrame(frame)
                 assoc.wv:show()
             end
         end
