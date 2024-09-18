@@ -349,4 +349,19 @@ hs.hotkey.bind({"option", "shift"}, "R", function ()
     hs.execute('bash -c "/usr/sbin/screencapture -i $HOME/automated_screencaps/$(date +%s).png"')
 end)
 
+-- Variable to store the timestamp of the last Shift+Option+Y press
+local lastShiftOptYPress = 0
+
+hs.hotkey.bind({"option", "shift"}, "Y", function ()
+    local currentTime = os.time()
+    print('Processing new images since last Shift+Option+Y press')
+    
+    -- TODO: Add your script here to process images newer than lastShiftOptYPress
+    -- For example:
+    -- hs.execute(string.format('bash -c "your_script_here.sh %d"', lastShiftOptYPress))
+    
+    -- Update the timestamp for the next press
+    lastShiftOptYPress = currentTime
+end)
+
 hs.alert.show("Main hammerspoon config loaded")
