@@ -295,7 +295,7 @@ function launchNeovideAtDir(path)
     os.execute("pushd " .. path .. "; PATH=$HOME/.cargo/bin:$PATH /opt/homebrew/bin/neovide &")
 end
 
-hs.hotkey.bind({"alt"}, "space", function()
+hs.hotkey.bind({"shift", "cmd"}, "space", function()
     print("Alt+Space hotkey triggered")
     local nv = hs.application.get("com.neovide.neovide")
     if nv then

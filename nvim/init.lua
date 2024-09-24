@@ -1517,7 +1517,7 @@ require("ibl").setup({
 --   }
 -- }
 
-function ef_ten(direction)
+local function ef_ten(direction)
     local mode = vim.api.nvim_get_mode().mode
     local is_visual = mode ~= "^v"
     log('ef_ten is_visual', is_visual, mode)
@@ -1534,8 +1534,22 @@ function ef_ten(direction)
     end
 
 end
-vim.keymap.set({ 'n' }, '<F10>', function () ef_ten('+') end, {noremap = true})
+
+local multicursor = require("multicursor-nvim")
+
+vim.keymap.set({ 'n' }, '<F10>', function ()
+  local mc = multicursor
+  if not mc.cursorsEnabled() then
+    mc.enableCursors()
+  elseif mc.hasCursors() then
+    mc.clearCursors()
+  else
+    -- Default <esc> handler.
+  end
+  ef_ten('+')
+end, {noremap = true})
 vim.keymap.set({ 'n' }, '<S-F10>', function () ef_ten('-') end, {noremap = true})
+
 
 vim.opt.completeopt="menu,menuone,noselect"
 
@@ -2003,6 +2017,9 @@ vim.cmd([[
   hi InsertCursor guibg=#00eeff
   set guicursor=n-v-c-sm:block-NormalCursor,i-ci-ve:ver30-InsertCursor,r-cr-o:hor20-ReplaceCursor
 
+  hi NormalCursorMulti gui=underline guibg=#22aa22
+  hi NormalCursorMultiDisabled guibg=#126a12
+
   hi CursorLine guibg=#222e20
   set cursorline
 
@@ -2020,6 +2037,10 @@ vim.cmd([[
   highlight SignColumn guifg=#bbc2cf guibg=#050a13
 
   hi Visual term=reverse ctermbg=238 guibg=#855540
+
+  hi VisualMulti term=reverse guibg=#704537
+  hi VisualMultiDisabled term=reverse guibg=#402517
+
   hi NormalFloat guibg=#232336
   hi NonText guibg=#303030
 
@@ -2259,9 +2280,21 @@ vim.api.nvim_set_keymap(
   { noremap = true, desc = "Open refactoring menu in visual mode"}
 )
 
-vim.keymap.set("n", "<leader>r", function()
-  return ":IncRename " .. vim.fn.expand("<cword>")
-end, { expr = true, desc = "Incremental Rename" })
+-- vim.keymap.set("n", "<leader>r", function()
+--   return ":IncRename " .. vim.fn.expand("<cword>")
+-- end, { expr = true, desc = "Incremental Rename" })
+
+require("live-rename").setup({
+    hl = {
+        current = "LiveRenameCur",
+        others = "LiveRename",
+    },
+})
+vim.keymap.set("n", "<leader>r", require("live-rename").map({insert = true}), { desc = "LSP rename" })
+vim.cmd[[
+  highlight LiveRenameCur gui=bold guifg=Green
+  highlight LiveRename guifg=Green
+]]
 
 vim.cmd[[let g:lion_squeeze_spaces = 1]]
 
