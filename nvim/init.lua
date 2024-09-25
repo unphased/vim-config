@@ -126,7 +126,26 @@ vim.keymap.set({'i', 'n'}, '<M-Right>', '<C-Right>')
 
 vim.keymap.set("n", "<leader>w", ":set wrap!<cr>")
 
-vim.keymap.set('n', '<CR>', '*')
+vim.keymap.set('n', '<CR>', function ()
+  -- Get the word under the cursor
+  local word = vim.fn.expand('<cword>')
+
+  -- check if word is already in the search register...
+  local searchreg = '\\<' .. word .. '\\>'  -- This escapes the word with word boundaries
+  if vim.fn.getreg('/') == searchreg then
+    vim.o.hlsearch = not vim.o.hlsearch -- use this as quick way to toggle the hlsearch
+  else
+    vim.o.hlsearch = true -- just friendly so that we always toggle it on for a new value
+  end
+
+  -- Set the search register to the word under the cursor (no problem doing this each time)
+  vim.fn.setreg('/', searchreg)
+
+  -- Optionally move the cursor to the next match, based on a configurable option
+  if vim.g.move_to_next_match then
+    vim.cmd('normal! n')  -- Move to the next match if the option is enabled
+  end
+end, { desc = 'search for word under cursor without moving' })
 
 --- disabling for now since regular works with cmp cmdline completion
 -- vim.keymap.set({ "n", "v" }, "/", "/\\V")
@@ -1849,7 +1868,7 @@ require("mason-lspconfig").setup_handlers {
       on_attach = lsp_attach,
     }
   end,
-  -- ["ts_ls"] = function () log "exception applied for mason lspconfig setup for tsserver as we want to use typescript-tools instead." end,
+  ["ts_ls"] = function () log "exception applied for mason lspconfig setup for tsserver as we want to use typescript-tools instead." end,
 
   -- ["tsserver"] = function ()
   --   log('executing tsserver mason-lspconfig handler cb');
@@ -1946,22 +1965,22 @@ require("mason-lspconfig").setup_handlers {
 --   end,
 -- }
 
-require'lspconfig'.ts_ls.setup{
-  init_options = {
-    plugins = {
-      {
-        name = "@vue/typescript-plugin",
-        location = "/Users/slu/.n/lib/node_modules/@vue/typescript-plugin/",
-        languages = {"javascript", "typescript", "vue"},
-      },
-    },
-  },
-  filetypes = {
-    "javascript",
-    "typescript",
-    "vue",
-  },
-}
+-- require'lspconfig'.ts_ls.setup{
+--   init_options = {
+--     plugins = {
+--       {
+--         name = "@vue/typescript-plugin",
+--         location = "/Users/slu/.n/lib/node_modules/@vue/typescript-plugin/",
+--         languages = {"javascript", "typescript", "vue"},
+--       },
+--     },
+--   },
+--   filetypes = {
+--     "javascript",
+--     "typescript",
+--     "vue",
+--   },
+-- }
 
 -- local vtsls = require("vtsls")
 -- local vt_lspc = vtsls.lspconfig;
@@ -2965,7 +2984,7 @@ if vim.g.neovide then
   -- some basic dev workflow edifice we can establish as an outcropping out of neovide:
   -- First, cmd D to git log browsing.
   vim.keymap.set('n', '<D-l>', function ()
-    MakeTermWindowVimAsPager('git --no-pager log -p | head -n5000 | ~/.cargo/bin/delta --pager=none', '40', 'Git Log')
+    MakeTermWindowVimAsPager('git --no-pager  log -p --color-moved --color=always | head -n2000 | ~/.cargo/bin/delta --pager=none', '40', 'Git Log')
   end)
   vim.keymap.set({'n', 't'}, '<D-d>', function ()
     if vim.bo.buftype == 'terminal' then

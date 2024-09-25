@@ -588,7 +588,7 @@ return {
 
   {
     "jake-stewart/multicursor.nvim",
-    branch = "1.0",
+    -- branch = "1.0",
     config = function()
       local mc = require("multicursor-nvim")
 
@@ -599,10 +599,7 @@ return {
       vim.keymap.set({"n", "v"}, "<s-down>", function() mc.addCursor("j") end)
 
       -- Add a cursor and jump to the next word under cursor.
-      vim.keymap.set({"n", "v"}, "<c-d>", function()
-        mc.addCursor("*")
-        vim.o.hlsearch = false
-      end)
+      vim.keymap.set({"n", "v"}, "<c-d>", function() mc.addCursor("*") end)
 
       -- Jump to the next word under cursor but do not add a cursor.
       vim.keymap.set({"n", "v"}, "<c-e>", function() mc.skipCursor("*") end)
@@ -639,7 +636,7 @@ return {
       end)
 
       -- Align cursor columns.
-      vim.keymap.set("n", "<leader>a", mc.alignCursors)
+      vim.keymap.set("n", "<leader>A", mc.alignCursors)
 
       -- Split visual selections by regex.
       vim.keymap.set("v", "U", mc.splitCursors)
@@ -662,6 +659,5 @@ return {
       vim.api.nvim_set_hl(0, "MultiCursorDisabledVisual", { link = "VisualMultiDisabled" })
     end,
   }
-
 
 }
