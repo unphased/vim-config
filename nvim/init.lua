@@ -778,10 +778,10 @@ end
 --   callback = restore_visual_selection
 -- })
 
-vim.keymap.set({ "n", "v", "i" }, "<C-h>", function() tmux_window('h') end, { noremap = true, desc = "Move to window on left, overflow to tmux" })
-vim.keymap.set({ "n", "v", "i" }, "<C-j>", function() tmux_window('j') end, { noremap = true, desc = "Move to window below, overflow to tmux" })
-vim.keymap.set({ "n", "v", "i" }, "<C-k>", function() tmux_window('k') end, { noremap = true, desc = "Move to window above, overflow to tmux" })
-vim.keymap.set({ "n", "v", "i" }, "<C-l>", function() tmux_window('l') end, { noremap = true, desc = "Move to window on right, overflow to tmux" })
+vim.keymap.set({ "n", "v", "i", "t" }, "<C-h>", function() tmux_window('h') end, { noremap = true, desc = "Move to window on left, overflow to tmux" })
+vim.keymap.set({ "n", "v", "i", "t" }, "<C-j>", function() tmux_window('j') end, { noremap = true, desc = "Move to window below, overflow to tmux" })
+vim.keymap.set({ "n", "v", "i", "t" }, "<C-k>", function() tmux_window('k') end, { noremap = true, desc = "Move to window above, overflow to tmux" })
+vim.keymap.set({ "n", "v", "i", "t" }, "<C-l>", function() tmux_window('l') end, { noremap = true, desc = "Move to window on right, overflow to tmux" })
 
 -- vim.api.nvim_set_keymap('n', '<Leader>t', '<Cmd>lua MoveToNextTab()<CR>', {noremap = true, silent = true})
 
@@ -2872,7 +2872,6 @@ function MakeSimpleTermForCmd(command, size, name)
     -- TODO find a way to change name to prevent buf name clash
   end
 end
-
 
 -- nvim term really needs tlc for pasting
 vim.keymap.set('t', '<M-v>', '<C-\\><C-n>"+pi')
