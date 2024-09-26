@@ -1456,6 +1456,11 @@ require("nvim-tree").setup({
   update_focused_file = {
     enable = true,
     update_root = true
+  },
+  actions = {
+    open_file = {
+      quit_on_open = true
+    }
   }
 })
 
@@ -2961,7 +2966,7 @@ if vim.g.neovide then
   )
 
   -- -- so for some reason this does not work with vim.keymap.set but it works like this. something wonky going on.
-  vim.api.nvim_set_keymap('n', '<D-p>', '<M-p>', { noremap = false })
+  vim.keymap.set('n', '<D-p>', '<M-p>', { remap = true })
   -- vim.cmd[[
   --   nmap <D-p> <m-p>
   -- ]]
@@ -3035,7 +3040,10 @@ if vim.g.neovide then
 
   vim.keymap.set('n', '<D-}>', "<cmd>lua CycleWindowsOrBuffers(true)<cr>", { desc = 'cycle windows or buffers forward'})
   vim.keymap.set('n', '<D-{>', "<cmd>lua CycleWindowsOrBuffers(false)<cr>", { desc = 'cycle windows or buffers backward'})
+
+  -- shift enter works in neovide but not under terminal. therefore bind S-CR recursively to M-CR
+  -- shift enter in insert mode will insert a newline above the current line and go there.
+  vim.keymap.set('i', '<S-CR>', '<M-CR>', { remap = true })
 end
 
--- shift enter in insert mode will insert a newline above the current line and go there.
-vim.keymap.set('i', '<S-CR>', '<ESC>O', { noremap = true, silent = true })
+vim.keymap.set('i', '<M-CR>', '<ESC>O', { noremap = true, silent = true })
