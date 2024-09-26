@@ -3011,6 +3011,12 @@ if vim.g.neovide then
   -- shift enter works in neovide but not under terminal. therefore bind S-CR recursively to M-CR
   -- shift enter in insert mode will insert a newline above the current line and go there.
   vim.keymap.set('i', '<S-CR>', '<M-CR>', { remap = true })
+
+  for i = 0, 9 do
+    local key = "<D-" .. i .. ">"
+    local key2 = "<M-" .. i .. ">"
+    vim.keymap.set('n', key, key2, { remap = true })
+  end
 end
 
 -- pretty dope nvim self contained git diff viewer. repeated hits on this iterates thru a diff from current state to N
@@ -3053,3 +3059,34 @@ vim.keymap.set('n', '<M-c>', function ()
 end)
 vim.keymap.set('n', '<M-t>', function () MakeSimpleTermForCmd('zsh', '25', 'zsh') end)
 vim.keymap.set('i', '<M-CR>', '<ESC>O', { noremap = true, silent = true })
+
+-- Function to switch to the Nth buffer in the buffer list
+local function switch_to_nth_buffer(n)
+  -- Get all listed buffers
+  local buffers = vim.tbl_filter(function(buf)
+    return vim.api.nvim_get_option_value("buflisted", { buf = buf })
+  end, vim.api.nvim_list_bufs())
+
+  -- Check if n is within the valid range
+  if n < 1 or n > #buffers then
+    print("Buffer " .. n .. " does not exist.")
+    return
+  end
+
+  -- Get the buffer number at position n
+  local buf = buffers[n]
+
+  -- Switch to the specified buffer
+  vim.api.nvim_set_current_buf(buf)
+end
+
+-- questionable if the loop is sensible. meant to make 
+-- vim.keymap.set('n', '<M-1>', function () switch_to_nth_buffer(1) end)
+-- vim.keymap.set('n', '<M-2>', function () switch_to_nth_buffer(2) end)
+for i = 1, 9 do
+  local key = "<M-" .. i .. ">"
+  vim.keymap.set('n', key, function()
+    switch_to_nth_buffer(i)
+  end, { noremap = true, silent = true, desc = "Switch to buffer " .. i })
+end
+vim.keymap.set('n', '<M-0>', function () switch_to_nth_buffer(10) end)
