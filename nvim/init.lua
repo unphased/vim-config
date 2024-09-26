@@ -2986,57 +2986,22 @@ if vim.g.neovide then
 
   vim.g.neovide_refresh_rate_idle = 1
 
-  -- some basic dev workflow edifice we can establish as an outcropping out of neovide:
-  -- First, cmd D to git log browsing.
-  vim.keymap.set('n', '<D-l>', function ()
-    MakeTermWindowVimAsPager('git --no-pager  log -p --color-moved --color=always | head -n2000 | ~/.cargo/bin/delta --pager=none', '40', 'Git Log')
-  end)
-  vim.keymap.set({'n', 't'}, '<D-d>', function ()
-    if vim.bo.buftype == 'terminal' then
-      -- In terminal buffer (normal or insert mode)
-      local max_diff_num = 0
-      local max_diff_bufnum
-      for _, data in ipairs(get_current_tab_buffer_names()) do
-        local bufName = data.name
-        local diff_num = bufName:match("Git DIFF PREV (%d+)")
-        if diff_num then
-          max_diff_num = math.max(max_diff_num, tonumber(diff_num) or 0)
-          max_diff_bufnum = data.buf
-        end
-      end
-
-      -- Increment the max number for the new diff
-      local new_diff_num = max_diff_num + 1
-      local commits_back = string.rep("^", new_diff_num)
-      MakeTermWindowVimAsPager('git --no-pager diff HEAD' .. commits_back .. " | ~/.cargo/bin/delta --pager=none",
-        '50', 'Git DIFF PREV ' .. new_diff_num, new_diff_num == 1 and nil or max_diff_bufnum)
-
-    else
-      -- In non-terminal buffer
-      MakeTermWindowVimAsPager('git --no-pager diff | ~/.cargo/bin/delta --pager=none', '40', 'Git Diff')
-    end
-  end)
   vim.keymap.set('n', '<D-z>', function ()
     MakeTermWindowVimAsPager('echo test; echo path is $PATH; echo here is a hyperlink:; printf "test lol"', '20', 'test')
   end)
 
-  -- commit (ah this is a bit ridiculous opening vim to write a msg inside vim lol)
-  vim.keymap.set('n', '<D-c>', function ()
-    -- run ~/util/commit-push-interactive.sh in a terminal split
-    MakeSimpleTermForCmd('~/util/commit-push-interactive.sh', '20', 'Git Commit')
-  end)
-
-  vim.keymap.set('n', '<D-t>', function ()
-    MakeSimpleTermForCmd('zsh', '25', 'zsh')
-  end)
+  vim.keymap.set('n', '<D-l>', '<M-l>', { remap = true })
+  vim.keymap.set('n', '<D-d>', '<M-d>', { remap = true })
+  vim.keymap.set('n', '<D-c>', '<M-c>', { remap = true })
+  vim.keymap.set('n', '<D-t>', '<M-t>', { remap = true })
 
   -- override osc52 yank (not useful in neovide) with regular yank
   vim.keymap.set({"n", 'x'}, "<leader>y", '"+y', { desc = "Copy to + clipboard (neovide override)" })
 
   vim.keymap.set("n", "<leader>Y", 'ggVG"+y', { desc = "Copy entire buffer to clipboard (neovide override)"})
 
-  vim.keymap.set('n', '<D-.>', ":lua enhanced_dot(vim.v.count1)<CR>", { noremap = true, desc = 'enhanced_dot' })
-  vim.keymap.set('n', '<D->>', ":lua enhanced_dot('')<CR>", { noremap = true, desc = 'enhanced_dot all' })
+  vim.keymap.set('n', '<D-.>', '<M-.>', { remap = true })
+  vim.keymap.set('n', '<D->>', '<M->>', { remap = true })
 
   vim.keymap.set('n', '<D-}>', "<cmd>lua CycleWindowsOrBuffers(true)<cr>", { desc = 'cycle windows or buffers forward'})
   vim.keymap.set('n', '<D-{>', "<cmd>lua CycleWindowsOrBuffers(false)<cr>", { desc = 'cycle windows or buffers backward'})
@@ -3046,4 +3011,43 @@ if vim.g.neovide then
   vim.keymap.set('i', '<S-CR>', '<M-CR>', { remap = true })
 end
 
+-- pretty dope nvim self contained git diff viewer. repeated hits on this iterates thru a diff from current state to N
+-- commits ago, good for quickly viewing a diff for a collapsed stack of recent commits.
+vim.keymap.set({'n', 't'}, '<M-d>', function ()
+  if vim.bo.buftype == 'terminal' then
+    -- In terminal buffer (normal or insert mode)
+    local max_diff_num = 0
+    local max_diff_bufnum
+    for _, data in ipairs(get_current_tab_buffer_names()) do
+      local bufName = data.name
+      local diff_num = bufName:match("Git DIFF PREV (%d+)")
+      if diff_num then
+        max_diff_num = math.max(max_diff_num, tonumber(diff_num) or 0)
+        max_diff_bufnum = data.buf
+      end
+    end
+
+    -- Increment the max number for the new diff
+    local new_diff_num = max_diff_num + 1
+    local commits_back = string.rep("^", new_diff_num)
+    MakeTermWindowVimAsPager('git --no-pager diff HEAD' .. commits_back .. " | ~/.cargo/bin/delta --pager=none",
+      '50', 'Git DIFF PREV ' .. new_diff_num, new_diff_num == 1 and nil or max_diff_bufnum)
+
+  else
+    -- In non-terminal buffer
+    MakeTermWindowVimAsPager('git --no-pager diff | ~/.cargo/bin/delta --pager=none', '40', 'Git Diff')
+  end
+end)
+
+-- log
+vim.keymap.set('n', '<M-l>', function ()
+  MakeTermWindowVimAsPager('git --no-pager  log -p --color-moved --color=always | head -n2000 | ~/.cargo/bin/delta --pager=none', '40', 'Git Log')
+end)
+
+-- commit (ah this is a bit ridiculous opening vim to write a msg inside vim lol but it really works)
+vim.keymap.set('n', '<M-c>', function ()
+  -- run ~/util/commit-push-interactive.sh in a terminal split
+  MakeSimpleTermForCmd('~/util/commit-push-interactive.sh', '20', 'Git Commit')
+end)
+vim.keymap.set('n', '<M-t>', function () MakeSimpleTermForCmd('zsh', '25', 'zsh') end)
 vim.keymap.set('i', '<M-CR>', '<ESC>O', { noremap = true, silent = true })
