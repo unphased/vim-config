@@ -960,6 +960,7 @@ require("gitsigns").setup({
     changedelete = { text = "~", show_count = true },
     untracked = { text = "┆" },
   },
+  base = "@^",
   show_deleted = false,
   numhl = false, -- Toggle with `:Gitsigns toggle_numhl`
   linehl = false, -- Toggle with `:Gitsigns toggle_linehl`
