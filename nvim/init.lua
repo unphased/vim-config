@@ -2288,7 +2288,7 @@ vim.keymap.set("x", "<C-Down>", '<cmd>STSSwapNextVisual<cr>', opts)
 vim.keymap.set("x", "<C-Up>", '<cmd>STSSwapPrevVisual<cr>', opts)
 
 -- end of Syntax Tree Surfer
-vim.g.copilot_filetypes = {markdown = true, yaml = true}
+-- vim.g.copilot_filetypes = {markdown = true, yaml = true}
 
 -- load refactoring Telescope extension
 telescope.load_extension("refactoring")
@@ -3090,3 +3090,18 @@ for i = 1, 9 do
   end, { noremap = true, silent = true, desc = "Switch to buffer " .. i })
 end
 vim.keymap.set('n', '<M-0>', function () switch_to_nth_buffer(10) end)
+
+
+vim.cmd[[
+function! EncodeURIComponent() range
+  let saved_reg = @"
+  normal! gvy
+  let selected_text = @"
+  let encoded = system('node -e "process.stdout.write(encodeURIComponent(process.argv[1]))" -- ' . shellescape(selected_text))
+  let @" = encoded
+  normal! gv"_d"0P
+  let @" = saved_reg
+endfunction
+vnoremap <leader>ue :call EncodeURIComponent()<CR>
+]]
+
