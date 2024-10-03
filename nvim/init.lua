@@ -317,7 +317,7 @@ local function indexOf(array, value)
   return nil
 end
 
--- cycle thruogh the windows with tab. If the current tab has only one window, actually cycle through all the buffers which are not already open in other tabs (if applicable).
+-- cycle through the windows with tab. If the current tab has only one window, actually cycle through all the buffers which are not already open in other tabs (if applicable).
 _G.CycleWindowsOrBuffers = function (forward)
   local curwin = vim.api.nvim_get_current_win()
   local wins = filter_to_real_wins(vim.api.nvim_list_wins())
@@ -330,8 +330,6 @@ _G.CycleWindowsOrBuffers = function (forward)
     if forward then vim.cmd("bnext") else vim.cmd("bprevious") end
   elseif #tabs == 1 then
     log("CycleWindowsOrBuffers only one tab, going forward to next window", forward)
-    -- vim.cmd("wincmd " .. (forward and "w" or "W"))
-    -- the above is wrong as it wont take into account the filter
     local curWinIdx = indexOf(wins, curwin)
     local targetWinIdx = curWinIdx + (forward and 1 or -1)
     if targetWinIdx > #wins then
@@ -343,16 +341,35 @@ _G.CycleWindowsOrBuffers = function (forward)
     log('targeting win index ' .. targetWinIdx)
     local targetWin = wins[targetWinIdx]
     vim.api.nvim_set_current_win(targetWin)
-  -- boundary
-  elseif forward and wins_in_curtab[#wins_in_curtab] == curwin then
-    log("CycleWindowsOrBuffers in last window in tab so going forward to next tab")
-    vim.cmd("tabnext")
-  elseif not forward and curwin == wins_in_curtab[1] then
-    log("CycleWindowsOrBuffers in first window in tab so going back to prev tab")
-    vim.cmd("tabprevious")
   else
-    log("CycleWindowsOrBuffers in the last case (multiple tabs, not at end), cycling window " .. (forward and "forward" or "backward"))
-    vim.cmd("wincmd " .. (forward and "w" or "W"))
+    local function next_tab()
+      local next_tab_idx = vim.api.nvim_tabpage_get_number(curtab) % #tabs + 1
+      return vim.api.nvim_list_tabpages()[next_tab_idx]
+    end
+    local function prev_tab()
+      local prev_tab_idx = (vim.api.nvim_tabpage_get_number(curtab) - 2 + #tabs) % #tabs + 1
+      return vim.api.nvim_list_tabpages()[prev_tab_idx]
+    end
+    local function cycle_to_tab(tab)
+      local tab_wins = filter_to_real_wins(vim.api.nvim_tabpage_list_wins(tab))
+      if #tab_wins > 0 then
+        vim.api.nvim_set_current_tabpage(tab)
+        vim.api.nvim_set_current_win(tab_wins[1])
+      else
+        -- If the tab has no real windows, move to the next/previous tab
+        cycle_to_tab(forward and next_tab() or prev_tab())
+      end
+    end
+    if forward and wins_in_curtab[#wins_in_curtab] == curwin then
+      log("CycleWindowsOrBuffers in last window in tab so going forward to next tab")
+      cycle_to_tab(next_tab())
+    elseif not forward and curwin == wins_in_curtab[1] then
+      log("CycleWindowsOrBuffers in first window in tab so going back to prev tab")
+      cycle_to_tab(prev_tab())
+    else
+      log("CycleWindowsOrBuffers in the last case (multiple tabs, not at end), cycling window " .. (forward and "forward" or "backward"))
+      vim.cmd("wincmd " .. (forward and "w" or "W"))
+    end
   end
 end
 
