@@ -577,8 +577,11 @@ return {
   {
     'MeanderingProgrammer/render-markdown.nvim',
     opts = {
-      code = {
-        left_pad = 3
+      -- code = {
+      --   left_pad = 3
+      -- }
+      sign = {
+        enabled = false
       }
     },
     dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.nvim' }, -- if you use the mini.nvim suite
