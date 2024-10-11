@@ -189,7 +189,7 @@ bindings = [
 { key = "L",        mods = "Command",       chars = "\u001bl"           },
 { key = "L",        mods = "Alt",           chars = "\u001bl"           },
 { key = "L",        mods = "Command|Control", chars = "\u001b\u000C"           },
-{ key = "L",        mods = "Command|Shift", chars = "\u001bL"           },
+{ key = "L",        mods = "Shift|Command", chars = "\u001bL"           },
 { key = "L",        mods = "Alt|Shift",     chars = "\u001bL"           },
 { key = "M",        mods = "Command",       chars = "\u001bm"           },
 { key = "M",        mods = "Alt",           chars = "\u001bm"        },
