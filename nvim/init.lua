@@ -290,29 +290,32 @@ end
 vim.api.nvim_set_keymap('n', '<M-.>', ":lua enhanced_dot(vim.v.count1)<CR>", { noremap = true })
 vim.api.nvim_set_keymap('n', '<M->>', ":lua enhanced_dot('')<CR>", { noremap = true })
 
+-- Helper function to determine if a buffer is "real"
+local function is_real_buffer(buf)
+  local buftype = vim.api.nvim_get_option_value("buftype", { buf = buf })
+  local modifiable = vim.api.nvim_get_option_value("modifiable", { buf = buf })
+  
+  return buftype ~= "nofile"
+     and buftype ~= "nowrite"
+     and buftype ~= "help"
+     and buftype ~= "quickfix"
+     and buftype ~= "terminal"
+     and modifiable
+end
+
 -- Filters out windows:
 -- - made by nvim-treesitter-context
 -- - made by Neotree
 -- - made by Trouble
 -- - terminal windows
--- Does so by filtering out not focusable, then filtering out nofile/nowrite/help/quickfix/terminal, then checking filetypes where still applicable (hopefully never need to do that)
+-- Does so by filtering out not focusable, then filtering out non-real buffers
 local function filter_to_real_wins(window_list)
   local real_wins = {}
   for _, win in ipairs(window_list) do
-    -- log("win config", win, vim.api.nvim_win_get_config(win))
     local buf = vim.api.nvim_win_get_buf(win)
-    -- log("win buftype filetype", win, vim.api.nvim_buf_get_option(buf, "buftype"), vim.api.nvim_buf_get_option(buf, "filetype"))
-    local buftype = vim.api.nvim_get_option_value("buftype", { buf = buf })
-    local modifiable = vim.api.nvim_get_option_value("modifiable", { buf = buf })
     local win_config = vim.api.nvim_win_get_config(win)
 
-    if win_config.focusable
-       and buftype ~= "nofile"
-       and buftype ~= "nowrite"
-       and buftype ~= "help"
-       and buftype ~= "quickfix"
-       and buftype ~= "terminal"  -- Exclude terminal windows
-       and modifiable then
+    if win_config.focusable and is_real_buffer(buf) then
       table.insert(real_wins, win)
     end
   end
