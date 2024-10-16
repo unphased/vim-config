@@ -3,13 +3,13 @@ local M = {}
 local function is_real_buffer(buf)
   local buftype = vim.api.nvim_get_option_value("buftype", { buf = buf })
   local modifiable = vim.api.nvim_get_option_value("modifiable", { buf = buf })
+  local listed = vim.api.nvim_get_option_value("buflisted", { buf = buf })
+  local name = vim.api.nvim_buf_get_name(buf)
   
-  return buftype ~= "nofile"
-     and buftype ~= "nowrite"
-     and buftype ~= "help"
-     and buftype ~= "quickfix"
-     and buftype ~= "terminal"
+  return buftype == ""
      and modifiable
+     and listed
+     and name ~= ""  -- Ensure the buffer has a name (file path)
 end
 
 -- Filters out windows:
