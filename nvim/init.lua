@@ -342,8 +342,25 @@ _G.CycleWindowsOrBuffers = function (forward)
   log("curwin, wins, tabs, curtab, wins_in_curtab", curwin, wins, tabs, curtab, wins_in_curtab)
   if #wins == 1 then
     log("CycleWindowsOrBuffers only one window, cycling buffer " .. (forward and "forward" or "backward"))
-    -- local targetbuf = 
-    if forward then vim.cmd("bnext") else vim.cmd("bprevious") end
+    local all_buffers = vim.api.nvim_list_bufs()
+    local real_buffers = vim.tbl_filter(function(buf)
+      return is_real_buffer(buf)
+    end, all_buffers)
+    log("All buffers:", all_buffers)
+    log("Filtered real buffers:", real_buffers)
+    
+    local current_buf = vim.api.nvim_get_current_buf()
+    local current_index = vim.tbl_index(real_buffers, current_buf)
+    
+    if #real_buffers > 1 then
+      local next_index
+      if forward then
+        next_index = (current_index % #real_buffers) + 1
+      else
+        next_index = ((current_index - 2 + #real_buffers) % #real_buffers) + 1
+      end
+      vim.api.nvim_set_current_buf(real_buffers[next_index])
+    end
   elseif #tabs == 1 then
     log("CycleWindowsOrBuffers only one tab, going forward to next window", forward)
     -- vim.cmd("wincmd " .. (forward and "w" or "W"))
