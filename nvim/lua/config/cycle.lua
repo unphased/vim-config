@@ -58,6 +58,14 @@ M.CycleWindowsOrBuffers = function (forward)
     log("All buffers:", all_buffers)
     log("Filtered real buffers:", real_buffers)
     
+    -- Log detailed information about real buffers
+    local buffer_details = {}
+    for _, buf in ipairs(real_buffers) do
+        local name = vim.api.nvim_buf_get_name(buf)
+        table.insert(buffer_details, string.format("Buffer %d: %s", buf, name))
+    end
+    log("Real buffer details:", buffer_details)
+    
     local current_buf = vim.api.nvim_get_current_buf()
     local current_index = indexOf(real_buffers, current_buf)
     
