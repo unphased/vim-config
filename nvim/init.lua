@@ -1120,8 +1120,8 @@ local function load_auto_modules()
   local config_auto_dir = config_dir .. '/lua/config-auto'
 
   local files = vim.fn.readdir(config_auto_dir, [[v:val =~ '\.lua$']])
-  print("Config auto dir:", config_auto_dir)  -- Debug print
-  print("Files found:", vim.inspect(files))  -- Debug print
+  log("Config auto dir:", config_auto_dir)  -- Debug print
+  log("Config auto files found:", vim.inspect(files))  -- Debug print
 
   if #files == 0 then
     print("No .lua files found in the config-auto directory")
