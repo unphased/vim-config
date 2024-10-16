@@ -238,6 +238,9 @@ vim.keymap.set("v", "<c-\\>", "<esc>:vsplit<cr>")
 vim.keymap.set("n", "<c-_>", ":split<cr>")
 vim.keymap.set("v", "<c-_>", "<esc>:split<cr>")
 
+vim.keymap.set("n", "<c-->", ":split<cr>")
+vim.keymap.set("v", "<c-->", "<esc>:split<cr>")
+
 -- Example basic version of my quick-search. Not using this though. too simplistic.
 -- vim.keymap.set('n', '<CR>', '*``')
 
@@ -287,20 +290,29 @@ end
 vim.api.nvim_set_keymap('n', '<M-.>', ":lua enhanced_dot(vim.v.count1)<CR>", { noremap = true })
 vim.api.nvim_set_keymap('n', '<M->>', ":lua enhanced_dot('')<CR>", { noremap = true })
 
--- filters out windows:
+-- Filters out windows:
 -- - made by nvim-treesitter-context
 -- - made by Neotree
 -- - made by Trouble
--- Does so by filtering out not focusable, then filtering out nofile/nowrite/help/quickfix, then checking filetypes where still applicable (hopefully never need to do that)
+-- - terminal windows
+-- Does so by filtering out not focusable, then filtering out nofile/nowrite/help/quickfix/terminal, then checking filetypes where still applicable (hopefully never need to do that)
 local function filter_to_real_wins(window_list)
   local real_wins = {}
   for _, win in ipairs(window_list) do
     -- log("win config", win, vim.api.nvim_win_get_config(win))
-    local buf =  vim.api.nvim_win_get_buf(win)
+    local buf = vim.api.nvim_win_get_buf(win)
     -- log("win buftype filetype", win, vim.api.nvim_buf_get_option(buf, "buftype"), vim.api.nvim_buf_get_option(buf, "filetype"))
     local buftype = vim.api.nvim_get_option_value("buftype", { buf = buf })
     local modifiable = vim.api.nvim_get_option_value("modifiable", { buf = buf })
-    if vim.api.nvim_win_get_config(win).focusable and buftype ~= "nofile" and buftype ~= "nowrite" and buftype ~= "help" and buftype ~= "quickfix" and modifiable then
+    local win_config = vim.api.nvim_win_get_config(win)
+
+    if win_config.focusable
+       and buftype ~= "nofile"
+       and buftype ~= "nowrite"
+       and buftype ~= "help"
+       and buftype ~= "quickfix"
+       and buftype ~= "terminal"  -- Exclude terminal windows
+       and modifiable then
       table.insert(real_wins, win)
     end
   end

@@ -9,3 +9,4 @@ plugged/
 mthesaur.txt
 !.tmux.conf
 .aider*
+.env
