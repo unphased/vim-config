@@ -89,7 +89,7 @@ end)
 
 -- pretty dope nvim self contained git diff viewer. repeated hits on this iterates thru a diff from current state to N
 -- commits ago, good for quickly viewing a diff for a collapsed stack of recent commits.
-vim.keymap.set({'n', 't'}, '<M-d>', function ()
+local function display_diff(back)
   if vim.bo.buftype == 'terminal' then
     -- In terminal buffer (normal or insert mode)
     local max_diff_num = 0
@@ -104,7 +104,7 @@ vim.keymap.set({'n', 't'}, '<M-d>', function ()
     end
 
     -- Increment the max number for the new diff
-    local new_diff_num = max_diff_num + 1
+    local new_diff_num = max_diff_num + (back and 1 or -1)
     local commits_back = string.rep("^", new_diff_num)
     MakeTermWindowVimAsPager('output="$(git --no-pager diff HEAD' .. commits_back .. ")\"; echo \"Line count: $(echo \"$output\" | wc -l)\"; echo \"$output\" | ~/.cargo/bin/delta --pager=none",
       '50', 'Git DIFF PREV ' .. new_diff_num, new_diff_num == 1 and nil or max_diff_bufnum)
@@ -113,41 +113,11 @@ vim.keymap.set({'n', 't'}, '<M-d>', function ()
     -- In non-terminal buffer
     MakeTermWindowVimAsPager('git --no-pager diff | ~/.cargo/bin/delta --pager=none', '40', 'Git Diff')
   end
-end)
+end
+
+vim.keymap.set({'n', 't'}, '<M-d>', function display_diff(true) end)
 
 -- addendum to the above which lets me quickly walk back one commit browsing the diff chain.
-vim.keymap.set({'n', 't'}, '<M-D>', function ()
-  if vim.bo.buftype == 'terminal' then
-    -- Find current diff number from buffer name
-    local current_bufname = vim.api.nvim_buf_get_name(0)
-    local current_diff_num = current_bufname:match("Git DIFF PREV (%d+)")
-    
-    if current_diff_num then
-      current_diff_num = tonumber(current_diff_num)
-      if current_diff_num > 1 then
-        -- Find the previous diff buffer if it exists
-        local prev_diff_num = current_diff_num - 1
-        local prev_diff_bufnum
-        for _, data in ipairs(get_current_tab_buffer_names()) do
-          local bufName = data.name
-          if bufName:match("Git DIFF PREV " .. prev_diff_num .. "$") then
-            prev_diff_bufnum = data.buf
-            break
-          end
-        end
-        
-        -- Create new diff with number-1
-        local commits_back = string.rep("^", prev_diff_num)
-        MakeTermWindowVimAsPager(
-          'output="$(git --no-pager diff HEAD' .. commits_back .. 
-          ")\"; echo \"Line count: $(echo \"$output\" | wc -l)\"; echo \"$output\" | ~/.cargo/bin/delta --pager=none",
-          '50', 
-          'Git DIFF PREV ' .. prev_diff_num,
-          vim.api.nvim_get_current_buf()
-        )
-      end
-    end
-  end
-end)
+vim.keymap.set({'n', 't'}, '<M-D>', function display_diff(false) end)
 
 return M
