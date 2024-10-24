@@ -125,14 +125,24 @@ vim.keymap.set({'n', 't'}, '<M-D>', function ()
     if current_diff_num then
       current_diff_num = tonumber(current_diff_num)
       if current_diff_num > 1 then
+        -- Find the previous diff buffer if it exists
+        local prev_diff_num = current_diff_num - 1
+        local prev_diff_bufnum
+        for _, data in ipairs(get_current_tab_buffer_names()) do
+          local bufName = data.name
+          if bufName:match("Git DIFF PREV " .. prev_diff_num .. "$") then
+            prev_diff_bufnum = data.buf
+            break
+          end
+        end
+        
         -- Create new diff with number-1
-        local new_diff_num = current_diff_num - 1
-        local commits_back = string.rep("^", new_diff_num)
+        local commits_back = string.rep("^", prev_diff_num)
         MakeTermWindowVimAsPager(
           'output="$(git --no-pager diff HEAD' .. commits_back .. 
           ")\"; echo \"Line count: $(echo \"$output\" | wc -l)\"; echo \"$output\" | ~/.cargo/bin/delta --pager=none",
           '50', 
-          'Git DIFF PREV ' .. new_diff_num,
+          'Git DIFF PREV ' .. prev_diff_num,
           vim.api.nvim_get_current_buf()
         )
       end
