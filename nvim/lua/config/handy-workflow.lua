@@ -116,9 +116,9 @@ display_diff = function(back)
   end
 end
 
-vim.keymap.set({'n', 't'}, '<M-d>', function display_diff(true) end)
+vim.keymap.set({'n', 't'}, '<M-d>', function() display_diff(true) end)
 
 -- addendum to the above which lets me quickly walk back one commit browsing the diff chain.
-vim.keymap.set({'n', 't'}, '<M-D>', function display_diff(false) end)
+vim.keymap.set({'n', 't'}, '<M-D>', function() display_diff(false) end)
 
 return M
