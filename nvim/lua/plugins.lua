@@ -27,16 +27,16 @@ return {
     end,
   },
   "tpope/vim-surround",
-  "tpope/vim-sleuth",
-  -- {
-  --   'nmac427/guess-indent.nvim',
-  --   init = function()
-  --     require('guess-indent').setup {
-  --       auto_cmd = true,
-  --       override_editorconfig = true
-  --     }
-  --   end,
-  -- },
+  -- "tpope/vim-sleuth",
+  {
+    'nmac427/guess-indent.nvim',
+    init = function()
+      require('guess-indent').setup {
+        auto_cmd = true,
+        override_editorconfig = true
+      }
+    end,
+  },
   "tpope/vim-repeat",
   {
     "folke/ts-comments.nvim",

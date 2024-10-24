@@ -343,8 +343,17 @@ local function ai_screenshot()
     end
 end
 
-hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
+-- perform a screenshot snap. It goes to the special single place I manage screenshots at. Used for aider workflows too.
+hs.hotkey.bind({"option", "shift"}, "W", function ()
+    print('making just a screenshot')
     hs.execute('bash -c "/usr/sbin/screencapture -i /tmp/screencap.png"')
+end)
+
+-- automated screenshot taking followed by sending to ai tool. can dismiss screenshot to use previous snap.
+hs.hotkey.bind({"cmd", "shift", "alt"}, "X", function()
+    print('making a screenshot')
+    hs.execute('bash -c "/usr/sbin/screencapture -i /tmp/screencap.png"')
+    print('launching ai')
     ai_screenshot()
 end)
 
