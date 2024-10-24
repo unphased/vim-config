@@ -87,10 +87,21 @@ vim.keymap.set('n', '<M-l>', function ()
   MakeTermWindowVimAsPager('git --no-pager  log -p --color-moved --color=always | head -n3000 | ~/.cargo/bin/delta --pager=none', '40', 'Git Log')
 end)
 
+function get_current_tab_buffer_names()
+    local buffers = {}
+    for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+        local buf = vim.api.nvim_win_get_buf(win)
+        local name = vim.api.nvim_buf_get_name(buf)
+        if name ~= "" then
+            table.insert(buffers, { name = name, buf = buf })
+        end
+    end
+    return buffers
+end
+
 -- pretty dope nvim self contained git diff viewer. repeated hits on this iterates thru a diff from current state to N
 -- commits ago, good for quickly viewing a diff for a collapsed stack of recent commits.
-local display_diff
-display_diff = function(back)
+local function display_diff(back)
   if vim.bo.buftype == 'terminal' then
     -- In terminal buffer (normal or insert mode)
     local max_diff_num = 0
