@@ -89,7 +89,8 @@ end)
 
 -- pretty dope nvim self contained git diff viewer. repeated hits on this iterates thru a diff from current state to N
 -- commits ago, good for quickly viewing a diff for a collapsed stack of recent commits.
-local function display_diff(back)
+local display_diff
+display_diff = function(back)
   if vim.bo.buftype == 'terminal' then
     -- In terminal buffer (normal or insert mode)
     local max_diff_num = 0
