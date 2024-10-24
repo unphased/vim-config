@@ -48,15 +48,15 @@ M.CycleWindowsOrBuffers = function (forward)
   local tabs = vim.api.nvim_list_tabpages()
   local curtab = vim.api.nvim_get_current_tabpage()
   local wins_in_curtab = filter_to_real_wins(vim.api.nvim_tabpage_list_wins(curtab))
-  log("curwin, wins, tabs, curtab, wins_in_curtab", curwin, wins, tabs, curtab, wins_in_curtab)
+  -- log("curwin, wins, tabs, curtab, wins_in_curtab", curwin, wins, tabs, curtab, wins_in_curtab)
   if #wins == 1 then
-    log("CycleWindowsOrBuffers only one window, cycling buffer " .. (forward and "forward" or "backward"))
+    -- log("CycleWindowsOrBuffers only one window, cycling buffer " .. (forward and "forward" or "backward"))
     local all_buffers = vim.api.nvim_list_bufs()
     local real_buffers = vim.tbl_filter(function(buf)
       return is_real_buffer(buf)
     end, all_buffers)
-    log("All buffers:", all_buffers)
-    log("Filtered real buffers:", real_buffers)
+    -- log("All buffers:", all_buffers)
+    -- log("Filtered real buffers:", real_buffers)
     
     -- Log detailed information about real buffers
     local buffer_details = {}
@@ -64,7 +64,7 @@ M.CycleWindowsOrBuffers = function (forward)
         local name = vim.api.nvim_buf_get_name(buf)
         table.insert(buffer_details, string.format("Buffer %d: %s", buf, name))
     end
-    log("Real buffer details:", buffer_details)
+    -- log("Real buffer details:", buffer_details)
     
     local current_buf = vim.api.nvim_get_current_buf()
     local current_index = indexOf(real_buffers, current_buf)
@@ -79,7 +79,7 @@ M.CycleWindowsOrBuffers = function (forward)
       vim.api.nvim_set_current_buf(real_buffers[next_index])
     end
   elseif #tabs == 1 then
-    log("CycleWindowsOrBuffers only one tab, going forward to next window", forward)
+    -- log("CycleWindowsOrBuffers only one tab, going forward to next window", forward)
     -- vim.cmd("wincmd " .. (forward and "w" or "W"))
     -- the above is wrong as it wont take into account the filter
     local curWinIdx = indexOf(wins, curwin)
@@ -90,18 +90,18 @@ M.CycleWindowsOrBuffers = function (forward)
     if targetWinIdx < 1 then
       targetWinIdx = #wins
     end
-    log('targeting win index ' .. targetWinIdx)
+    -- log('targeting win index ' .. targetWinIdx)
     local targetWin = wins[targetWinIdx]
     vim.api.nvim_set_current_win(targetWin)
   -- boundary
   elseif forward and wins_in_curtab[#wins_in_curtab] == curwin then
-    log("CycleWindowsOrBuffers in last window in tab so going forward to next tab")
+    -- log("CycleWindowsOrBuffers in last window in tab so going forward to next tab")
     vim.cmd("tabnext")
   elseif not forward and curwin == wins_in_curtab[1] then
-    log("CycleWindowsOrBuffers in first window in tab so going back to prev tab")
+    -- log("CycleWindowsOrBuffers in first window in tab so going back to prev tab")
     vim.cmd("tabprevious")
   else
-    log("CycleWindowsOrBuffers in the last case (multiple tabs, not at end), cycling window " .. (forward and "forward" or "backward"))
+    -- log("CycleWindowsOrBuffers in the last case (multiple tabs, not at end), cycling window " .. (forward and "forward" or "backward"))
     vim.cmd("wincmd " .. (forward and "w" or "W"))
   end
 end

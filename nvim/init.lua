@@ -2858,6 +2858,7 @@ if vim.g.neovide then
 
   vim.keymap.set('n', '<D-l>', '<M-l>', { remap = true })
   vim.keymap.set('n', '<D-d>', '<M-d>', { remap = true })
+  vim.keymap.set('n', '<D-D>', '<M-D>', { remap = true })
   vim.keymap.set('n', '<D-c>', '<M-c>', { remap = true })
   vim.keymap.set('n', '<D-t>', '<M-t>', { remap = true })
 

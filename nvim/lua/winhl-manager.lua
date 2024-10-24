@@ -27,20 +27,20 @@ local function update_winhl(win_id, config, force_mode)
 
   -- Insert mode state
   local mode = force_mode or (winhl_states[win_id] and winhl_states[win_id].mode) or 'n'
-  log("Current mode for window " .. win_id .. ": " .. mode)
+  -- log("Current mode for window " .. win_id .. ": " .. mode)
   if mode == 'i' then
-    log("Applying insert mode background: " .. config.background.insert)
+    -- log("Applying insert mode background: " .. config.background.insert)
     table.insert(winhl_list, 'Normal:' .. config.background.insert)
     table.insert(winhl_list, 'SignColumn:' .. config.background.insert)
   else
-    log("Applying normal mode background: " .. config.background.normal)
+    -- log("Applying normal mode background: " .. config.background.normal)
     table.insert(winhl_list, 'Normal:' .. config.background.normal)
     table.insert(winhl_list, 'SignColumn:' .. config.background.normal)
   end
 
   -- Set the winhl option
   local winhl_string = table.concat(winhl_list, ',')
-  log("Setting winhl for window " .. win_id .. " to: " .. winhl_string)
+  -- log("Setting winhl for window " .. win_id .. " to: " .. winhl_string)
   vim.api.nvim_win_set_option(win_id, 'winhl', winhl_string)
 end
 

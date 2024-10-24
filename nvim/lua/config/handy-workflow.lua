@@ -115,8 +115,15 @@ local function display_diff(back)
       end
     end
 
+
     -- Increment the max number for the new diff
     local new_diff_num = max_diff_num + (back and 1 or -1)
+    if (new_diff_num < 1) then
+      new_diff_num = 1
+    end
+
+    log('display_diff targeting buf ' .. tostring(new_diff_num == 1 and nil or max_diff_bufnum) .. ' for opening into')
+
     local commits_back = string.rep("^", new_diff_num)
     MakeTermWindowVimAsPager('output="$(git --no-pager diff HEAD' .. commits_back .. ")\"; echo \"Line count: $(echo \"$output\" | wc -l)\"; echo \"$output\" | ~/.cargo/bin/delta --pager=none",
       '50', 'Git DIFF PREV ' .. new_diff_num, new_diff_num == 1 and nil or max_diff_bufnum)
