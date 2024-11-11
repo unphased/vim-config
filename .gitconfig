@@ -1,3 +1,6 @@
+[includeIf "gitdir:~/accuweather/"]
+    path = ~/accuweather/.gitconfig
+
 [user]
 
 [delta]
