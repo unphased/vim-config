@@ -2344,6 +2344,13 @@ require('snippy').setup({
       ['<Tab>'] = 'cut_text',
     },
   },
+  scopes = {
+    -- For Vue files, include JavaScript and TypeScript snippets
+    vue = { 'javascript', 'typescript' },
+    -- You can add more filetypes and their respective scopes here
+    -- Example:
+    -- php = { '_', 'php', 'html', 'javascript' },
+  },
 })
 
 require('lspconfig').emmet_language_server.setup({
