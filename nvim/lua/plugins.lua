@@ -95,6 +95,7 @@ return {
   -- "yamatsum/nvim-cursorline",
   "andymass/vim-matchup",
   -- "AndrewRadev/splitjoin.vim",
+  "AndrewRadev/linediff.vim",
   "windwp/nvim-autopairs",
   -- "google/vim-searchindex", -- give search index output (i of n matches) that isn't clamped to 99
   { "lukas-reineke/indent-blankline.nvim", main = 'ibl' },
