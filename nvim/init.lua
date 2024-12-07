@@ -1804,113 +1804,118 @@ local lsp_attach = function (x, bufnr)
   -- vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, bufopts)
   -- vim.keymap.set('n', '<leader>r', vim.lsp.buf.rename, ext(bufopts, "desc", "Rename"))
   vim.keymap.set('n', '<leader>ca', vim.lsp.with( vim.lsp.buf.code_action, {border = nil} ), ext(bufopts, "desc", "Code Action Menu"))
-  vim.keymap.set('v', '<leader>ca', vim.lsp.buf.code_action, ext(bufopts, "desc", "Code Action Menu"))
+  vim.keymap.set('x', '<leader>ca', vim.lsp.buf.code_action, ext(bufopts, "desc", "Code Action Menu"))
   -- vim.keymap.set('n', 'gr', '<cmd>Trouble lsp_references<cr>', ext(bufopts, "desc", "Go to References"))
   vim.keymap.set('n', '<leader>=', function() vim.lsp.buf.format { async = true } end, ext(bufopts, "desc", "Format Buffer"))
 end
 
-require("mason-lspconfig").setup_handlers {
-  -- The first entry (without a key) will be the default handler
-  -- and will be called for each installed server that doesn't have
-  -- a dedicated handler.
-  function (server_name) -- default handler (optional)
-    safeRequire("lspconfig")[server_name].setup {
-      capabilities = capabilities,
-      on_attach = lsp_attach,
-    }
-  end,
-  -- ["ts_ls"] = function () log "exception applied for mason lspconfig setup for tsserver as we want to use typescript-tools instead." end,
+-- note duplicated from lsp_attach...
+  local bufopts = { noremap=true, silent=true, buffer=bufnr }
+  vim.keymap.set('n', '<leader>ca', vim.lsp.with( vim.lsp.buf.code_action, {border = nil} ), ext(bufopts, "desc", "Code Action Menu"))
+  vim.keymap.set('x', '<leader>ca', vim.lsp.buf.code_action, ext(bufopts, "desc", "Code Action Menu"))
 
-  -- holy shit i got vue working. Via https://github.com/mason-org/mason-registry/issues/5064#issuecomment-2016431978
-  -- TODO figure out how to enable with typescript-tools instead of ts_ls...
-  ["ts_ls"] = function ()
-    require('lspconfig')["ts_ls"].setup {
-      init_options = {
-        plugins = {
-          {
-            name = "@vue/typescript-plugin",
-						location = require("mason-registry").get_package("vue-language-server"):get_install_path() .. "/node_modules/@vue/language-server",
-						languages = { "vue" },
-						configNamespace = "typescript",
-						enableForWorkspaceTypeScriptVersions = true,
-          },
-        },
-      },
-      filetypes = {
-        "vue",
-      },
-    }
-  end,
-
-  -- ["tsserver"] = function ()
-  --   log('executing tsserver mason-lspconfig handler cb');
-  --   safeRequire("lspconfig")["tsserver"].setup {
-  --     capabilities = capabilities,
-  --     on_attach = lsp_attach,
-  --     settings = {
-  --       test_option = 'blargle',
-  --       typescript = {
-  --         tsserver = {
-  --           logDirectory = "/tmp/tsserver/",
-  --           experimental = {
-  --             enableProjectDiagnostics = true
-  --           },
-  --           enableTracing = true,
-  --           trace = "verbose",
-  --         },
-  --       },
-  --     }
-  --   }
-  -- end,
-  ["clangd"] = function ()
-    safeRequire("lspconfig")["clangd"].setup {
-      on_attach = lsp_attach,
-      capabilities = capabilities,
-      cmd = {
-        "clangd",
-        "--offset-encoding=utf-16",
-      },
-    }
-  end,
-  ["dockerls"] = function ()
-    -- print("dockerls caps =" .. vim.inspect(capabilities))
-    safeRequire("lspconfig")["dockerls"].setup {
-      capabilities = capabilities,
-      on_attach = lsp_attach,
-    }
-  end,
-  ["lua_ls"] = function ()
-    safeRequire("lspconfig")["lua_ls"].setup {
-      capabilities = capabilities,
-      on_attach = lsp_attach,
-      settings = {
-        Lua = {
-          workspace = {
-            library = {
-              string.format('%s/.hammerspoon/Spoons/EmmyLua.spoon/annotations', os.getenv 'HOME')
-            }
-          },
-        }
-      }
-    }
-  end,
-  
-  -- ["emmet_ls"] = function ()
-  --   safeRequire('lspconfig').emmet_ls.setup({
-  --     on_attach = lsp_attach,
-  --     capabilities = capabilities,
-  --     filetypes = { "css", "eruby", "html", "javascript", "javascriptreact", "less", "sass", "scss", "svelte", "pug", "typescriptreact", "vue" },
-  --     init_options = {
-  --       html = {
-  --         options = {
-  --           -- For possible options, see: https://github.com/emmetio/emmet/blob/master/src/config.ts#L79-L267
-  --           ["bem.enabled"] = true,
-  --         },
-  --       },
-  --     }
-  --   })
-  -- end
-}
+-- require("mason-lspconfig").setup_handlers {
+--   -- The first entry (without a key) will be the default handler
+--   -- and will be called for each installed server that doesn't have
+--   -- a dedicated handler.
+--   function (server_name) -- default handler (optional)
+--     safeRequire("lspconfig")[server_name].setup {
+--       capabilities = capabilities,
+--       on_attach = lsp_attach,
+--     }
+--   end,
+--   ["ts_ls"] = function () log "exception applied for mason lspconfig setup for tsserver as we want to use typescript-tools instead." end,
+--
+--   -- holy shit i got vue working. Via https://github.com/mason-org/mason-registry/issues/5064#issuecomment-2016431978
+--   -- TODO figure out how to enable with typescript-tools instead of ts_ls...
+--   -- ["ts_ls"] = function ()
+--   --   require('lspconfig')["ts_ls"].setup {
+--   --     init_options = {
+--   --       plugins = {
+--   --         {
+--   --           name = "@vue/typescript-plugin",
+--   -- 				location = require("mason-registry").get_package("vue-language-server"):get_install_path() .. "/node_modules/@vue/language-server",
+--   -- 				languages = { "vue" },
+--   -- 				configNamespace = "typescript",
+--   -- 				enableForWorkspaceTypeScriptVersions = true,
+--   --         },
+--   --       },
+--   --     },
+--   --     filetypes = {
+--   --       "vue",
+--   --     },
+--   --   }
+--   -- end,
+--
+--   -- ["tsserver"] = function ()
+--   --   log('executing tsserver mason-lspconfig handler cb');
+--   --   safeRequire("lspconfig")["tsserver"].setup {
+--   --     capabilities = capabilities,
+--   --     on_attach = lsp_attach,
+--   --     settings = {
+--   --       test_option = 'blargle',
+--   --       typescript = {
+--   --         tsserver = {
+--   --           logDirectory = "/tmp/tsserver/",
+--   --           experimental = {
+--   --             enableProjectDiagnostics = true
+--   --           },
+--   --           enableTracing = true,
+--   --           trace = "verbose",
+--   --         },
+--   --       },
+--   --     }
+--   --   }
+--   -- end,
+--   ["clangd"] = function ()
+--     safeRequire("lspconfig")["clangd"].setup {
+--       on_attach = lsp_attach,
+--       capabilities = capabilities,
+--       cmd = {
+--         "clangd",
+--         "--offset-encoding=utf-16",
+--       },
+--     }
+--   end,
+--   ["dockerls"] = function ()
+--     -- print("dockerls caps =" .. vim.inspect(capabilities))
+--     safeRequire("lspconfig")["dockerls"].setup {
+--       capabilities = capabilities,
+--       on_attach = lsp_attach,
+--     }
+--   end,
+--   ["lua_ls"] = function ()
+--     safeRequire("lspconfig")["lua_ls"].setup {
+--       capabilities = capabilities,
+--       on_attach = lsp_attach,
+--       settings = {
+--         Lua = {
+--           workspace = {
+--             library = {
+--               string.format('%s/.hammerspoon/Spoons/EmmyLua.spoon/annotations', os.getenv 'HOME')
+--             }
+--           },
+--         }
+--       }
+--     }
+--   end,
+--
+--   -- ["emmet_ls"] = function ()
+--   --   safeRequire('lspconfig').emmet_ls.setup({
+--   --     on_attach = lsp_attach,
+--   --     capabilities = capabilities,
+--   --     filetypes = { "css", "eruby", "html", "javascript", "javascriptreact", "less", "sass", "scss", "svelte", "pug", "typescriptreact", "vue" },
+--   --     init_options = {
+--   --       html = {
+--   --         options = {
+--   --           -- For possible options, see: https://github.com/emmetio/emmet/blob/master/src/config.ts#L79-L267
+--   --           ["bem.enabled"] = true,
+--   --         },
+--   --       },
+--   --     }
+--   --   })
+--   -- end
+-- }
 
 -- local lspconf_util = require 'lspconfig.util'
 -- local function get_typescript_server_path(root_dir)

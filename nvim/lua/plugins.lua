@@ -390,29 +390,29 @@ return {
       }
     },
   },
-  {
-    "luckasRanarison/clear-action.nvim",
-    opts = {
-      silent = true,
-      signs = {
-        position = "eol",
-        label_fmt = function(actions)
-          local title = actions[1].title
-          return #title < 20 and title or title:sub(1, 20) .. "…" -- truncating
-        end,
-        show_label = true,
-      },
-      popup = {
-        border = false,
-        highlights = {
-          title = "NormalFloat",
-        },
-      },
-      mappings = {
-        code_action = '<leader>a',
-      }
-    }
-  },
+  -- {
+  --   "luckasRanarison/clear-action.nvim",
+  --   opts = {
+  --     silent = true,
+  --     signs = {
+  --       position = "eol",
+  --       label_fmt = function(actions)
+  --         local title = actions[1].title
+  --         return #title < 20 and title or title:sub(1, 20) .. "…" -- truncating
+  --       end,
+  --       show_label = true,
+  --     },
+  --     popup = {
+  --       border = false,
+  --       highlights = {
+  --         title = "NormalFloat",
+  --       },
+  --     },
+  --     mappings = {
+  --       code_action = '<leader>a',
+  --     }
+  --   }
+  -- },
   -- {
   --   'Wansmer/treesj',
   --   -- I am still committed to changing out semicolon (that one is a dumb streamliner for colon that ill get rid of)
@@ -433,7 +433,6 @@ return {
   },
   {
     "pmizio/typescript-tools.nvim",
-    branch = "feature/221-v2",
     dependencies = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
     opts = {},
   },
@@ -659,6 +658,20 @@ return {
       vim.api.nvim_set_hl(0, "MultiCursorDisabledCursor", { link = "VisualCursorDisabled" })
       vim.api.nvim_set_hl(0, "MultiCursorDisabledVisual", { link = "VisualMultiDisabled" })
     end,
-  }
+  },
+  "sindrets/diffview.nvim",
+  {
+    "NeogitOrg/neogit",
+    dependencies = {
+      "nvim-lua/plenary.nvim",         -- required
+      "sindrets/diffview.nvim",        -- optional - Diff integration
+
+      -- Only one of these is needed.
+      "nvim-telescope/telescope.nvim", -- optional
+      "ibhagwan/fzf-lua",              -- optional
+      "echasnovski/mini.pick",         -- optional
+    },
+    config = true
+  },
 
 }
