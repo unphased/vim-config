@@ -105,8 +105,9 @@ local function getNeovideWorkingDir(pid)
     
     -- Find the actual nvim process (not the login process)
     local nvim_pid = nil
-    for pid, ppid, cmd in childOutput:gmatch("(%d+)%s+(%d+)%s+(.-)[\n\r]*$") do
-        if cmd:match("/nvim.*--embed") then
+    for line in childOutput:gmatch("[^\n]+") do
+        local pid, ppid, cmd = line:match("(%d+)%s+(%d+)%s+(.+)")
+        if pid and cmd:match("/nvim.*--embed") then
             nvim_pid = pid
             break
         end
