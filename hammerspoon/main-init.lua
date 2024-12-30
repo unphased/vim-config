@@ -115,6 +115,7 @@ local function getNeovideWorkingDir(pid)
     
     -- Get working directory using lsof
     local lsofCmd = string.format("lsof -p %s | awk '$4==\"cwd\" {print $9}'", nvim_pid)
+    print("lsof command:", lsofCmd)
     local cwd = hs.execute(lsofCmd):gsub("\n$", "")
     
     if cwd == "" then
