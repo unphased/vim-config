@@ -93,14 +93,19 @@ end
 local function getNeovideWorkingDir(pid)
     print("Getting working directory for PID:", pid)
     
-    -- Use pstree to find the nvim child process
-    local pstreeCmd = string.format("pstree -p %d", pid)
-    local output = hs.execute(pstreeCmd)
-    print("pstree output:", output)
+    -- Use ps to find the nvim child process
+    local psCmd = string.format("ps -o ppid,pid,command -p %d", pid)
+    local output = hs.execute(psCmd)
+    print("ps output:", output)
     
-    -- Parse pstree output to find nvim PID
-    local neovide_pid, nvim_pid = output:match(".*neovide%((%d+)%).-nvim%((%d+)%)")
-    print("Parsed PIDs - Neovide:", neovide_pid, "Nvim:", nvim_pid)
+    -- Get all child processes
+    local childCmd = string.format("ps -o pid,command -p $(pgrep -P %d)", pid)
+    local childOutput = hs.execute(childCmd)
+    print("Child processes:", childOutput)
+    
+    -- Find the nvim process
+    local nvim_pid = childOutput:match("(%d+).*nvim.*")
+    print("Found Nvim PID:", nvim_pid)
     
     if not nvim_pid then 
         print("Failed to find nvim PID")
