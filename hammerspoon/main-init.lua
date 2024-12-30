@@ -93,49 +93,36 @@ end
 local function getNeovideWorkingDir(pid)
     print("Getting working directory for PID:", pid)
     
-    -- Use ps to find the nvim child process
-    local psCmd = string.format("ps -o ppid,pid,command -p %d", pid)
-    local output = hs.execute(psCmd)
-    print("ps output:", output)
-    
     -- Get all descendant processes
     local childCmd = string.format("ps -o pid,ppid,command -p $(pgrep -d, -P %d) $(pgrep -d, -P $(pgrep -P %d))", pid, pid)
     local childOutput = hs.execute(childCmd)
     print("Child processes:", childOutput)
     
-    -- Find the actual nvim process (not the login process)
+    -- Find the nvim process PID (the one with /bin/nvim in its command)
     local nvim_pid = nil
-    local login_pid = nil
     for line in childOutput:gmatch("[^\n]+") do
         local pid, ppid, cmd = line:match("(%d+)%s+(%d+)%s+(.+)")
-        if pid and cmd:match("/nvim.*--embed") then
+        if pid and cmd:match("/bin/nvim") then
             nvim_pid = pid
-            login_pid = ppid  -- Store the login process PID
             break
         end
     end
-    print("Found Nvim PID:", nvim_pid)
-    print("Login PID:", login_pid)
     
     if not nvim_pid then 
         print("Failed to find nvim PID")
         return nil 
     end
     
-    -- Get working directory using lsof on the nvim process, not the login process
+    -- Get working directory using lsof
     local lsofCmd = string.format("lsof -p %s | awk '$4==\"cwd\" {print $9}'", nvim_pid)
     local cwd = hs.execute(lsofCmd):gsub("\n$", "")
-    print("lsof command:", lsofCmd)
-    print("Raw cwd result:", cwd)
     
     if cwd == "" then
         print("Could not determine working directory")
         return nil
     end
     
-    local final_path = cwd:gsub('^' .. home, "~")
-    print("Final path:", final_path)
-    return final_path
+    return cwd:gsub('^' .. home, "~")
 end
 
 -- Find existing session files
