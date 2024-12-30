@@ -130,9 +130,9 @@ local function findSessionFiles()
         end
         table.sort(files, function(a, b) return a.modTime > b.modTime end)
         for _, file in ipairs(files) do
-            print("Found file: " .. file.name .. ' with time ' .. file.modTime)
+            -- print("Found file: " .. file.name .. ' with time ' .. file.modTime)
             local s = file.name:gsub("__", "/"):gsub('^' .. home, "~")
-            print("Converted to: " .. s)
+            -- print("Converted to: " .. s)
             table.insert(sessions, s)
         end
     else
@@ -192,7 +192,7 @@ local function getAllSessions()
     l('gAS 4')
 
     print("Total unique sessions found: " .. #sessions)
-    print("Dumping sessions:", hs.inspect(sessions))
+    -- print("Dumping sessions:", hs.inspect(sessions))
     return sessions
 end
 
@@ -213,7 +213,7 @@ local function neovideSessions()
             color = { hex = "#5F5050", alpha = 1 },
         }) or session.path or "Unknown path"
         local subText = session.type == "running" and "Running" or "Session file"
-        print("Creating chooser item: " .. text .. " (" .. subText .. ")")
+        -- print("Creating chooser item: " .. text .. " (" .. subText .. ")")
         return {
             text = text,
             subText = subText,
@@ -221,7 +221,7 @@ local function neovideSessions()
             session = session
         }
     end)
-    print('items:', hs.inspect(items))
+    -- print('items:', hs.inspect(items))
     l(6)
 
     local callback = function(choice)
