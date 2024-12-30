@@ -103,10 +103,10 @@ local function getNeovideWorkingDir(pid)
     local childOutput = hs.execute(childCmd)
     print("Child processes:", childOutput)
     
-    -- Find the nvim process that's a child of the login process
+    -- Find the actual nvim process (not the login process)
     local nvim_pid = nil
     for pid, ppid, cmd in childOutput:gmatch("(%d+)%s+(%d+)%s+(.-)[\n\r]*$") do
-        if cmd:match("nvim") then
+        if cmd:match("/nvim.*--embed") then
             nvim_pid = pid
             break
         end
