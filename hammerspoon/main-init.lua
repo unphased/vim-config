@@ -91,38 +91,30 @@ end
 
 -- Get the working directory of a Neovide instance
 local function getNeovideWorkingDir(pid)
-    print("Getting working directory for PID:", pid)
-    
     -- Get all descendant processes
+    -- Note: We need to traverse multiple levels to get past login shell to actual nvim process
     local childCmd = string.format("ps -o pid,ppid,command -p $(pgrep -d, -P %d) $(pgrep -d, -P $(pgrep -P %d))", pid, pid)
     local childOutput = hs.execute(childCmd)
-    print("Child processes:", childOutput)
     
-    -- Find the nvim process PID (the one with /bin/nvim in its command)
+    -- Find the last nvim process PID in the chain
+    -- Important: Don't break early as login shell command may contain nvim string
     local nvim_pid = nil
     for line in childOutput:gmatch("[^\n]+") do
         local pid, ppid, cmd = line:match("(%d+)%s+(%d+)%s+(.+)")
         if pid and cmd:match("/bin/nvim") then
             nvim_pid = pid
-            print("Found nvim process:", pid, cmd)
-            -- Don't break, keep looking for last nvim in the chain
+            -- Debug if needed:
+            -- print("Found nvim process:", pid, cmd)
         end
     end
     
-    if not nvim_pid then 
-        print("Failed to find nvim PID")
-        return nil 
-    end
+    if not nvim_pid then return nil end
     
     -- Get working directory using lsof
     local lsofCmd = string.format("lsof -p %s | awk '$4==\"cwd\" {print $9}'", nvim_pid)
-    print("lsof command:", lsofCmd)
     local cwd = hs.execute(lsofCmd):gsub("\n$", "")
     
-    if cwd == "" then
-        print("Could not determine working directory")
-        return nil
-    end
+    if cwd == "" then return nil end
     
     return cwd:gsub('^' .. home, "~")
 end
