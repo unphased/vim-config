@@ -143,10 +143,13 @@ local function getNeovideWorkingDir(pid)
         -- If lsof fails, try using ps
         if not cwd or cwd == "" then
             print("lsof failed, trying ps command")
-            local psCmd = string.format("ps -p %s -o cwd=", nvimPid)
+            local psCmd = string.format("ps -p %s -o cwd= -w", nvimPid)
             print("Running ps command: " .. psCmd)
-            cwd = hs.execute(psCmd):gsub("^%s*(.-)%s*$", "%1")  -- trim whitespace
-            print("ps command returned: '" .. cwd .. "'")
+            cwd = hs.execute(psCmd)
+            if cwd then
+                cwd = cwd:gsub("^%s*(.-)%s*$", "%1")  -- trim whitespace
+                print("ps command returned: '" .. cwd .. "'")
+            end
         end
         
         if cwd and cwd ~= "" then
