@@ -98,13 +98,19 @@ local function getNeovideWorkingDir(pid)
     local output = hs.execute(psCmd)
     print("ps output:", output)
     
-    -- Get all child processes
-    local childCmd = string.format("ps -o pid,command -p $(pgrep -P %d)", pid)
+    -- Get all descendant processes
+    local childCmd = string.format("ps -o pid,ppid,command -p $(pgrep -d, -P %d) $(pgrep -d, -P $(pgrep -P %d))", pid, pid)
     local childOutput = hs.execute(childCmd)
     print("Child processes:", childOutput)
     
-    -- Find the nvim process
-    local nvim_pid = childOutput:match("(%d+).*nvim.*")
+    -- Find the nvim process that's a child of the login process
+    local nvim_pid = nil
+    for pid, ppid, cmd in childOutput:gmatch("(%d+)%s+(%d+)%s+(.-)[\n\r]*$") do
+        if cmd:match("nvim") then
+            nvim_pid = pid
+            break
+        end
+    end
     print("Found Nvim PID:", nvim_pid)
     
     if not nvim_pid then 
