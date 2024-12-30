@@ -202,15 +202,15 @@ local function getAllSessions()
     local sessionFiles = findSessionFiles()
     l('gAS 3')
     for _, file in ipairs(sessionFiles) do
-        print("Checking session file: " .. file)
-        print("Is it in runningPaths? " .. tostring(runningPaths[file] == true))
+        -- print("Checking session file: " .. file)
+        -- print("Is it in runningPaths? " .. tostring(runningPaths[file] == true))
         if not runningPaths[file] then
             table.insert(sessions, {
                 type = "file",
                 focused = false,
                 path = file
             })
-            print("Added session file: " .. file)
+            -- print("Added session file: " .. file)
         else
             print("Skipped session file (already running): " .. file)
         end
