@@ -68,25 +68,48 @@ l('running main-init.lua');
 -- Find all running Neovide instances
 local function findNeovideInstances()
     print("Finding Neovide instances...")
-    local instances = {hs.application.find('com.neovide.neovide')}
-    print("Found " .. #instances .. " Neovide instance(s)")
-    return instances
+    local instances = hs.application.find('com.neovide.neovide')
+    if type(instances) == "table" then
+        print("Found " .. #instances .. " Neovide instance(s)")
+        for i, instance in ipairs(instances) do
+            print(string.format("Instance %d: PID %d, Title: %s", i, instance:pid(), instance:title()))
+        end
+        return instances
+    else
+        -- Single instance case
+        if instances then
+            print("Found 1 Neovide instance")
+            print(string.format("Instance: PID %d, Title: %s", instances:pid(), instances:title()))
+            return {instances}
+        else
+            print("No Neovide instances found")
+            return {}
+        end
+    end
 end
 
 -- there are 2 impls of this list fetch because the one ordered by access time is probably slower
 local function findNeovideInstancesAccessOrder()
     print("Listing Neovides by window order...")
-    l('fNIAO')
     local instances = {}
+    local seen = {}  -- Track unique applications
     local orderedWindows = hs.window.orderedWindows()
-    l('fNIAO 1')
-    for _, window in ipairs(orderedWindows) do
-        l('fNIAO 2 ' .. window:title())
-        local app = window:application();
-        if app:bundleID() == 'com.neovide.neovide' then
-            table.insert(instances, app)
+    
+    print("Found " .. #orderedWindows .. " total windows")
+    for i, window in ipairs(orderedWindows) do
+        local app = window:application()
+        if app and app:bundleID() == 'com.neovide.neovide' then
+            local pid = app:pid()
+            if not seen[pid] then
+                seen[pid] = true
+                table.insert(instances, app)
+                print(string.format("Found Neovide window %d: PID %d, Title: %s", i, pid, window:title()))
+            else
+                print(string.format("Skipping duplicate Neovide window %d: PID %d, Title: %s", i, pid, window:title()))
+            end
         end
     end
+    print("Found " .. #instances .. " unique Neovide instance(s)")
     return instances
 end
 
