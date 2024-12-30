@@ -137,9 +137,13 @@ local function getAllSessions()
     end
 
     -- Add running Neovide instances
-    local neovideInstances = findNeovideInstancesAccessOrder()
+    local neovideInstances = findNeovideInstances()
     l('gAS 1')
     print("Found " .. #neovideInstances .. " Neovide instances")
+    -- Debug output for each instance
+    for i, app in ipairs(neovideInstances) do
+        print(string.format("Neovide instance %d: PID=%d", i, app:pid()))
+    end
     for i, app in ipairs(neovideInstances) do
         print("Processing Neovide instance " .. i .. " with PID: " .. app:pid())
         local cwd = getNeovideWorkingDir(app:pid())
