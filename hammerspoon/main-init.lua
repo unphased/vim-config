@@ -104,7 +104,8 @@ local function getNeovideWorkingDir(pid)
         local pid, ppid, cmd = line:match("(%d+)%s+(%d+)%s+(.+)")
         if pid and cmd:match("/bin/nvim") then
             nvim_pid = pid
-            break
+            print("Found nvim process:", pid, cmd)
+            -- Don't break, keep looking for last nvim in the chain
         end
     end
     
