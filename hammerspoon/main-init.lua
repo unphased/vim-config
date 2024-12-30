@@ -112,15 +112,31 @@ local function getNeovideWorkingDir(pid)
         return nil 
     end
     
-    -- Get working directory using lsof with different flags
-    local lsofCmd = string.format("lsof -p %s | grep cwd | awk '{print $NF}'", nvim_pid)
-    print("lsof command:", lsofCmd)
-    local cwd = hs.execute(lsofCmd):gsub("\n$", "")
-    print("Raw cwd result:", cwd)
-    
-    if cwd == "" then
-        print("Empty working directory result")
-        return nil
+    -- Try pwdx first
+    local pwdxCmd = string.format("pwdx %s 2>/dev/null", nvim_pid)
+    local cwd = hs.execute(pwdxCmd)
+    if cwd and cwd ~= "" then
+        cwd = cwd:match("%d+:%s+(.+)"):gsub("\n$", "")
+    else
+        -- Fall back to parsing process arguments
+        local cmdlineCmd = string.format("ps -o command= -p %s", nvim_pid)
+        local cmdline = hs.execute(cmdlineCmd)
+        print("Process cmdline:", cmdline)
+        
+        -- Try to extract working directory from command line
+        local workingDir = cmdline:match("%-%-cmd%s+cd%s+([^%s]+)")
+        if workingDir then
+            cwd = workingDir
+        else
+            -- If no explicit working directory, use parent process directory
+            local parentCwd = hs.execute(string.format("pwdx %d 2>/dev/null", pid))
+            if parentCwd and parentCwd ~= "" then
+                cwd = parentCwd:match("%d+:%s+(.+)"):gsub("\n$", "")
+            else
+                print("Could not determine working directory")
+                return nil
+            end
+        end
     end
     
     local final_path = cwd:gsub('^' .. home, "~")
