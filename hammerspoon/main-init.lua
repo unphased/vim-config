@@ -93,16 +93,20 @@ end
 -- Get the working directory of a Neovide instance
 local function getNeovideWorkingDir(pid)
     print("Getting working directory for Neovide with PID: " .. pid)
-    -- Find all nvim processes that are descendants of this Neovide instance
-    print("Running command: pgrep -f nvim -d, --parent " .. pid)
-    local cmd = string.format("pgrep -f nvim --parent %d", pid)
+    -- Find nvim processes that are direct children of this Neovide instance
+    print("Running command: pgrep -P " .. pid .. " -f nvim")
+    local cmd = string.format("pgrep -P %d -f nvim", pid)
     local nvimPids = hs.execute(cmd)
     -- Split the output into individual PIDs
     local pids = {}
     for pid in nvimPids:gmatch("([^\n]+)") do
         table.insert(pids, pid)
     end
-    print("Found nvim PIDs: " .. table.concat(pids, ", "))
+    if #pids == 0 then
+        print("No direct child nvim processes found")
+        return nil
+    end
+    print("Found direct child nvim PIDs: " .. table.concat(pids, ", "))
     
     -- Try each found PID until we get a working directory
     for _, nvimPid in ipairs(pids) do
