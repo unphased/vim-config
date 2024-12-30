@@ -95,12 +95,17 @@ local function getNeovideWorkingDir(pid)
     print("Getting working directory for Neovide with PID: " .. pid)
     -- Find all nvim processes that are descendants of this Neovide instance
     print("Running command: pgrep -f nvim -d, --parent " .. pid)
-    local cmd = string.format("pgrep -f nvim -d, --parent %d", pid)
-    local nvimPids = hs.execute(cmd):gsub("\n", "")
-    print("Found nvim PIDs: " .. nvimPids)
+    local cmd = string.format("pgrep -f nvim --parent %d", pid)
+    local nvimPids = hs.execute(cmd)
+    -- Split the output into individual PIDs
+    local pids = {}
+    for pid in nvimPids:gmatch("([^\n]+)") do
+        table.insert(pids, pid)
+    end
+    print("Found nvim PIDs: " .. table.concat(pids, ", "))
     
     -- Try each found PID until we get a working directory
-    for nvimPid in nvimPids:gmatch("([^,]+)") do
+    for _, nvimPid in ipairs(pids) do
         print("Trying Neovim PID: " .. nvimPid)
         local lsofCmd = string.format("lsof -a -p %s -d cwd -F n | tail -n1 | sed 's/^n//'", nvimPid)
         print("Running lsof command: " .. lsofCmd)
@@ -150,6 +155,7 @@ local function getAllSessions()
     print("Getting all sessions...")
     local sessions = {}
     local runningPaths = {}
+    print("Starting with empty runningPaths table")
 
     -- Add running Neovide instances
     local neovideInstances = findNeovideInstancesAccessOrder()
@@ -166,6 +172,7 @@ local function getAllSessions()
                 app = app
             })
             runningPaths[cwd] = true
+            print("Added to runningPaths: " .. cwd)
             print("Added running Neovide instance: " .. cwd)
         else
             print("Warning: Could not get working directory for Neovide instance with PID: " .. app:pid())
@@ -178,6 +185,8 @@ local function getAllSessions()
     local sessionFiles = findSessionFiles()
     l('gAS 3')
     for _, file in ipairs(sessionFiles) do
+        print("Checking session file: " .. file)
+        print("Is it in runningPaths? " .. tostring(runningPaths[file] == true))
         if not runningPaths[file] then
             table.insert(sessions, {
                 type = "file",
