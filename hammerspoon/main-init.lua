@@ -134,15 +134,40 @@ local function getNeovideWorkingDir(pid)
     -- Try each found PID until we get a working directory
     for _, nvimPid in ipairs(pids) do
         print("Trying Neovim PID: " .. nvimPid)
+        
+        -- First try using lsof
         local lsofCmd = string.format("lsof -a -p %s -d cwd -F n | tail -n1 | sed 's/^n//'", nvimPid)
         print("Running lsof command: " .. lsofCmd)
-        local cwd = hs.execute(string.format("lsof -a -p %s -d cwd -F n | tail -n1 | sed 's/^n//'", nvimPid)):gsub("\n$", "")
+        local cwd = hs.execute(lsofCmd):gsub("\n$", "")
+        
+        -- If lsof fails, try using ps
+        if not cwd or cwd == "" then
+            print("lsof failed, trying ps command")
+            local psCmd = string.format("ps -p %s -o cwd=", nvimPid)
+            print("Running ps command: " .. psCmd)
+            cwd = hs.execute(psCmd):gsub("^%s*(.-)%s*$", "%1")  -- trim whitespace
+            print("ps command returned: '" .. cwd .. "'")
+        end
+        
         if cwd and cwd ~= "" then
             print("Found working directory: " .. cwd)
             return cwd:gsub('^' .. home, "~")
         end
     end
-    print("Failed to get working directory")
+    
+    -- If both methods fail, try getting PWD from proc
+    for _, nvimPid in ipairs(pids) do
+        print("Trying /proc method for PID: " .. nvimPid)
+        local procCmd = string.format("readlink /proc/%s/cwd", nvimPid)
+        print("Running proc command: " .. procCmd)
+        local cwd = hs.execute(procCmd):gsub("\n$", "")
+        if cwd and cwd ~= "" then
+            print("Found working directory via /proc: " .. cwd)
+            return cwd:gsub('^' .. home, "~")
+        end
+    end
+    
+    print("Failed to get working directory using all methods")
     return nil
 end
 
