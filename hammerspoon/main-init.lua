@@ -105,21 +105,24 @@ local function getNeovideWorkingDir(pid)
     
     -- Find the actual nvim process (not the login process)
     local nvim_pid = nil
+    local login_pid = nil
     for line in childOutput:gmatch("[^\n]+") do
         local pid, ppid, cmd = line:match("(%d+)%s+(%d+)%s+(.+)")
         if pid and cmd:match("/nvim.*--embed") then
             nvim_pid = pid
+            login_pid = ppid  -- Store the login process PID
             break
         end
     end
     print("Found Nvim PID:", nvim_pid)
+    print("Login PID:", login_pid)
     
     if not nvim_pid then 
         print("Failed to find nvim PID")
         return nil 
     end
     
-    -- Get working directory using lsof
+    -- Get working directory using lsof on the nvim process, not the login process
     local lsofCmd = string.format("lsof -p %s | awk '$4==\"cwd\" {print $9}'", nvim_pid)
     local cwd = hs.execute(lsofCmd):gsub("\n$", "")
     print("lsof command:", lsofCmd)
