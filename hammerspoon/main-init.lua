@@ -90,19 +90,36 @@ end
 
 -- Get the working directory of a Neovide instance
 local function getNeovideWorkingDir(pid)
+    print("Getting working directory for PID:", pid)
+    
     -- Use pstree to find the nvim child process
     local pstreeCmd = string.format("pstree -p %d", pid)
     local output = hs.execute(pstreeCmd)
+    print("pstree output:", output)
     
     -- Parse pstree output to find nvim PID
-    local nvimPid = output:match(".*neovide%((%d+)%).-nvim%((%d+)%)")
-    if not nvimPid then return nil end
+    local neovide_pid, nvim_pid = output:match(".*neovide%((%d+)%).-nvim%((%d+)%)")
+    print("Parsed PIDs - Neovide:", neovide_pid, "Nvim:", nvim_pid)
+    
+    if not nvim_pid then 
+        print("Failed to find nvim PID")
+        return nil 
+    end
     
     -- Get working directory using lsof
-    local lsofCmd = string.format("lsof -a -p %s -d cwd -F n | tail -n1 | sed 's/^n//'", nvimPid)
+    local lsofCmd = string.format("lsof -a -p %s -d cwd -F n | tail -n1 | sed 's/^n//'", nvim_pid)
+    print("lsof command:", lsofCmd)
     local cwd = hs.execute(lsofCmd):gsub("\n$", "")
+    print("Raw cwd result:", cwd)
     
-    return cwd and cwd:gsub('^' .. home, "~") or nil
+    if cwd == "" then
+        print("Empty working directory result")
+        return nil
+    end
+    
+    local final_path = cwd:gsub('^' .. home, "~")
+    print("Final path:", final_path)
+    return final_path
 end
 
 -- Find existing session files
