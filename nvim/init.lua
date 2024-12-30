@@ -1814,7 +1814,7 @@ end
   vim.keymap.set('n', '<leader>ca', vim.lsp.with( vim.lsp.buf.code_action, {border = nil} ), ext(bufopts, "desc", "Code Action Menu"))
   vim.keymap.set('x', '<leader>ca', vim.lsp.buf.code_action, ext(bufopts, "desc", "Code Action Menu"))
 
--- require("mason-lspconfig").setup_handlers {
+require("mason-lspconfig").setup_handlers {
 --   -- The first entry (without a key) will be the default handler
 --   -- and will be called for each installed server that doesn't have
 --   -- a dedicated handler.
@@ -1937,11 +1937,12 @@ end
 --   end
 -- end
 --
--- require'lspconfig'.volar.setup{
---   on_new_config = function(new_config, new_root_dir)
---     new_config.init_options.typescript.tsdk = get_typescript_server_path(new_root_dir)
---   end,
--- }
+  require'lspconfig'.volar.setup{
+    on_new_config = function(new_config, new_root_dir)
+      new_config.init_options.typescript.tsdk = get_typescript_server_path(new_root_dir)
+    end,
+  }
+}
 
 -- require'lspconfig'.ts_ls.setup{
 --   init_options = {

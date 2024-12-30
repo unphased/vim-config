@@ -103,7 +103,8 @@ end
 -- commits ago, good for quickly viewing a diff for a collapsed stack of recent commits.
 local function display_diff(back)
   if vim.bo.buftype == 'terminal' then
-    -- In terminal buffer (normal or insert mode)
+    -- In terminal buffer (normal or insert mode), when this is called i will hop back and forth producing a delta from
+    -- current state to N commits back in history. 
     local max_diff_num = 0
     local max_diff_bufnum
     for _, data in ipairs(get_current_tab_buffer_names()) do
