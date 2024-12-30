@@ -67,111 +67,28 @@ l('running main-init.lua');
 
 -- Find all running Neovide instances
 local function findNeovideInstances()
-    print("Finding Neovide instances...")
     local instances = hs.application.find('com.neovide.neovide')
-    if type(instances) == "table" then
-        print("Found " .. #instances .. " Neovide instance(s)")
-        for i, instance in ipairs(instances) do
-            print(string.format("Instance %d: PID %d, Title: %s", i, instance:pid(), instance:title()))
-        end
-        return instances
-    else
-        -- Single instance case
-        if instances then
-            print("Found 1 Neovide instance")
-            print(string.format("Instance: PID %d, Title: %s", instances:pid(), instances:title()))
-            return {instances}
-        else
-            print("No Neovide instances found")
-            return {}
-        end
+    if type(instances) ~= "table" then
+        instances = instances and {instances} or {}
     end
-end
-
--- there are 2 impls of this list fetch because the one ordered by access time is probably slower
-local function findNeovideInstancesAccessOrder()
-    print("Listing Neovides by window order...")
-    local instances = {}
-    local seen = {}  -- Track unique applications
-    local orderedWindows = hs.window.orderedWindows()
-    
-    print("Found " .. #orderedWindows .. " total windows")
-    for i, window in ipairs(orderedWindows) do
-        local app = window:application()
-        if app and app:bundleID() == 'com.neovide.neovide' then
-            local pid = app:pid()
-            if not seen[pid] then
-                seen[pid] = true
-                table.insert(instances, app)
-                print(string.format("Found Neovide window %d: PID %d, Title: %s", i, pid, window:title()))
-            else
-                print(string.format("Skipping duplicate Neovide window %d: PID %d, Title: %s", i, pid, window:title()))
-            end
-        end
-    end
-    print("Found " .. #instances .. " unique Neovide instance(s)")
     return instances
 end
 
 -- Get the working directory of a Neovide instance
 local function getNeovideWorkingDir(pid)
-    print("Getting working directory for Neovide with PID: " .. pid)
-    -- Find nvim processes that are direct children of this Neovide instance
-    print("Running command: pgrep -P " .. pid .. " -f nvim")
-    local cmd = string.format("pgrep -P %d -f nvim", pid)
-    local nvimPids = hs.execute(cmd)
-    -- Split the output into individual PIDs
-    local pids = {}
-    for pid in nvimPids:gmatch("([^\n]+)") do
-        table.insert(pids, pid)
-    end
-    if #pids == 0 then
-        print("No direct child nvim processes found")
-        return nil
-    end
-    print("Found direct child nvim PIDs: " .. table.concat(pids, ", "))
+    -- Use pstree to find the nvim child process
+    local pstreeCmd = string.format("pstree -p %d", pid)
+    local output = hs.execute(pstreeCmd)
     
-    -- Try each found PID until we get a working directory
-    for _, nvimPid in ipairs(pids) do
-        print("Trying Neovim PID: " .. nvimPid)
-        
-        -- First try using lsof
-        local lsofCmd = string.format("lsof -a -p %s -d cwd -F n | tail -n1 | sed 's/^n//'", nvimPid)
-        print("Running lsof command: " .. lsofCmd)
-        local cwd = hs.execute(lsofCmd):gsub("\n$", "")
-        
-        -- If lsof fails, try using ps
-        if not cwd or cwd == "" then
-            print("lsof failed, trying ps command")
-            local psCmd = string.format("ps -p %s -o cwd= -w", nvimPid)
-            print("Running ps command: " .. psCmd)
-            cwd = hs.execute(psCmd)
-            if cwd then
-                cwd = cwd:gsub("^%s*(.-)%s*$", "%1")  -- trim whitespace
-                print("ps command returned: '" .. cwd .. "'")
-            end
-        end
-        
-        if cwd and cwd ~= "" then
-            print("Found working directory: " .. cwd)
-            return cwd:gsub('^' .. home, "~")
-        end
-    end
+    -- Parse pstree output to find nvim PID
+    local nvimPid = output:match(".*neovide%((%d+)%).-nvim%((%d+)%)")
+    if not nvimPid then return nil end
     
-    -- If both methods fail, try getting PWD from proc
-    for _, nvimPid in ipairs(pids) do
-        print("Trying /proc method for PID: " .. nvimPid)
-        local procCmd = string.format("readlink /proc/%s/cwd", nvimPid)
-        print("Running proc command: " .. procCmd)
-        local cwd = hs.execute(procCmd):gsub("\n$", "")
-        if cwd and cwd ~= "" then
-            print("Found working directory via /proc: " .. cwd)
-            return cwd:gsub('^' .. home, "~")
-        end
-    end
+    -- Get working directory using lsof
+    local lsofCmd = string.format("lsof -a -p %s -d cwd -F n | tail -n1 | sed 's/^n//'", nvimPid)
+    local cwd = hs.execute(lsofCmd):gsub("\n$", "")
     
-    print("Failed to get working directory using all methods")
-    return nil
+    return cwd and cwd:gsub('^' .. home, "~") or nil
 end
 
 -- Find existing session files
