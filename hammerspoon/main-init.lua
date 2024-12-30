@@ -112,10 +112,10 @@ local function getNeovideWorkingDir(pid)
         return nil 
     end
     
-    -- Get working directory using pwdx
-    local pwdxCmd = string.format("pwdx %s | cut -d' ' -f2-", nvim_pid)
-    print("pwdx command:", pwdxCmd)
-    local cwd = hs.execute(pwdxCmd):gsub("\n$", "")
+    -- Get working directory using lsof with different flags
+    local lsofCmd = string.format("lsof -p %s | grep cwd | awk '{print $NF}'", nvim_pid)
+    print("lsof command:", lsofCmd)
+    local cwd = hs.execute(lsofCmd):gsub("\n$", "")
     print("Raw cwd result:", cwd)
     
     if cwd == "" then
