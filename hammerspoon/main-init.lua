@@ -157,6 +157,13 @@ local function getAllSessions()
     local runningPaths = {}
     print("Starting with empty runningPaths table")
 
+    local function printRunningPaths()
+        print("Current runningPaths contents:")
+        for path, _ in pairs(runningPaths) do
+            print("  - " .. path)
+        end
+    end
+
     -- Add running Neovide instances
     local neovideInstances = findNeovideInstancesAccessOrder()
     l('gAS 1')
@@ -172,7 +179,6 @@ local function getAllSessions()
                 app = app
             })
             runningPaths[cwd] = true
-            print("Added to runningPaths: " .. cwd)
             print("Added running Neovide instance: " .. cwd)
         else
             print("Warning: Could not get working directory for Neovide instance with PID: " .. app:pid())
@@ -180,6 +186,9 @@ local function getAllSessions()
     end
     openChooserInstanceCount = #neovideInstances
     l('gAS 2')
+
+    -- Print summary of running instances
+    printRunningPaths()
 
     -- Add session files that are not already running
     local sessionFiles = findSessionFiles()
