@@ -94,12 +94,16 @@ end
 local function getNeovideWorkingDir(pid)
     print("Getting working directory for Neovide with PID: " .. pid)
     -- Find all nvim processes that are descendants of this Neovide instance
+    print("Running command: pgrep -f nvim -d, --parent " .. pid)
     local cmd = string.format("pgrep -f nvim -d, --parent %d", pid)
     local nvimPids = hs.execute(cmd):gsub("\n", "")
+    print("Found nvim PIDs: " .. nvimPids)
     
     -- Try each found PID until we get a working directory
     for nvimPid in nvimPids:gmatch("([^,]+)") do
         print("Trying Neovim PID: " .. nvimPid)
+        local lsofCmd = string.format("lsof -a -p %s -d cwd -F n | tail -n1 | sed 's/^n//'", nvimPid)
+        print("Running lsof command: " .. lsofCmd)
         local cwd = hs.execute(string.format("lsof -a -p %s -d cwd -F n | tail -n1 | sed 's/^n//'", nvimPid)):gsub("\n$", "")
         if cwd and cwd ~= "" then
             print("Found working directory: " .. cwd)
@@ -150,7 +154,9 @@ local function getAllSessions()
     -- Add running Neovide instances
     local neovideInstances = findNeovideInstancesAccessOrder()
     l('gAS 1')
-    for _, app in ipairs(neovideInstances) do
+    print("Found " .. #neovideInstances .. " Neovide instances")
+    for i, app in ipairs(neovideInstances) do
+        print("Processing Neovide instance " .. i .. " with PID: " .. app:pid())
         local cwd = getNeovideWorkingDir(app:pid())
         if cwd then
             table.insert(sessions, {
