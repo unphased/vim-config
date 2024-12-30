@@ -68,15 +68,16 @@ l('running main-init.lua');
 -- Find all running Neovide instances
 local function findNeovideInstances()
     print("Finding Neovide instances...")
-    local instances = hs.application.find('com.neovide.neovide')
-    print("Raw result type:", type(instances))
-    print("Raw result:", instances)
+    local allApps = hs.application.runningApplications()
+    local instances = {}
     
-    if type(instances) ~= "table" then
-        print("Converting to table...")
-        instances = instances and {instances} or {}
-        print("After conversion length:", #instances)
+    for _, app in ipairs(allApps) do
+        if app:bundleID() == 'com.neovide.neovide' then
+            table.insert(instances, app)
+        end
     end
+    
+    print(string.format("Found %d Neovide instances", #instances))
     
     -- Debug each instance
     for i, instance in ipairs(instances) do
