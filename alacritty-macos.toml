@@ -53,11 +53,11 @@ size = 12
 
 [font.bold]
 family = "IosevkaTerm Nerd Font Mono"
-style = "Heavy"
+style = "Bold"
 
 [font.bold_italic]
 family = "IosevkaTerm Nerd Font Mono"
-style = "Heavy Italic"
+style = "Bold Italic"
 
 [font.glyph_offset]
 x = 0
@@ -65,11 +65,11 @@ y = 0
 
 [font.italic]
 family = "IosevkaTerm Nerd Font Mono"
-style = "Medium Italic"
+style = "Italic"
 
 [font.normal]
 family = "IosevkaTerm Nerd Font Mono"
-style = "Medium"
+style = "Regular"
 
 [font.offset]
 x = 0
