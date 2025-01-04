@@ -1818,12 +1818,12 @@ require("mason-lspconfig").setup_handlers {
 --   -- The first entry (without a key) will be the default handler
 --   -- and will be called for each installed server that doesn't have
 --   -- a dedicated handler.
---   function (server_name) -- default handler (optional)
---     safeRequire("lspconfig")[server_name].setup {
---       capabilities = capabilities,
---       on_attach = lsp_attach,
---     }
---   end,
+  function (server_name) -- default handler (optional)
+    safeRequire("lspconfig")[server_name].setup {
+      capabilities = capabilities,
+      on_attach = lsp_attach,
+    }
+  end,
 --   ["ts_ls"] = function () log "exception applied for mason lspconfig setup for tsserver as we want to use typescript-tools instead." end,
 --
 --   -- holy shit i got vue working. Via https://github.com/mason-org/mason-registry/issues/5064#issuecomment-2016431978

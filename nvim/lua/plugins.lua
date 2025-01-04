@@ -515,6 +515,7 @@ return {
     -- tag = "v0.5.4", -- optional, pin the plugin at specific version for stability
     dependencies = {
       {"nvim-telescope/telescope.nvim"},
+      {"kkharji/sqlite.lua"},
       {"stevearc/dressing.nvim"} -- optional: to have the same UI shown in the GIF
     }
   },
