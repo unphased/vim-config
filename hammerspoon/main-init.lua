@@ -81,6 +81,7 @@ local function findNeovideInstances()
         end
     end
     
+    -- what's the purpose of this block AI?
     for _, app in ipairs(allApps) do
         if app:bundleID() == 'com.neovide.neovide' then
             table.insert(instances, app)
