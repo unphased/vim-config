@@ -71,11 +71,28 @@ local function findNeovideInstances()
     local allApps = hs.application.runningApplications()
     local instances = {}
     
+    -- Get ordered windows to determine recency
+    local orderedWindows = hs.window.orderedWindows()
+    local orderMap = {}
+    for i, win in ipairs(orderedWindows) do
+        local app = win:application()
+        if app and app:bundleID() == 'com.neovide.neovide' then
+            orderMap[app:pid()] = i
+        end
+    end
+    
     for _, app in ipairs(allApps) do
         if app:bundleID() == 'com.neovide.neovide' then
             table.insert(instances, app)
         end
     end
+    
+    -- Sort instances based on window order
+    table.sort(instances, function(a, b)
+        local orderA = orderMap[a:pid()] or math.huge
+        local orderB = orderMap[b:pid()] or math.huge
+        return orderA < orderB
+    end)
     
     print(string.format("Found %d Neovide instances", #instances))
     
