@@ -71,29 +71,16 @@ local function findNeovideInstances()
     local allApps = hs.application.runningApplications()
     local instances = {}
     
-    -- Get ordered windows to determine recency
+    -- Build ordered list of Neovide instances directly from window order
     local orderedWindows = hs.window.orderedWindows()
-    local orderMap = {}
-    for i, win in ipairs(orderedWindows) do
+    local seenPids = {}
+    for _, win in ipairs(orderedWindows) do
         local app = win:application()
-        if app and app:bundleID() == 'com.neovide.neovide' then
-            orderMap[app:pid()] = i
-        end
-    end
-    
-    -- what's the purpose of this block AI?
-    for _, app in ipairs(allApps) do
-        if app:bundleID() == 'com.neovide.neovide' then
+        if app and app:bundleID() == 'com.neovide.neovide' and not seenPids[app:pid()] then
             table.insert(instances, app)
+            seenPids[app:pid()] = true
         end
     end
-    
-    -- Sort instances based on window order
-    table.sort(instances, function(a, b)
-        local orderA = orderMap[a:pid()] or math.huge
-        local orderB = orderMap[b:pid()] or math.huge
-        return orderA < orderB
-    end)
     
     print(string.format("Found %d Neovide instances", #instances))
     
