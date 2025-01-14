@@ -323,5 +323,3 @@ lines = 50
 x = 2
 y = 2
 
-[general]
-live_config_reload = true

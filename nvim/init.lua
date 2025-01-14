@@ -1438,6 +1438,10 @@ vim.keymap.set("v", "<leader>p", ":!pbpaste<CR>", { desc = "Paste from pbpaste" 
 --   }
 -- )
 
+vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
+  border = "none",  -- No border
+})
+
 -- vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(
 --   vim.lsp.handlers.signature_help, {
 --     border = _border
@@ -1943,6 +1947,28 @@ require("mason-lspconfig").setup_handlers {
     end,
   }
 }
+
+-- A small helper function that searches for a local venv folder
+-- For instance, it might check "./.venv" or "./venv" in the project.
+local function find_venv(root_dir)
+  local paths = { "venv", ".venv" }
+  for _, p in ipairs(paths) do
+    local full_path = root_dir .. "/" .. p .. "/bin/python"
+    if vim.fn.executable(full_path) == 1 then
+      return full_path
+    end
+  end
+  return nil
+end
+
+require'lspconfig'.pyright.setup({
+  on_new_config = function(new_config, root_dir)
+    local venv_python = find_venv(root_dir)
+    if venv_python then
+      new_config.settings.python.pythonPath = venv_python
+    end
+  end,
+})
 
 -- require'lspconfig'.ts_ls.setup{
 --   init_options = {
@@ -2821,11 +2847,15 @@ vim.cmd[[
 if vim.g.neovide then
   -- Put anything you want to happen only in Neovide here
   vim.g.neovide_scroll_animation_far_lines = 99999
-  -- vim.g.neovide_window_blurred = true
+  vim.g.neovide_window_blurred = true
   vim.g.neovide_cursor_vfx_mode = "sonicboom"
-  vim.g.neovide_cursor_animation_length = 0.03
+  vim.g.neovide_cursor_animation_length = 0.05
   vim.g.neovide_hide_mouse_when_typing = true
-  vim.g.neovide_transparency = 0.9
+  vim.g.neovide_transparency = 0.75
+
+  vim.g.neovide_refresh_rate = 120
+
+  vim.g.neovide_underline_stroke_scale = 2.0
 
   -- these aucmds here make the buffers stop scrolling when swapping around buffers.
   vim.api.nvim_create_autocmd("BufLeave", {
@@ -2883,6 +2913,11 @@ if vim.g.neovide then
   vim.keymap.set('n', '<D-CR>', function()
     vim.g.neovide_fullscreen = (not vim.g.neovide_fullscreen)
   end, { noremap = true, desc = 'toggle neovide fullscreen' })
+
+  vim.g.neovide_floating_blur_amount_x = 3.0
+  vim.g.neovide_floating_blur_amount_y = 3.0
+
+  vim.g.neovide_floating_corner_radius = 0.6
 
   vim.g.neovide_floating_shadow = true
   vim.g.neovide_floating_z_height = 10
@@ -2974,3 +3009,6 @@ vim.api.nvim_create_autocmd({"InsertLeave", "InsertEnter"}, {
     if vim.api.nvim_buf_line_count(0) > 10000 then vim.cmd("TSToggle highlight") end
   end
 })
+
+vim.o.winblend = 25
+vim.o.pumblend = 60 -- may set this lower when the pum is confd to not have a strong bgcolor
