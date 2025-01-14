@@ -1438,9 +1438,9 @@ vim.keymap.set("v", "<leader>p", ":!pbpaste<CR>", { desc = "Paste from pbpaste" 
 --   }
 -- )
 
-vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
-  border = "none",  -- No border
-})
+-- vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
+--   border = "none",  -- No border
+-- })
 
 -- vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(
 --   vim.lsp.handlers.signature_help, {
@@ -2854,6 +2854,7 @@ if vim.g.neovide then
   vim.g.neovide_transparency = 0.75
 
   vim.g.neovide_refresh_rate = 120
+  vim.g.neovide_refresh_rate_idle = 1
 
   vim.g.neovide_underline_stroke_scale = 2.0
 
@@ -2923,8 +2924,6 @@ if vim.g.neovide then
   vim.g.neovide_floating_z_height = 10
   vim.g.neovide_light_angle_degrees = 45
   vim.g.neovide_light_radius = 5
-
-  vim.g.neovide_refresh_rate_idle = 1
 
   vim.keymap.set('n', '<D-l>', '<M-l>', { remap = true })
   vim.keymap.set('n', '<D-d>', '<M-d>', { remap = true })
@@ -3012,3 +3011,22 @@ vim.api.nvim_create_autocmd({"InsertLeave", "InsertEnter"}, {
 
 vim.o.winblend = 25
 vim.o.pumblend = 60 -- may set this lower when the pum is confd to not have a strong bgcolor
+
+require("noice").setup({
+  lsp = {
+    -- override markdown rendering so that **cmp** and other plugins use **Treesitter**
+    override = {
+      ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+      ["vim.lsp.util.stylize_markdown"] = true,
+      ["cmp.entry.get_documentation"] = true, -- requires hrsh7th/nvim-cmp
+    },
+  },
+  -- you can enable a preset for easier configuration
+  presets = {
+    bottom_search = true, -- use a classic bottom cmdline for search
+    command_palette = true, -- position the cmdline and popupmenu together
+    long_message_to_split = true, -- long messages will be sent to a split
+    inc_rename = false, -- enables an input dialog for inc-rename.nvim
+    lsp_doc_border = false, -- add a border to hover docs and signature help
+  },
+})
