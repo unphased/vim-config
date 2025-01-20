@@ -2937,8 +2937,8 @@ if vim.g.neovide then
     vim.g.neovide_fullscreen = (not vim.g.neovide_fullscreen)
   end, { noremap = true, desc = 'toggle neovide fullscreen' })
 
-  vim.g.neovide_floating_blur_amount_x = 3.0
-  vim.g.neovide_floating_blur_amount_y = 3.0
+  vim.g.neovide_floating_blur_amount_x = 5.0
+  vim.g.neovide_floating_blur_amount_y = 5.0
 
   vim.g.neovide_floating_corner_radius = 0.6
 

@@ -141,14 +141,11 @@ return {
       },
       preview = {
         scratch = true,
-        type = "float",
-        relative = "editor",
+        type = "main",
         border = "rounded",
-        title = "Preview",
-        title_pos = "center",
-        position = { 2, 10 },
-        size = { width = 0.90, height = 0.8 },
-        zindex = 200,
+        title = "Trouble Preview",
+        title_pos = "left",
+        -- size = { height = 0.7 },
       },
     }, -- for default options, refer to the configuration section for custom setup.
   },
