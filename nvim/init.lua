@@ -1828,7 +1828,7 @@ require("mason-lspconfig").setup_handlers {
       on_attach = lsp_attach,
     }
   end,
---   ["ts_ls"] = function () log "exception applied for mason lspconfig setup for tsserver as we want to use typescript-tools instead." end,
+  ["ts_ls"] = function () log "exception applied for mason lspconfig setup for tsserver as we want to use typescript-tools instead." end,
 --
 --   -- holy shit i got vue working. Via https://github.com/mason-org/mason-registry/issues/5064#issuecomment-2016431978
 --   -- TODO figure out how to enable with typescript-tools instead of ts_ls...
@@ -1921,31 +1921,32 @@ require("mason-lspconfig").setup_handlers {
 --   -- end
 -- }
 
--- local lspconf_util = require 'lspconfig.util'
--- local function get_typescript_server_path(root_dir)
 --
---   local global_ts = '/Users/slu/Web-OneFrontend/AccuWeather.Web.Frontend/node_modules/typescript/lib'
---   -- Alternative location if installed as root:
---   -- local global_ts = '/usr/local/lib/node_modules/typescript/lib'
---   local found_ts = ''
---   local function check_dir(path)
---     found_ts =  lspconf_util.path.join(path, 'node_modules', 'typescript', 'lib')
---     if lspconf_util.path.exists(found_ts) then
---       return path
---     end
---   end
---   if lspconf_util.search_ancestors(root_dir, check_dir) then
---     return found_ts
---   else
---     return global_ts
---   end
--- end
---
-  require'lspconfig'.volar.setup{
-    on_new_config = function(new_config, new_root_dir)
-      new_config.init_options.typescript.tsdk = get_typescript_server_path(new_root_dir)
-    end,
-  }
+}
+
+local lspconf_util = require 'lspconfig.util'
+local function get_typescript_server_path(root_dir)
+
+  local global_ts = '/Users/slu/Web-OneFrontend/AccuWeather.Web.Frontend/node_modules/typescript/lib'
+  -- Alternative location if installed as root:
+  -- local global_ts = '/usr/local/lib/node_modules/typescript/lib'
+  local found_ts = ''
+  local function check_dir(path)
+    found_ts =  lspconf_util.path.join(path, 'node_modules', 'typescript', 'lib')
+    if lspconf_util.path.exists(found_ts) then
+      return path
+    end
+  end
+  if lspconf_util.search_ancestors(root_dir, check_dir) then
+    return found_ts
+  else
+    return global_ts
+  end
+end
+require'lspconfig'.volar.setup{
+  on_new_config = function(new_config, new_root_dir)
+    new_config.init_options.typescript.tsdk = get_typescript_server_path(new_root_dir)
+  end,
 }
 
 -- A small helper function that searches for a local venv folder
@@ -1965,6 +1966,7 @@ require'lspconfig'.pyright.setup({
   on_new_config = function(new_config, root_dir)
     local venv_python = find_venv(root_dir)
     if venv_python then
+      -- log('venv_python worked out to be', venv_python, 'new_config',  new_config)
       new_config.settings.python.pythonPath = venv_python
     end
   end,
@@ -2365,6 +2367,26 @@ require('glance').setup({
 --     \   switch#NormalizedCaseWords(['error', 'warn', 'info']),
 --     \ ]
 -- ]]
+
+
+require("noice").setup({
+  lsp = {
+    -- override markdown rendering so that **cmp** and other plugins use **Treesitter**
+    override = {
+      ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+      ["vim.lsp.util.stylize_markdown"] = true,
+      ["cmp.entry.get_documentation"] = true, -- requires hrsh7th/nvim-cmp
+    },
+  },
+  -- you can enable a preset for easier configuration
+  presets = {
+    bottom_search = true, -- use a classic bottom cmdline for search
+    command_palette = false, -- position the cmdline and popupmenu together
+    long_message_to_split = true, -- long messages will be sent to a split
+    inc_rename = false, -- enables an input dialog for inc-rename.nvim
+    lsp_doc_border = false, -- add a border to hover docs and signature help
+  },
+})
 
 require('snippy').setup({
   mappings = {
@@ -3012,21 +3034,3 @@ vim.api.nvim_create_autocmd({"InsertLeave", "InsertEnter"}, {
 vim.o.winblend = 25
 vim.o.pumblend = 60 -- may set this lower when the pum is confd to not have a strong bgcolor
 
-require("noice").setup({
-  lsp = {
-    -- override markdown rendering so that **cmp** and other plugins use **Treesitter**
-    override = {
-      ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
-      ["vim.lsp.util.stylize_markdown"] = true,
-      ["cmp.entry.get_documentation"] = true, -- requires hrsh7th/nvim-cmp
-    },
-  },
-  -- you can enable a preset for easier configuration
-  presets = {
-    bottom_search = true, -- use a classic bottom cmdline for search
-    command_palette = true, -- position the cmdline and popupmenu together
-    long_message_to_split = true, -- long messages will be sent to a split
-    inc_rename = false, -- enables an input dialog for inc-rename.nvim
-    lsp_doc_border = false, -- add a border to hover docs and signature help
-  },
-})
