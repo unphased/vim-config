@@ -312,7 +312,7 @@ semantic_escape_chars = ''',│`|:"' ()[]{}<>'''
 blur = true
 decorations = "Buttonless"
 dynamic_padding = true
-opacity = 0.70
+opacity = 0.85
 option_as_alt = "OnlyLeft"
 
 [window.dimensions]
