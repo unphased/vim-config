@@ -2875,7 +2875,7 @@ if vim.g.neovide then
   vim.g.neovide_hide_mouse_when_typing = true
   vim.g.neovide_transparency = 0.75
 
-  vim.g.neovide_refresh_rate = 120
+  vim.g.neovide_refresh_rate = 240
   vim.g.neovide_refresh_rate_idle = 1
 
   vim.g.neovide_underline_stroke_scale = 2.0

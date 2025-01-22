@@ -3,7 +3,6 @@ hs.loadSpoon("EmmyLua")
 
 local home = os.getenv("HOME")
 
-local socket = require "socket"
 local function dump(o)
    if type(o) == 'table' then
       local s = '{ '
@@ -26,7 +25,7 @@ _G.l = function(...)
     return
   end
   io.output(log_file)
-  io.write(socket.gettime() .. " >>> ")
+  io.write(hs.timer.secondsSinceEpoch() .. " >>> ")
   for i, payload in ipairs(args) do
     local ty = type(payload)
     if ty == "table" then
