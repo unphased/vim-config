@@ -1195,6 +1195,9 @@ require("nvim-treesitter.configs").setup({
     },
   },
 
+  ignore_install = {},
+  modules = {},
+
   -- A list of parser names, or "all" (the four listed parsers should always be installed)
   ensure_installed = { "markdown_inline", "c", "lua", "vim", "bash", "comment", "gitcommit", "diff", "git_rebase" },
 
@@ -1223,6 +1226,9 @@ require("nvim-treesitter.configs").setup({
 
     -- Or use a function for more flexibility, e.g. to disable slow treesitter highlight for large files
     disable = function(lang, buf)
+      if lang == "tmux" then -- tmux treesitter parser is utter trash
+        return false
+      end
       local max_filesize = 100 * 1024 -- 100 KB
       local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
       if ok and stats and stats.size > max_filesize then
