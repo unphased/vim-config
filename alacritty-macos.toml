@@ -170,6 +170,7 @@ bindings = [
 { key = "U",        mods = "Alt",           chars = "\u001bu"           },
 { key = "I",        mods = "Command",       chars = "\u001bi"           },
 { key = "I",        mods = "Alt",           chars = "\u001bi"           },
+# { key = "H",        mods = "Control",       chars = "\u0008"           },
 { key = "H",        mods = "Command",       chars = "\u001bh"           },
 { key = "H",        mods = "Alt",           chars = "\u001bh"           },
 { key = "H",        mods = "Command|Control", chars = "\u001b\u0008"           },
