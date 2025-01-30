@@ -2375,24 +2375,24 @@ require('glance').setup({
 -- ]]
 
 
-require("noice").setup({
-  lsp = {
-    -- override markdown rendering so that **cmp** and other plugins use **Treesitter**
-    override = {
-      ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
-      ["vim.lsp.util.stylize_markdown"] = true,
-      ["cmp.entry.get_documentation"] = true, -- requires hrsh7th/nvim-cmp
-    },
-  },
-  -- you can enable a preset for easier configuration
-  presets = {
-    bottom_search = true, -- use a classic bottom cmdline for search
-    command_palette = false, -- position the cmdline and popupmenu together
-    long_message_to_split = true, -- long messages will be sent to a split
-    inc_rename = false, -- enables an input dialog for inc-rename.nvim
-    lsp_doc_border = false, -- add a border to hover docs and signature help
-  },
-})
+-- require("noice").setup({
+--   lsp = {
+--     -- override markdown rendering so that **cmp** and other plugins use **Treesitter**
+--     override = {
+--       ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+--       ["vim.lsp.util.stylize_markdown"] = true,
+--       ["cmp.entry.get_documentation"] = true, -- requires hrsh7th/nvim-cmp
+--     },
+--   },
+--   -- you can enable a preset for easier configuration
+--   presets = {
+--     bottom_search = true, -- use a classic bottom cmdline for search
+--     command_palette = false, -- position the cmdline and popupmenu together
+--     long_message_to_split = true, -- long messages will be sent to a split
+--     inc_rename = false, -- enables an input dialog for inc-rename.nvim
+--     lsp_doc_border = false, -- add a border to hover docs and signature help
+--   },
+-- })
 
 require('snippy').setup({
   mappings = {
@@ -3040,3 +3040,120 @@ vim.api.nvim_create_autocmd({"InsertLeave", "InsertEnter"}, {
 vim.o.winblend = 25
 vim.o.pumblend = 60 -- may set this lower when the pum is confd to not have a strong bgcolor
 
+-- non git tracked env file for holding things like api keys
+local env_file = vim.env.HOME .. "/neovim.env"
+
+-- loads env into this process.
+local f = io.open(env_file, "r")
+if f then
+  for line in f:lines() do
+    -- Trim whitespace
+    local l = line:match("^%s*(.-)%s*$")
+    -- Skip empty or commented lines
+    if l ~= "" and not l:match("^#") then
+      -- Remove 'export ' if present
+      l = l:gsub("^export%s+", "")
+      -- Extract key and value
+      local key, val = l:match("^([^=]+)=(.*)$")
+      if key and val then
+        -- Remove surrounding quotes
+        val = val:gsub("^['\"]", ""):gsub("['\"]$", "")
+        vim.env[key] = val
+      end
+    end
+  end
+  f:close()
+end
+
+local gemini_prompt = [[
+You are the backend of an AI-powered code completion engine. Your task is to
+provide code suggestions based on the user's input. The user's code will be
+enclosed in markers:
+
+- `<contextAfterCursor>`: Code context after the cursor
+- `<cursorPosition>`: Current cursor location
+- `<contextBeforeCursor>`: Code context before the cursor
+]]
+
+local gemini_few_shots = {}
+
+gemini_few_shots[1] = {
+  role = 'user',
+  content = [[
+  # language: python
+  <contextBeforeCursor>
+  def fibonacci(n):
+  <cursorPosition>
+  <contextAfterCursor>
+
+  fib(5)]],
+}
+
+local gemini_chat_input_template =
+'{{{language}}}\n{{{tab}}}\n<contextBeforeCursor>\n{{{context_before_cursor}}}<cursorPosition>\n<contextAfterCursor>\n{{{context_after_cursor}}}'
+
+gemini_few_shots[2] = require('minuet.config').default_few_shots[2]
+
+require('minuet').setup {
+  virtualtext = {
+    auto_trigger_ft = { 'lua', 'python', 'typescript', 'javascript', 'cpp', 'bash', 'yaml', 'dockerfile' },
+    keymap = {
+      -- accept whole completion
+      accept = '<C-A>',
+      -- accept one line
+      accept_line = '<C-a>',
+      -- accept n lines (prompts for number)
+      accept_n_lines = nil,
+      -- Cycle to prev completion item, or manually invoke completion
+      prev = '<C-]>',
+      -- Cycle to next completion item, or manually invoke completion
+      next = '<C-[>',
+      dismiss = '<Esc>',
+    },
+  },
+  api_key = "GEMINI_API_KEY",
+  provider = 'gemini',
+  context_window = 16000,
+  context_ratio = 0.7,
+  throttle = 3000,
+  debounce = 1000,
+  n_completions = 2,
+  provider_options = {
+    gemini = {
+
+      model = 'gemini-2.0-flash-exp',
+      system = {
+        prompt = gemini_prompt,
+      },
+      few_shots = gemini_few_shots,
+      chat_input = {
+        template = gemini_chat_input_template,
+      },
+      stream = true,
+      optional = {
+        generationConfig = {
+          maxOutputTokens = 1024,
+          topP = 0.9,
+        },
+        safetySettings = {
+          {
+            category = 'HARM_CATEGORY_DANGEROUS_CONTENT',
+            threshold = 'BLOCK_NONE',
+          },
+          {
+            category = 'HARM_CATEGORY_HATE_SPEECH',
+            threshold = 'BLOCK_NONE',
+          },
+          {
+            category = 'HARM_CATEGORY_HARASSMENT',
+            threshold = 'BLOCK_NONE',
+          },
+          {
+            category = 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+            threshold = 'BLOCK_NONE',
+          },
+        },
+      },
+    },
+  },
+}
