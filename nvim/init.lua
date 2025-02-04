@@ -3056,7 +3056,7 @@ vim.api.nvim_create_autocmd({"InsertLeave", "InsertEnter"}, {
 })
 
 vim.o.winblend = 25
-vim.o.pumblend = 60 -- may set this lower when the pum is confd to not have a strong bgcolor
+vim.o.pumblend = 30 -- may set this lower when the pum is confd to not have a strong bgcolor
 
 -- non git tracked env file for holding things like api keys
 local env_file = vim.env.HOME .. "/neovim.env"
