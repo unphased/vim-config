@@ -319,10 +319,13 @@ vim.cmd([[
   vnoremap <C-S> <ESC>:update<CR>
   cnoremap <C-S> <C-C>:update<CR>
   inoremap <C-S> <ESC>:update<CR>
+
+  """ may want to be disabling the m-s save binds because I think it's not so important and i usually save with :w anyway.
+  """ I want to use this to trigger signature help. I think having the normal modes also trigger the signature help may be useful.
+  """ Not doing it quite yet for now though.
   noremap <m-s> :update<CR>
   vnoremap <m-s> <ESC>:update<CR>
   cnoremap <m-s> <C-C>:update<CR>
-  inoremap <m-s> <ESC>:update<CR>
 
   " if ;w<CR> is typed in insert mode, exit insert mode and run a prompt asking
   " if you really want to save the file (rather than inserting ;w<CR> into file)
@@ -1813,7 +1816,7 @@ local lsp_attach = function (x, bufnr)
   -- vim.keymap.set('n', 'gD', '<cmd>Trouble lsp_definitions<cr>', ext(bufopts, "desc", "Go to Definition (Trouble UI)"))
   -- vim.keymap.set('n', 'gi', goto_preview.goto_preview_implementation, ext(bufopts, "desc", "Go to Implementation (preview window)"))
   -- mnemonic is "args"
-  vim.keymap.set('n', '<leader>S', vim.lsp.buf.signature_help, ext(bufopts, "desc", "Signature help"))
+  vim.keymap.set('i', '<M-s>', vim.lsp.buf.signature_help, ext(bufopts, "desc", "Signature help"))
   -- vim.keymap.set('n', '<space>wa', vim.lsp.buf.add_workspace_folder, bufopts)
   -- vim.keymap.set('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, bufopts)
   -- vim.keymap.set('n', '<space>wl', function()
@@ -2922,8 +2925,9 @@ if vim.g.neovide then
     change_scale_factor(1/1.01)
   end)
 
-  vim.keymap.set('i', '<D-s>', '<ESC>:w<CR>') -- Save
-  vim.keymap.set('n', '<D-s>', ':w<CR>') -- Save
+  -- vim.keymap.set('i', '<D-s>', '<ESC>:w<CR>') -- Save
+  -- vim.keymap.set('n', '<D-s>', ':w<CR>') -- Save
+
   vim.keymap.set('v', '<D-c>', '"+y') -- Copy
   -- vim.keymap.set('n', '<D-v>', '"+P') -- Paste normal mode
   -- vim.keymap.set('v', '<D-v>', '"+P') -- Paste visual mode
@@ -2961,6 +2965,7 @@ if vim.g.neovide then
   vim.g.neovide_light_angle_degrees = 45
   vim.g.neovide_light_radius = 5
 
+  vim.keymap.set({'n', 'i',  'x'}, '<D-s>', '<M-s>', { remap = true })
   vim.keymap.set('n', '<D-l>', '<M-l>', { remap = true })
   vim.keymap.set('n', '<D-d>', '<M-d>', { remap = true })
   vim.keymap.set('n', '<D-D>', '<M-D>', { remap = true })
