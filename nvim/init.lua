@@ -1570,10 +1570,18 @@ cmp.setup({
     ['<C-Space>'] = cmp.mapping.complete({ config = { sources = { { name = 'cody' }, { name = 'codeium' } } } }),
     -- ['<C-S-Space>'] = cmp.mapping.complete({ config = { sources = { { name = 'codeium' } } } }),
     ['<C-e>'] = cmp.mapping.abort(),
-    ["<CR>"] = cmp.mapping.confirm({
-      behavior = cmp.ConfirmBehavior.Replace,
-      select = false,
-    }),
+    ["<CR>"] = cmp.mapping(function(fallback)
+      local minuet = require("minuet.virtualtext").action
+      if minuet.is_visible() then
+        minuet.accept()
+      else
+        -- Fallback to the usual cmp confirm:
+        cmp.mapping.confirm({
+          behavior = cmp.ConfirmBehavior.Replace,
+          select = false,
+        })(fallback)
+      end
+    end, { "i", "s" }),
     -- ["<c-x>"] = cmp.mapping(function(fallback)
     --   if require'snippy'.is_active() then
     --     vim.api.nvim_feedkeys('a'..'\0x7f', 's', true)
@@ -3005,7 +3013,7 @@ local function switch_to_nth_buffer(n)
   vim.api.nvim_set_current_buf(buf)
 end
 
--- questionable if the loop is sensible. meant to make 
+-- questionable if the loop is sensible. meant to make
 -- vim.keymap.set('n', '<M-1>', function () switch_to_nth_buffer(1) end)
 -- vim.keymap.set('n', '<M-2>', function () switch_to_nth_buffer(2) end)
 for i = 1, 9 do
@@ -3028,6 +3036,16 @@ function! EncodeURIComponent() range
   let @" = saved_reg
 endfunction
 vnoremap <leader>ue :call EncodeURIComponent()<CR>
+function! DecodeURIComponent() range
+  let saved_reg = @"
+  normal! gvy
+  let selected_text = @"
+  let decoded = system('node -e "process.stdout.write(decodeURIComponent(process.argv[1]))" -- ' . shellescape(selected_text))
+  let @" = decoded
+  normal! gv"_d"0P
+  let @" = saved_reg
+endfunction
+vnoremap <leader>ud :call DecodeURIComponent()<CR>
 ]]
 
 vim.api.nvim_create_autocmd({"InsertLeave", "InsertEnter"}, {
@@ -3063,6 +3081,8 @@ if f then
     end
   end
   f:close()
+else
+  print("Warning: " .. env_file .. " not found.")
 end
 
 local gemini_prompt = [[
@@ -3099,7 +3119,7 @@ require('minuet').setup {
     auto_trigger_ft = { 'lua', 'python', 'typescript', 'javascript', 'cpp', 'bash', 'yaml', 'dockerfile' },
     keymap = {
       -- accept whole completion
-      accept = '<C-A>',
+      accept = '<C-S-a>',
       -- accept one line
       accept_line = '<C-a>',
       -- accept n lines (prompts for number)
@@ -3115,9 +3135,9 @@ require('minuet').setup {
   provider = 'gemini',
   context_window = 16000,
   context_ratio = 0.7,
-  throttle = 3000,
-  debounce = 1000,
-  n_completions = 2,
+  throttle = 1000,
+  debounce = 400,
+  n_completions = 5,
   provider_options = {
     gemini = {
 
