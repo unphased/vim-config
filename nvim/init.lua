@@ -2875,11 +2875,11 @@ vim.cmd[[
 if vim.g.neovide then
   -- Put anything you want to happen only in Neovide here
   vim.g.neovide_scroll_animation_far_lines = 99999
-  vim.g.neovide_window_blurred = true
+  vim.g.neovide_window_blurred = false
   vim.g.neovide_cursor_vfx_mode = "sonicboom"
   vim.g.neovide_cursor_animation_length = 0.05
   vim.g.neovide_hide_mouse_when_typing = true
-  vim.g.neovide_transparency = 0.75
+  vim.g.neovide_transparency = 1
 
   vim.g.neovide_refresh_rate = 240
   vim.g.neovide_refresh_rate_idle = 1
