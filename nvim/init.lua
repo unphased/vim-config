@@ -1145,20 +1145,32 @@ end
 load_auto_modules()
 
 local telescope_builtin = safeRequire("telescope.builtin")
-vim.keymap.set("n", "<c-p>", function ()
-  -- explicitly giving most likely path for fd because sometimes we launch neovim in neovide through a basic shell
-  -- without cargo in PATH.
-  telescope_builtin.find_files({ find_command = { os.getenv('HOME').. '/.cargo/bin/fd', '--type', 'f' } })
-end)
+-- vim.keymap.set("n", "<c-p>", function ()
+--   -- explicitly giving most likely path for fd because sometimes we launch neovim in neovide through a basic shell
+--   -- without cargo in PATH.
+--   telescope_builtin.find_files({ find_command = { os.getenv('HOME').. '/.cargo/bin/fd', '--type', 'f' } })
+-- end)
 -- hard to believe ctrl+G was not already bound by vim
+
+vim.keymap.set('n', '<c-p>', function() require('fzf-lua').files() end, { desc = "fzf-lua Files"})
+vim.keymap.set('n', '<f6>', function() require('fzf-lua').oldfiles() end, { desc = "fzf-lua Recent Files"})
+vim.keymap.set('n', '<leader>g', function () require('fzf-lua').live_grep() end, { desc = "fzf-lua Live Grep" })
+vim.keymap.set('n', '<leader>h', function () require('fzf-lua').live_grep_native() end, { desc = "fzf-lua Live Grep Native (more performant)" })
+
+
+require"gitlinker".setup({
+  mappings = nil
+  -- disable default leader+gy bind, because i want my leader+g to be a responsive bind
+})
+
+vim.api.nvim_set_keymap('n', '<leader>Gy', '<cmd>lua require"gitlinker".get_buf_range_url("n", {action_callback = require"gitlinker.actions".open_in_browser})<cr>', {silent = true, desc = "github copy link"})
+vim.api.nvim_set_keymap('v', '<leader>Gy', '<cmd>lua require"gitlinker".get_buf_range_url("v", {action_callback = require"gitlinker.actions".open_in_browser})<cr>', {silent = true, desc = "github copy link line range"})
+
 vim.keymap.set('n', '<c-g>', '<cmd>AdvancedGitSearch<CR>')
-vim.keymap.set("n", "<leader>g", telescope_builtin.live_grep, { desc = "Telescope Live Grep" })
-vim.keymap.set("n", "<leader><CR>", telescope_builtin.grep_string, { desc = "Telescope Grep String" })
-vim.keymap.set("n", "<leader>m", telescope_builtin.man_pages, { desc = "Telescope Man Pages" })
-vim.keymap.set("n", "<f6>", telescope_builtin.oldfiles, { desc = "Telescope Recent Files" })
-vim.keymap.set("n", "<leader>b", telescope_builtin.buffers, { desc = "Telescope Buffers" })
+-- vim.keymap.set("n", "<leader>g", telescope_builtin.live_grep, { desc = "Telescope Live Grep" })
+vim.keymap.set("n", "<leader><CR>", function () require('fzf-lua').grep_cword() end, { desc = "fzf-lua Grep String" })
 -- "vim help"
-vim.keymap.set('n', '<leader>h', telescope_builtin.help_tags, { desc = "Telescope Help Tags" })
+-- vim.keymap.set('n', '<leader>h', telescope_builtin.help_tags, { desc = "Telescope Help Tags" })
 
 -- alt+shift+p will open a command history searcher, reminiscent of something like commands via cmd p in vscode
 vim.keymap.set("n", "<M-P>", function()
@@ -2915,7 +2927,7 @@ if vim.g.neovide then
   })
 
   -- this block is for size adjustment
-  vim.g.neovide_scale_factor = 1.0
+  vim.g.neovide_scale_factor = 0.9
   local change_scale_factor = function(delta)
     vim.g.neovide_scale_factor = vim.g.neovide_scale_factor * delta
   end

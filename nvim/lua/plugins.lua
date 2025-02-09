@@ -49,7 +49,6 @@ return {
   -- 'junegunn/fzf.vim',
   -- 'junegunn/fzf',
   { 'nvim-telescope/telescope.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
-  { 'nvim-telescope/telescope-fzf-native.nvim', build = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release' },
   -- 'nvim-telescope/telescope-ui-select.nvim',
   'norcalli/nvim-colorizer.lua',
   -- {
@@ -311,9 +310,6 @@ return {
   {
     'ruifm/gitlinker.nvim',
     dependencies = { 'nvim-lua/plenary.nvim' },
-    init = function ()
-      require"gitlinker".setup()
-    end
   },
   -- {
   --   'rmagatti/goto-preview',
@@ -689,5 +685,13 @@ return {
   {
     'milanglacier/minuet-ai.nvim',
   },
+  {
+    "ibhagwan/fzf-lua",
+    -- optional for icon support
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    -- or if using mini.icons/mini.nvim
+    -- dependencies = { "echasnovski/mini.icons" },
+    opts = {}
+  }
 
 }
