@@ -1846,28 +1846,28 @@ require("mason-lspconfig").setup_handlers {
       on_attach = lsp_attach,
     }
   end,
-  ["ts_ls"] = function () log "exception applied for mason lspconfig setup for tsserver as we want to use typescript-tools instead." end,
---
---   -- holy shit i got vue working. Via https://github.com/mason-org/mason-registry/issues/5064#issuecomment-2016431978
---   -- TODO figure out how to enable with typescript-tools instead of ts_ls...
---   -- ["ts_ls"] = function ()
---   --   require('lspconfig')["ts_ls"].setup {
---   --     init_options = {
---   --       plugins = {
---   --         {
---   --           name = "@vue/typescript-plugin",
---   -- 				location = require("mason-registry").get_package("vue-language-server"):get_install_path() .. "/node_modules/@vue/language-server",
---   -- 				languages = { "vue" },
---   -- 				configNamespace = "typescript",
---   -- 				enableForWorkspaceTypeScriptVersions = true,
---   --         },
---   --       },
---   --     },
---   --     filetypes = {
---   --       "vue",
---   --     },
---   --   }
---   -- end,
+  -- ["ts_ls"] = function () log "exception applied for mason lspconfig setup for tsserver as we want to use typescript-tools instead." end,
+
+  -- holy shit i got vue working. Via https://github.com/mason-org/mason-registry/issues/5064#issuecomment-2016431978
+  -- TODO figure out how to enable with typescript-tools instead of ts_ls...
+  ["ts_ls"] = function ()
+    require('lspconfig')["ts_ls"].setup {
+      init_options = {
+        plugins = {
+          {
+            name = "@vue/typescript-plugin",
+            location = require("mason-registry").get_package("vue-language-server"):get_install_path() .. "/node_modules/@vue/language-server",
+            languages = { "vue" },
+            configNamespace = "typescript",
+            enableForWorkspaceTypeScriptVersions = true,
+          },
+        },
+      },
+      filetypes = {
+        "vue",
+      },
+    }
+  end,
 --
 --   -- ["tsserver"] = function ()
 --   --   log('executing tsserver mason-lspconfig handler cb');
