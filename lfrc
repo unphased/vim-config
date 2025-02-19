@@ -49,11 +49,25 @@ map O $mimeopen --ask $f
 #     esac
 # }}
 
-cmd open $nvim "$f"
+cmd open ${{
+    set -f
+    filesize=$(stat -f%z "$f")
+    case "$f" in
+        *.log|*.log.[0-9]*)
+            bat --paging=always "$f"
+            ;;
+        *)
+            if [ "$filesize" -gt 2097152 ]; then
+                bat --paging=always "$f"
+            else
+                $nvim "$f"
+            fi
+            ;;
+    esac
+}}
 
 # let's make any file that has ".log" extension (or any extension like .log.1) open in bat, and the rest in neovim.
 # Furthermore if a file is over 2MB if it would open with neovim open it with bat anyway. please make that the behavior
-# for cmd open. AI!
 
 
 # cmd open ${{
