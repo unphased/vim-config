@@ -51,6 +51,11 @@ map O $mimeopen --ask $f
 
 cmd open $nvim "$f"
 
+# let's make any file that has ".log" extension (or any extension like .log.1) open in bat, and the rest in neovim.
+# Furthermore if a file is over 2MB if it would open with neovim open it with bat anyway. please make that the behavior
+# for cmd open. AI!
+
+
 # cmd open ${{
 #   case $(file --mime-type "$f" -b) in
 #     application/json) jq . "$fx"
