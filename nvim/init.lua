@@ -3139,9 +3139,9 @@ require('minuet').setup {
       -- accept n lines (prompts for number)
       accept_n_lines = nil,
       -- Cycle to prev completion item, or manually invoke completion
-      prev = '<C-]>',
+      prev = '<C-;>',
       -- Cycle to next completion item, or manually invoke completion
-      next = '<C-[>',
+      next = "<C-'>",
       -- dismiss = '<Esc>',
     },
   },
