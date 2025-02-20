@@ -619,15 +619,15 @@ return {
         end
       end)
 
-      vim.keymap.set("n", "<esc>", function()
-        if not mc.cursorsEnabled() then
-          mc.enableCursors()
-        elseif mc.hasCursors() then
-          mc.clearCursors()
-        else
-          -- Default <esc> handler.
-        end
-      end)
+      -- vim.keymap.set("n", "<esc>", function()
+      --   if not mc.cursorsEnabled() then
+      --     mc.enableCursors()
+      --   elseif mc.hasCursors() then
+      --     mc.clearCursors()
+      --   else
+      --     -- Default <esc> handler.
+      --   end
+      -- end)
 
       -- Align cursor columns.
       vim.keymap.set("n", "<leader>a", mc.alignCursors)

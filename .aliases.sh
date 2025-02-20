@@ -208,11 +208,17 @@ alias git="git --config-env=delta.hyperlinks-file-link-format=GIT_DELTA_HYPERLIN
 
 # Temporarily pointing aider at local install. This may be temporary as pipx does a decent job of maintaining it
 # normally but This is the cleanest way i came up with so far to quickly target a local install IF ONE EXISTS.
-AIDER_VENV_PROGRAM=~/aider/venv/bin/aider
+AIDER_PROGRAM=~/aider/venv/bin/aider
+AIDER_PROGRAM2=~/.local/bin/aider
 AIDER_CMD=aider
-if [[ -x "$AIDER_VENV_PROGRAM" ]]; then
-  echo "Note: aider is aliased to $AIDER_VENV_PROGRAM."
-  AIDER_CMD="$AIDER_VENV_PROGRAM"
+if [[ -x "$AIDER_PROGRAM" ]]; then
+  echo "Note: aider has been found at $AIDER_PROGRAM."
+  AIDER_CMD="$AIDER_PROGRAM"
+fi
+
+if [[ -x "$AIDER_PROGRAM2" ]]; then
+  echo "Note: aider has been found at (secondary location) $AIDER_PROGRAM2."
+  AIDER_CMD="$AIDER_PROGRAM2"
 fi
 
 aider_function() {
