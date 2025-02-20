@@ -2891,8 +2891,9 @@ vim.cmd[[
   endfunction
 ]]
 
--- neovide
-if vim.g.neovide then
+-- neovide: we don't need to separate these defines out because sometimes we run vim with headless and connect neovide
+-- over network!
+-- if vim.g.neovide then
   -- Put anything you want to happen only in Neovide here
   vim.g.neovide_scroll_animation_far_lines = 99999
   vim.g.neovide_window_blurred = false
@@ -3001,7 +3002,7 @@ if vim.g.neovide then
     local key2 = "<M-" .. i .. ">"
     vim.keymap.set('n', key, key2, { remap = true })
   end
-end
+-- end
 
 require('config.handy-workflow')
 
