@@ -3142,7 +3142,7 @@ require('minuet').setup {
       prev = '<C-]>',
       -- Cycle to next completion item, or manually invoke completion
       next = '<C-[>',
-      dismiss = '<Esc>',
+      -- dismiss = '<Esc>',
     },
   },
   api_key = "GEMINI_API_KEY",
