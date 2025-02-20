@@ -1157,11 +1157,7 @@ vim.keymap.set('n', '<f6>', function() require('fzf-lua').oldfiles() end, { desc
 vim.keymap.set('n', '<leader>g', function () require('fzf-lua').live_grep() end, { desc = "fzf-lua Live Grep" })
 vim.keymap.set('n', '<leader>h', function () require('fzf-lua').live_grep_native() end, { desc = "fzf-lua Live Grep Native (more performant)" })
 
-
-require"gitlinker".setup({
-  mappings = nil
-  -- disable default leader+gy bind, because i want my leader+g to be a responsive bind
-})
+require("gitlinker").setup{}
 
 vim.api.nvim_set_keymap('n', '<leader>Gy', '<cmd>lua require"gitlinker".get_buf_range_url("n", {action_callback = require"gitlinker.actions".open_in_browser})<cr>', {silent = true, desc = "github copy link"})
 vim.api.nvim_set_keymap('v', '<leader>Gy', '<cmd>lua require"gitlinker".get_buf_range_url("v", {action_callback = require"gitlinker.actions".open_in_browser})<cr>', {silent = true, desc = "github copy link line range"})
@@ -3195,3 +3191,11 @@ require('minuet').setup {
     },
   },
 }
+
+vim.api.nvim_create_user_command('TermHl', function()
+  local b = vim.api.nvim_create_buf(false, true)
+  local chan = vim.api.nvim_open_term(b, {})
+  vim.api.nvim_chan_send(chan, table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), '\n'))
+  vim.api.nvim_win_set_buf(0, b)
+end, { desc = 'Highlights ANSI termcodes in curbuf' })
+

@@ -308,7 +308,7 @@ return {
   "folke/lazydev.nvim",
   'nvim-lua/plenary.nvim',
   {
-    'ruifm/gitlinker.nvim',
+    'linrongbin16/gitlinker.nvim',
     dependencies = { 'nvim-lua/plenary.nvim' },
   },
   -- {
@@ -434,13 +434,13 @@ return {
   --   branch = 'feat-move-to-file-action'
   -- }
   'qpkorr/vim-bufkill',
-  {
-    "smilhey/cabinet.nvim", 
-    config = function () 
-        local cabinet = require("cabinet")
-        cabinet:setup()
-    end
-  },
+  -- {
+  --   "smilhey/cabinet.nvim", 
+  --   config = function () 
+  --       local cabinet = require("cabinet")
+  --       cabinet:setup()
+  --   end
+  -- },
   {
     'bloznelis/before.nvim',
     config = function()
