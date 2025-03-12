@@ -10,8 +10,8 @@ insert_final_newline = true
 indent_style = space
 charset = utf-8
 
-[*.{mjs,cjs,js,ts,lua}]
-# indent_size = 2
+[*.{mjs,cjs,js,ts,lua,json}]
+indent_size = 2
 
 # Matches multiple files with brace expansion notation
 # Set default charset

@@ -268,4 +268,4 @@ export PATH=$N_PREFIX/bin:$PATH
 
 # Still planning -- I might try to define these colors in the hardware mac address file. we'll see...
 
-
+alias civ="civit_dl"

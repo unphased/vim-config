@@ -692,6 +692,7 @@ return {
     -- or if using mini.icons/mini.nvim
     -- dependencies = { "echasnovski/mini.icons" },
     opts = {}
-  }
-
+  },
+  'mfussenegger/nvim-dap',
+  'mfussenegger/nvim-dap-python',
 }
