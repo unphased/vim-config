@@ -1,0 +1,6 @@
+{
+  "extensions.experimental.affinity": {
+    "asvetliakov.vscode-neovim": 1
+  },
+  "vscode-neovim.neovimInitVimPaths.darwin": "/Users/slu/.vim/nvim/init.vscode.vim"
+}

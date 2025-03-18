@@ -308,7 +308,7 @@ return {
   "folke/lazydev.nvim",
   'nvim-lua/plenary.nvim',
   {
-    'linrongbin16/gitlinker.nvim',
+    'ruifm/gitlinker.nvim',
     dependencies = { 'nvim-lua/plenary.nvim' },
   },
   -- {
