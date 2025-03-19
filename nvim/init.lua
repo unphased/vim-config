@@ -1736,60 +1736,60 @@ require("mason-lspconfig").setup({
   automatic_installation = true,
 })
 
-local null_ls = safeRequire("null-ls")
+-- local null_ls = safeRequire("null-ls")
+--
+-- require("mason-null-ls").setup({
+--   ensure_installed = { "shellcheck" },
+--   automatic_setup = true,
+--   automatic_installation = true,
+--   handlers = {
+--     function(source_name, methods)
+--       -- print("mason-null-ls-handler: source_name:" .. source_name)
+--       -- print("mason-null-ls-handler: methods:" .. vim.inspect(methods))
+--       -- all sources with no handler get passed here
+--
+--       -- To keep the original functionality of `automatic_setup = true`,
+--       -- please add the below.
+--       safeRequire("mason-null-ls.automatic_setup")(source_name, methods)
+--     end,
+--     pylint = function ()
+--       -- need to set PYTHONPATH via --source-roots
+--       null_ls.register(null_ls.builtins.diagnostics.pylint.with({
+--         env = function(params)
+--           local computed_pythonpath = vim.fn.system('python3 -c "import site; print(site.getsitepackages()[0])"')
+--           local resolved_symlink = vim.fn.system('readlink -f ' .. computed_pythonpath):gsub("\n$", "")
+--           print ('null-ls pylint pythonpath', resolved_symlink)
+--           return { PYTHONPATH = resolved_symlink }
+--         end,
+--       }))
+--     end,
+--     cspell = function()
+--       null_ls.register(null_ls.builtins.diagnostics.cspell.with({
+--         timeout = 20000,
+--         method = null_ls.methods.DIAGNOSTICS_ON_SAVE,
+--       }))
+--     end,
+--     cpplint = function()
+--       null_ls.register(null_ls.builtins.diagnostics.cpplint.with({
+--         args = { '--linelength=240' },
+--       }))
+--     end,
+--
+--     -- stylua = function(source_name, methods)
+--     --   null_ls.register(null_ls.builtins.formatting.stylua)
+--     -- end,
+--   }
+-- })
 
-require("mason-null-ls").setup({
-  ensure_installed = { "shellcheck" },
-  automatic_setup = true,
-  automatic_installation = true,
-  handlers = {
-    function(source_name, methods)
-      -- print("mason-null-ls-handler: source_name:" .. source_name)
-      -- print("mason-null-ls-handler: methods:" .. vim.inspect(methods))
-      -- all sources with no handler get passed here
-
-      -- To keep the original functionality of `automatic_setup = true`,
-      -- please add the below.
-      safeRequire("mason-null-ls.automatic_setup")(source_name, methods)
-    end,
-    pylint = function ()
-      -- need to set PYTHONPATH via --source-roots
-      null_ls.register(null_ls.builtins.diagnostics.pylint.with({
-        env = function(params)
-          local computed_pythonpath = vim.fn.system('python3 -c "import site; print(site.getsitepackages()[0])"')
-          local resolved_symlink = vim.fn.system('readlink -f ' .. computed_pythonpath):gsub("\n$", "")
-          print ('null-ls pylint pythonpath', resolved_symlink)
-          return { PYTHONPATH = resolved_symlink }
-        end,
-      }))
-    end,
-    cspell = function()
-      null_ls.register(null_ls.builtins.diagnostics.cspell.with({
-        timeout = 20000,
-        method = null_ls.methods.DIAGNOSTICS_ON_SAVE,
-      }))
-    end,
-    cpplint = function()
-      null_ls.register(null_ls.builtins.diagnostics.cpplint.with({
-        args = { '--linelength=240' },
-      }))
-    end,
-
-    -- stylua = function(source_name, methods)
-    --   null_ls.register(null_ls.builtins.formatting.stylua)
-    -- end,
-  }
-})
-
-null_ls.setup({
-  -- debug = true,
-  -- this is for cspell to default to hints and not errors (yeesh)
-  fallback_severity = vim.diagnostic.severity.HINT,
-  sources = {
-    null_ls.builtins.code_actions.gitsigns,
-    null_ls.builtins.code_actions.ts_node_action,
-  }
-})
+-- null_ls.setup({
+--   -- debug = true,
+--   -- this is for cspell to default to hints and not errors (yeesh)
+--   fallback_severity = vim.diagnostic.severity.HINT,
+--   sources = {
+--     null_ls.builtins.code_actions.gitsigns,
+--     null_ls.builtins.code_actions.ts_node_action,
+--   }
+-- })
 
 local capabilities = safeRequire('cmp_nvim_lsp').default_capabilities()
 

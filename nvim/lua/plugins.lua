@@ -149,8 +149,8 @@ return {
     }, -- for default options, refer to the configuration section for custom setup.
   },
   -- "onsails/lspkind-nvim",
-  { "jose-elias-alvarez/null-ls.nvim", dependencies = { 'nvim-lua/plenary.nvim' } },
-  "jay-babu/mason-null-ls.nvim",
+  -- { "jose-elias-alvarez/null-ls.nvim", dependencies = { 'nvim-lua/plenary.nvim' } },
+  -- "jay-babu/mason-null-ls.nvim",
   "inkarkat/vim-ingo-library",
   -- { "inkarkat/vim-SearchHighlighting", init = function ()
   --   -- This is set to be disabled in favor of STS *maybe*
@@ -325,6 +325,7 @@ return {
   --   end
   -- },
   "dnlhc/glance.nvim",
+  ------- temporary -- broken on nvim nightly
   "RRethy/vim-illuminate",
   "unphased/syntax-tree-surfer",
   {

@@ -2,5 +2,6 @@
   "extensions.experimental.affinity": {
     "asvetliakov.vscode-neovim": 1
   },
-  "vscode-neovim.neovimInitVimPaths.darwin": "/Users/slu/.vim/nvim/init.vscode.vim"
+  "vscode-neovim.neovimInitVimPaths.darwin": "/Users/slu/.vim/nvim/init.vscode.vim",
+  "terminal.integrated.scrollback": 10000
 }
