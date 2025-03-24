@@ -1521,6 +1521,8 @@ local function ef_ten(direction)
         else
             vim.cmd("wincmd W")  -- previous window
         end
+    elseif (vim.g.neovide) then
+        -- do not advance tmux pane when in neovide. do nothing.
     else
         vim.fn.system("tmux select-pane -t :." .. direction)
     end
