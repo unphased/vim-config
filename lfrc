@@ -60,7 +60,8 @@ cmd open ${{
             if [ "$filesize" -gt 2097152 ]; then
                 bat --paging=always "$f"
             else
-                $nvim "$f"
+                echo "Launching: nvim $f" >> ~/.lf_launches.log
+                nvim "$f"
             fi
             ;;
     esac
