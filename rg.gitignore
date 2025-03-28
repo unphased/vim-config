@@ -15,6 +15,7 @@
 !.gitlab-ci.yml
 !.yamllint.yml
 !.yamllint.yaml
+!.env
 **/node_modules
 **/*.min.js
 **/*.svg
