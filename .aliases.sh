@@ -240,17 +240,6 @@ alias aider='aider_function'
 
 alias nv="neovide"
 
-function git-undo() {
-    if [ "$1" = "drop" ]; then
-        git reset --hard HEAD~${2:-1}
-    elif [ "$1" = "revert" ]; then
-        git revert --no-commit HEAD~${2:-1}..HEAD
-        git commit -m "Reverts the last ${2:-1} commit(s)"
-    else
-        echo "Usage: git-undo [drop|revert] [number of commits]"
-    fi
-}
-
 # just sets the N prefix to a sane and safe location in home dir. Although the default is reasonable and works almost
 # out of the box on macos (it isn't though, on account of /usr/local/n needing chowning) the default path does not work
 # on linux without perm shenanigans. So this is a good way to establish a better N prefix to use.
