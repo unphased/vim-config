@@ -258,3 +258,10 @@ export PATH=$N_PREFIX/bin:$PATH
 # Still planning -- I might try to define these colors in the hardware mac address file. we'll see...
 
 alias civ="civit_dl"
+
+# Sucks it took me 10 years longer than it should have to derive these helpers
+alias last2='!-2 && !!'
+alias last3='!-3 && !-2 && !!'
+alias last4='!-4 && !-3 && !-2 && !!'
+alias last5='!-5 && !-4 && !-3 && !-2 && !!'
+alias last6='!-6 && !-5 && !-4 && !-3 && !-2 && !!'

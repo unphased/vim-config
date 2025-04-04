@@ -126,7 +126,8 @@ local function display_diff(back)
     log('display_diff targeting buf ' .. tostring(new_diff_num == 1 and nil or max_diff_bufnum) .. ' for opening into')
 
     local commits_back = string.rep("^", new_diff_num)
-    MakeTermWindowVimAsPager('output="$(git --no-pager diff HEAD' .. commits_back .. ")\"; echo \"Line count: $(echo \"$output\" | grep '^[-+]' | wc -l)\"; echo \"Diffing from $(git rev-parse --short HEAD" .. commits_back .. ") - $(git log -1 --format=\"%s\" HEAD" .. commits_back .. ")\"; echo \"$output\" | ~/.cargo/bin/delta --pager=none",
+    -- the grep and tail are to actually make it count just the changed lines.
+    MakeTermWindowVimAsPager('output="$(git --no-pager diff HEAD' .. commits_back .. ")\"; echo \"Line count: $(echo \"$output\" | grep '^[-+]' | tail -n +3 | wc -l)\"; echo \"Diffing from $(git rev-parse --short HEAD" .. commits_back .. ") - $(git log -1 --format=\"%s\" HEAD" .. commits_back .. ")\"; echo \"$output\" | ~/.cargo/bin/delta --pager=none",
       '50', 'Git DIFF PREV ' .. new_diff_num, new_diff_num == 1 and nil or max_diff_bufnum)
 
   else
