@@ -136,6 +136,40 @@ local function find_and_show_nearest_important()
   -- TODO: Replace print with actual indicator update (floating windows)
 end
 
+-- Function to list all extmarks in the current buffer, grouped by namespace
+local function list_all_extmarks()
+  local buf = vim.api.nvim_get_current_buf()
+  print("Scanning buffer " .. buf .. " for all extmarks...")
+
+  -- Get all known namespaces { name = id, ... }
+  local namespaces = vim.api.nvim_get_namespaces()
+  -- Add our own namespace to the list to check
+  namespaces["extmark_playground (self)"] = ns_id
+
+  local found_any = false
+  local summary_lines = { "--- Extmark Summary ---" }
+
+  -- Iterate through each known namespace and query marks for it
+  for name, id in pairs(namespaces) do
+    -- Get marks specifically for this namespace ID
+    local marks_in_ns = vim.api.nvim_buf_get_extmarks(buf, id, 0, -1, { details = false }) -- details=false is enough for count
+
+    if #marks_in_ns > 0 then
+      found_any = true
+      table.insert(summary_lines, string.format("Namespace: %s (ID: %d) - Count: %d", name, id, #marks_in_ns))
+    end
+  end
+
+  if not found_any then
+    print("No extmarks found in known namespaces for this buffer.")
+    return
+  end
+
+  table.insert(summary_lines, "---------------------")
+  -- Use nvim_echo to print multiple lines without requiring "Press ENTER"
+  vim.api.nvim_echo({ { table.concat(summary_lines, "\n") } }, true, {})
+end
+
 -- Function to define commands
 local function setup_commands()
   vim.api.nvim_create_user_command("AddPlaygroundMark", add_mark, {
@@ -151,6 +185,10 @@ local function setup_commands()
   -- Add a command to manually trigger the check (for testing)
   vim.api.nvim_create_user_command("CheckPlaygroundNearest", find_and_show_nearest_important, {
      desc = "Extmark Playground: Find and show nearest important marks",
+  })
+  -- Add command to list all marks
+  vim.api.nvim_create_user_command("ListAllExtmarks", list_all_extmarks, {
+    desc = "Extmark Playground: List all extmarks in the buffer by namespace",
   })
 end
 
