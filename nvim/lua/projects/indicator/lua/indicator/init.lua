@@ -112,6 +112,8 @@ local function setup_commands()
       if not selected_choice then
         return
       end
+      -- print to indicate the value that was selected
+      print("You selected: " .. selected_choice)
     end)
   end
 
