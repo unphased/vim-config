@@ -115,9 +115,8 @@ local function select_namespaces_to_follow()
   local win_id = vim.api.nvim_get_current_win()
   local buf_id = vim.api.nvim_win_get_buf(win_id)
 
-  if not namespace_cache_populated then
-    update_namespace_cache() -- Ensure cache is fresh before showing picker
-  end
+  -- Always update the cache to ensure we see all current namespaces
+  update_namespace_cache()
 
   local available_namespaces = {} -- Stores {id=ns_id, name=ns_name, count=mark_count}
   local current_followed = followed_namespaces_by_window[win_id] or {}
