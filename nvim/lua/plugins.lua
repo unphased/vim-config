@@ -694,6 +694,22 @@ return {
     -- dependencies = { "echasnovski/mini.icons" },
     opts = {}
   },
-  'mfussenegger/nvim-dap',
-  'mfussenegger/nvim-dap-python',
+  -- 'mfussenegger/nvim-dap',
+  -- 'mfussenegger/nvim-dap-python',
+  {
+    -- Treat your local directory as a plugin
+    'extmark_playground', -- This name matches the directory in lua/
+    -- Optional: Specify configuration options
+    opts = {
+      -- You can override defaults here, e.g.:
+      -- greeting = "Custom Greeting!"
+    },
+    dev = true,
+    -- Optional: If lazy loading, specify triggers (commands, events, etc.)
+    -- cmd = { "AddPlaygroundMark", "ClearPlaygroundMarks" }, -- Example: Load when commands are used
+    -- event = "VeryLazy", -- Example: Load after startup
+    -- For now, let's load it eagerly during startup for easy testing:
+    lazy = false,
+  },
+
 }

@@ -73,6 +73,9 @@ require("lazy").setup("plugins", {
   checker = { enabled = true, notify = false, },
   git = {
     url_format = "git@github.com:%s.git",
+  },
+  dev = {
+    path = "~/.vim/nvim/lua/projects",
   }
 })
 
