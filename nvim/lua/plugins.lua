@@ -698,7 +698,7 @@ return {
   -- 'mfussenegger/nvim-dap-python',
   {
     -- Treat your local directory as a plugin
-    'extmark_playground', -- This name matches the directory in lua/
+    'indicator', -- This name matches the directory in lua/
     -- Optional: Specify configuration options
     opts = {
       -- You can override defaults here, e.g.:
