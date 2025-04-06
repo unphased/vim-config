@@ -12,6 +12,7 @@ local function list_all_extmarks()
 
   -- Get all known namespaces { name = id, ... }
   local namespaces = vim.api.nvim_get_namespaces()
+
   -- Add our own namespace to the list to check
   -- namespaces["indicator (self)"] = ns_id
 
