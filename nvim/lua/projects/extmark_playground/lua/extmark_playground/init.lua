@@ -1,4 +1,4 @@
-local config = require("extmark_playground.config")
+local config = require("indicator.config")
 
 local M = {}
 
@@ -13,7 +13,7 @@ local function list_all_extmarks()
   -- Get all known namespaces { name = id, ... }
   local namespaces = vim.api.nvim_get_namespaces()
   -- Add our own namespace to the list to check
-  namespaces["extmark_playground (self)"] = ns_id
+  -- namespaces["indicator (self)"] = ns_id
 
   local found_any = false
   local summary_lines = { "--- Extmark Summary ---" }
@@ -54,8 +54,8 @@ end
 -- Function to define commands
 local function setup_commands()
   -- Add command to list all marks
-  vim.api.nvim_create_user_command("ListAllExtmarks", list_all_extmarks, {
-    desc = "Extmark Playground: List all extmarks in the buffer by namespace",
+  vim.api.nvim_create_user_command("IndicatorListExtmarks", list_all_extmarks, {
+    desc = "Indicator: List all extmarks in the buffer by namespace",
   })
 end
 
@@ -67,7 +67,7 @@ function M.setup(user_opts)
   -- Define commands, mappings, autocommands etc. here
   setup_commands()
 
-  print("Extmark Playground setup complete!")
+  print("Indicator plugin setup complete!")
 end
 
 return M
