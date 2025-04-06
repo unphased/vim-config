@@ -214,17 +214,6 @@ function M.setup(user_opts)
     end,
   })
 
-  -- Refresh namespace cache if namespaces change globally
-  vim.api.nvim_create_autocmd({ "Namespace" }, {
-     group = group,
-     pattern = "*",
-     desc = "Update indicator namespace cache",
-     callback = function()
-        -- No need to schedule this, it's infrequent
-        update_namespace_cache()
-        -- Might need to trigger update_indicators for all relevant windows if cache changes affect display
-     end,
-  })
 
   -- Clean up window state when a window is closed
   vim.api.nvim_create_autocmd({ "WinClosed" }, {
