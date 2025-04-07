@@ -643,7 +643,7 @@ local function tmux_window(dir)
     -- so, back to the typical way to switch buffers.
     vim.cmd('silent! wincmd ' .. dir)
 
-  else -- at some edge, fallback to tmux
+  elseif (not vim.g.neovide) then -- at some edge, fallback to tmux; just not when in neovide
     vim.system({ 'tmux', 'select-pane', '-' .. string.gsub(dir, '[hjkl]', {h='L', j='D', k='U', l='R'}) }):wait()
     -- this has a race condition. TODO TODO TODO DO THIS: https://github.com/neovim/neovim/discussions/29905#discussioncomment-10182547
   end
