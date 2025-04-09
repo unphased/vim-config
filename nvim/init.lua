@@ -1883,7 +1883,7 @@ require("mason-lspconfig").setup_handlers {
         },
       },
       filetypes = {
-        "vue",
+        "vue", "typescript", "javascript", "javascriptreact", "typescriptreact"
       },
     }
   end,

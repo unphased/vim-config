@@ -425,11 +425,13 @@ return {
     dependencies = { 'nvim-treesitter' },
     opts = {},
   },
-  {
-    "pmizio/typescript-tools.nvim",
-    dependencies = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
-    opts = {},
-  },
+  ---- sadly i have to disable this because the reason for having it (move to file code action) is no longer working
+  ---- and besides, i need to integrate volar with ts-ls and doubt it can work for this.
+  -- {
+  --   "pmizio/typescript-tools.nvim",
+  --   dependencies = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
+  --   opts = {},
+  -- },
   -- {
   --   'yioneko/nvim-vtsls',
   --   branch = 'feat-move-to-file-action'
