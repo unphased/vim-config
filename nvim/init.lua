@@ -1547,6 +1547,12 @@ vim.keymap.set({ 'n' }, '<F10>', function ()
 end, {noremap = true})
 vim.keymap.set({ 'n' }, '<S-F10>', function () ef_ten('-') end, {noremap = true})
 
+vim.cmd([[
+  inoremap <Left>  <C-g>U<Left>
+  inoremap <Right> <C-g>U<Right>
+]])
+
+multicursor.setup()
 
 vim.opt.completeopt="menu,menuone,noselect"
 
