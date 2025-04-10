@@ -111,6 +111,18 @@ cmd trash %set -f; mv $fx ~/.trash
 
 set previewer bat-lf-previewer
 
+# --- Additions for Scrollable Previews ---
+cmd on-select :set user_preview_offset 1
+
+cmd scroll-preview &{{
+    offset=$(( $lf_user_preview_offset + $1 ))
+    [ $offset -lt 1 ] && offset=1
+    lf -remote "send $id :set user_preview_offset $offset; set preview true"
+}}
+
+map J scroll-preview 5
+map K scroll-preview -5
+
 # extract the current file with the right command
 # (xkcd link: https://xkcd.com/1168/)
 cmd extract ${{
