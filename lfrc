@@ -111,17 +111,30 @@ cmd trash %set -f; mv $fx ~/.trash
 
 set previewer bat-lf-previewer
 
-# --- Additions for Scrollable Previews ---
-cmd on-select :set user_preview_offset 1
+# --- Preview Commands (Send Actions to Script) ---
 
-cmd scroll-preview &{{
-    offset=$(( $lf_user_preview_offset + $1 ))
-    [ $offset -lt 1 ] && offset=1
-    lf -remote "send $id :set user_preview_offset $offset; set preview true"
-}}
+# Define scroll amount (can be adjusted here)
+cmd on-select :set SCROLL_LINES 5
 
-map J scroll-preview 5
-map K scroll-preview -5
+# Send action strings to the previewer script via the environment variable
+cmd jump-preview-top    :set user_preview_offset jump_top; set preview true
+cmd jump-preview-bottom :set user_preview_offset jump_bottom; set preview true
+cmd scroll-preview-down :set user_preview_offset "scroll_down:$SCROLL_LINES"; set preview true
+cmd scroll-preview-up   :set user_preview_offset "scroll_up:$SCROLL_LINES"; set preview true
+# Optional: PageUp/PageDown (adjust amount as needed, e.g., use $LINES variable if available/reliable)
+# cmd page-preview-down :set user_preview_offset "scroll_down:20"; set preview true
+# cmd page-preview-up   :set user_preview_offset "scroll_up:20"; set preview true
+
+# --- Key Mappings ---
+map g jump-preview-top
+map G jump-preview-bottom
+map J scroll-preview-down
+map K scroll-preview-up
+
+
+# --- Optional: Other useful lf settings ---
+set icons true
+set hidden true
 
 # extract the current file with the right command
 # (xkcd link: https://xkcd.com/1168/)

@@ -4,5 +4,15 @@
   },
   "vscode-neovim.neovimInitVimPaths.darwin": "/Users/slu/.vim/nvim/init.vscode.vim",
   "terminal.integrated.scrollback": 10000,
-  "git.autofetch": true
+  "git.autofetch": true,
+  "sonarlint.connectedMode.connections.sonarqube": [
+    {
+      "serverUrl": "https://sonar.accuweather.com",
+      "connectionId": "https-sonar-accuweather-com"
+    }
+  ],
+  "chat.agent.enabled": true,
+  "github.copilot.chat.agent.thinkingTool": true,
+  "chat.editor.wordWrap": "on",
+  "github.copilot.nextEditSuggestions.enabled": true
 }

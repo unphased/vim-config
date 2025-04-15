@@ -1204,8 +1204,8 @@ require("nvim-treesitter.configs").setup({
   incremental_selection = {
     enable = true,
     keymaps = {
-      init_selection = "<S-CR>",
-      node_incremental = "<S-CR>",
+      init_selection = "<M-CR>",
+      node_incremental = "<M-CR>",
       node_decremental = "<S-C-CR>",
     },
   },
@@ -2718,7 +2718,7 @@ require("spider").setup {
 
 function toggle_scrolloff()
   local enable = vim.opt_local.scrolloff:get() == 0
-  vim.opt_local.scrolloff = enable and 8 or 0
+  vim.opt_local.scrolloff = enable and 5 or 0
 end
 
 vim.keymap.set('n', '<leader>z', ':lua toggle_scrolloff()<CR>', { desc = "Toggle scrolloff" })
@@ -3007,7 +3007,7 @@ vim.cmd[[
 
   -- shift enter works in neovide but not under terminal. therefore bind S-CR recursively to M-CR
   -- shift enter in insert mode will insert a newline above the current line and go there.
-  vim.keymap.set('i', '<S-CR>', '<M-CR>', { remap = true })
+  vim.keymap.set({'i', 'n'}, '<S-CR>', '<M-CR>', { remap = true })
 
   for i = 0, 9 do
     local key = "<D-" .. i .. ">"
