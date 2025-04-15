@@ -1124,6 +1124,8 @@ telescope.setup{
 
 -- loads my config files under config-auto. TODO they are not currently having exports surfaced but i can add that later
 local config_dir = vim.fn.stdpath('config')
+print('config_dir', config_dir)
+
 local function load_auto_modules()
   local config_auto_dir = config_dir .. '/lua/config-auto'
 
@@ -1925,21 +1927,24 @@ require("mason-lspconfig").setup_handlers {
 --       on_attach = lsp_attach,
 --     }
 --   end,
---   ["lua_ls"] = function ()
---     safeRequire("lspconfig")["lua_ls"].setup {
---       capabilities = capabilities,
---       on_attach = lsp_attach,
---       settings = {
---         Lua = {
---           workspace = {
---             library = {
---               string.format('%s/.hammerspoon/Spoons/EmmyLua.spoon/annotations', os.getenv 'HOME')
---             }
---           },
---         }
---       }
---     }
---   end,
+    ["lua_ls"] = function ()
+      safeRequire("lspconfig")["lua_ls"].setup {
+        root_dir = config_dir,  -- force the workspace to be your Neovim config folder
+        capabilities = capabilities,
+        on_attach = lsp_attach,
+        settings = {
+          Lua = {
+            runtime = { version = "LuaJIT" },
+            workspace = {
+              library = {
+                [config_dir] = true,  -- use a table where the key is the path and value is true
+              },
+            },
+            telemetry = { enable = false },
+          },
+        },
+      }
+    end,
 --
 --   -- ["emmet_ls"] = function ()
 --   --   safeRequire('lspconfig').emmet_ls.setup({
@@ -2858,13 +2863,13 @@ vim.cmd[[
 -- this is useful for sections of code with two alternative impls to toggle between.
 vim.keymap.set('x', 'gC', ':normal gcc<CR>', { desc = 'Invert comments per line' })
 
-local sess_man_conf = require('session_manager.config')
-require('session_manager').setup{
-  autoload_mode = {
-    sess_man_conf.AutoloadMode.CurrentDir,
-    -- sess_man_conf.AutoloadMode.LastSession
-  }
-}
+-- local sess_man_conf = require('session_manager.config')
+-- require('session_manager').setup{
+--   autoload_mode = {
+--     sess_man_conf.AutoloadMode.CurrentDir,
+--     -- sess_man_conf.AutoloadMode.LastSession
+--   }
+-- }
 
 -- disable treesitter for tmux conf filetype, as it is particularly incapable of parsing my current conf file state.
 vim.api.nvim_create_autocmd("FileType", {

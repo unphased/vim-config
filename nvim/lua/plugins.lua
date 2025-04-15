@@ -515,7 +515,7 @@ return {
       {"stevearc/dressing.nvim"} -- optional: to have the same UI shown in the GIF
     }
   },
-  'Shatur/neovim-session-manager',
+  -- 'Shatur/neovim-session-manager',
   'Vimjas/vim-python-pep8-indent',
   {
     "mikavilpas/yazi.nvim",
@@ -711,5 +711,22 @@ return {
     -- For now, let's load it eagerly during startup for easy testing:
     lazy = false,
   },
+  {
+    "hinell/lsp-timeout.nvim",
+    dependencies={ "neovim/nvim-lspconfig" }
+  },
+  {
+    'rmagatti/auto-session',
+    lazy = false,
 
+    ---enables autocomplete for opts
+    ---@module "auto-session"
+    ---@type AutoSession.Config
+    opts = {
+      suppressed_dirs = { '~/', '~/Projects', '~/Downloads', '/' },
+      auto_restore = true,
+      auto_save = true
+      -- log_level = 'debug',
+    }
+  }
 }
