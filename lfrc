@@ -113,24 +113,23 @@ set previewer bat-lf-previewer
 
 # --- Preview Commands (Send Actions to Script) ---
 
-# Define scroll amount (can be adjusted here)
-cmd on-select :set SCROLL_LINES 5
+# Need to clear out the user_preview_command state when switching to another item
+cmd on-select set user_preview_command
 
 # Send action strings to the previewer script via the environment variable
-cmd jump-preview-top    :set user_preview_offset jump_top; set preview true
-cmd jump-preview-bottom :set user_preview_offset jump_bottom; set preview true
-cmd scroll-preview-down :set user_preview_offset "scroll_down:$SCROLL_LINES"; set preview true
-cmd scroll-preview-up   :set user_preview_offset "scroll_up:$SCROLL_LINES"; set preview true
+cmd jump-preview-top    :set user_preview_command jump_top; set preview true
+cmd jump-preview-bottom :set user_preview_command jump_bottom; set preview true
+cmd scroll-preview-down :set user_preview_command "scroll_down:5"; set preview true
+cmd scroll-preview-up   :set user_preview_command "scroll_up:5"; set preview true
 # Optional: PageUp/PageDown (adjust amount as needed, e.g., use $LINES variable if available/reliable)
-# cmd page-preview-down :set user_preview_offset "scroll_down:20"; set preview true
-# cmd page-preview-up   :set user_preview_offset "scroll_up:20"; set preview true
+# cmd page-preview-down :set user_preview_command "scroll_down:20"; set preview true
+# cmd page-preview-up   :set user_preview_command "scroll_up:20"; set preview true
 
 # --- Key Mappings ---
 map g jump-preview-top
 map G jump-preview-bottom
 map J scroll-preview-down
 map K scroll-preview-up
-
 
 # --- Optional: Other useful lf settings ---
 set icons true
