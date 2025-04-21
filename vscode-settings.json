@@ -14,5 +14,9 @@
   "chat.agent.enabled": true,
   "github.copilot.chat.agent.thinkingTool": true,
   "chat.editor.wordWrap": "on",
-  "github.copilot.nextEditSuggestions.enabled": true
+  "github.copilot.nextEditSuggestions.enabled": true,
+  "mcp": {
+    "servers": {
+    }
+  }
 }
