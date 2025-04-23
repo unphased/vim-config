@@ -1158,7 +1158,8 @@ local telescope_builtin = safeRequire("telescope.builtin")
 -- hard to believe ctrl+G was not already bound by vim
 
 vim.keymap.set('n', '<c-p>', function() require('fzf-lua').files() end, { desc = "fzf-lua Files"})
-vim.keymap.set('n', '<f6>', ":SessionSearch<CR>", { desc = "browse sessions"})
+vim.keymap.set('n', '<f7>', ":SessionSearch<CR>", { desc = "browse sessions"})
+vim.keymap.set('n', '<f6>', function() require('fzf-lua').oldfiles() end, { desc = "fzf-lua Recent Files"})
 vim.keymap.set('n', '<leader>g', function () require('fzf-lua').live_grep() end, { desc = "fzf-lua Live Grep" })
 vim.keymap.set('n', '<leader>h', function () require('fzf-lua').live_grep_native() end, { desc = "fzf-lua Live Grep Native (more performant)" })
 
