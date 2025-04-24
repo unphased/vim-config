@@ -18,5 +18,9 @@
   "mcp": {
     "servers": {
     }
-  }
+  },
+  "workbench.editor.limit.enabled": true,
+  "workbench.editor.limit.value": 5,
+  "git.blame.editorDecoration.enabled": true,
+  "git.blame.statusBarItem.enabled": false,
 }
