@@ -1,0 +1,9 @@
+[preview]
+max_width = 2000
+max_height = 2000
+
+[manager]
+linemode = "btime"
+show_hidden = true
+ratio = [1,2,5]
+
