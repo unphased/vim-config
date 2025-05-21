@@ -3223,11 +3223,11 @@ vim.api.nvim_create_user_command('TermHl', function()
 end, { desc = 'Highlights ANSI termcodes in curbuf' })
 
 
--- FOLDING! https://www.jackfranklin.co.uk/blog/code-folding-in-vim-neovim/
-vim.opt.foldmethod = "expr"
-vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
-vim.opt.foldtext = ""
-vim.opt.foldcolumn = "auto"
-vim.opt.foldlevel = 99
-vim.opt.foldlevelstart = 2
-vim.opt.foldnestmax = 8
+-- FOLDING https://www.jackfranklin.co.uk/blog/code-folding-in-vim-neovim/
+-- vim.opt.foldmethod = "expr"
+-- vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+-- vim.opt.foldtext = ""
+-- vim.opt.foldcolumn = "auto"
+-- vim.opt.foldlevel = 99
+-- vim.opt.foldlevelstart = 2
+-- vim.opt.foldnestmax = 8

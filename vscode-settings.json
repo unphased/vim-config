@@ -3,7 +3,6 @@
     "asvetliakov.vscode-neovim": 1
   },
   "vscode-neovim.neovimInitVimPaths.darwin": "/Users/slu/.vim/nvim/init.vscode.vim",
-  "terminal.integrated.scrollback": 10000,
   "git.autofetch": true,
   "sonarlint.connectedMode.connections.sonarqube": [
     {
@@ -23,4 +22,5 @@
   "workbench.editor.limit.value": 5,
   "git.blame.editorDecoration.enabled": true,
   "git.blame.statusBarItem.enabled": false,
+  "terminal.integrated.scrollback": 20000,
 }

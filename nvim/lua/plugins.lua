@@ -728,5 +728,6 @@ return {
       auto_save = true
       -- log_level = 'debug',
     }
-  }
+  },
+  'skwee357/nvim-prose'
 }
