@@ -8,8 +8,8 @@ show_hidden = true
 ratio = [1,2,5]
 
 prepend_preloaders = [
-    { name = "*.arw", run = "magick" }, 
+    { name = "*.ARW", run = "magick" }, 
 ]
 prepend_previewers = [
-    { name = "*.arw", run = "magick" }, 
+    { name = "*.ARW", run = "magick" }, 
 ]
