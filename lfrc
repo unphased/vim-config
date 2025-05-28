@@ -51,19 +51,27 @@ map O $mimeopen --ask $f
 
 cmd open ${{
     set -f
-    filesize=$(stat -f%z "$f")
+    # ── helpers ─────────────────────────────────────────────
+    mime=$(file --mime-type -Lb "$f")
+    size=$( { stat -c%s "$f" 2>/dev/null || stat -f%z "$f"; } )
+
     case "$f" in
-        *.json)
-            jq . "$f" | bat --paging=always --file-name "$f"
-            ;;
-        *.log|*.log.[0-9]*)
-            bat --paging=always "$f"
-            ;;
+        # 1) force *.log and rotated logs to bat
+        *.log|*.log.[0-9]*) bat --paging=always "$f" ;;
+
+        # 2) pretty-print JSON then bat
+        *.json) jq . "$f" | bat --paging=always --file-name "$f" ;;
+
+        # 3) any other file
         *)
-            if [ "$filesize" -gt 2097152 ]; then
+            # -- binary?  show hex dump
+            if [ "${mime%%/*}" != "text" ]; then
+                xxd "$f" | less -R
+            # -- >2 MB?  still text → bat
+            elif [ "$size" -gt 2097152 ]; then
                 bat --paging=always "$f"
+            # -- small text → open in Neovim
             else
-                # echo "Launching: nvim $f" >> ~/.lf_launches.log
                 nvim "$f"
             fi
             ;;
