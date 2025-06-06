@@ -97,7 +97,8 @@ vim.keymap.set("i", "<4-LeftMouse>", "<Nop>")
 -- Remember: I map at the terminal level ctrl+BS, alt/opt+BS both to ^[^?, so binds should use
 -- <m-bs>. I'm not sure how this works on windows terminal as well, but it does. It implements a
 -- stronger normal mode move back via backspace
-vim.keymap.set("n", "<M-BS>", "B")
+-- vim.keymap.set("n", "<M-BS>", "B")
+vim.keymap.set({ "n", "v" }, "<BS>", "<c-u>")
 -- word delete. Note that <Cmd>normal db does NOT work because exiting normal mode puts the cursor at the wrong spot
 vim.keymap.set("i", "<M-BS>", "<C-W>")
 -- command mode word delete
@@ -204,7 +205,8 @@ vim.keymap.set({ "c" }, "<F10>", "<c-c>")
 -- vim.keymap.set({ "n", "v" }, "<bs>", "b")
 -- consistency with pagers in normal mode
 vim.keymap.set({ "n", "v" }, " ", "<c-d>")
-vim.keymap.set({ "n", "v" }, "b", "<c-u>")
+
+-- vim.keymap.set({ "n", "v" }, "b", "<c-u>")
 
 ----- the below is better to just leave as-is for original B behavior. the <BS> is what does b...
 -- vim.keymap.set({ "n", "v" }, "B", "b")
@@ -2266,7 +2268,7 @@ safeRequire('treesitter-context').setup{
 -- nvim-spider
 vim.keymap.set({"n", "o", "x"}, "w", "<cmd>lua require('spider').motion('w')<CR>", { desc = "Spider-w (hit sub words, skip to word chars)" })
 vim.keymap.set({"n", "o", "x"}, "e", "<cmd>lua require('spider').motion('e')<CR>", { desc = "Spider-e (hit sub words, skip to word chars)" })
-vim.keymap.set({"n", "o", "x"}, "<BS>", "<cmd>lua require('spider').motion('b')<CR>", { desc = "Spider-b (hit sub words, skip to word chars)" })
+-- vim.keymap.set({"n", "o", "x"}, "<BS>", "<cmd>lua require('spider').motion('b')<CR>", { desc = "Spider-b (hit sub words, skip to word chars)" })
 -- normally there is a ge map but i never use ge and don't see it in the future either.
 
 -- Syntax Tree Surfer
