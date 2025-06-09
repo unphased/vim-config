@@ -1857,7 +1857,10 @@ end
   vim.keymap.set('n', '<leader>ca', vim.lsp.with( vim.lsp.buf.code_action, {border = nil} ), ext(bufopts, "desc", "Code Action Menu"))
   vim.keymap.set('x', '<leader>ca', vim.lsp.buf.code_action, ext(bufopts, "desc", "Code Action Menu"))
 
-require("mason-lspconfig").setup_handlers {
+  ---- THESE ARE THE OLD setup_handlers config, they should get converted into the following format: https://github.com/mason-org/mason-lspconfig.nvim/issues/545#issuecomment-2925270862
+
+  --[[
+
 --   -- The first entry (without a key) will be the default handler
 --   -- and will be called for each installed server that doesn't have
 --   -- a dedicated handler.
@@ -1965,6 +1968,7 @@ require("mason-lspconfig").setup_handlers {
 
 --
 }
+--]]
 
 local lspconf_util = require 'lspconfig.util'
 local function get_typescript_server_path(root_dir)
