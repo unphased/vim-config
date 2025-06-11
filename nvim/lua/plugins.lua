@@ -775,7 +775,7 @@ return {
   -- 'mfussenegger/nvim-dap-python',
   {
     -- Treat your local directory as a plugin
-    'indicator', -- This name matches the directory in lua/
+    'indicator', -- This name matches the directory in lua/projects/
     -- Optional: Specify configuration options
     opts = {
       -- You can override defaults here, e.g.:
