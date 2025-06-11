@@ -2710,7 +2710,10 @@ vim.api.nvim_create_autocmd({"VimLeavePre", "BufEnter"}, {
 
 local function nvim_interaction_log(ev)
   vim.schedule(function()
-    local cmd = {vim.env.HOME .. "/util/nvim-interaction-log.sh", tostring(vim.fn.getpid()), vim.v.servername, vim.fn.getcwd(), ev.file, ev.event, vim.g.neovide}
+    local cursor_pos = vim.api.nvim_win_get_cursor(0)
+    local line = tostring(cursor_pos[1])
+    local col = tostring(cursor_pos[2])
+    local cmd = {vim.env.HOME .. "/util/nvim-interaction-log.sh", tostring(vim.fn.getpid()), vim.v.servername, vim.fn.getcwd(), ev.file, ev.event, vim.g.neovide, line, col}
     local ret = vim.fn.system(cmd)
   end)
 end
