@@ -2708,6 +2708,17 @@ vim.api.nvim_create_autocmd({"VimLeavePre", "BufEnter"}, {
   callback = nvim_state_update
 })
 
+local function nvim_interaction_log(ev)
+  vim.schedule(function()
+    local cmd = {vim.env.HOME .. "/util/nvim-interaction-log.sh", tostring(vim.fn.getpid()), vim.v.servername, vim.fn.getcwd(), ev.file, ev.event, vim.g.neovide}
+    local ret = vim.fn.system(cmd)
+  end)
+end
+
+vim.api.nvim_create_autocmd({"CursorMovedI", "CursorMoved"}, {
+  callback = debounce(nvim_interaction_log, 200)
+})
+
 -- vim.api.nvim_create_autocmd({"VimLeavePre", "VimEnter"}, {
 --   callback = nvim_state_update
 -- })
