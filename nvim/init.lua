@@ -3237,3 +3237,5 @@ end, { desc = 'Highlights ANSI termcodes in curbuf' })
 -- vim.opt.foldlevel = 99
 -- vim.opt.foldlevelstart = 2
 -- vim.opt.foldnestmax = 8
+
+require("github-preview").setup({})

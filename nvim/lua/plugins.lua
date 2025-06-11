@@ -258,22 +258,78 @@ return {
       ]])
     end
   },
+  -- {
+  --   "iamcco/markdown-preview.nvim",
+  --   build = function() vim.fn["mkdp#util#install"]() end,
+  --   init = function ()
+  --     vim.g.mkdp_auto_start = 0
+  --     vim.g.mkdp_auto_close = 0
+  --     vim.g.mkdp_refresh_slow = 0
+  --     vim.g.mkdp_command_for_global = 0
+  --     vim.g.mkdp_echo_preview_url = 1
+  --     vim.g.mkdp_page_title = "Markdown Preview"
+  --     --- below is for debug, not sure if it works tho
+  --     -- vim.cmd([[
+  --     --   let $NVIM_MKDP_LOG_FILE = $HOME . '/.tmp/mkdp-log.log'
+  --     --   let $NVIM_MKDP_LOG_LEVEL = 'debug'
+  --     -- ]])
+  --   end
+  -- },
   {
-    "iamcco/markdown-preview.nvim",
-    build = function() vim.fn["mkdp#util#install"]() end,
-    init = function ()
-      vim.g.mkdp_auto_start = 0
-      vim.g.mkdp_auto_close = 0
-      vim.g.mkdp_refresh_slow = 0
-      vim.g.mkdp_command_for_global = 0
-      vim.g.mkdp_echo_preview_url = 1
-      vim.g.mkdp_page_title = "Markdown Preview"
-      --- below is for debug, not sure if it works tho
-      -- vim.cmd([[
-      --   let $NVIM_MKDP_LOG_FILE = $HOME . '/.tmp/mkdp-log.log'
-      --   let $NVIM_MKDP_LOG_LEVEL = 'debug'
-      -- ]])
-    end
+    "wallpants/github-preview.nvim",
+    dir = '~/github-preview.nvim', -- Or the full path to your local clone
+    cmd = { "GithubPreviewToggle" },
+    keys = { "<leader>mpt" },
+    opts = {
+      host = "localhost",
+
+      -- port used by local server
+      port = 6041,
+
+      -- set to "true" to force single-file mode & disable repository mode
+      single_file = false,
+
+      theme = {
+        -- "system" | "light" | "dark"
+        name = "system",
+        high_contrast = false,
+      },
+
+      -- define how to render <details> tags on init/content-change
+      -- true: <details> tags are rendered open
+      -- false: <details> tags are rendered closed
+      details_tags_open = true,
+
+      cursor_line = {
+        disable = false,
+
+        -- CSS color
+        -- if you provide an invalid value, cursorline will be invisible
+        color = "#c86414",
+        opacity = 0.2,
+      },
+
+      scroll = {
+        disable = false,
+
+        -- Between 0 and 100
+        -- VERY LOW and VERY HIGH numbers might result in cursorline out of screen
+        top_offset_pct = 35,
+      },
+
+      -- for debugging
+      -- nil | "debug" | "verbose"
+      log_level = "debug",
+    },
+    config = function(_, opts)
+        local gpreview = require("github-preview")
+        gpreview.setup(opts)
+
+        local fns = gpreview.fns
+        vim.keymap.set("n", "<leader>mpt", fns.toggle)
+        vim.keymap.set("n", "<leader>mps", fns.single_file_toggle)
+        vim.keymap.set("n", "<leader>mpd", fns.details_tags_toggle)
+    end,
   },
   {
     "folke/which-key.nvim",
@@ -572,16 +628,37 @@ return {
   --   end
   -- },
   {
-    'MeanderingProgrammer/render-markdown.nvim',
-    opts = {
-      code = {
-        -- left_pad = 3
-      }
-    },
-    dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.nvim' }, -- if you use the mini.nvim suite
-    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.icons' }, -- if you use standalone mini plugins
-    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
+    "OXY2DEV/markview.nvim",
+    lazy = false,
+
+    -- For blink.cmp's completion
+    -- source
+    -- dependencies = {
+    --     "saghen/blink.cmp"
+    -- },
   },
+  -- {
+  --   'MeanderingProgrammer/render-markdown.nvim',
+  --   opts = {
+  --     code = {
+  --       -- left_pad = 3
+  --     }
+  --   },
+  --   dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.nvim' }, -- if you use the mini.nvim suite
+  --   -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.icons' }, -- if you use standalone mini plugins
+  --   -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
+  -- },
+
+  -- {
+  --   'brianhuster/live-preview.nvim',
+  --   dir = '~/live-preview.nvim', -- Or the full path to your local clone
+  --   dependencies = {
+  --       -- You can choose one of the following pickers
+  --       'nvim-telescope/telescope.nvim',
+  --       'ibhagwan/fzf-lua',
+  --       'echasnovski/mini.pick',
+  --   },
+  -- },
 
   {
     "jake-stewart/multicursor.nvim",
