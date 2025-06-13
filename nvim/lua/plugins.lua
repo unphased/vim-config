@@ -319,7 +319,7 @@ return {
 
       -- for debugging
       -- nil | "debug" | "verbose"
-      log_level = "debug",
+      -- log_level = "debug",
     },
     config = function(_, opts)
         local gpreview = require("github-preview")
