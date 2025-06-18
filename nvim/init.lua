@@ -3343,7 +3343,7 @@ vnoremap <leader>ud :call DecodeURIComponent()<CR>
 vim.api.nvim_create_autocmd({"InsertLeave", "InsertEnter"}, {
   pattern = "*",
   callback = function()
-    if vim.api.nvim_buf_line_count(0) > 10000 then vim.cmd("TSToggle highlight") end
+    if vim.api.nvim_buf_line_count(0) > 10000 then vim.cmd("TSBufDisable highlight") end
   end
 })
 
