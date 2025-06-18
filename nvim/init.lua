@@ -2806,7 +2806,7 @@ local function on_buf_write_post(ev)
     local old_file_path = vim.fn.tempname()
     local new_file_path = vim.fn.tempname()
 
-    vim.fn.writefile(pre_save_lines, old_file_path)
+    vim.fn.writefile(previous_lines, old_file_path)
     vim.fn.writefile(current_lines, new_file_path)
 
     -- Using -U0 for unified format with 0 context lines makes parsing simpler
