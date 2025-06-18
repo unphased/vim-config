@@ -2729,9 +2729,9 @@ local function nvim_interaction_log(details_or_ev)
     local line = tostring(cursor_pos[1])
     local col = tostring(cursor_pos[2])
     
-    local changed_chars_val = details_or_ev.changed_chars or "0"
-    local changed_lines_val = details_or_ev.changed_lines or "0" -- New field
-
+    local changed_chars_arg = details_or_ev.changed_chars
+    local changed_lines_arg = details_or_ev.changed_lines
+    
     local cmd_base = {
       vim.env.HOME .. "/util/nvim-interaction-log.sh",
       pid,
@@ -2798,54 +2798,28 @@ local function on_buf_write_post(ev)
   local current_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
   local previous_lines = _G.last_known_saved_content[bufnr]
   
-  local total_lines_changed = 0
-  local total_chars_changed = 0
+  local lines_added = 0
+  local lines_deleted = 0
+  local chars_added = 0
+  local chars_deleted = 0
 
   if previous_lines == nil then
     log("on_buf_write_post: previous_lines is nil for bufnr", bufnr, "- treating all current content as new.")
-    total_lines_changed = #current_lines
     if #current_lines == 1 and current_lines[1] == "" then -- Empty buffer
-        total_lines_changed = 0
-        total_chars_changed = 0 -- string.len("") is 0
+        lines_added = 0
+        chars_added = 0
     else
+        lines_added = #current_lines
         for _, line_content in ipairs(current_lines) do
-            total_chars_changed = total_chars_changed + string.len(line_content)
+            chars_added = chars_added + string.len(line_content)
         end
     end
-    -- Correct total_lines_changed if it was a single empty line initially counted as 1
-    if #current_lines == 1 and current_lines[1] == "" and total_lines_changed == 1 then
-        total_lines_changed = 0
+    -- Correct lines_added if it was a single empty line initially counted as 1
+    if #current_lines == 1 and current_lines[1] == "" and lines_added == 1 then
+        lines_added = 0
     end
   else
     log("on_buf_write_post: previous_lines length", #previous_lines, "current_lines length", #current_lines)
-    
-    local function get_char_level_diff_stats(str1, str2)
-        local chars1 = {}
-        for char_val in string.gmatch(str1, ".") do table.insert(chars1, char_val) end
-        if #chars1 == 0 then table.insert(chars1, "") end
-
-        local chars2 = {}
-        for char_val in string.gmatch(str2, ".") do table.insert(chars2, char_val) end
-        if #chars2 == 0 then table.insert(chars2, "") end
-
-        local temp_file1_char = vim.fn.tempname()
-        local temp_file2_char = vim.fn.tempname()
-        vim.fn.writefile(chars1, temp_file1_char)
-        vim.fn.writefile(chars2, temp_file2_char)
-
-        local char_diff_output_raw = vim.fn.system({"diff", "-U0", temp_file1_char, temp_file2_char})
-        vim.fn.delete(temp_file1_char)
-        vim.fn.delete(temp_file2_char)
-
-        local char_level_changes = 0
-        for line_content_char_diff in string.gmatch(char_diff_output_raw, "[^\r\n]+") do
-            if (string.sub(line_content_char_diff, 1, 1) == '+' and string.sub(line_content_char_diff, 1, 3) ~= '+++') or
-               (string.sub(line_content_char_diff, 1, 1) == '-' and string.sub(line_content_char_diff, 1, 3) ~= '---') then
-                char_level_changes = char_level_changes + 1
-            end
-        end
-        return char_level_changes
-    end
 
     local old_file_path = vim.fn.tempname()
     local new_file_path = vim.fn.tempname()
@@ -2857,74 +2831,47 @@ local function on_buf_write_post(ev)
     vim.fn.delete(new_file_path)
     log("on_buf_write_post: line_diff_output_raw", line_diff_output_raw)
 
-    local pending_deletions = {}
-    local pending_additions = {}
+    local pending_deletions_content = {}
+    local pending_additions_content = {}
     
-    local function process_pending_changes()
-        local num_del = #pending_deletions
-        local num_add = #pending_additions
-        local num_modified = math.min(num_del, num_add)
+    local function process_pending_block_changes()
+        local num_del_lines_in_block = #pending_deletions_content
+        local num_add_lines_in_block = #pending_additions_content
+        
+        lines_deleted = lines_deleted + num_del_lines_in_block
+        lines_added = lines_added + num_add_lines_in_block
 
-        log("process_pending_changes: num_del", num_del, "num_add", num_add, "num_modified", num_modified)
-
-        for i = 1, num_modified do
-            local old_line_content = pending_deletions[i]
-            local new_line_content = pending_additions[i]
-            local char_diff_count = get_char_level_diff_stats(old_line_content, new_line_content)
-            local combined_len = string.len(old_line_content) + string.len(new_line_content)
-            
-            if char_diff_count < (combined_len * 0.75) and combined_len > 0 then
-                total_chars_changed = total_chars_changed + char_diff_count
-                log("process_pending_changes: modified line (small change) old='", old_line_content, "' new='", new_line_content, "' char_diff_count=", char_diff_count)
-            else
-                total_chars_changed = total_chars_changed + combined_len
-                log("process_pending_changes: modified line (large change/replacement) old='", old_line_content, "' new='", new_line_content, "' combined_len=", combined_len)
-            end
+        for _, line_content in ipairs(pending_deletions_content) do
+            chars_deleted = chars_deleted + string.len(line_content)
         end
-
-        for i = num_modified + 1, num_del do
-            local deleted_line_content = pending_deletions[i]
-            total_chars_changed = total_chars_changed + string.len(deleted_line_content)
-            log("process_pending_changes: pure deletion '", deleted_line_content, "' len=", string.len(deleted_line_content))
-        end
-
-        for i = num_modified + 1, num_add do
-            local added_line_content = pending_additions[i]
-            total_chars_changed = total_chars_changed + string.len(added_line_content)
-            log("process_pending_changes: pure addition '", added_line_content, "' len=", string.len(added_line_content))
+        for _, line_content in ipairs(pending_additions_content) do
+            chars_added = chars_added + string.len(line_content)
         end
         
-        pending_deletions = {}
-        pending_additions = {}
+        pending_deletions_content = {}
+        pending_additions_content = {}
     end
 
     local diff_lines_iterator = string.gmatch(line_diff_output_raw, "[^\r\n]+")
     local has_diff_output = false
     for line_content in diff_lines_iterator do
         has_diff_output = true
-        log("on_buf_write_post: processing diff line: '", line_content, "', current total_lines_changed:", total_lines_changed)
         if string.sub(line_content, 1, 3) == '---' or string.sub(line_content, 1, 3) == '+++' then
             -- Skip header
-            log("on_buf_write_post: skipping header line")
         elseif string.sub(line_content, 1, 2) == '@@' then
-            log("on_buf_write_post: processing hunk @@, calling process_pending_changes()")
-            process_pending_changes() 
+            process_pending_block_changes() 
         elseif string.sub(line_content, 1, 1) == '-' then
-            table.insert(pending_deletions, string.sub(line_content, 2))
-            total_lines_changed = total_lines_changed + 1
-            log("on_buf_write_post: counted deleted line. New total_lines_changed:", total_lines_changed)
+            table.insert(pending_deletions_content, string.sub(line_content, 2))
         elseif string.sub(line_content, 1, 1) == '+' then
-            table.insert(pending_additions, string.sub(line_content, 2))
-            total_lines_changed = total_lines_changed + 1
-            log("on_buf_write_post: counted added line. New total_lines_changed:", total_lines_changed)
+            table.insert(pending_additions_content, string.sub(line_content, 2))
         else
             log("on_buf_write_post: Unexpected diff line format:", line_content)
         end
     end
     
     if has_diff_output then
-        process_pending_changes() -- Process any remaining changes
-    else -- No diff output means files might be identical
+        process_pending_block_changes() -- Process any remaining changes from the last block
+    else -- No diff output means files might be identical or only whitespace changes not caught by -U0
         local identical = true
         if #previous_lines == #current_lines then
             for i = 1, #previous_lines do
@@ -2938,28 +2885,33 @@ local function on_buf_write_post(ev)
 
         if identical then
             log("on_buf_write_post: Files are identical based on content check, no changes.")
-            total_lines_changed = 0
-            total_chars_changed = 0
+            lines_added, lines_deleted, chars_added, chars_deleted = 0,0,0,0
         else
-            -- This case should be rare if diff works correctly.
-            -- Fallback: if diff was empty but files differ, sum of lengths.
-            log("on_buf_write_post: WARNING - diff output empty but files differ. Fallback char count.")
-            local prev_char_count_fallback = string.len(table.concat(previous_lines, "\n"))
-            local curr_char_count_fallback = string.len(table.concat(current_lines, "\n"))
-            total_chars_changed = prev_char_count_fallback + curr_char_count_fallback -- Treat as full replacement
-            total_lines_changed = #previous_lines + #current_lines -- Crude line change count
+            log("on_buf_write_post: WARNING - diff output empty but files differ. Fallback char/line count.")
+            for _, line_content in ipairs(previous_lines) do
+                chars_deleted = chars_deleted + string.len(line_content)
+            end
+            lines_deleted = #previous_lines
+            for _, line_content in ipairs(current_lines) do
+                chars_added = chars_added + string.len(line_content)
+            end
+            lines_added = #current_lines
         end
     end
   end
 
   local filepath = vim.api.nvim_buf_get_name(bufnr)
-  log("on_buf_write_post: final total_lines_changed", total_lines_changed, "final total_chars_changed", total_chars_changed)
+  
+  local changed_chars_str = string.format("+%d-%d", chars_added, chars_deleted)
+  local changed_lines_str = string.format("+%d-%d", lines_added, lines_deleted)
+
+  log("on_buf_write_post: file", filepath, "event", ev.event, "chars", changed_chars_str, "lines", changed_lines_str)
 
   nvim_interaction_log({
     file = filepath,
     event = ev.event, -- "BufWritePost"
-    changed_chars = total_chars_changed,
-    changed_lines = total_lines_changed
+    changed_chars = changed_chars_str,
+    changed_lines = changed_lines_str
   })
 
   _G.last_known_saved_content[bufnr] = current_lines
