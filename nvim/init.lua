@@ -2798,6 +2798,10 @@ local function on_buf_write_post(ev)
   if not bufnr or bufnr == 0 then bufnr = vim.api.nvim_get_current_buf() end
   log("on_buf_write_post: bufnr", bufnr, "event", ev)
 
+  local function trim(s)
+    return s:match("^%s*(.-)%s*$")
+  end
+
   local current_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
   local previous_lines = _G.last_known_saved_content[bufnr]
   
@@ -2814,7 +2818,7 @@ local function on_buf_write_post(ev)
     else
         lines_added = #current_lines
         for _, line_content in ipairs(current_lines) do
-            chars_added = chars_added + string.len(line_content)
+            chars_added = chars_added + string.len(trim(line_content))
         end
     end
     -- Correct lines_added if it was a single empty line initially counted as 1
@@ -2845,10 +2849,10 @@ local function on_buf_write_post(ev)
         lines_added = lines_added + num_add_lines_in_block
 
         for _, line_content in ipairs(pending_deletions_content) do
-            chars_deleted = chars_deleted + string.len(line_content)
+            chars_deleted = chars_deleted + string.len(trim(line_content))
         end
         for _, line_content in ipairs(pending_additions_content) do
-            chars_added = chars_added + string.len(line_content)
+            chars_added = chars_added + string.len(trim(line_content))
         end
         
         pending_deletions_content = {}
@@ -2892,11 +2896,11 @@ local function on_buf_write_post(ev)
         else
             log("on_buf_write_post: WARNING - diff output empty but files differ. Fallback char/line count.")
             for _, line_content in ipairs(previous_lines) do
-                chars_deleted = chars_deleted + string.len(line_content)
+                chars_deleted = chars_deleted + string.len(trim(line_content))
             end
             lines_deleted = #previous_lines
             for _, line_content in ipairs(current_lines) do
-                chars_added = chars_added + string.len(line_content)
+                chars_added = chars_added + string.len(trim(line_content))
             end
             lines_added = #current_lines
         end
