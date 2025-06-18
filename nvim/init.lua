@@ -2718,6 +2718,13 @@ local function nvim_interaction_log(ev)
   end)
 end
 
+-- here i want to also track file save events as that is a strong indicator of my edit activity. i would like to somehow
+-- also track the amount of changed characters when saving. note that these would report my own human activity in
+-- contrast with changes made via aider. the nice thing is that i will be able to track that type of activity by
+-- looking at git commits.
+
+-- explore how to track saving and the amount of changed chars on save here and shove it into the interaction log AI!
+
 vim.api.nvim_create_autocmd({"CursorMovedI", "CursorMoved"}, {
   callback = debounce(nvim_interaction_log, 200)
 })
