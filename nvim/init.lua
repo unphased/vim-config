@@ -2723,15 +2723,15 @@ local function nvim_interaction_log(details_or_ev)
     end
 
     local event_type = details_or_ev.event
-    local neovide_status = vim.g.neovide
+    local is_neovide = vim.g.neovide
     
     local cursor_pos = vim.api.nvim_win_get_cursor(0)
     local line = tostring(cursor_pos[1])
     local col = tostring(cursor_pos[2])
     
     local changed_chars_val = details_or_ev.changed_chars or "0"
+    -- blah blah comment in one new line
     local changed_lines_val = details_or_ev.changed_lines or "0" -- New field
-    log("nvim_interaction_log: details_or_ev", details_or_ev, "changed_chars_val", changed_chars_val, "changed_lines_val", changed_lines_val)
 
     local cmd_base = {
       vim.env.HOME .. "/util/nvim-interaction-log.sh",
@@ -2740,7 +2740,7 @@ local function nvim_interaction_log(details_or_ev)
       cwd,
       filepath,
       event_type,
-      tostring(neovide_status),
+      tostring(is_neovide),
       line,
       col,
     }
@@ -2751,6 +2751,7 @@ local function nvim_interaction_log(details_or_ev)
     else
       cmd = vim.list_extend(vim.deepcopy(cmd_base), {tostring(changed_chars_val), tostring(changed_lines_val)})
     end
+    log("nvim_interaction_log: cmd", cmd)
     vim.fn.system(cmd)
   end)
 end
