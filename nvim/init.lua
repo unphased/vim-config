@@ -2747,21 +2747,46 @@ local function nvim_interaction_log(details_or_ev)
   end)
 end
 
-local function on_buf_write_pre()
-  local bufnr = vim.api.nvim_get_current_buf()
-  local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-  _G.pre_save_buffer_stats[bufnr] = string.len(table.concat(lines, "\n"))
+local function on_buf_write_pre(ev)
+  local bufnr = ev.buf
+  if not bufnr or bufnr == 0 then bufnr = vim.api.nvim_get_current_buf() end
+  _G.pre_save_buffer_stats[bufnr] = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
 end
 
 local function on_buf_write_post(ev)
-  local bufnr = vim.api.nvim_get_current_buf()
+  local bufnr = ev.buf
+  if not bufnr or bufnr == 0 then bufnr = vim.api.nvim_get_current_buf() end
+
   local current_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-  local current_total_chars = string.len(table.concat(current_lines, "\n"))
-  
-  local pre_save_chars = _G.pre_save_buffer_stats[bufnr]
-  local changed_chars = 0
-  if pre_save_chars then
-    changed_chars = current_total_chars - pre_save_chars
+  local pre_save_lines = _G.pre_save_buffer_stats[bufnr]
+  local changed_lines_count = 0
+
+  if pre_save_lines then
+    local old_file_path = vim.fn.tempname()
+    local new_file_path = vim.fn.tempname()
+
+    vim.fn.writefile(pre_save_lines, old_file_path)
+    vim.fn.writefile(current_lines, new_file_path)
+
+    -- Using -U0 for unified format with 0 context lines makes parsing simpler
+    local diff_command_output = vim.fn.system({"diff", "-U0", old_file_path, new_file_path})
+    
+    vim.fn.delete(old_file_path)
+    vim.fn.delete(new_file_path)
+
+    local diff_output_lines = vim.split(diff_command_output, "\n")
+    local added_lines = 0
+    local deleted_lines = 0
+
+    for _, line_content in ipairs(diff_output_lines) do
+      if string.sub(line_content, 1, 1) == '+' and string.sub(line_content, 1, 3) ~= '+++' then
+        added_lines = added_lines + 1
+      elseif string.sub(line_content, 1, 1) == '-' and string.sub(line_content, 1, 3) ~= '---' then
+        deleted_lines = deleted_lines + 1
+      end
+    end
+    changed_lines_count = added_lines + deleted_lines
+    
     _G.pre_save_buffer_stats[bufnr] = nil -- Clean up
   end
 
@@ -2770,7 +2795,7 @@ local function on_buf_write_post(ev)
   nvim_interaction_log({
     file = filepath,
     event = ev.event, -- "BufWritePost"
-    changed_chars = changed_chars
+    changed_chars = changed_lines_count -- This now represents changed lines
   })
 end
 
@@ -2784,10 +2809,12 @@ vim.api.nvim_create_autocmd({"CursorMovedI", "CursorMoved"}, {
 })
 
 vim.api.nvim_create_autocmd({"BufWritePre"}, {
-  callback = on_buf_write_pre
+  callback = on_buf_write_pre,
+  pattern = "*",
 })
 vim.api.nvim_create_autocmd({"BufWritePost"}, {
-  callback = on_buf_write_post
+  callback = on_buf_write_post,
+  pattern = "*",
 })
 
 -- vim.api.nvim_create_autocmd({"VimLeavePre", "VimEnter"}, {
