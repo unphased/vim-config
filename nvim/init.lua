@@ -2708,7 +2708,7 @@ vim.api.nvim_create_autocmd({"VimLeavePre", "BufEnter"}, {
   callback = nvim_state_update
 })
 
-_G.pre_save_buffer_stats = {}
+_G.last_known_saved_content = {}
 
 local function nvim_interaction_log(details_or_ev)
   vim.schedule(function()
@@ -2748,10 +2748,39 @@ local function nvim_interaction_log(details_or_ev)
   end)
 end
 
-local function on_buf_write_pre(ev)
+local function on_buf_read_post(ev)
   local bufnr = ev.buf
   if not bufnr or bufnr == 0 then bufnr = vim.api.nvim_get_current_buf() end
-  _G.pre_save_buffer_stats[bufnr] = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+  _G.last_known_saved_content[bufnr] = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+  log("on_buf_read_post: bufnr", bufnr, "baseline set, #lines", #_G.last_known_saved_content[bufnr])
+end
+
+local function on_buf_add(ev)
+  local bufnr = ev.buf
+  if not bufnr or bufnr == 0 then bufnr = vim.api.nvim_get_current_buf() end
+  -- Only initialize if not already set (e.g. by BufReadPost if buffer was loaded then added)
+  if _G.last_known_saved_content[bufnr] == nil then
+    if vim.api.nvim_buf_get_name(bufnr) == "" then
+      _G.last_known_saved_content[bufnr] = {""} -- Represents an empty new buffer
+      log("on_buf_add: new unnamed bufnr", bufnr, "set to empty baseline")
+    else
+      -- This case might occur for named buffers added without BufReadPost (e.g. :edit non_existent_file which creates a new buffer)
+      -- Capture its current state as baseline. If it's truly a new file, lines will be {""}
+      _G.last_known_saved_content[bufnr] = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+      log("on_buf_add: named bufnr", bufnr, "baseline set, #lines", #_G.last_known_saved_content[bufnr])
+    end
+  else
+    log("on_buf_add: bufnr", bufnr, "baseline already exists, not overwriting")
+  end
+end
+
+local function on_buf_delete(ev)
+  local bufnr = ev.buf
+  if not bufnr or bufnr == 0 then return end -- Should not happen with BufDelete
+  if _G.last_known_saved_content[bufnr] then
+    _G.last_known_saved_content[bufnr] = nil
+    log("on_buf_delete: bufnr", bufnr, "cleared baseline")
+  end
 end
 
 local function on_buf_write_post(ev)
@@ -2760,12 +2789,20 @@ local function on_buf_write_post(ev)
   log("on_buf_write_post: bufnr", bufnr, "event", ev)
 
   local current_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-  local pre_save_lines = _G.pre_save_buffer_stats[bufnr]
+  local previous_lines = _G.last_known_saved_content[bufnr]
   local changed_lines_count = 0
-  log("on_buf_write_post: pre_save_lines exists?", pre_save_lines ~= nil)
-
-  if pre_save_lines then
-    log("on_buf_write_post: pre_save_lines length", #pre_save_lines, "current_lines length", #current_lines)
+  
+  if previous_lines == nil then
+    log("on_buf_write_post: previous_lines is nil for bufnr", bufnr, "- treating as all new lines. #current_lines", #current_lines)
+    changed_lines_count = #current_lines
+    -- If it's an empty new file that was saved empty, current_lines might be {""} which has length 1.
+    -- If it was truly empty and saved, diffing {""} and {""} would be 0.
+    -- So if #current_lines is 1 and current_lines[1] is "", it's 0 changes.
+    if #current_lines == 1 and current_lines[1] == "" then
+        changed_lines_count = 0
+    end
+  else
+    log("on_buf_write_post: previous_lines length", #previous_lines, "current_lines length", #current_lines)
     local old_file_path = vim.fn.tempname()
     local new_file_path = vim.fn.tempname()
 
@@ -2792,10 +2829,6 @@ local function on_buf_write_post(ev)
     end
     changed_lines_count = added_lines + deleted_lines
     log("on_buf_write_post: added_lines", added_lines, "deleted_lines", deleted_lines, "changed_lines_count", changed_lines_count)
-    
-    _G.pre_save_buffer_stats[bufnr] = nil -- Clean up
-  else
-    log("on_buf_write_post: no pre_save_lines found for bufnr", bufnr)
   end
 
   local filepath = vim.api.nvim_buf_get_name(bufnr)
@@ -2806,6 +2839,10 @@ local function on_buf_write_post(ev)
     event = ev.event, -- "BufWritePost"
     changed_chars = changed_lines_count -- This now represents changed lines
   })
+
+  -- Update the baseline content for the next comparison AFTER diffing and logging
+  _G.last_known_saved_content[bufnr] = current_lines
+  log("on_buf_write_post: updated baseline for bufnr", bufnr, "to #lines", #current_lines)
 end
 
 -- here i want to also track file save events as that is a strong indicator of my edit activity. i would like to somehow
@@ -2817,9 +2854,20 @@ vim.api.nvim_create_autocmd({"CursorMovedI", "CursorMoved"}, {
   callback = debounce(nvim_interaction_log, 200)
 })
 
-vim.api.nvim_create_autocmd({"BufWritePre"}, {
-  callback = on_buf_write_pre,
+vim.api.nvim_create_autocmd({"BufReadPost"}, {
+  callback = on_buf_read_post,
   pattern = "*",
+  desc = "Set baseline content after buffer is read"
+})
+vim.api.nvim_create_autocmd({"BufAdd"}, {
+  callback = on_buf_add,
+  pattern = "*",
+  desc = "Set baseline content for new buffers"
+})
+vim.api.nvim_create_autocmd({"BufDelete"}, {
+  callback = on_buf_delete,
+  pattern = "*",
+  desc = "Clear baseline content when buffer is deleted"
 })
 vim.api.nvim_create_autocmd({"BufWritePost"}, {
   callback = on_buf_write_post,
