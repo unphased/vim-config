@@ -2790,54 +2790,27 @@ local function on_buf_write_post(ev)
 
   local current_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
   local previous_lines = _G.last_known_saved_content[bufnr]
-  local changed_lines_count = 0
+  local changed_chars_count = 0
   
+  local current_total_chars = string.len(table.concat(current_lines, "\n"))
+
   if previous_lines == nil then
-    log("on_buf_write_post: previous_lines is nil for bufnr", bufnr, "- treating as all new lines. #current_lines", #current_lines)
-    changed_lines_count = #current_lines
-    -- If it's an empty new file that was saved empty, current_lines might be {""} which has length 1.
-    -- If it was truly empty and saved, diffing {""} and {""} would be 0.
-    -- So if #current_lines is 1 and current_lines[1] is "", it's 0 changes.
-    if #current_lines == 1 and current_lines[1] == "" then
-        changed_lines_count = 0
-    end
+    log("on_buf_write_post: previous_lines is nil for bufnr", bufnr, "- treating all current chars as changed. current_total_chars", current_total_chars)
+    changed_chars_count = current_total_chars
   else
-    log("on_buf_write_post: previous_lines length", #previous_lines, "current_lines length", #current_lines)
-    local old_file_path = vim.fn.tempname()
-    local new_file_path = vim.fn.tempname()
-
-    vim.fn.writefile(previous_lines, old_file_path)
-    vim.fn.writefile(current_lines, new_file_path)
-
-    -- Using -U0 for unified format with 0 context lines makes parsing simpler
-    local diff_command_output = vim.fn.system({"diff", "-U0", old_file_path, new_file_path})
-    log("on_buf_write_post: diff_command_output", diff_command_output)
-    
-    vim.fn.delete(old_file_path)
-    vim.fn.delete(new_file_path)
-
-    local diff_output_lines = vim.split(diff_command_output, "\n")
-    local added_lines = 0
-    local deleted_lines = 0
-
-    for _, line_content in ipairs(diff_output_lines) do
-      if string.sub(line_content, 1, 1) == '+' and string.sub(line_content, 1, 3) ~= '+++' then
-        added_lines = added_lines + 1
-      elseif string.sub(line_content, 1, 1) == '-' and string.sub(line_content, 1, 3) ~= '---' then
-        deleted_lines = deleted_lines + 1
-      end
-    end
-    changed_lines_count = added_lines + deleted_lines
-    log("on_buf_write_post: added_lines", added_lines, "deleted_lines", deleted_lines, "changed_lines_count", changed_lines_count)
+    local previous_total_chars = string.len(table.concat(previous_lines, "\n"))
+    log("on_buf_write_post: previous_total_chars", previous_total_chars, "current_total_chars", current_total_chars)
+    changed_chars_count = math.abs(current_total_chars - previous_total_chars)
+    log("on_buf_write_post: calculated changed_chars_count", changed_chars_count)
   end
 
   local filepath = vim.api.nvim_buf_get_name(bufnr)
-  log("on_buf_write_post: final changed_lines_count before calling nvim_interaction_log", changed_lines_count)
+  log("on_buf_write_post: final changed_chars_count before calling nvim_interaction_log", changed_chars_count)
 
   nvim_interaction_log({
     file = filepath,
     event = ev.event, -- "BufWritePost"
-    changed_chars = changed_lines_count -- This now represents changed lines
+    changed_chars = changed_chars_count
   })
 
   -- Update the baseline content for the next comparison AFTER diffing and logging
