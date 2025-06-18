@@ -2730,6 +2730,7 @@ local function nvim_interaction_log(details_or_ev)
     local col = tostring(cursor_pos[2])
     
     local changed_chars_val = details_or_ev.changed_chars or "0"
+    log("nvim_interaction_log: details_or_ev", details_or_ev, "changed_chars_val", changed_chars_val)
 
     local cmd = {
       vim.env.HOME .. "/util/nvim-interaction-log.sh",
@@ -2756,12 +2757,15 @@ end
 local function on_buf_write_post(ev)
   local bufnr = ev.buf
   if not bufnr or bufnr == 0 then bufnr = vim.api.nvim_get_current_buf() end
+  log("on_buf_write_post: bufnr", bufnr, "event", ev)
 
   local current_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
   local pre_save_lines = _G.pre_save_buffer_stats[bufnr]
   local changed_lines_count = 0
+  log("on_buf_write_post: pre_save_lines exists?", pre_save_lines ~= nil)
 
   if pre_save_lines then
+    log("on_buf_write_post: pre_save_lines length", #pre_save_lines, "current_lines length", #current_lines)
     local old_file_path = vim.fn.tempname()
     local new_file_path = vim.fn.tempname()
 
@@ -2770,6 +2774,7 @@ local function on_buf_write_post(ev)
 
     -- Using -U0 for unified format with 0 context lines makes parsing simpler
     local diff_command_output = vim.fn.system({"diff", "-U0", old_file_path, new_file_path})
+    log("on_buf_write_post: diff_command_output", diff_command_output)
     
     vim.fn.delete(old_file_path)
     vim.fn.delete(new_file_path)
@@ -2786,11 +2791,15 @@ local function on_buf_write_post(ev)
       end
     end
     changed_lines_count = added_lines + deleted_lines
+    log("on_buf_write_post: added_lines", added_lines, "deleted_lines", deleted_lines, "changed_lines_count", changed_lines_count)
     
     _G.pre_save_buffer_stats[bufnr] = nil -- Clean up
+  else
+    log("on_buf_write_post: no pre_save_lines found for bufnr", bufnr)
   end
 
   local filepath = vim.api.nvim_buf_get_name(bufnr)
+  log("on_buf_write_post: final changed_lines_count before calling nvim_interaction_log", changed_lines_count)
 
   nvim_interaction_log({
     file = filepath,
