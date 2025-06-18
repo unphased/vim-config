@@ -2733,7 +2733,7 @@ local function nvim_interaction_log(details_or_ev)
     local changed_lines_val = details_or_ev.changed_lines or "0" -- New field
     log("nvim_interaction_log: details_or_ev", details_or_ev, "changed_chars_val", changed_chars_val, "changed_lines_val", changed_lines_val)
 
-    local cmd = {
+    local cmd_base = {
       vim.env.HOME .. "/util/nvim-interaction-log.sh",
       pid,
       servername,
@@ -2743,9 +2743,14 @@ local function nvim_interaction_log(details_or_ev)
       tostring(neovide_status),
       line,
       col,
-      tostring(changed_chars_val),
-      tostring(changed_lines_val) -- Pass new field
     }
+
+    local cmd
+    if event_type == "CursorMoved" or event_type == "CursorMovedI" then
+      cmd = cmd_base
+    else
+      cmd = vim.list_extend(vim.deepcopy(cmd_base), {tostring(changed_chars_val), tostring(changed_lines_val)})
+    end
     vim.fn.system(cmd)
   end)
 end
