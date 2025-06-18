@@ -2671,6 +2671,11 @@ end
 -- instances in tmux sessions/windows/panes and what their server sockets are.
 
 -- helpful to record the files that are open in the nvim instances.
+
+local function trim(s)
+  return s:match("^%s*(.-)%s*$")
+end
+
 local function isFileBuffer(buf)
     -- Check if the buffer has a name and is listed
     local name = vim.fn.bufname(buf)
@@ -2709,6 +2714,7 @@ vim.api.nvim_create_autocmd({"VimLeavePre", "BufEnter"}, {
 })
 
 _G.last_known_saved_content = {}
+_G.insert_mode_start_content = {}
 
 local function nvim_interaction_log(details_or_ev)
   vim.schedule(function()
@@ -2797,10 +2803,6 @@ local function on_buf_write_post(ev)
   local bufnr = ev.buf
   if not bufnr or bufnr == 0 then bufnr = vim.api.nvim_get_current_buf() end
   log("on_buf_write_post: bufnr", bufnr, "event", ev)
-
-  local function trim(s)
-    return s:match("^%s*(.-)%s*$")
-  end
 
   local current_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
   local previous_lines = _G.last_known_saved_content[bufnr]
@@ -2926,6 +2928,149 @@ local function on_buf_write_post(ev)
   log("on_buf_write_post: updated baseline for bufnr", bufnr, "to #lines", #current_lines)
 end
 
+local function on_insert_enter(ev)
+  local bufnr = ev.buf
+  if not bufnr or bufnr == 0 then bufnr = vim.api.nvim_get_current_buf() end
+  log("on_insert_enter: bufnr", bufnr, "event", ev)
+
+  _G.insert_mode_start_content[bufnr] = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+  log("on_insert_enter: stored baseline for bufnr", bufnr, "to #lines", #_G.insert_mode_start_content[bufnr])
+
+  local filepath = vim.api.nvim_buf_get_name(bufnr)
+  nvim_interaction_log({
+    file = filepath,
+    event = ev.event, -- "InsertEnter"
+    changed_chars = "+0-0",
+    changed_lines = "+0-0"
+  })
+end
+
+local function on_insert_leave(ev)
+  local bufnr = ev.buf
+  if not bufnr or bufnr == 0 then bufnr = vim.api.nvim_get_current_buf() end
+  log("on_insert_leave: bufnr", bufnr, "event", ev)
+
+  local current_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+  local previous_lines = _G.insert_mode_start_content[bufnr]
+
+  local lines_added = 0
+  local lines_deleted = 0
+  local chars_added = 0
+  local chars_deleted = 0
+
+  if previous_lines == nil then
+    log("on_insert_leave: previous_lines is nil for bufnr", bufnr, "- treating all current content as new.")
+    if #current_lines == 1 and current_lines[1] == "" then -- Empty buffer
+        lines_added = 0
+        chars_added = 0
+    else
+        lines_added = #current_lines
+        for _, line_content in ipairs(current_lines) do
+            chars_added = chars_added + string.len(trim(line_content))
+        end
+    end
+    if #current_lines == 1 and current_lines[1] == "" and lines_added == 1 then
+        lines_added = 0 -- Correct if it was a single empty line
+    end
+  else
+    log("on_insert_leave: previous_lines length", #previous_lines, "current_lines length", #current_lines)
+    
+    local old_file_path = vim.fn.tempname()
+    local new_file_path = vim.fn.tempname()
+    vim.fn.writefile(previous_lines, old_file_path)
+    vim.fn.writefile(current_lines, new_file_path)
+
+    local line_diff_output_raw = vim.fn.system({"diff", "-U0", old_file_path, new_file_path})
+    vim.fn.delete(old_file_path)
+    vim.fn.delete(new_file_path)
+    -- log("on_insert_leave: line_diff_output_raw", line_diff_output_raw) -- Can be verbose
+
+    local pending_deletions_content = {}
+    local pending_additions_content = {}
+    
+    local function process_pending_block_changes()
+        local num_del_lines_in_block = #pending_deletions_content
+        local num_add_lines_in_block = #pending_additions_content
+        
+        lines_deleted = lines_deleted + num_del_lines_in_block
+        lines_added = lines_added + num_add_lines_in_block
+
+        for _, line_content in ipairs(pending_deletions_content) do
+            chars_deleted = chars_deleted + string.len(trim(line_content))
+        end
+        for _, line_content in ipairs(pending_additions_content) do
+            chars_added = chars_added + string.len(trim(line_content))
+        end
+        
+        pending_deletions_content = {}
+        pending_additions_content = {}
+    end
+
+    local diff_lines_iterator = string.gmatch(line_diff_output_raw, "[^\r\n]+")
+    local has_diff_output = false
+    for line_content in diff_lines_iterator do
+        has_diff_output = true
+        if string.sub(line_content, 1, 3) == '---' or string.sub(line_content, 1, 3) == '+++' then
+            -- Skip header
+        elseif string.sub(line_content, 1, 2) == '@@' then
+            process_pending_block_changes() 
+        elseif string.sub(line_content, 1, 1) == '-' then
+            table.insert(pending_deletions_content, string.sub(line_content, 2))
+        elseif string.sub(line_content, 1, 1) == '+' then
+            table.insert(pending_additions_content, string.sub(line_content, 2))
+        else
+            log("on_insert_leave: Unexpected diff line format:", line_content)
+        end
+    end
+    
+    if has_diff_output then
+        process_pending_block_changes() 
+    else 
+        local identical = true
+        if #previous_lines == #current_lines then
+            for i = 1, #previous_lines do
+                if previous_lines[i] ~= current_lines[i] then
+                    identical = false; break
+                end
+            end
+        else
+            identical = false
+        end
+
+        if identical then
+            log("on_insert_leave: Files are identical based on content check, no changes.")
+            lines_added, lines_deleted, chars_added, chars_deleted = 0,0,0,0
+        else
+            log("on_insert_leave: WARNING - diff output empty but files differ. Fallback char/line count.")
+            for _, line_content in ipairs(previous_lines) do
+                chars_deleted = chars_deleted + string.len(trim(line_content))
+            end
+            lines_deleted = #previous_lines
+            for _, line_content in ipairs(current_lines) do
+                chars_added = chars_added + string.len(trim(line_content))
+            end
+            lines_added = #current_lines
+        end
+    end
+  end
+
+  local filepath = vim.api.nvim_buf_get_name(bufnr)
+  local changed_chars_str = string.format("+%d-%d", chars_added, chars_deleted)
+  local changed_lines_str = string.format("+%d-%d", lines_added, lines_deleted)
+
+  log("on_insert_leave: file", filepath, "event", ev.event, "chars", changed_chars_str, "lines", changed_lines_str)
+
+  nvim_interaction_log({
+    file = filepath,
+    event = ev.event, -- "InsertLeave"
+    changed_chars = changed_chars_str,
+    changed_lines = changed_lines_str
+  })
+
+  _G.insert_mode_start_content[bufnr] = nil -- Clear stored content
+  log("on_insert_leave: cleared baseline for bufnr", bufnr)
+end
+
 -- here i want to also track file save events as that is a strong indicator of my edit activity. i would like to somehow
 -- also track the amount of changed characters when saving. note that these would report my own human activity in
 -- contrast with changes made via aider. the nice thing is that i will be able to track that type of activity by
@@ -2954,6 +3099,19 @@ vim.api.nvim_create_autocmd({"BufDelete"}, {
 vim.api.nvim_create_autocmd({"BufWritePost"}, {
   callback = on_buf_write_post,
   pattern = "*",
+  desc = "Calculate and log changes on buffer write"
+})
+
+vim.api.nvim_create_autocmd({"InsertEnter"}, {
+  callback = on_insert_enter,
+  pattern = "*",
+  desc = "Log insert mode entry and store buffer baseline"
+})
+
+vim.api.nvim_create_autocmd({"InsertLeave"}, {
+  callback = on_insert_leave,
+  pattern = "*",
+  desc = "Calculate and log changes made during insert mode"
 })
 
 -- vim.api.nvim_create_autocmd({"VimLeavePre", "VimEnter"}, {
