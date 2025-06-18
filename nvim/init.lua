@@ -2708,14 +2708,70 @@ vim.api.nvim_create_autocmd({"VimLeavePre", "BufEnter"}, {
   callback = nvim_state_update
 })
 
-local function nvim_interaction_log(ev)
+_G.pre_save_buffer_stats = {}
+
+local function nvim_interaction_log(details_or_ev)
   vim.schedule(function()
+    local pid = tostring(vim.fn.getpid())
+    local servername = vim.v.servername
+    local cwd = vim.fn.getcwd()
+    
+    local filepath = details_or_ev.file
+    if not filepath or filepath == "" then
+      -- Fallback to current buffer if file is not in event data (e.g. for BufWritePost)
+      filepath = vim.api.nvim_buf_get_name(0) 
+    end
+
+    local event_type = details_or_ev.event
+    local neovide_status = vim.g.neovide
+    
     local cursor_pos = vim.api.nvim_win_get_cursor(0)
     local line = tostring(cursor_pos[1])
     local col = tostring(cursor_pos[2])
-    local cmd = {vim.env.HOME .. "/util/nvim-interaction-log.sh", tostring(vim.fn.getpid()), vim.v.servername, vim.fn.getcwd(), ev.file, ev.event, vim.g.neovide, line, col}
-    local ret = vim.fn.system(cmd)
+    
+    local changed_chars_val = details_or_ev.changed_chars or "0"
+
+    local cmd = {
+      vim.env.HOME .. "/util/nvim-interaction-log.sh",
+      pid,
+      servername,
+      cwd,
+      filepath,
+      event_type,
+      tostring(neovide_status),
+      line,
+      col,
+      tostring(changed_chars_val)
+    }
+    vim.fn.system(cmd)
   end)
+end
+
+local function on_buf_write_pre()
+  local bufnr = vim.api.nvim_get_current_buf()
+  local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+  _G.pre_save_buffer_stats[bufnr] = string.len(table.concat(lines, "\n"))
+end
+
+local function on_buf_write_post(ev)
+  local bufnr = vim.api.nvim_get_current_buf()
+  local current_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+  local current_total_chars = string.len(table.concat(current_lines, "\n"))
+  
+  local pre_save_chars = _G.pre_save_buffer_stats[bufnr]
+  local changed_chars = 0
+  if pre_save_chars then
+    changed_chars = current_total_chars - pre_save_chars
+    _G.pre_save_buffer_stats[bufnr] = nil -- Clean up
+  end
+
+  local filepath = vim.api.nvim_buf_get_name(bufnr)
+
+  nvim_interaction_log({
+    file = filepath,
+    event = ev.event, -- "BufWritePost"
+    changed_chars = changed_chars
+  })
 end
 
 -- here i want to also track file save events as that is a strong indicator of my edit activity. i would like to somehow
@@ -2723,10 +2779,15 @@ end
 -- contrast with changes made via aider. the nice thing is that i will be able to track that type of activity by
 -- looking at git commits.
 
--- explore how to track saving and the amount of changed chars on save here and shove it into the interaction log AI!
-
 vim.api.nvim_create_autocmd({"CursorMovedI", "CursorMoved"}, {
   callback = debounce(nvim_interaction_log, 200)
+})
+
+vim.api.nvim_create_autocmd({"BufWritePre"}, {
+  callback = on_buf_write_pre
+})
+vim.api.nvim_create_autocmd({"BufWritePost"}, {
+  callback = on_buf_write_post
 })
 
 -- vim.api.nvim_create_autocmd({"VimLeavePre", "VimEnter"}, {
