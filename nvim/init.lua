@@ -2903,16 +2903,21 @@ local function on_buf_write_post(ev)
     local has_diff_output = false
     for line_content in diff_lines_iterator do
         has_diff_output = true
+        log("on_buf_write_post: processing diff line: '", line_content, "', current total_lines_changed:", total_lines_changed)
         if string.sub(line_content, 1, 3) == '---' or string.sub(line_content, 1, 3) == '+++' then
             -- Skip header
+            log("on_buf_write_post: skipping header line")
         elseif string.sub(line_content, 1, 2) == '@@' then
+            log("on_buf_write_post: processing hunk @@, calling process_pending_changes()")
             process_pending_changes() 
         elseif string.sub(line_content, 1, 1) == '-' then
             table.insert(pending_deletions, string.sub(line_content, 2))
             total_lines_changed = total_lines_changed + 1
+            log("on_buf_write_post: counted deleted line. New total_lines_changed:", total_lines_changed)
         elseif string.sub(line_content, 1, 1) == '+' then
             table.insert(pending_additions, string.sub(line_content, 2))
             total_lines_changed = total_lines_changed + 1
+            log("on_buf_write_post: counted added line. New total_lines_changed:", total_lines_changed)
         else
             log("on_buf_write_post: Unexpected diff line format:", line_content)
         end
