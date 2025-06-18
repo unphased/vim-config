@@ -2799,21 +2799,14 @@ local function on_buf_delete(ev)
   end
 end
 
-local function on_buf_write_post(ev)
-  local bufnr = ev.buf
-  if not bufnr or bufnr == 0 then bufnr = vim.api.nvim_get_current_buf() end
-  log("on_buf_write_post: bufnr", bufnr, "event", ev)
-
-  local current_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-  local previous_lines = _G.last_known_saved_content[bufnr]
-  
+local function calculate_diff_stats(previous_lines, current_lines, context_log_prefix)
   local lines_added = 0
   local lines_deleted = 0
   local chars_added = 0
   local chars_deleted = 0
 
   if previous_lines == nil then
-    log("on_buf_write_post: previous_lines is nil for bufnr", bufnr, "- treating all current content as new.")
+    log(context_log_prefix .. ": previous_lines is nil - treating all current content as new.")
     if #current_lines == 1 and current_lines[1] == "" then -- Empty buffer
         lines_added = 0
         chars_added = 0
@@ -2822,15 +2815,13 @@ local function on_buf_write_post(ev)
         for _, line_content in ipairs(current_lines) do
             chars_added = chars_added + string.len(trim(line_content))
         end
-
     end
-    -- Correct lines_added if it was a single empty line initially counted as 1
     if #current_lines == 1 and current_lines[1] == "" and lines_added == 1 then
-        lines_added = 0
+        lines_added = 0 -- Correct if it was a single empty line
     end
   else
-    log("on_buf_write_post: previous_lines length", #previous_lines, "current_lines length", #current_lines)
-
+    log(context_log_prefix .. ": previous_lines length", #previous_lines, "current_lines length", #current_lines)
+    
     local old_file_path = vim.fn.tempname()
     local new_file_path = vim.fn.tempname()
     vim.fn.writefile(previous_lines, old_file_path)
@@ -2839,7 +2830,7 @@ local function on_buf_write_post(ev)
     local line_diff_output_raw = vim.fn.system({"diff", "-U0", old_file_path, new_file_path})
     vim.fn.delete(old_file_path)
     vim.fn.delete(new_file_path)
-    log("on_buf_write_post: line_diff_output_raw", line_diff_output_raw)
+    -- log(context_log_prefix .. ": line_diff_output_raw", line_diff_output_raw) -- Can be verbose
 
     local pending_deletions_content = {}
     local pending_additions_content = {}
@@ -2875,13 +2866,13 @@ local function on_buf_write_post(ev)
         elseif string.sub(line_content, 1, 1) == '+' then
             table.insert(pending_additions_content, string.sub(line_content, 2))
         else
-            log("on_buf_write_post: Unexpected diff line format:", line_content)
+            log(context_log_prefix .. ": Unexpected diff line format:", line_content)
         end
     end
     
     if has_diff_output then
-        process_pending_block_changes() -- Process any remaining changes from the last block
-    else -- No diff output means files might be identical or only whitespace changes not caught by -U0
+        process_pending_block_changes() 
+    else 
         local identical = true
         if #previous_lines == #current_lines then
             for i = 1, #previous_lines do
@@ -2894,10 +2885,10 @@ local function on_buf_write_post(ev)
         end
 
         if identical then
-            log("on_buf_write_post: Files are identical based on content check, no changes.")
+            log(context_log_prefix .. ": Files are identical based on content check, no changes.")
             lines_added, lines_deleted, chars_added, chars_deleted = 0,0,0,0
         else
-            log("on_buf_write_post: WARNING - diff output empty but files differ. Fallback char/line count.")
+            log(context_log_prefix .. ": WARNING - diff output empty but files differ. Fallback char/line count.")
             for _, line_content in ipairs(previous_lines) do
                 chars_deleted = chars_deleted + string.len(trim(line_content))
             end
@@ -2909,6 +2900,18 @@ local function on_buf_write_post(ev)
         end
     end
   end
+  return lines_added, lines_deleted, chars_added, chars_deleted
+end
+
+local function on_buf_write_post(ev)
+  local bufnr = ev.buf
+  if not bufnr or bufnr == 0 then bufnr = vim.api.nvim_get_current_buf() end
+  log("on_buf_write_post: bufnr", bufnr, "event", ev)
+
+  local current_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+  local previous_lines = _G.last_known_saved_content[bufnr]
+  
+  local lines_added, lines_deleted, chars_added, chars_deleted = calculate_diff_stats(previous_lines, current_lines, "on_buf_write_post")
 
   local filepath = vim.api.nvim_buf_get_name(bufnr)
   
