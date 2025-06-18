@@ -2730,7 +2730,6 @@ local function nvim_interaction_log(details_or_ev)
     local col = tostring(cursor_pos[2])
     
     local changed_chars_val = details_or_ev.changed_chars or "0"
-    -- blah blah comment in one new line
     local changed_lines_val = details_or_ev.changed_lines or "0" -- New field
 
     local cmd_base = {
