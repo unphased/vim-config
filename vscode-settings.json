@@ -16,6 +16,9 @@
   "github.copilot.nextEditSuggestions.enabled": true,
   "mcp": {
     "servers": {
+      "my-mcp-server-df8ce8b0-claude-debugs": {
+        "url": "http://localhost:4711/sse"
+      }
     }
   },
   "workbench.editor.limit.enabled": true,
