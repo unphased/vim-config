@@ -2820,6 +2820,7 @@ local function on_buf_write_post(ev)
         for _, line_content in ipairs(current_lines) do
             chars_added = chars_added + string.len(trim(line_content))
         end
+
     end
     -- Correct lines_added if it was a single empty line initially counted as 1
     if #current_lines == 1 and current_lines[1] == "" and lines_added == 1 then
