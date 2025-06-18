@@ -77,7 +77,7 @@ local function setup_autocmds(config)
     group = augroup,
     callback = function()
       local win_id = vim.api.nvim_get_current_win()
-      log("InsertEnter triggered for window " .. win_id)
+      -- log("InsertEnter triggered for window " .. win_id)
       winhl_states[win_id] = winhl_states[win_id] or {}
       winhl_states[win_id].mode = 'i'
       update_winhl(win_id, config, 'i')
@@ -88,7 +88,7 @@ local function setup_autocmds(config)
     group = augroup,
     callback = function()
       local win_id = vim.api.nvim_get_current_win()
-      log("InsertLeave triggered for window " .. win_id)
+      -- log("InsertLeave triggered for window " .. win_id)
       winhl_states[win_id] = winhl_states[win_id] or {}
       winhl_states[win_id].mode = 'n'
       update_winhl(win_id, config, 'n')
