@@ -2748,9 +2748,12 @@ local function nvim_interaction_log(details_or_ev)
     if event_type == "CursorMoved" or event_type == "CursorMovedI" then
       cmd = cmd_base
     else
-      cmd = vim.list_extend(vim.deepcopy(cmd_base), {tostring(changed_chars_val), tostring(changed_lines_val)})
+      cmd = vim.list_extend(vim.deepcopy(cmd_base), {
+        changed_chars_arg or "0", 
+        changed_lines_arg or "0"
+      })
     end
-    log("nvim_interaction_log: cmd", cmd)
+    -- log("nvim_interaction_log: cmd", cmd) -- Kept for debugging if necessary, can be commented out
     vim.fn.system(cmd)
   end)
 end
