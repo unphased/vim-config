@@ -2866,6 +2866,7 @@ vim.api.nvim_create_autocmd({"BufAdd"}, {
 })
 vim.api.nvim_create_autocmd({"BufDelete"}, {
   callback = on_buf_delete,
+
   pattern = "*",
   desc = "Clear baseline content when buffer is deleted"
 })
