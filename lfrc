@@ -57,14 +57,14 @@ cmd open ${{
     mime=$(file --mime-type -Lb "$f")        # e.g. text/plain, application/octet-stream
     # size=$(stat -c%s "$f" 2>/dev/null || stat -f%z "$f")
 
-    if [ "${mime%%/*}" != "text" ]; then            # any binary file
-        hexyl "$f" | less -R
-    else
-        case "$f" in
-            *.json) jq . "$f" | bat --paging=always --file-name "$f" ;;
-            *)  bat --paging=always "$f" ;;
-        esac
-    fi
+    case "$mime" in
+        application/json)
+            jq . "$f" | bat --paging=always --file-name "$f" ;;
+        text/*)
+            bat --paging=always "$f" ;;
+        *) # Default case for binary or other non-text files
+            hexyl "$f" | less -R ;;
+    esac
 }}
 
 # let's make any file that has ".log" extension (or any extension like .log.1) open in bat, and the rest in neovim.
