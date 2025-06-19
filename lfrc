@@ -58,8 +58,7 @@ cmd open ${{
     # size=$(stat -c%s "$f" 2>/dev/null || stat -f%z "$f")
 
     case "$mime" in
-        application/json)
-            jq . "$f" | bat --paging=always --file-name "$f" ;;
+        application/json) ;&
         text/*)
             bat --paging=always "$f" ;;
         *) # Default case for binary or other non-text files
