@@ -67,7 +67,12 @@ cmd open ${{
         text/*)
             bat --paging=always "$f" ;;
         *) # Default case for binary or other non-text files
-            hexyl "$f" | less -R ;;
+            case "$f" in
+                *.br)
+                    brotli -dc "$f" | bat --paging=always --file-name "$f" ;;
+                *)
+                    hexyl "$f" | less -R ;;
+            esac ;;
     esac
 }}
 
