@@ -60,6 +60,8 @@ cmd open ${{
     case "$mime" in
         application/gzip)
             gzip -dc "$f" | bat --paging=always --file-name "$f" ;;
+        application/brotli|application/x-brotli)
+            brotli -dc "$f" | bat --paging=always --file-name "$f" ;;
         application/json)
             bat --paging=always "$f" ;;
         text/*)
