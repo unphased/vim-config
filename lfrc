@@ -56,22 +56,36 @@ cmd open ${{
 
     mime=$(file --mime-type -Lb "$f")        # e.g. text/plain, application/octet-stream
     size=$(stat -c%s "$f" 2>/dev/null || stat -f%z "$f")
- 
-    # elif [ "$size" -gt 2097152 ]; then
+
+    view_file() {
+        if [ "${size:-0}" -gt 2097152 ]; then
+            less -R "$1"
+        else
+            bat --paging=always "$1"
+        fi
+    }
+
+    view_stream() {
+        if [ "${size:-0}" -gt 2097152 ]; then
+            less -R
+        else
+            bat --paging=always --file-name "$1"
+        fi
+    }
 
     case "$mime" in
         application/gzip)
-            gzip -dc "$f" | bat --paging=always --file-name "$f" ;;
+            gzip -dc "$f" | view_stream "$f" ;;
         application/brotli|application/x-brotli)
-            brotli -dc "$f" | bat --paging=always --file-name "$f" ;;
+            brotli -dc "$f" | view_stream "$f" ;;
         application/json)
-            bat --paging=always "$f" ;;
+            view_file "$f" ;;
         text/*)
-            bat --paging=always "$f" ;;
+            view_file "$f" ;;
         *) # Default case for binary or other non-text files
             case "$f" in
                 *.br)
-                    brotli -dc "$f" | bat --paging=always --file-name "$f" ;;
+                    brotli -dc "$f" | view_stream "$f" ;;
                 *)
                     hexyl "$f" | less -R ;;
             esac ;;
