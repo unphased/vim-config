@@ -55,7 +55,9 @@ cmd open ${{
     set -x                          # remove when done
 
     mime=$(file --mime-type -Lb "$f")        # e.g. text/plain, application/octet-stream
-    # size=$(stat -c%s "$f" 2>/dev/null || stat -f%z "$f")
+    size=$(stat -c%s "$f" 2>/dev/null || stat -f%z "$f")
+ 
+    # elif [ "$size" -gt 2097152 ]; then
 
     case "$mime" in
         application/gzip)
