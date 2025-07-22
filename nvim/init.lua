@@ -2102,12 +2102,13 @@ vim.cmd([[
   highlight ActiveCursorLine guibg=#222e20
   highlight InactiveCursorLine guibg=#1a1a1a
 
-  highlight NormalModeBackground guibg=#050a13
-  highlight InsertModeBackground guibg=#101228
+  highlight NormalModeBackground guibg=NONE
+  highlight InsertModeBackground guibg=NONE
 
   " just replicating from what zephyr currently sets... These are probably superfluous.
-  highlight Normal guifg=#bbc2cf guibg=#050a13
-  highlight SignColumn guifg=#bbc2cf guibg=#050a13
+  highlight Normal guifg=#bbc2cf guibg=NONE
+  highlight SignColumn guifg=#bbc2cf guibg=NONE
+  highlight Terminal guibg=NONE
 
   hi Visual term=reverse ctermbg=238 guibg=#855540
 
@@ -2118,9 +2119,9 @@ vim.cmd([[
   hi NonText guibg=#303030
 
   " pane/window split: only vertical split style matters in vim since horizontal splits are made of statuslines.
-  hi WinSeparator guifg=#606780 guibg=#333338
+  hi WinSeparator guifg=#606780 guibg=NONE
   hi link NvimTreeWinSeparator WinSeparator
-  hi NvimTreeNormal guibg=#131320
+  hi NvimTreeNormal guibg=NONE
 
   hi TSPlaygroundFocus guibg=#2f628e
 
