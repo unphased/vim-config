@@ -2103,7 +2103,7 @@ vim.cmd([[
   highlight InactiveCursorLine guibg=#1a1a1a
 
   highlight NormalModeBackground guibg=NONE
-  highlight InsertModeBackground guibg=NONE
+  highlight InsertModeBackground guibg=#101228
 
   " just replicating from what zephyr currently sets... These are probably superfluous.
   highlight Normal guifg=#bbc2cf guibg=NONE
