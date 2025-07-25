@@ -4,11 +4,11 @@
 [user]
 
 [delta]
-  # side-by-side = true
+  ; side-by-side = true
   max-line-length = 2048
   wrap-max-lines = 10
   features = line-numbers decorations
-  hyperlinks = true
+  ; hyperlinks = true
   syntax-theme = zenburn
   plus-style = bold syntax "#004000"
   plus-non-emph-style = syntax "#002000"
@@ -16,6 +16,7 @@
   minus-style = bold syntax "#400000"
   minus-non-emph-style = syntax "#200000"
   minus-emph-style = bold syntax "#680000"
+  ; zero-style = syntax
 
 ; [delta "decorations"]
 ;   ; commit-style = raw
