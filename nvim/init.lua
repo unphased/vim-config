@@ -2093,8 +2093,9 @@ vim.cmd([[
   hi NormalCursorMulti gui=underline guibg=#22aa22
   hi NormalCursorMultiDisabled guibg=#126a12
 
-  hi CursorLine guibg=#222e20
-  set cursorline
+  "" Disabling ordinary cursorline now that my bgcolor is being set on a project dir basis.
+  " hi CursorLine guibg=#222e20
+  " set cursorline
 
   hi CursorLineNr guifg=#bbc2cf guibg=#222e20
   hi CursorLineSign guibg=#222e20
