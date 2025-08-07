@@ -3243,15 +3243,37 @@ end
   local function set_neovide_background_color()
     if not vim.g.neovide then return end
     
-    local color_script_path = vim.env.HOME .. "/util/color-pane.sh"
     local base_color = "#2f9117" -- fallback color
-    
-    if vim.fn.executable(color_script_path) == 1 then
-      local script_output = vim.fn.trim(vim.fn.system(color_script_path .. " --get-color"))
-      if script_output and script_output:match("^#") then
-        base_color = script_output
+    local color_found = false
+
+    -- Check for .tmux-bgcolor in git root
+    local git_root_cmd = "git rev-parse --show-toplevel"
+    local git_root = vim.fn.trim(vim.fn.system(git_root_cmd .. " 2>/dev/null"))
+
+    if vim.v.shell_error == 0 and git_root ~= "" then
+      local bgcolor_file_path = git_root .. "/.tmux-bgcolor"
+      local f = io.open(bgcolor_file_path, "r")
+      if f then
+        local color_from_file = f:read("*l") -- Read first line
+        f:close()
+        if color_from_file and color_from_file ~= "" then
+          base_color = vim.fn.trim(color_from_file)
+          color_found = true
+        end
       end
     end
+
+    -- If not found via .tmux-bgcolor, use the script
+    if not color_found then
+      local color_script_path = vim.env.HOME .. "/util/color-pane.sh"
+      if vim.fn.executable(color_script_path) == 1 then
+        local script_output = vim.fn.trim(vim.fn.system(color_script_path .. " --get-color"))
+        if script_output and script_output:match("^#") then
+          base_color = script_output
+        end
+      end
+    end
+
     vim.g.neovide_background_color = base_color .. alpha()
   end
   
