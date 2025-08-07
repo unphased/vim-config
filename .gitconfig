@@ -16,7 +16,7 @@
   minus-style = bold syntax "#400000"
   minus-non-emph-style = syntax "#200000"
   minus-emph-style = bold syntax "#680000"
-  ; zero-style = syntax
+  zero-style = syntax "#1a1a1a"
 
 ; [delta "decorations"]
 ;   ; commit-style = raw

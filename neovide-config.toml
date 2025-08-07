@@ -1,6 +1,6 @@
 neovim-bin = "/opt/homebrew/bin/nvim"
 no-tabs = true
-frame = "none"
+frame = "transparent"
 
 [font]
 normal = ["IosevkaTerm Nerd Font Mono"]
