@@ -3245,6 +3245,7 @@ end
     
     local base_color = "#2f9117" -- fallback color
     local color_found = false
+    local reason = "fallback"
 
     -- Check for .tmux-bgcolor in git root
     local git_root_cmd = "git rev-parse --show-toplevel"
@@ -3259,6 +3260,7 @@ end
         if color_from_file and color_from_file ~= "" then
           base_color = vim.fn.trim(color_from_file)
           color_found = true
+          reason = "file: " .. bgcolor_file_path
         end
       end
     end
@@ -3270,11 +3272,17 @@ end
         local script_output = vim.fn.trim(vim.fn.system(color_script_path .. " --get-color"))
         if script_output and script_output:match("^#") then
           base_color = script_output
+          reason = "script: " .. color_script_path
+        else
+          reason = "script invalid output: " .. script_output
         end
+      else
+        reason = "script not found/executable"
       end
     end
 
     vim.g.neovide_background_color = base_color .. alpha()
+    vim.cmd('echom "Neovide BG: Final color ' .. vim.g.neovide_background_color .. ' (reason: ' .. reason .. ')"')
   end
   
   set_neovide_background_color() -- Set color on startup
