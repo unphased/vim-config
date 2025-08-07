@@ -3240,7 +3240,28 @@ vim.cmd[[
 local alpha = function()
   return string.format("%x", math.floor(255 * vim.g.neovide_transparency or 0.6))
 end
-  vim.g.neovide_background_color = "#2f9117" .. alpha()
+  local function set_neovide_background_color()
+    if not vim.g.neovide then return end
+    
+    local color_script_path = vim.env.HOME .. "/util/color-pane.sh"
+    local base_color = "#2f9117" -- fallback color
+    
+    if vim.fn.executable(color_script_path) == 1 then
+      local script_output = vim.fn.trim(vim.fn.system(color_script_path .. " --get-color"))
+      if script_output and script_output:match("^#") then
+        base_color = script_output
+      end
+    end
+    vim.g.neovide_background_color = base_color .. alpha()
+  end
+  
+  set_neovide_background_color() -- Set color on startup
+  
+  vim.api.nvim_create_autocmd("DirChanged", {
+    callback = set_neovide_background_color,
+    pattern = "*",
+    desc = "Update neovide background color on directory change"
+  })
 
   vim.g.neovide_refresh_rate = 240
   vim.g.neovide_refresh_rate_idle = 1
