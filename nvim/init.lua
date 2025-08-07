@@ -3234,7 +3234,7 @@ vim.cmd[[
   vim.g.neovide_cursor_vfx_mode = "sonicboom"
   vim.g.neovide_cursor_animation_length = 0.05
   vim.g.neovide_hide_mouse_when_typing = true
-  vim.g.neovide_transparency = 0.5
+  vim.g.neovide_transparency = 0.6
   -- vim.g.neovide_opacity = 1
   -- Helper function for transparency formatting
 local alpha = function()
