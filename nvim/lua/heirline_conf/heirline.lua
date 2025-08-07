@@ -685,10 +685,11 @@ local GitSpace = {
     hl = { fg = "orange" },
     flexible = 15,
     {
-        utils.surround({ "", "" }, "status_bubble_bg", {
+        utils.surround({ "", "" }, "status_bubble_bg", {
             {   -- git branch name
                 provider = function(self)
-                    return " " .. self.status_dict.head
+                    -- return " " .. self.status_dict.head
+                    return self.status_dict.head
                 end,
                 hl = { bold = true }
             },
@@ -869,7 +870,7 @@ local Navic = { flexible = 3, Navic, { provider = "" } }
 local Align = { provider = "%=" }
 local Space = { provider = " " }
 
-ViMode = utils.surround({ "", "" }, "status_bubble_bg", { ViMode })
+-- ViMode = utils.surround({ "", "" }, "status_bubble_bg", { ViMode })
 
 local LazySpace = {
     condition = function()
@@ -927,7 +928,7 @@ local MacroRecShowIfCmdHidden = {
 -- Items to the left of Align are to put their spaces to the left, items to the right put their spaces on the right, etc. All components need to have a space included so that no stacking of spaces takes place.
 local DefaultStatusline = {
     -- TODO make the workdir and filename render out in separate styles for visual distinction but allow copying an abspath
-    ViMode, Space, LazySpace, GitSpace, Diagnostics, LSPActive, Align, WorkDir,
+    Space, ViMode, Space, LazySpace, GitSpace, Diagnostics, LSPActive, Align, WorkDir,
     FileNameBlock, Align, FileTypeSpace, SearchCount, MacroRecShowIfCmdHidden, RulerExtraSpace, FileSize, RulerLineNo, RulerRestSpace, ScrollBar
 }
 

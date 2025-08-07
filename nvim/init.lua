@@ -431,7 +431,7 @@ vim.cmd([[
   vnoremap >> >
 
   " Note gui=italic is what modern nvim seems to take, NOT cterm. likely related to 24bit color
-  hi Comment cterm=italic gui=italic
+  hi Comment cterm=italic gui=italic guifg=#93999e
   hi CopilotSuggestion gui=bold guibg=#202020
 
   nnoremap = :vertical res +5<CR>
@@ -3232,10 +3232,11 @@ vim.cmd[[
   vim.g.neovide_scroll_animation_far_lines = 99999
   vim.g.neovide_window_blurred = true
   vim.g.neovide_cursor_vfx_mode = "sonicboom"
-  vim.g.neovide_cursor_animation_length = 0.05
+  vim.g.neovide_cursor_animation_length = 0.07
   vim.g.neovide_hide_mouse_when_typing = true
   vim.g.neovide_transparency = 0.6
-  -- vim.g.neovide_opacity = 1
+  vim.g.neovide_normal_opacity = 0.3
+  
   -- Helper function for transparency formatting
 local alpha = function()
   return string.format("%x", math.floor(255 * vim.g.neovide_transparency or 0.6))
@@ -3281,7 +3282,7 @@ end
       end
     end
 
-    vim.g.neovide_background_color = base_color .. alpha()
+    vim.g.neovide_background_color = base_color .. "a8"
     vim.cmd('echom "Neovide BG: Final color ' .. vim.g.neovide_background_color .. ' (reason: ' .. reason .. ')"')
   end
   
@@ -3356,15 +3357,15 @@ end
     vim.g.neovide_fullscreen = (not vim.g.neovide_fullscreen)
   end, { noremap = true, desc = 'toggle neovide fullscreen' })
 
-  vim.g.neovide_floating_blur_amount_x = 5.0
-  vim.g.neovide_floating_blur_amount_y = 5.0
+  vim.g.neovide_floating_blur_amount_x = 10.0
+  vim.g.neovide_floating_blur_amount_y = 10.0
 
   vim.g.neovide_floating_corner_radius = 0.6
 
   vim.g.neovide_floating_shadow = true
   vim.g.neovide_floating_z_height = 10
   vim.g.neovide_light_angle_degrees = 45
-  vim.g.neovide_light_radius = 5
+  vim.g.neovide_light_radius = 7
 
   vim.keymap.set('n', '<D-l>', '<M-l>', { remap = true })
   vim.keymap.set('n', '<D-d>', '<M-d>', { remap = true })
