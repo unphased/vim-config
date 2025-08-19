@@ -3249,7 +3249,11 @@ end
     local reason = "fallback"
 
     -- Check for .tmux-bgcolor in git root
-    local git_root_cmd = "git rev-parse --show-toplevel"
+    local file_path = vim.api.nvim_buf_get_name(0)
+    local dir = vim.fn.fnamemodify(file_path, ':p:h')
+
+    -- Check for .tmux-bgcolor in git root based on the current buffer's directory
+    local git_root_cmd = "git -C " .. vim.fn.shellescape(dir) .. " rev-parse --show-toplevel"
     local git_root = vim.fn.trim(vim.fn.system(git_root_cmd .. " 2>/dev/null"))
 
     if vim.v.shell_error == 0 and git_root ~= "" then
@@ -3268,9 +3272,12 @@ end
 
     -- If not found via .tmux-bgcolor, use the script
     if not color_found then
+      local file_path = vim.api.nvim_buf_get_name(0)
+      local dir = vim.fn.fnamemodify(file_path, ':p:h')
       local color_script_path = vim.env.HOME .. "/util/color-pane.sh"
       if vim.fn.executable(color_script_path) == 1 then
-        local script_output = vim.fn.trim(vim.fn.system(color_script_path .. " --get-color"))
+        local cmd = "cd " .. vim.fn.shellescape(dir) .. " && " .. vim.fn.shellescape(color_script_path) .. " --get-color"
+        local script_output = vim.fn.trim(vim.fn.system(cmd))
         if script_output and script_output:match("^#") then
           base_color = script_output
           reason = "script: " .. color_script_path
@@ -3288,10 +3295,10 @@ end
   
   set_neovide_background_color() -- Set color on startup
   
-  vim.api.nvim_create_autocmd("DirChanged", {
+  vim.api.nvim_create_autocmd("BufEnter", {
     callback = set_neovide_background_color,
     pattern = "*",
-    desc = "Update neovide background color on directory change"
+    desc = "Update neovide background color on buffer change"
   })
 
   vim.g.neovide_refresh_rate = 240
