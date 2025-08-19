@@ -204,7 +204,8 @@ export PARINIT="rTbgqR B=.,?'_A_a_@ Q=_s>|"
 export MACHINE_ID=$(cat /opt/machine-id)
 export GIT_DELTA_HYPERLINK_FORMAT="file://$MACHINE_ID{path}:{line}"
 
-alias git="git --config-env=delta.hyperlinks-file-link-format=GIT_DELTA_HYPERLINK_FORMAT"
+## this alias broke all of git tab completions but curiously only for macos.
+# alias git="git --config-env=delta.hyperlinks-file-link-format=GIT_DELTA_HYPERLINK_FORMAT"
 
 # Temporarily pointing aider at local install. This may be temporary as pipx does a decent job of maintaining it
 # normally but This is the cleanest way i came up with so far to quickly target a local install IF ONE EXISTS.

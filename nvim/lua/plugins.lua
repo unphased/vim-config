@@ -807,5 +807,10 @@ return {
       -- log_level = 'debug',
     }
   },
-  'skwee357/nvim-prose'
+  'skwee357/nvim-prose',
+  { "nvzone/volt", lazy = true },
+  {
+    "nvzone/minty",
+    cmd = { "Shades", "Huefy" },
+  }
 }

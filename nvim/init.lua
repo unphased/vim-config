@@ -3282,7 +3282,7 @@ end
       end
     end
 
-    vim.g.neovide_background_color = base_color .. "a8"
+    vim.g.neovide_background_color = base_color .. "b0"
     vim.cmd('echom "Neovide BG: Final color ' .. vim.g.neovide_background_color .. ' (reason: ' .. reason .. ')"')
   end
   
