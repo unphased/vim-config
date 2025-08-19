@@ -3289,8 +3289,11 @@ end
       end
     end
 
-    vim.g.neovide_background_color = base_color .. "b0"
-    vim.cmd('echom "Neovide BG: Final color ' .. vim.g.neovide_background_color .. ' (reason: ' .. reason .. ')"')
+    local new_color = base_color .. "b0"
+    if vim.g.neovide_background_color ~= new_color then
+        vim.g.neovide_background_color = new_color
+        vim.cmd('echom "Neovide BG: Set to ' .. new_color .. ' (reason: ' .. reason .. ')"')
+    end
   end
   
   set_neovide_background_color() -- Set color on startup
