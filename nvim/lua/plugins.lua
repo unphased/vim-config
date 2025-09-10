@@ -761,9 +761,9 @@ return {
   --   }
   -- },
 
-  {
-    'milanglacier/minuet-ai.nvim',
-  },
+  -- {
+  --   'milanglacier/minuet-ai.nvim',
+  -- },
   {
     "ibhagwan/fzf-lua",
     -- optional for icon support

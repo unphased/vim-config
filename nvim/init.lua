@@ -1597,16 +1597,16 @@ cmp.setup({
     -- ['<C-S-Space>'] = cmp.mapping.complete({ config = { sources = { { name = 'codeium' } } } }),
     ['<C-e>'] = cmp.mapping.abort(),
     ["<CR>"] = cmp.mapping(function(fallback)
-      local minuet = require("minuet.virtualtext").action
-      if minuet.is_visible() then
-        minuet.accept()
-      else
+      -- local minuet = require("minuet.virtualtext").action
+      -- if minuet.is_visible() then
+      --   minuet.accept()
+      -- else
         -- Fallback to the usual cmp confirm:
         cmp.mapping.confirm({
           behavior = cmp.ConfirmBehavior.Replace,
           select = false,
         })(fallback)
-      end
+      -- end
     end, { "i", "s" }),
     -- ["<c-x>"] = cmp.mapping(function(fallback)
     --   if require'snippy'.is_active() then
@@ -3536,71 +3536,71 @@ gemini_few_shots[1] = {
 local gemini_chat_input_template =
 '{{{language}}}\n{{{tab}}}\n<contextBeforeCursor>\n{{{context_before_cursor}}}<cursorPosition>\n<contextAfterCursor>\n{{{context_after_cursor}}}'
 
-gemini_few_shots[2] = require('minuet.config').default_few_shots[2]
-
-require('minuet').setup {
-  virtualtext = {
-    auto_trigger_ft = { 'lua', 'python', 'typescript', 'javascript', 'cpp', 'bash', 'yaml', 'dockerfile' },
-    keymap = {
-      -- accept whole completion
-      accept = '<C-S-a>',
-      -- accept one line
-      accept_line = '<C-a>',
-      -- accept n lines (prompts for number)
-      accept_n_lines = nil,
-      -- Cycle to prev completion item, or manually invoke completion
-      prev = '<C-;>',
-      -- Cycle to next completion item, or manually invoke completion
-      next = "<C-'>",
-      -- dismiss = '<Esc>',
-    },
-  },
-  api_key = "GEMINI_API_KEY",
-  provider = 'gemini',
-  context_window = 16000,
-  context_ratio = 0.7,
-  throttle = 1000,
-  debounce = 400,
-  n_completions = 5,
-  provider_options = {
-    gemini = {
-
-      model = 'gemini-2.0-flash-exp',
-      system = {
-        prompt = gemini_prompt,
-      },
-      few_shots = gemini_few_shots,
-      chat_input = {
-        template = gemini_chat_input_template,
-      },
-      stream = true,
-      optional = {
-        generationConfig = {
-          maxOutputTokens = 1024,
-          topP = 0.9,
-        },
-        safetySettings = {
-          {
-            category = 'HARM_CATEGORY_DANGEROUS_CONTENT',
-            threshold = 'BLOCK_NONE',
-          },
-          {
-            category = 'HARM_CATEGORY_HATE_SPEECH',
-            threshold = 'BLOCK_NONE',
-          },
-          {
-            category = 'HARM_CATEGORY_HARASSMENT',
-            threshold = 'BLOCK_NONE',
-          },
-          {
-            category = 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-            threshold = 'BLOCK_NONE',
-          },
-        },
-      },
-    },
-  },
-}
+-- gemini_few_shots[2] = require('minuet.config').default_few_shots[2]
+--
+-- require('minuet').setup {
+--   virtualtext = {
+--     auto_trigger_ft = { 'lua', 'python', 'typescript', 'javascript', 'cpp', 'bash', 'yaml', 'dockerfile' },
+--     keymap = {
+--       -- accept whole completion
+--       accept = '<C-S-a>',
+--       -- accept one line
+--       accept_line = '<C-a>',
+--       -- accept n lines (prompts for number)
+--       accept_n_lines = nil,
+--       -- Cycle to prev completion item, or manually invoke completion
+--       prev = '<C-;>',
+--       -- Cycle to next completion item, or manually invoke completion
+--       next = "<C-'>",
+--       -- dismiss = '<Esc>',
+--     },
+--   },
+--   api_key = "GEMINI_API_KEY",
+--   provider = 'gemini',
+--   context_window = 16000,
+--   context_ratio = 0.7,
+--   throttle = 1000,
+--   debounce = 400,
+--   n_completions = 5,
+--   provider_options = {
+--     gemini = {
+--
+--       model = 'gemini-2.0-flash-exp',
+--       system = {
+--         prompt = gemini_prompt,
+--       },
+--       few_shots = gemini_few_shots,
+--       chat_input = {
+--         template = gemini_chat_input_template,
+--       },
+--       stream = true,
+--       optional = {
+--         generationConfig = {
+--           maxOutputTokens = 1024,
+--           topP = 0.9,
+--         },
+--         safetySettings = {
+--           {
+--             category = 'HARM_CATEGORY_DANGEROUS_CONTENT',
+--             threshold = 'BLOCK_NONE',
+--           },
+--           {
+--             category = 'HARM_CATEGORY_HATE_SPEECH',
+--             threshold = 'BLOCK_NONE',
+--           },
+--           {
+--             category = 'HARM_CATEGORY_HARASSMENT',
+--             threshold = 'BLOCK_NONE',
+--           },
+--           {
+--             category = 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+--             threshold = 'BLOCK_NONE',
+--           },
+--         },
+--       },
+--     },
+--   },
+-- }
 
 vim.api.nvim_create_user_command('TermHl', function()
   local b = vim.api.nvim_create_buf(false, true)
