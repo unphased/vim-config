@@ -728,6 +728,11 @@ chars = "\u001B[24;12~"
 key = "F12"
 mods = "Super|Alt"
 
+[[keyboard.bindings]]
+chars =  "\u001B\u000D"
+key = "Return"
+mods =  "Shift"
+
 [terminal]
 osc52 = "OnlyCopy"
 

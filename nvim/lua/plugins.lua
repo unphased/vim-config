@@ -277,7 +277,7 @@ return {
   -- },
   {
     "wallpants/github-preview.nvim",
-    dir = '~/github-preview.nvim', -- Or the full path to your local clone
+    -- dir = '~/github-preview.nvim', -- Or the full path to your local clone
     cmd = { "GithubPreviewToggle" },
     keys = { "<leader>mpt" },
     opts = {
