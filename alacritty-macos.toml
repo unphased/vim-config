@@ -92,7 +92,7 @@ mouse = { enabled = true, mods = "Shift" }
 command = "open"
 persist = false
 post_processing = true
-regex = "(ipfs:|ipns:|magnet:|mailto:|gemini://|gopher://|https://|http://|news:|file:|git://|ssh:|ftp://)[^\u0000-\u001F\u007F-<>\"\\s{-}\\^⟨⟩`]+"
+regex = "(reveal://|ipfs:|ipns:|magnet:|mailto:|gemini://|gopher://|https://|http://|news:|file:|git://|ssh:|ftp://)[^\u0000-\u001F\u007F-<>\"\\s{-}\\^⟨⟩`]+"
 binding = { key = "U", mods = "Control|Shift" }
 mouse = { enabled = true, mods = "Shift" }
 
