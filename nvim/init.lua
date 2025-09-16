@@ -3229,10 +3229,13 @@ vim.cmd[[
 -- over network!
 -- if vim.g.neovide then
   -- Put anything you want to happen only in Neovide here
-  vim.g.neovide_scroll_animation_far_lines = 99999
+  vim.g.neovide_scroll_animation_far_lines = 999999
   vim.g.neovide_window_blurred = true
   vim.g.neovide_cursor_vfx_mode = "pixiedust"
-  vim.g.neovide_cursor_animation_length = 0.07
+  vim.g.neovide_cursor_animation_length = 0.1
+  vim.g.neovide_cursor_trail_size = 1
+  vim.g.neovide_scroll_animation_length = 0.4
+  vim.g.neovide_cursor_smooth_blink = true
   vim.g.neovide_hide_mouse_when_typing = true
   vim.g.neovide_transparency = 0.6
   vim.g.neovide_normal_opacity = 0.3
@@ -3364,8 +3367,9 @@ end
   ----- this uses native fullscreen, and it sucks. will be replaced soon with a hammerspoon solution.
   -- cmd+enter toggles fullscreen
   vim.keymap.set('n', '<D-CR>', function()
-    vim.g.neovide_fullscreen = (not vim.g.neovide_fullscreen)
-  end, { noremap = true, desc = 'toggle neovide fullscreen' })
+    vim.g.neovide_macos_simple_fullscreen = (not vim.g.neovide_macos_simple_fullscreen)
+  end, { noremap = true, desc = 'toggle neovide (macos simple) fullscreen' })
+  -- TODO: make this work properly in linux by detecting os, once i get around to using neovide in linux.
 
   vim.g.neovide_floating_blur_amount_x = 10.0
   vim.g.neovide_floating_blur_amount_y = 10.0
