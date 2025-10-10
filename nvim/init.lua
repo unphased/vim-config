@@ -1160,7 +1160,7 @@ local telescope_builtin = safeRequire("telescope.builtin")
 -- hard to believe ctrl+G was not already bound by vim
 
 vim.keymap.set('n', '<c-p>', function() require('fzf-lua').files() end, { desc = "fzf-lua Files"})
-vim.keymap.set('n', '<f7>', ":SessionSearch<CR>", { desc = "browse sessions"})
+vim.keymap.set('n', '<f7>', ":AutoSession search<CR>", { desc = "browse sessions"})
 vim.keymap.set('n', '<f6>', function() require('fzf-lua').oldfiles() end, { desc = "fzf-lua Recent Files"})
 vim.keymap.set('n', '<f8>', '<cmd>GithubPreviewToggle<CR>', { desc = "Github (markdown) preview toggle"})
 vim.keymap.set('n', '<f9>', function() require('fzf-lua').resume() end, { desc = "fzf-lua resume recent query"})
