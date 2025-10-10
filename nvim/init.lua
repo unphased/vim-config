@@ -1535,17 +1535,17 @@ local function ef_ten(direction)
 
 end
 
-local multicursor = require("multicursor-nvim")
+-- local multicursor = require("multicursor-nvim")
 
 vim.keymap.set({ 'n' }, '<F10>', function ()
-  local mc = multicursor
-  if not mc.cursorsEnabled() then
-    mc.enableCursors()
-  elseif mc.hasCursors() then
-    mc.clearCursors()
-  else
-    -- Default <esc> handler.
-  end
+  -- local mc = multicursor
+  -- if not mc.cursorsEnabled() then
+  --   mc.enableCursors()
+  -- elseif mc.hasCursors() then
+  --   mc.clearCursors()
+  -- else
+  --   -- Default <esc> handler.
+  -- end
   ef_ten('+')
 end, {noremap = true})
 vim.keymap.set({ 'n' }, '<S-F10>', function () ef_ten('-') end, {noremap = true})
@@ -1555,7 +1555,7 @@ vim.cmd([[
   inoremap <Right> <C-g>U<Right>
 ]])
 
-multicursor.setup()
+-- multicursor.setup()
 
 vim.opt.completeopt="menu,menuone,noselect"
 
@@ -3237,17 +3237,17 @@ vim.cmd[[
   vim.g.neovide_scroll_animation_length = 0.4
   vim.g.neovide_cursor_smooth_blink = true
   vim.g.neovide_hide_mouse_when_typing = true
-  vim.g.neovide_transparency = 0.6
+  vim.g.transparency = 0.6
   vim.g.neovide_normal_opacity = 0.3
+  vim.g.neovide_opacity = 0.3
   
-  -- Helper function for transparency formatting
-local alpha = function()
-  return string.format("%x", math.floor(255 * vim.g.neovide_transparency or 0.6))
-end
+  -- Remember the last color we applied so we only update highlights when it changes.
+  local last_neovide_normal_bg ---@type string|nil
+  local default_neovide_bg = "#2f9117"
   local function set_neovide_background_color()
     if not vim.g.neovide then return end
     
-    local base_color = "#2f9117" -- fallback color
+    local base_color = default_neovide_bg -- fallback color
     local color_found = false
     local reason = "fallback"
 
@@ -3292,10 +3292,20 @@ end
       end
     end
 
-    local new_color = base_color .. "b0"
-    if vim.g.neovide_background_color ~= new_color then
-        vim.g.neovide_background_color = new_color
-        vim.cmd('echom "Neovide BG: Set to ' .. new_color .. ' (reason: ' .. reason .. ')"')
+    local sanitized_color = base_color
+    if sanitized_color:match("^#%x%x%x%x%x%x%x%x$") then
+      sanitized_color = sanitized_color:sub(1, 7)
+    elseif not sanitized_color:match("^#%x%x%x%x%x%x$") then
+      sanitized_color = default_neovide_bg
+      reason = reason .. " (invalid color, reverted to default)"
+    end
+
+    if sanitized_color ~= last_neovide_normal_bg then
+      for _, group in ipairs({ "Normal", "NormalNC" }) do
+        vim.cmd(string.format("highlight %s guibg=%s", group, sanitized_color))
+      end
+      last_neovide_normal_bg = sanitized_color
+      vim.cmd('echom "Neovide BG: Set highlight to ' .. sanitized_color .. ' (reason: ' .. reason .. ')"')
     end
   end
   
@@ -3305,6 +3315,13 @@ end
     callback = set_neovide_background_color,
     pattern = "*",
     desc = "Update neovide background color on buffer change"
+  })
+  vim.api.nvim_create_autocmd("ColorScheme", {
+    callback = function()
+      last_neovide_normal_bg = nil
+      set_neovide_background_color()
+    end,
+    desc = "Reapply neovide background color after colorscheme changes"
   })
 
   vim.g.neovide_refresh_rate = 240
