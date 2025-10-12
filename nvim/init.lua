@@ -3245,7 +3245,20 @@ vim.cmd[[
   local last_neovide_normal_bg ---@type string|nil
   local default_neovide_bg = "#2f9117"
   local function set_neovide_background_color()
-    if not vim.g.neovide then return end
+    if not vim.g.neovide then 
+      -- if not neovide we are in terminal: the likely situations are (1) running under tmux or (2) just running bare in a shell: 
+      -- 1. simply run ~/util/set-bgcolor-by-cwd-tmux.zsh right here (will do nothing if not in tmux)
+      local output = vim.fn.system(vim.env.HOME .. "/util/set-bgcolor-by-cwd-tmux.zsh")
+      local trimmed_output = vim.fn.trim(output or "")
+      if trimmed_output ~= "" then
+        vim.notify("set-bgcolor-by-cwd-tmux: " .. trimmed_output)
+      end
+      if trimmed_output:match("^tmux%-bgcolor:") then
+        vim.cmd('echom "nvim bgcolor: Set highlight via cwd in tmux"')
+        return
+      end
+      -- 2. actually do the rest of the code, so, a no-op here lol
+    end
     
     local base_color = default_neovide_bg -- fallback color
     local color_found = false
@@ -3305,7 +3318,7 @@ vim.cmd[[
         vim.cmd(string.format("highlight %s guibg=%s", group, sanitized_color))
       end
       last_neovide_normal_bg = sanitized_color
-      vim.cmd('echom "Neovide BG: Set highlight to ' .. sanitized_color .. ' (reason: ' .. reason .. ')"')
+      vim.cmd('echom "nvim bgcolor: Set highlight to ' .. sanitized_color .. ' (reason: ' .. reason .. ')"')
     end
   end
   
