@@ -3248,12 +3248,8 @@ vim.cmd[[
     if not vim.g.neovide then 
       -- if not neovide we are in terminal: the likely situations are (1) running under tmux or (2) just running bare in a shell: 
       -- 1. simply run ~/util/set-bgcolor-by-cwd-tmux.zsh right here (will do nothing if not in tmux)
-      local output = vim.fn.system(vim.env.HOME .. "/util/set-bgcolor-by-cwd-tmux.zsh")
-      local trimmed_output = vim.fn.trim(output or "")
-      if trimmed_output ~= "" then
-        vim.notify("set-bgcolor-by-cwd-tmux: " .. trimmed_output)
-      end
-      if trimmed_output:match("^tmux%-bgcolor:") then
+      vim.fn.system(vim.env.HOME .. "/util/set-bgcolor-by-cwd-tmux.zsh")
+      if vim.v.shell_error == 0 then
         vim.cmd('echom "nvim bgcolor: Set highlight via cwd in tmux"')
         return
       end
