@@ -3290,14 +3290,15 @@ vim.cmd[[
       if vim.fn.executable(color_script_path) == 1 then
         local cmd = "cd " .. vim.fn.shellescape(dir) .. " && " .. vim.fn.shellescape(color_script_path) .. " --get-color"
         local script_output = vim.fn.trim(vim.fn.system(cmd))
+        local contextInfo = "cmd: '".. cmd .."' output: '" .. script_output .. "'"
         if script_output and script_output:match("^#") then
           base_color = script_output
-          reason = "script: " .. color_script_path
+          reason = "script: " .. color_script_path .. " on " .. contextInfo
         else
-          reason = "script invalid output: " .. script_output
+          reason = "script invalid output: " .. contextInfo
         end
       else
-        reason = "script not found/executable"
+        reason = "script at " .. color_script_path .. " not found/executable"
       end
     end
 
@@ -3314,7 +3315,7 @@ vim.cmd[[
         vim.cmd(string.format("highlight %s guibg=%s", group, sanitized_color))
       end
       last_neovide_normal_bg = sanitized_color
-      vim.cmd('echom "nvim bgcolor: Set highlight to ' .. sanitized_color .. ' (reason: ' .. reason .. ')"')
+      vim.cmd('echom "nvim bgcolor set highlight to ' .. sanitized_color .. ' (reason: ' .. reason .. ')"')
     end
   end
   
