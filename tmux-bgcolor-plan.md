@@ -4,6 +4,8 @@
 - Centralize color selection logic so terminal shells, Neovim, and other tools share the same behavior: provide context
   for the area that is open based on its location by setting the color.
 - Allow per-directory overrides (e.g. `.tmux-bgcolor`) that supersede deterministic mapping.
+- Expose modular entry points (preferably small POSIX/Bash scripts) so different environments can consume the same
+  resolver while applying colors in their own way.
 
 ## Current Pain Points
 - **Context mismatch:** Neovim’s working directory can differ from an active buffer’s directory, so delegating to a CWD-based script yields incorrect colors.
@@ -35,7 +37,7 @@ set with tmux and nvim stays hands off.
 ### 4. Application Layer
 - Thin wrappers that take a resolved color and apply it to a UI.
 - For tmux: use `TMUX_PANE`/`color-pane.sh` (possibly rewritten to consume the shared selector).
-- For Neovide/Vim: set highlight groups directly.
+- For Neovide/Vim: apply highlights directly in Lua—no tmux detection needed; just use the resolver output.
 - Other consumers simply call the shared resolver and handle the result.
 
 ### 5. Error Handling & Reporting
@@ -58,8 +60,8 @@ set with tmux and nvim stays hands off.
    - Call resolver, parse output, and invoke color application layer.
 6. Modify Neovim Lua:
    - Compute buffer directory.
-  - Call resolver via `system()` with the directory context.
-   - Use returned color for highlights; only call tmux applier if TMUX env present.
+   - Call resolver via `system()` with the directory context.
+   - Apply the returned color to highlights regardless of tmux presence (Lua handles both terminal and Neovide cases).
 7. Add tests/examples for both override and deterministic paths.
 
 ## Open Questions
@@ -67,4 +69,3 @@ set with tmux and nvim stays hands off.
 - Should overrides allow disabling coloring (e.g. writing `off`)?
 - What caching strategy balances freshness vs. performance?
 - How should concurrent callers (multiple tmux panes) coordinate color changes, if at all?
-
