@@ -17,12 +17,12 @@ set with tmux and nvim stays hands off.
 ## Proposed Architecture
 
 ### 1. Path Context Providers
-- Each caller provides the directory it cares about (`$PWD`, Neovim buffer dir, etc.).
-- Expose a consistent interface: pass a directory via first argument or env var like `TMUX_BG_DIR`.
-- Responsibility: identify *what* location we want to color.
+- Each caller provides the location it cares about (`$PWD`, Neovim buffer path, etc.).
+- Expose a consistent interface: pass a path via first argument or env var like `COLOR_CONTEXT_TARGET`.
+- Responsibility: identify *what* location we want to color; resolver can decide whether to derive dir, repo root, etc.
 
 ### 2. Override Discovery
-- Walk upward from the provided directory to find `.tmux-bgcolor` (and eventual extended markers).
+- Walk upward from the provided path to find `.tmux-bgcolor` (and eventual extended markers).
 - Return both the file path found and the color contents.
 - Implement once (POSIX shell preferred); callers rely on it instead of duplicating logic.
 - Optional caching keyed by absolute path to avoid repeated filesystem walks.
@@ -36,7 +36,10 @@ set with tmux and nvim stays hands off.
 
 ### 4. Application Layer
 - Thin wrappers that take a resolved color and apply it to a UI.
-- For tmux: use `TMUX_PANE`/`color-pane.sh` (possibly rewritten to consume the shared selector).
+- Handlers decide how to apply color based on their environment:
+  - For zsh prompts: default handler keys off `$PWD`, invokes tmux or terminal APIs as appropriate.
+  - For tmux: continue to leverage `TMUX_PANE`/`color-pane.sh`, but treat it as one handler implementation.
+  - For terminal emulators: future handler could emit OSC sequences when not inside tmux.
 - For Neovide/Vim: apply highlights directly in Lua—no tmux detection needed; just use the resolver output.
 - Other consumers simply call the shared resolver and handle the result.
 
@@ -48,19 +51,19 @@ set with tmux and nvim stays hands off.
 - Logging hooks (optional) so invoking environments can `echom`/`notify` as desired.
 
 ## Implementation Steps (Draft)
-1. Sketch API for a `tmux-bgcolor-resolve` script:
-   - Input: directory (arg/env).
+1. Sketch API for a `color-context` resolver script/tool:
+   - Input: path (arg/env).
    - Output: structured line(s) describing color & source.
    - Exit codes: 0 success, non-zero error/no color.
 2. Move override detection into that resolver (recursive `.tmux-bgcolor`).
 3. Extract deterministic selection logic from `color-pane.sh` into the resolver.
 4. Update `color-pane.sh` to accept an explicit color (and fall back to resolver when none supplied).
-5. Adjust `set-bgcolor-by-cwd-tmux.zsh` to:
+5. Adjust handler scripts (e.g. `set-bgcolor-by-cwd-tmux.zsh`) to:
    - Determine path context (default `$PWD`).
-   - Call resolver, parse output, and invoke color application layer.
+   - Call `color-context`, parse output, and delegate to a configurable handler (tmux now, terminal OSC later).
 6. Modify Neovim Lua:
-   - Compute buffer directory.
-   - Call resolver via `system()` with the directory context.
+   - Capture the full buffer path (not just directory).
+   - Call resolver via `system()` with that path.
    - Apply the returned color to highlights regardless of tmux presence (Lua handles both terminal and Neovide cases).
 7. Add tests/examples for both override and deterministic paths.
 
