@@ -836,7 +836,7 @@ vim.g.matchup_matchparen_deferred = 1
 vim.g.matchup_matchparen_hi_surround_always = 1
 vim.g.matchup_transmute_enabled = 1
 
-vim.opt.titlestring = "NVIM %f%h%m%r%w (%{tabpagenr()} of %{tabpagenr('$')})"
+vim.opt.titlestring = "NVIM %f%h%m%r%w [%{fnamemodify(getcwd(), ':~')}] (%{tabpagenr()} of %{tabpagenr('$')})"
 
 -- plugin settings
 require("gitsigns").setup({
