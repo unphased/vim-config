@@ -1413,7 +1413,7 @@ local function my_on_attach(bufnr)
   nvimtree_api.config.mappings.default_on_attach(bufnr)
 
   -- custom mappings
-  vim.keymap.set('n', '<C-t>', nvimtree_api.tree.change_root_to_parent, opts('Up'))
+  vim.keymap.set('n', '<C-u>', nvimtree_api.tree.change_root_to_parent, opts('Up'))
   vim.keymap.set('n', '-', ':vertical res -5<CR>', opts('Shrink Window (key override)'))
   vim.keymap.set('n', '?', nvimtree_api.tree.toggle_help, opts('Help'))
 
