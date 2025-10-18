@@ -3237,9 +3237,9 @@ vim.cmd[[
   vim.g.neovide_scroll_animation_length = 0.4
   vim.g.neovide_cursor_smooth_blink = true
   vim.g.neovide_hide_mouse_when_typing = true
-  vim.g.transparency = 0.6
+  -- vim.g.transparency = 0.2
   -- vim.g.neovide_normal_opacity = 0.7
-  vim.g.neovide_opacity = 0.7
+  vim.g.neovide_opacity = 0.9
   
   -- Remember the last color we applied so we only update highlights when it changes.
   local last_neovide_normal_bg ---@type string|nil
