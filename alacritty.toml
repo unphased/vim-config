@@ -396,6 +396,11 @@ key = "Insert"
 mods = "Shift"
 
 [[keyboard.bindings]]
+action = "Paste"
+key = "V"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
 chars = "\u001B[2~"
 key = "Insert"
 
