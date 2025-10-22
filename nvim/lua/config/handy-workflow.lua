@@ -104,31 +104,47 @@ end
 local function display_diff(back)
   if vim.bo.buftype == 'terminal' then
     -- In terminal buffer (normal or insert mode), when this is called i will hop back and forth producing a delta from
-    -- current state to N commits back in history. 
+    -- current state to N commits back in history.
+    local current_buf = vim.api.nvim_get_current_buf()
+    local current_name = vim.api.nvim_buf_get_name(current_buf)
+    local current_diff_num = tonumber(current_name:match("Git DIFF PREV (%d+)"))
+    if not current_diff_num and current_name:find("Git Diff") then
+      current_diff_num = 0
+    end
+
     local max_diff_num = 0
-    local max_diff_bufnum
     for _, data in ipairs(get_current_tab_buffer_names()) do
       local bufName = data.name
       local diff_num = bufName:match("Git DIFF PREV (%d+)")
       if diff_num then
         max_diff_num = math.max(max_diff_num, tonumber(diff_num) or 0)
-        max_diff_bufnum = data.buf
       end
     end
 
-
-    -- Increment the max number for the new diff
-    local new_diff_num = max_diff_num + (back and 1 or -1)
-    if (new_diff_num < 1) then
-      new_diff_num = 1
+    if current_diff_num and current_diff_num > max_diff_num then
+      max_diff_num = current_diff_num
     end
 
-    log('display_diff targeting buf ' .. tostring(new_diff_num == 1 and nil or max_diff_bufnum) .. ' for opening into')
+    local base_diff_num = current_diff_num or max_diff_num
+    local step = back and 1 or -1
+    local new_diff_num = base_diff_num + step
+    if new_diff_num < 0 then
+      new_diff_num = 0
+    end
+
+    local target_buf = current_diff_num and current_buf or nil
+    log('display_diff targeting buf ' .. tostring(target_buf) .. ' for opening into')
+
+    if new_diff_num == 0 then
+      MakeTermWindowVimAsPager('git --no-pager diff | ~/.cargo/bin/delta --pager=none',
+        '50', 'Git Diff', target_buf)
+      return
+    end
 
     local commits_back = string.rep("^", new_diff_num)
     -- the grep and tail are to actually make it count just the changed lines.
     MakeTermWindowVimAsPager('output="$(git --no-pager diff HEAD' .. commits_back .. ")\"; echo \"Line count: $(echo \"$output\" | grep '^[-+][^-+]' | tail -n +3 | wc -l)\"; echo \"Diffing from $(git rev-parse --short HEAD" .. commits_back .. ") - $(git log -1 --format=\"%s\" HEAD" .. commits_back .. ")\"; echo \"$output\" | ~/.cargo/bin/delta --pager=none",
-      '50', 'Git DIFF PREV ' .. new_diff_num, new_diff_num == 1 and nil or max_diff_bufnum)
+      '50', 'Git DIFF PREV ' .. new_diff_num, target_buf)
 
   else
     -- In non-terminal buffer
