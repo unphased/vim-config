@@ -34,7 +34,7 @@
   (env var or timestamp awareness).
 
 ### 3. Deterministic Palette Engine
-- Provide a reusable function/library that maps normalized paths (repo root, host, etc.) to palette colors.
+- Encapsulate deterministic mapping logic (repo root, host, etc.) inside the resolver so a single executable can reuse it.
 - Support composable rules: repo-scoped palettes, subdirectory suffixes, or pattern maps defined in a config file.
 - Return consistent keys so different consumers make the same caching decisions.
 
@@ -44,8 +44,6 @@
   tmux propagates the color to the pane automatically.
 - Long-lived daemons (e.g. direnv, task runners) can also print OSC 11 when they enter a new context, no tmux-specific
   code required.
-- Provide a small helper (`print-osc11.sh`?) that ensures the escape sequence is emitted correctly and can be reused by
-  scripts that prefer delegation.
 
 ### 5. Neovim Integration
 - Lua layer queries the resolver with the buffer file path (not process CWD), parses metadata, and sets both the global
@@ -56,50 +54,56 @@
 - Provide optional verbose logging hooks (`COLOR_CONTEXT_DEBUG=1`) for troubleshooting thrashing or incorrect colors.
 
 ## Implementation Steps (Draft)
-1. Finalize the resolver contract: argument/env expectations, stdout schema, exit codes, and env flags (e.g. debug,
-   cache bypass).
-2. Implement override discovery inside the resolver with optional caching.
-3. Port deterministic palette logic from `color-pane.sh` into a shared library the resolver can source.
-4. Provide a reusable OSC 11 helper (shell function or script) that validates hex values and emits the escape sequence.
-5. Update shell/tmux integrations to consume the resolver + OSC helper, removing tmux-specific color plumbing.
-6. Rework Neovim Lua to request colors per buffer, set global UI background, and manage buffer-local highlights.
-7. Document adapter usage patterns and add tests/fixtures covering overrides and deterministic fallbacks.
+1. Implement `~/util/bgcolor.sh` to accept a target path, find overrides (if any), derive deterministic fallbacks, and
+   emit either OSC 11 (default) or raw hex when `--format=hex` is passed.
+2. Fold the relevant logic from `color-pane.sh` and `set-bgcolor-by-cwd-tmux.zsh` into the new script, then retire the
+   old helpers.
+3. Update zsh/tmux prompt hooks to call `bgcolor.sh` directly and remove legacy tmux-specific background commands.
+4. Adjust Neovim Lua integration to invoke `bgcolor.sh --format=hex` per buffer and apply the returned color to global and
+   buffer-local highlights.
+5. Add inline documentation and perform manual smoke tests across shells, tmux panes, and Neovim to confirm consistent
+   behavior.
 
 ## Tactical Plan (Next Iteration)
 
-### Resolver & Shared Library (~/util)
-- Extract the deterministic palette logic from `~/util/color-pane.sh` into a new reusable library (e.g.
-  `~/util/bgcolor-lib.sh`) that exposes functions for path normalization, override lookup, and palette selection.
-- Build the resolver CLI (`~/util/bgcolor-resolve.sh`) that sources the library, accepts a target path via argument or
-  `COLOR_CONTEXT_TARGET`, and prints structured output (`color=<hex> source=<kind> anchor=<path>`).
-- Keep the resolver stateless for v1—each invocation recomputes overrides and palette data so the implementation stays
-  straightforward. Revisit memoization only if profiling shows it is needed later.
-- Include a companion helper (`~/util/print-osc11.sh`) that validates hex values and prints the OSC 11 escape sequence.
+### Background Resolver Script (~/util/bgcolor.sh)
+- Consolidate the logic currently spread across `color-pane.sh` and `set-bgcolor-by-cwd-tmux.zsh` into a single script
+  (`~/util/bgcolor.sh`).
+- Default behavior: accept an optional path argument (fall back to `$PWD`), locate the repo root, check for
+  `.tmux-bgcolor`, derive the deterministic color when no override is found, and emit an OSC 11 sequence.
+- Provide lightweight output controls such as `--format=hex` (for Neovim) and `--format=osc11` (default) so other tools
+  can reuse the same script without extra plumbing.
+- Keep the implementation stateless for v1—every invocation recomputes so we can deliver quickly.
 
-### Shell & Tmux Flow (~/.oh-my-zsh, ~/util)
-- Update `~/util/set-bgcolor-by-cwd-tmux.zsh` to delegate all decision making to the resolver and only handle: selecting
-  the target path (default `$PWD`/git root), invoking the resolver, and calling the OSC 11 helper.
-- Replace any tmux-specific background commands with plain OSC 11 emission; rely on tmux’s built-in forwarding instead of
-  `color-pane.sh` control sequences.
-- Adjust `~/.oh-my-zsh/zshrc` (or custom plugin) so prompt hooks use the new resolver script rather than bespoke logic,
-  ensuring non-tmux terminals get the same color.
-- Audit other bgcolor-related helpers in `~/util` (e.g. `where-am-i-tmux.sh`, `bgalert`) and note which ones should be
-  refactored or retired once the resolver is in place.
+### Shell & Tmux Flow (~/.oh-my-zsh)
+- Remove `~/util/set-bgcolor-by-cwd-tmux.zsh` and replace its usage in prompt hooks with direct calls to
+  `~/util/bgcolor.sh`.
+- Ensure the zsh prompt hook captures the desired path (usually `$PWD` or git root) and lets tmux propagate OSC 11 to the
+  pane automatically.
+- Verify no other shell scripts depend on the old helper; update or delete them as part of the rollout.
 
 ### Neovim Integration (~/nvim)
 - Identify the Lua module currently invoking `.tmux-bgcolor` logic and update it to run the resolver via `vim.system()`
   or `vim.fn.system()` with the active buffer path.
 - Apply the resolved color by setting the global background highlight (affects command line/Neovide) and a buffer-local
   `Normal` highlight so per-buffer colors persist across window splits.
+- Use the script’s `--format=hex` (or similar) option so Neovim receives raw color values rather than emitting OSC 11
+  directly.
 - Ensure the Neovim code paths avoid redundant resolver calls on rapid buffer switches (e.g. memoize per buffer number).
 
 ### Validation & Rollout
-- Craft ad-hoc tests under `~/util/tests/` exercising resolver scenarios: override present, deterministic fallback, and
-  invalid color handling.
-- Use a temporary tmux session to confirm that OSC 11 sequences set pane backgrounds correctly and that exiting a program
-  restores colors based on the next prompt hook.
-- Document a short “usage README” in the repo outlining how shells, tmux, and Neovim plug into the resolver, plus any
-  migration notes for deprecated scripts.
+- Smoke-test the new script directly (`bgcolor.sh`, `bgcolor.sh --format=hex`) to ensure override and fallback behavior.
+- Use a temporary tmux session to confirm OSC 11 output updates pane backgrounds and that prompts reapply colors after
+  commands exit.
+- Document quick usage notes in the repo (or inline script comments) describing the default behavior and available
+  formats.
+
+## Future Directions
+- Split shared logic into a sourceable library if multiple long-lived processes need direct function access.
+- Reintroduce memoization or caching once we have profiling data that justifies the complexity.
+- Offer a dedicated OSC 11 helper script for environments that only need to emit the escape sequence.
+- Build out automated tests/fixtures beyond manual smoke tests to cover edge cases and regressions.
+- Add richer output modes (e.g. JSON metadata) if more consumers require structured data.
 
 ## Open Questions
 - Do we want a shared palette definition file to make deterministic colors easier to tweak without touching code?
@@ -107,5 +111,4 @@
   writer is intentional and not noisy?
 - What caching policy (per repo, time-to-live, manual invalidation) provides good performance without stale overrides?
 - How do we expose resolver results to GUI clients beyond Neovide (e.g. Ghostty integrations)?
-- osc11 background manip can be an effective way to have alerting behavior by making little temporal loops to blink or
-pulse colors and so on. 
+- Could OSC 11-based background flashing serve as a lightweight alert mechanism (e.g. temporary pulses for notifications)?
