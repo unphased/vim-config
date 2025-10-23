@@ -41,6 +41,10 @@
 -- - also toggle the showbreak on alt p
 
 
+-- set some PATH stuff which is pretty critical for the stuff ordinarily only exposed via my interactive zsh
+vim.env.PATH = vim.env.HOME .. "/.fzf/bin:" .. (vim.env.PATH or "")
+vim.env.PATH = vim.env.HOME .. "/util:" .. (vim.env.PATH or "")
+
 vim.cmd('autocmd BufEnter * set formatoptions-=ro | set formatoptions+=n')
 vim.cmd('autocmd BufEnter * setlocal formatoptions-=ro | setlocal formatoptions+=n')
 
@@ -3247,8 +3251,8 @@ vim.cmd[[
   local function set_neovide_background_color()
     if not vim.g.neovide then 
       -- if not neovide we are in terminal: the likely situations are (1) running under tmux or (2) just running bare in a shell: 
-      -- 1. simply run ~/util/set-bgcolor-by-cwd-tmux.zsh right here (will do nothing if not in tmux)
-      vim.fn.system(vim.env.HOME .. "/util/set-bgcolor-by-cwd-tmux.zsh")
+      -- 1. simply run ~/util/bgcolor.sh right here (will emit OSC 11 when supported)
+      vim.fn.system(vim.env.HOME .. "/util/bgcolor.sh")
       if vim.v.shell_error == 0 then
         vim.cmd('echom "nvim bgcolor: Set highlight via cwd in tmux"')
         return
