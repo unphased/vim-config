@@ -65,9 +65,47 @@
 6. Rework Neovim Lua to request colors per buffer, set global UI background, and manage buffer-local highlights.
 7. Document adapter usage patterns and add tests/fixtures covering overrides and deterministic fallbacks.
 
+## Tactical Plan (Next Iteration)
+
+### Resolver & Shared Library (~/util)
+- Extract the deterministic palette logic from `~/util/color-pane.sh` into a new reusable library (e.g.
+  `~/util/bgcolor-lib.sh`) that exposes functions for path normalization, override lookup, and palette selection.
+- Build the resolver CLI (`~/util/bgcolor-resolve.sh`) that sources the library, accepts a target path via argument or
+  `COLOR_CONTEXT_TARGET`, and prints structured output (`color=<hex> source=<kind> anchor=<path>`).
+- Keep the resolver stateless for v1—each invocation recomputes overrides and palette data so the implementation stays
+  straightforward. Revisit memoization only if profiling shows it is needed later.
+- Include a companion helper (`~/util/print-osc11.sh`) that validates hex values and prints the OSC 11 escape sequence.
+
+### Shell & Tmux Flow (~/.oh-my-zsh, ~/util)
+- Update `~/util/set-bgcolor-by-cwd-tmux.zsh` to delegate all decision making to the resolver and only handle: selecting
+  the target path (default `$PWD`/git root), invoking the resolver, and calling the OSC 11 helper.
+- Replace any tmux-specific background commands with plain OSC 11 emission; rely on tmux’s built-in forwarding instead of
+  `color-pane.sh` control sequences.
+- Adjust `~/.oh-my-zsh/zshrc` (or custom plugin) so prompt hooks use the new resolver script rather than bespoke logic,
+  ensuring non-tmux terminals get the same color.
+- Audit other bgcolor-related helpers in `~/util` (e.g. `where-am-i-tmux.sh`, `bgalert`) and note which ones should be
+  refactored or retired once the resolver is in place.
+
+### Neovim Integration (~/nvim)
+- Identify the Lua module currently invoking `.tmux-bgcolor` logic and update it to run the resolver via `vim.system()`
+  or `vim.fn.system()` with the active buffer path.
+- Apply the resolved color by setting the global background highlight (affects command line/Neovide) and a buffer-local
+  `Normal` highlight so per-buffer colors persist across window splits.
+- Ensure the Neovim code paths avoid redundant resolver calls on rapid buffer switches (e.g. memoize per buffer number).
+
+### Validation & Rollout
+- Craft ad-hoc tests under `~/util/tests/` exercising resolver scenarios: override present, deterministic fallback, and
+  invalid color handling.
+- Use a temporary tmux session to confirm that OSC 11 sequences set pane backgrounds correctly and that exiting a program
+  restores colors based on the next prompt hook.
+- Document a short “usage README” in the repo outlining how shells, tmux, and Neovim plug into the resolver, plus any
+  migration notes for deprecated scripts.
+
 ## Open Questions
 - Do we want a shared palette definition file to make deterministic colors easier to tweak without touching code?
 - How should we coordinate OSC 11 emissions across multiple apps (e.g. shells, Neovim, background jobs) so the last
   writer is intentional and not noisy?
 - What caching policy (per repo, time-to-live, manual invalidation) provides good performance without stale overrides?
 - How do we expose resolver results to GUI clients beyond Neovide (e.g. Ghostty integrations)?
+- osc11 background manip can be an effective way to have alerting behavior by making little temporal loops to blink or
+pulse colors and so on. 
