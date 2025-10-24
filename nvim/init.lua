@@ -2542,7 +2542,7 @@ vim.keymap.set('n', "<M-C-S-F11>", "<cmd>lua CycleWindowsOrBuffers(false)<cr>", 
 -- node action config. Unfortunately the bind is not very mnemonic but e is super easy to reach.
 -- THIS IS THE "toggle" behavior e.g. old AndrewRadev/switch.vim workflow
 vim.keymap.set('n', '<leader>e', require('ts-node-action').node_action, {
-  desc = "Treesitter Node Action"
+  desc = "Treesitter Node Action (toggle)"
 })
 
 vim.keymap.set('n', '<leader>E', function ()
