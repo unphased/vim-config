@@ -448,6 +448,7 @@ vim.cmd([[
   nnoremap fg :Neotree float reveal_file=<cfile> reveal_force_cwd<cr>
 
   nnoremap <c-m-s> :SudaWrite<CR>
+  nnoremap <c-d-s> :SudaWrite<CR> " for neovide (no need to put the d-binds behind conditionals i realized)
 
   " https://stackoverflow.com/a/75553217/340947
   let vimtmp = $HOME . '/.tmp/' . getpid()
