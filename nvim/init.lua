@@ -114,7 +114,30 @@ vim.keymap.set({'i', 'n'}, '<M-Left>', '<C-Left>')
 vim.keymap.set({'i', 'n'}, '<M-Right>', '<C-Right>')
 
 vim.keymap.set("n", "<leader>w", ":set wrap!<cr>")
-vim.keymap.set("n", "<leader>o", function()
+
+local function launch_tui_browser(path)
+  local dir = vim.fn.fnamemodify(path, ":p:h")
+  local browser
+  for _, candidate in ipairs({ "lf", "nnn", "ranger" }) do
+    if vim.fn.executable(candidate) == 1 then
+      browser = candidate
+      break
+    end
+  end
+  if not browser then
+    vim.notify("No supported TUI file browser found (lf, nnn, ranger)", vim.log.levels.WARN)
+    return
+  end
+  vim.cmd("botright split")
+  vim.api.nvim_win_set_height(0, 15)
+  local term_buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_option(term_buf, "bufhidden", "wipe")
+  vim.api.nvim_win_set_buf(0, term_buf)
+  vim.fn.termopen({ browser }, { cwd = dir })
+  vim.cmd("startinsert")
+end
+
+local function reveal_current_file()
   local path = vim.api.nvim_buf_get_name(0)
   if path == "" then
     vim.notify("No file associated with this buffer", vim.log.levels.WARN)
@@ -124,8 +147,21 @@ vim.keymap.set("n", "<leader>o", function()
     vim.notify("File does not exist on disk", vim.log.levels.WARN)
     return
   end
-  vim.fn.jobstart({ "open", "-R", path }, { detach = true })
-end, { desc = "Reveal file in Finder" })
+  local uname = vim.loop.os_uname()
+  local sysname = uname and uname.sysname or ""
+  local is_ssh = (vim.env.SSH_CONNECTION or vim.env.SSH_CLIENT or vim.env.SSH_TTY) ~= nil
+  if sysname == "Darwin" and not is_ssh then
+    vim.fn.jobstart({ "open", "-R", path }, { detach = true })
+    return
+  end
+  if sysname == "Linux" and is_ssh then
+    launch_tui_browser(path)
+    return
+  end
+  vim.notify("Reveal not implemented for this platform", vim.log.levels.INFO)
+end
+
+vim.keymap.set("n", "<leader>o", reveal_current_file, { desc = "Reveal file in Finder or TUI browser" })
 
 vim.keymap.set('n', '<CR>', function ()
   -- Get the word under the cursor
