@@ -118,7 +118,7 @@ vim.keymap.set("n", "<leader>w", ":set wrap!<cr>")
 local function launch_tui_browser(path)
   local dir = vim.fn.fnamemodify(path, ":p:h")
   local browser
-  for _, candidate in ipairs({ "lf", "nnn", "ranger" }) do
+  for _, candidate in ipairs({ "lf", "yazi", "nnn", "ranger" }) do
     if vim.fn.executable(candidate) == 1 then
       browser = candidate
       break
