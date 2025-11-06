@@ -114,6 +114,18 @@ vim.keymap.set({'i', 'n'}, '<M-Left>', '<C-Left>')
 vim.keymap.set({'i', 'n'}, '<M-Right>', '<C-Right>')
 
 vim.keymap.set("n", "<leader>w", ":set wrap!<cr>")
+vim.keymap.set("n", "<leader>o", function()
+  local path = vim.api.nvim_buf_get_name(0)
+  if path == "" then
+    vim.notify("No file associated with this buffer", vim.log.levels.WARN)
+    return
+  end
+  if not vim.loop.fs_stat(path) then
+    vim.notify("File does not exist on disk", vim.log.levels.WARN)
+    return
+  end
+  vim.fn.jobstart({ "open", "-R", path }, { detach = true })
+end, { desc = "Reveal file in Finder" })
 
 vim.keymap.set('n', '<CR>', function ()
   -- Get the word under the cursor
