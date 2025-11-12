@@ -1,5 +1,8 @@
 ; extends
 
+; This allows us to precede template strings in js and ts with either "/* glsl */" or "/* wgsl */" and get those strings
+; treated as the corresponding code for highlighting.
+
 ; WGSL
 (
   [
