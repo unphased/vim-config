@@ -1,8 +1,20 @@
 ; extends
 (
- (variable_declarator
-  (comment) @injection.language (#offset! @injection.language 0 3 0 -3)
-  (template_string (string_fragment) @injection.content)
- )
+  (variable_declarator
+    (comment) @c
+    .
+    value: (template_string (string_fragment)? @injection.content)
+  )
+  (#match? @c "^(/\\*\\s*wgsl\\s*\\*/|//\\s*wgsl\\s*)$")
+  (#set! injection.language "wgsl")
 )
 
+; { key: /* wgsl */ `...` }
+(
+  (pair
+    (comment) @c
+    value: (template_string (string_fragment)? @injection.content)
+  )
+  (#match? @c "^(/\\*\\s*wgsl\\s*\\*/|//\\s*wgsl\\s*)$")
+  (#set! injection.language "wgsl")
+)
