@@ -3368,7 +3368,7 @@ vim.cmd[[
         vim.cmd(string.format("highlight %s guibg=%s", group, sanitized_color))
       end
       last_neovide_normal_bg = sanitized_color
-      vim.cmd('echom "nvim bgcolor set highlight to ' .. sanitized_color .. ' (reason: ' .. reason .. ')"')
+      -- vim.cmd('echom "nvim bgcolor set highlight to ' .. sanitized_color .. ' (reason: ' .. reason .. ')"')
     end
   end
   
