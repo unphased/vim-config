@@ -46,8 +46,23 @@ return {
   },
   -- "numToStr/Comment.nvim",
   -- 'AndrewRadev/switch.vim',
-  -- 'junegunn/fzf.vim',
-  -- 'junegunn/fzf',
+  {
+    'junegunn/fzf.vim',
+    dependencies = {
+      { 'junegunn/fzf', build = './install --bin' },
+    },
+    init = function()
+      vim.g.fzf_layout = {
+        window = {
+          width = 0.95,
+          height = 1.0,
+          xoffset = 0.0,
+          yoffset = 0.0,
+        },
+      }
+      vim.g.fzf_preview_window = { 'up:50%', 'ctrl-/' }
+    end,
+  },
   { 'nvim-telescope/telescope.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
   -- 'nvim-telescope/telescope-ui-select.nvim',
   'norcalli/nvim-colorizer.lua',
@@ -628,16 +643,26 @@ return {
   --   end
   -- },
   {
-    "OXY2DEV/markview.nvim",
-    lazy = false,
-    -- dependencies = { 'nvim-treesitter/nvim-treesitter' }
-
-    -- For blink.cmp's completion
-    -- source
-    -- dependencies = {
-    --     "saghen/blink.cmp"
-    -- },
+    'MeanderingProgrammer/render-markdown.nvim',
+    dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-mini/mini.nvim' },            -- if you use the mini.nvim suite
+    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-mini/mini.icons' },        -- if you use standalone mini plugins
+    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
+    ---@module 'render-markdown'
+    ---@type render.md.UserConfig
+    opts = {},
   },
+  -- {
+  --   "OXY2DEV/markview.nvim",
+  --   priority = 101,
+  --   lazy = false,
+  --   -- dependencies = { 'nvim-treesitter/nvim-treesitter' }
+  --
+  --   -- For blink.cmp's completion
+  --   -- source
+  --   -- dependencies = {
+  --   --     "saghen/blink.cmp"
+  --   -- },
+  -- },
   -- {
   --   'MeanderingProgrammer/render-markdown.nvim',
   --   opts = {
@@ -741,7 +766,7 @@ return {
 
       -- Only one of these is needed.
       -- "nvim-telescope/telescope.nvim", -- optional
-      "ibhagwan/fzf-lua",              -- optional
+      -- "junegunn/fzf.vim",              -- optional
       -- "echasnovski/mini.pick",         -- optional
     },
     config = true
@@ -764,14 +789,6 @@ return {
   -- {
   --   'milanglacier/minuet-ai.nvim',
   -- },
-  {
-    "ibhagwan/fzf-lua",
-    -- optional for icon support
-    dependencies = { "nvim-tree/nvim-web-devicons" },
-    -- or if using mini.icons/mini.nvim
-    -- dependencies = { "echasnovski/mini.icons" },
-    opts = {}
-  },
   -- 'mfussenegger/nvim-dap',
   -- 'mfussenegger/nvim-dap-python',
   {

@@ -42,8 +42,22 @@
 
 
 -- set some PATH stuff which is pretty critical for the stuff ordinarily only exposed via my interactive zsh
-vim.env.PATH = vim.env.HOME .. "/.fzf/bin:" .. (vim.env.PATH or "")
-vim.env.PATH = vim.env.HOME .. "/util:" .. (vim.env.PATH or "")
+local base_path = vim.env.PATH or ""
+vim.env.PATH = table.concat({
+  "/opt/homebrew/bin",       -- neovide may not inherit Homebrew PATH
+  "/usr/local/bin",          -- intel macs / other setups
+  vim.env.HOME .. "/.cargo/bin", -- rust tools (rg) when not launched from shell
+  vim.env.HOME .. "/.fzf/bin",
+  vim.env.HOME .. "/util",
+  base_path,
+}, ":")
+
+local rg_path = vim.fn.exepath("rg")
+if rg_path ~= "" then
+  vim.env.FZF_DEFAULT_COMMAND = string.format('%s --files --hidden --follow --glob "!.git/*"', rg_path)
+else
+  vim.notify("ripgrep not found in PATH; fzf commands will be limited", vim.log.levels.WARN)
+end
 
 vim.cmd('autocmd BufEnter * set formatoptions-=ro | set formatoptions+=n')
 vim.cmd('autocmd BufEnter * setlocal formatoptions-=ro | setlocal formatoptions+=n')
@@ -1212,13 +1226,13 @@ local telescope_builtin = safeRequire("telescope.builtin")
 -- end)
 -- hard to believe ctrl+G was not already bound by vim
 
-vim.keymap.set('n', '<c-p>', function() require('fzf-lua').files() end, { desc = "fzf-lua Files"})
+vim.keymap.set('n', '<c-p>', "<cmd>Files<CR>", { desc = "fzf Files"})
 vim.keymap.set('n', '<f7>', ":AutoSession search<CR>", { desc = "browse sessions"})
-vim.keymap.set('n', '<f6>', function() require('fzf-lua').oldfiles() end, { desc = "fzf-lua Recent Files"})
+vim.keymap.set('n', '<f6>', "<cmd>History<CR>", { desc = "fzf History (files/buffers)"})
 vim.keymap.set('n', '<f8>', '<cmd>GithubPreviewToggle<CR>', { desc = "Github (markdown) preview toggle"})
-vim.keymap.set('n', '<f9>', function() require('fzf-lua').resume() end, { desc = "fzf-lua resume recent query"})
-vim.keymap.set('n', '<leader>g', function () require('fzf-lua').live_grep() end, { desc = "fzf-lua Live Grep" })
-vim.keymap.set('n', '<leader>h', function () require('fzf-lua').live_grep_native() end, { desc = "fzf-lua Live Grep Native (more performant)" })
+vim.keymap.set('n', '<f9>', "<cmd>History/<CR>", { desc = "fzf Search History"})
+vim.keymap.set('n', '<leader>g', "<cmd>Rg<CR>", { desc = "fzf ripgrep" })
+vim.keymap.set('n', '<leader>h', "<cmd>Rg --hidden --glob '!.git/*'<CR>", { desc = "fzf ripgrep (hidden)" })
 
 require("gitlinker").setup{}
 
@@ -1227,7 +1241,7 @@ vim.api.nvim_set_keymap('v', '<leader>Gy', '<cmd>lua require"gitlinker".get_buf_
 
 vim.keymap.set('n', '<c-g>', '<cmd>AdvancedGitSearch<CR>')
 -- vim.keymap.set("n", "<leader>g", telescope_builtin.live_grep, { desc = "Telescope Live Grep" })
-vim.keymap.set("n", "<leader><CR>", function () require('fzf-lua').grep_cword() end, { desc = "fzf-lua Grep String" })
+vim.keymap.set("n", "<leader><CR>", "<cmd>Rg <C-R><C-W><CR>", { desc = "fzf ripgrep word" })
 -- "vim help"
 -- vim.keymap.set('n', '<leader>h', telescope_builtin.help_tags, { desc = "Telescope Help Tags" })
 
