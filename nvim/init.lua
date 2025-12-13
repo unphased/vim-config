@@ -1241,7 +1241,13 @@ vim.api.nvim_set_keymap('v', '<leader>Gy', '<cmd>lua require"gitlinker".get_buf_
 
 vim.keymap.set('n', '<c-g>', '<cmd>AdvancedGitSearch<CR>')
 -- vim.keymap.set("n", "<leader>g", telescope_builtin.live_grep, { desc = "Telescope Live Grep" })
-vim.keymap.set("n", "<leader><CR>", "<cmd>Rg <C-R><C-W><CR>", { desc = "fzf ripgrep word" })
+vim.keymap.set("n", "<leader><CR>", function()
+  local word = vim.fn.expand("<cword>")
+  if word == "" then
+    return
+  end
+  vim.api.nvim_cmd({ cmd = "Rg", args = { "\\b" .. word .. "\\b" } }, {})
+end, { desc = "fzf ripgrep word" })
 -- "vim help"
 -- vim.keymap.set('n', '<leader>h', telescope_builtin.help_tags, { desc = "Telescope Help Tags" })
 
