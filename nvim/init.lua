@@ -903,7 +903,9 @@ vim.g.matchup_matchparen_deferred = 1
 vim.g.matchup_matchparen_hi_surround_always = 1
 vim.g.matchup_transmute_enabled = 1
 
-vim.opt.titlestring = "NVIM [%{substitute(fnamemodify(getcwd(), ':~'), '^~/', '', '')}] %f%h%m%r%w (%{tabpagenr()} of %{tabpagenr('$')})"
+vim.opt.titlestring = "NVIM [%{substitute(fnamemodify(getcwd(), ':~'), '^~/', '', '')}] %h%m%r%w (%{tabpagenr()} of %{tabpagenr('$')})"
+-- note in the titlestring i am excluding the %f just so it does not pollute the window name lookup used by the
+-- mechanism i'm using for choosing between neovides -- it's suboptimal and it should come back later
 
 -- plugin settings
 require("gitsigns").setup({
