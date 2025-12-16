@@ -55,12 +55,25 @@ return {
       vim.g.fzf_layout = {
         window = {
           width = 0.95,
-          height = 1.0,
-          xoffset = 0.0,
-          yoffset = 0.0,
+          height = 0.9,
+          xoffset = 0.5,
+          yoffset = 0.5,
         },
       }
-      vim.g.fzf_preview_window = { 'up:50%', 'ctrl-/' }
+
+      vim.g.fzf_preview_window = { 'up:85%', 'ctrl-/' }
+
+      vim.g.fzf_colors = {
+        bg      = { "bg", "Pmenu" },
+        ["bg+"] = { "bg", "PmenuSel" },  -- selected line bg
+        border  = { "fg", "FloatBorder" },
+        ["hl+"] = { "fg", "IncSearch" },    -- selected line text (or match emphasis)
+        hl      = { "fg", "Comment" },       -- non-selected match highlight (optional)
+      }
+
+      -- this is for setting the highlight indicator in the fzf preview where applicable (ends up drawn by bat)
+      vim.env.BAT_THEME = "Sublime Snazzy"  -- try: "ansi", "Nord", "Dracula", etc.
+
     end,
   },
   { 'nvim-telescope/telescope.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
