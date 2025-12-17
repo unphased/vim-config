@@ -121,29 +121,29 @@ return {
       },
 
       highlight = {
-			  enable = true,
+        enable = true,
 
-			  disable = function(lang, buf)
-					  -- healthchecks / FileType probing can call this with a non-bufnr
-					  if type(buf) ~= "number" or not vim.api.nvim_buf_is_valid(buf) then
-							  return false
-					  end
+        disable = function(lang, buf)
+          -- healthchecks / FileType probing can call this with a non-bufnr
+          if type(buf) ~= "number" or not vim.api.nvim_buf_is_valid(buf) then
+            return false
+          end
 
-					  if lang == "tmux" then
-							  return true -- disable tmux
-					  end
+          if lang == "tmux" then
+            return true -- disable tmux
+          end
 
-					  local max_filesize = 100 * 1024
-					  local name = vim.api.nvim_buf_get_name(buf)
-					  if name == "" then
-							  return false
-					  end
+          local max_filesize = 100 * 1024
+          local name = vim.api.nvim_buf_get_name(buf)
+          if name == "" then
+            return false
+          end
 
-					  local ok, stats = pcall(vim.loop.fs_stat, name)
-					  return ok and stats and stats.size > max_filesize
-			  end,
-			  additional_vim_regex_highlighting = false,
-	  },
+          local ok, stats = pcall(vim.loop.fs_stat, name)
+          return ok and stats and stats.size > max_filesize
+        end,
+        additional_vim_regex_highlighting = false,
+      },
 
       indent = {
         enable = true,
