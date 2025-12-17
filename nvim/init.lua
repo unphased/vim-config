@@ -578,7 +578,8 @@ vim.cmd([[
   noremap <MiddleMouse> <LeftMouse>
   inoremap <MiddleMouse> <Nop>
 
-  source $VIMRUNTIME/menu.vim
+  " source $VIMRUNTIME/menu.vim
+
   set wildmenu
   set cpo-=<
   set wcm=<C-Z>

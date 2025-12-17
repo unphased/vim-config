@@ -121,20 +121,29 @@ return {
       },
 
       highlight = {
-        enable = true,
-        disable = function(lang, buf)
-          if lang == "tmux" then
-            return true -- disable tmux highlighting
-          end
-          local max_filesize = 100 * 1024 -- 100 KB
-          local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
-          if ok and stats and stats.size > max_filesize then
-            return true
-          end
-          return false
-        end,
-        additional_vim_regex_highlighting = false,
-      },
+			  enable = true,
+
+			  disable = function(lang, buf)
+					  -- healthchecks / FileType probing can call this with a non-bufnr
+					  if type(buf) ~= "number" or not vim.api.nvim_buf_is_valid(buf) then
+							  return false
+					  end
+
+					  if lang == "tmux" then
+							  return true -- disable tmux
+					  end
+
+					  local max_filesize = 100 * 1024
+					  local name = vim.api.nvim_buf_get_name(buf)
+					  if name == "" then
+							  return false
+					  end
+
+					  local ok, stats = pcall(vim.loop.fs_stat, name)
+					  return ok and stats and stats.size > max_filesize
+			  end,
+			  additional_vim_regex_highlighting = false,
+	  },
 
       indent = {
         enable = true,
@@ -153,7 +162,7 @@ return {
       },
     },
   },
-  'nvim-treesitter/nvim-treesitter-textobjects',
+  -- 'nvim-treesitter/nvim-treesitter-textobjects',
   "nvim-treesitter/nvim-treesitter-context",
   "onsails/lspkind-nvim", -- status line plugin
   -- {
