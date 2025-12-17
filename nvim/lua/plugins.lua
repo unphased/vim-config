@@ -116,7 +116,7 @@ return {
       ignore_install = {},
 
       fold = {
-        enable = true,
+        enable = false,
         disable = false,
       },
 
