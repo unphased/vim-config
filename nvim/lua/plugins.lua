@@ -87,19 +87,73 @@ return {
   -- {
   --   'dundalek/lazy-lsp.nvim', dependencies = { 'neovim/nvim-lspconfig' }
   -- },
-  'nvim-treesitter/nvim-treesitter-textobjects',
   {
     "nvim-treesitter/nvim-treesitter",
+    branch = "main",
+    lazy = false, -- required; main doesn't support lazy-loading
     build = ":TSUpdate",
-    -- commit = "15d327fe6324d8269451131ec34ad4f2a8ef1e01",
-    -- dependencies = {
-      -- show treesitter nodes
-      -- removing this dependency because specifying my own fork of nvim-treesitter-textobjects now.
-      -- "nvim-treesitter/nvim-treesitter-textobjects", -- add rainbow highlighting to parens and brackets
-      -- "p00f/nvim-ts-rainbow",
-      -- "JoosepAlviste/nvim-ts-context-commentstring"
-    -- }
-  }, -- show nerd font icons for LSP types in completion menu
+  },
+
+  {
+    "MeanderingProgrammer/treesitter-modules.nvim",
+    dependencies = { "nvim-treesitter/nvim-treesitter" },
+    opts = {
+      -- your old ensure_installed
+      ensure_installed = {
+        "markdown_inline",
+        "c",
+        "lua",
+        "vim",
+        "bash",
+        "comment",
+        "gitcommit",
+        "diff",
+        "git_rebase",
+      },
+
+      sync_install = false,
+      auto_install = true,
+      ignore_install = {},
+
+      fold = {
+        enable = true,
+        disable = false,
+      },
+
+      highlight = {
+        enable = true,
+        disable = function(lang, buf)
+          if lang == "tmux" then
+            return true -- disable tmux highlighting
+          end
+          local max_filesize = 100 * 1024 -- 100 KB
+          local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+          if ok and stats and stats.size > max_filesize then
+            return true
+          end
+          return false
+        end,
+        additional_vim_regex_highlighting = false,
+      },
+
+      indent = {
+        enable = true,
+        disable = { "python", "lua" },
+      },
+
+      incremental_selection = {
+        enable = true,
+        disable = false,
+        keymaps = {
+          init_selection = "<M-CR>",
+          node_incremental = "<M-CR>",
+          -- note: module supports scope_incremental too, but you didn't map it
+          node_decremental = "<S-C-CR>",
+        },
+      },
+    },
+  },
+  'nvim-treesitter/nvim-treesitter-textobjects',
   "nvim-treesitter/nvim-treesitter-context",
   "onsails/lspkind-nvim", -- status line plugin
   -- {
@@ -411,7 +465,7 @@ return {
   "dnlhc/glance.nvim",
   ------- temporary -- broken on nvim nightly
   "RRethy/vim-illuminate",
-  "unphased/syntax-tree-surfer",
+  -- "unphased/syntax-tree-surfer",
   {
     "t-troebst/perfanno.nvim",
     init = function()

@@ -1281,149 +1281,6 @@ safeRequire("nvim-lastplace").setup({})
 safeRequire("nvim-autopairs").setup({ map_cr = false })
 -- safeRequire("Comment").setup()
 
-require("nvim-treesitter.configs").setup({
-
-  incremental_selection = {
-    enable = true,
-    keymaps = {
-      init_selection = "<M-CR>",
-      node_incremental = "<M-CR>",
-      node_decremental = "<S-C-CR>",
-    },
-  },
-
-  ignore_install = {},
-  modules = {},
-
-  -- A list of parser names, or "all" (the four listed parsers should always be installed)
-  ensure_installed = { "markdown_inline", "c", "lua", "vim", "bash", "comment", "gitcommit", "diff", "git_rebase" },
-
-  -- Install parsers synchronously (only applied to `ensure_installed`)
-  sync_install = false,
-
-  -- Automatically install missing parsers when entering buffer
-  -- Recommendation: set to false if you don't have `tree-sitter` CLI installed locally
-  auto_install = true,
-
-  -- List of parsers to ignore installing (for "all")
-  --- ignore_install = { "javascript" },
-
-  ---- If you need to change the installation directory of the parsers (see -> Advanced Setup)
-  -- parser_install_dir = "/some/path/to/store/parsers", -- Remember to run vim.opt.runtimepath:append("/some/path/to/store/parsers")!
-
-  highlight = {
-    -- `false` will disable the whole extension
-    enable = true,
-
-    -- NOTE: these are the names of the parsers and not the filetype. (for example if you want to
-    -- disable highlighting for the `tex` filetype, you need to include `latex` in this list as this is
-    -- the name of the parser)
-    -- list of language that will be disabled
-    --- disable = { "c", "rust" },
-
-    -- Or use a function for more flexibility, e.g. to disable slow treesitter highlight for large files
-    disable = function(lang, buf)
-      if lang == "tmux" then -- tmux treesitter parser is utter trash
-        return false
-      end
-      local max_filesize = 100 * 1024 -- 100 KB
-      local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
-      if ok and stats and stats.size > max_filesize then
-        return true
-      end
-    end,
-
-    -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
-    -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
-    -- Using this option may slow down your editor, and you may see some duplicate highlights.
-    -- Instead of true it can also be a list of languages
-    additional_vim_regex_highlighting = false,
-  },
-  indent = {
-    enable = true,
-    disable = { "python", "lua" },
-  },
-  -- incremental_selection = {
-  --   enable = true,
-  --   keymaps = {
-  --     init_selection = "<leader>v", -- set to `false` to disable one of the mappings
-  --     node_incremental = "<right>",
-  --     scope_incremental = "<up>",
-  --     node_decremental = "<left>",
-  --   },
-  -- },
-  matchup = {
-    enable = true, -- mandatory, false will disable the whole extension
-    disable = {}, -- optional, list of language that will be disabled
-  },
-
-  textobjects = {
-    swap = {
-      -- disabled because using STS for swaps
-      enable = false,
-      swap_next = {
-        ["]]"] = "@parameter.inner",
-      },
-      swap_previous = {
-        ["[["] = "@parameter.inner",
-      },
-    },
-    select = {
-      enable = true,
-
-      -- Automatically jump forward to textobj, similar to targets.vim
-      lookahead = true,
-
-      keymaps = {
-        -- You can use the capture groups defined in textobjects.scm
-        ["af"] = "@function.outer",
-        ["if"] = "@function.inner",
-        ["ac"] = "@class.outer",
-        ["ia"] = "@parameter.inner",
-        ["aa"] = "@parameter.outer",
-        ["/"] = "@comment.outer",
-        -- You can optionally set descriptions to the mappings (used in the desc parameter of
-        -- nvim_buf_set_keymap) which plugins like which-key display
-        ["ic"] = { query = "@class.inner", desc = "Select inner part of a class region" },
-        -- You can also use captures from other query groups like `locals.scm`
-        ["as"] = { query = "@scope", query_group = "locals", desc = "Select language scope" },
-      },
-      -- You can choose the select mode (default is charwise 'v')
-      --
-      -- Can also be a function which gets passed a table with the keys
-      -- * query_string: eg '@function.inner'
-      -- * method: eg 'v' or 'o'
-      -- and should return the mode ('v', 'V', or '<c-v>') or a table
-      -- mapping query_strings to modes.
-      selection_modes = {
-        ["@parameter.outer"] = "v", -- charwise
-        ["@function.outer"] = "V", -- linewise
-        ["@class.outer"] = "<c-v>", -- blockwise
-      },
-      -- If you set this to `true` (default is `false`) then any textobject is
-      -- extended to include preceding or succeeding whitespace. Succeeding
-      -- whitespace has priority in order to act similarly to eg the built-in
-      -- `ap`.
-      --
-      -- Can also be a function which gets passed a table with the keys
-      -- * query_string: eg '@function.inner'
-      -- * selection_mode: eg 'v'
-      -- and should return true of false
-      include_surrounding_whitespace = true,
-    },
-  },
-
-  -- let's see if textsubjects works well enough for my needs. so far seems like whitespace heuristics may be nice to have.
-  -- textsubjects = {
-  --   enable = true,
-  --   prev_selection = ',', -- (Optional) keymap to select the previous selection
-  --   keymaps = {
-  --     ['<cr>'] = 'textsubjects-smart',
-  --     ["'"] = 'textsubjects-container-outer',
-  --     [';'] = 'textsubjects-container-inner',
-  --   },
-  -- },
-})
 
 -- safeRequire("trouble").setup({
 --   -- your configuration comes here
@@ -2354,21 +2211,21 @@ vim.keymap.set({"n", "o", "x"}, "e", "<cmd>lua require('spider').motion('e')<CR>
 -- normally there is a ge map but i never use ge and don't see it in the future either.
 
 -- Syntax Tree Surfer
-local sts = safeRequire('syntax-tree-surfer')
-if sts then sts.setup({
-  -- icon_dictionary = {
-  --   ["if_statement"] = "",
-  --   ["else_clause"] = "",
-  --   ["else_statement"] = "",
-  --   ["elseif_statement"] = "",
-  --   ["for_statement"] = "ﭜ",
-  --   ["while_statement"] = "ﯩ",
-  --   ["switch_statement"] = "ﳟ",
-  --   ["function"] = "",
-  --   ["function_definition"] = "",
-  --   ["variable_declaration"] = "",
-  -- },
-}) end
+-- local sts = safeRequire('syntax-tree-surfer')
+-- if sts then sts.setup({
+--   -- icon_dictionary = {
+--   --   ["if_statement"] = "",
+--   --   ["else_clause"] = "",
+--   --   ["else_statement"] = "",
+--   --   ["elseif_statement"] = "",
+--   --   ["for_statement"] = "ﭜ",
+--   --   ["while_statement"] = "ﯩ",
+--   --   ["switch_statement"] = "ﳟ",
+--   --   ["function"] = "",
+--   --   ["function_definition"] = "",
+--   --   ["variable_declaration"] = "",
+--   -- },
+-- }) end
 
 -- local opts = {noremap = true, silent = true}
 local opts = {noremap = true} -- delete me later
