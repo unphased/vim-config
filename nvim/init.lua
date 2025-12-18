@@ -1369,6 +1369,10 @@ require("nvim-tree").setup({
   actions = {
     open_file = {
       quit_on_open = true
+    },
+    change_dir = {
+      enable = true,
+      global = false,
     }
   }
 })
@@ -1925,11 +1929,11 @@ local function get_typescript_server_path(root_dir)
     return global_ts
   end
 end
-require'lspconfig'.volar.setup{
-  on_new_config = function(new_config, new_root_dir)
-    new_config.init_options.typescript.tsdk = get_typescript_server_path(new_root_dir)
-  end,
-}
+-- require'lspconfig'.volar.setup{
+--   on_new_config = function(new_config, new_root_dir)
+--     new_config.init_options.typescript.tsdk = get_typescript_server_path(new_root_dir)
+--   end,
+-- }
 
 -- A small helper function that searches for a local venv folder
 -- For instance, it might check "./.venv" or "./venv" in the project.
@@ -2080,6 +2084,10 @@ require('winhl-manager').setup({
     normal = 'NormalModeBackground',
     insert = 'InsertModeBackground'
   }
+})
+
+require("bgcolor-manager").setup({
+  default_color = "#2f9117",
 })
 
 -- vim.fn.matchadd("DiagnosticInfo", "\\(TODO:\\)")
@@ -2391,40 +2399,40 @@ require('snippy').setup({
   },
 })
 
-require('lspconfig').emmet_language_server.setup({
-  filetypes = {
-    "css",
-    "eruby",
-    "html",
-    "markdown",
-    "javascript",
-    "javascriptreact",
-    "less",
-    "sass",
-    "scss",
-    "svelte",
-    "pug",
-    "typescript",
-    "typescriptreact",
-    "vue"
-  },
-  init_options = {
-    --- @type table<string, any> https://docs.emmet.io/customization/preferences/
-    preferences = {},
-    --- @type "always" | "never" defaults to `"always"`
-    showexpandedabbreviation = "always",
-    --- @type boolean defaults to `true`
-    showabbreviationsuggestions = true,
-    --- @type boolean defaults to `false`
-    showsuggestionsassnippets = false,
-    --- @type table<string, any> https://docs.emmet.io/customization/syntax-profiles/
-    syntaxprofiles = {},
-    --- @type table<string, string> https://docs.emmet.io/customization/snippets/#variables
-    variables = {},
-    --- @type string[]
-    excludelanguages = {},
-  },
-})
+-- require('lspconfig').emmet_language_server.setup({
+--   filetypes = {
+--     "css",
+--     "eruby",
+--     "html",
+--     "markdown",
+--     "javascript",
+--     "javascriptreact",
+--     "less",
+--     "sass",
+--     "scss",
+--     "svelte",
+--     "pug",
+--     "typescript",
+--     "typescriptreact",
+--     "vue"
+--   },
+--   init_options = {
+--     --- @type table<string, any> https://docs.emmet.io/customization/preferences/
+--     preferences = {},
+--     --- @type "always" | "never" defaults to `"always"`
+--     showexpandedabbreviation = "always",
+--     --- @type boolean defaults to `true`
+--     showabbreviationsuggestions = true,
+--     --- @type boolean defaults to `false`
+--     showsuggestionsassnippets = false,
+--     --- @type table<string, any> https://docs.emmet.io/customization/syntax-profiles/
+--     syntaxprofiles = {},
+--     --- @type table<string, string> https://docs.emmet.io/customization/snippets/#variables
+--     variables = {},
+--     --- @type string[]
+--     excludelanguages = {},
+--   },
+-- })
 
 -- note to self: Profiling!
 -- require'plenary.profile'.start("profile.log")
@@ -3160,6 +3168,40 @@ vim.cmd[[
   endfunction
 ]]
 
+local function open_bgcolor_terminal(opts)
+  opts = opts or {}
+
+  local height = opts.height or 15
+  local cwd = opts.cwd or vim.fn.getcwd(0)
+  local shell = vim.env.SHELL or vim.o.shell
+
+  vim.cmd("botright new")
+  vim.api.nvim_win_set_height(0, height)
+
+  local bufnr = vim.api.nvim_get_current_buf()
+  vim.bo[bufnr].bufhidden = "wipe"
+  vim.wo.number = false
+  vim.wo.relativenumber = false
+  vim.wo.signcolumn = "no"
+
+  vim.b[bufnr].nvim_term_cwd = cwd
+
+  local env = vim.fn.environ()
+  env.NVIM = vim.v.servername or ""
+  env.NVIM_TERM_BUF = tostring(bufnr)
+
+  vim.fn.termopen(shell, { cwd = cwd, env = env })
+  vim.cmd("startinsert")
+end
+
+vim.api.nvim_create_user_command("BgTerm", function(cmd)
+  open_bgcolor_terminal({ cwd = cmd.args ~= "" and cmd.args or nil })
+end, {
+  nargs = "?",
+  complete = "dir",
+  desc = "Open a shell terminal with bgcolor integration (exports NVIM + NVIM_TERM_BUF)",
+})
+
 -- neovide: we don't need to separate these defines out because sometimes we run vim with headless and connect neovide
 -- over network!
 -- if vim.g.neovide then
@@ -3176,98 +3218,7 @@ vim.cmd[[
   -- vim.g.neovide_normal_opacity = 0.7
   vim.g.neovide_opacity = 0.9
   
-  -- Remember the last color we applied so we only update highlights when it changes.
-  local last_neovide_normal_bg ---@type string|nil
-  local default_neovide_bg = "#2f9117"
-  local function set_neovide_background_color()
-    if not vim.g.neovide then 
-      -- if not neovide we are in terminal: the likely situations are (1) running under tmux or (2) just running bare in a shell: 
-      -- 1. simply run ~/util/bgcolor.sh right here (will emit OSC 11 when supported)
-      vim.fn.system(vim.env.HOME .. "/util/bgcolor.sh")
-      if vim.v.shell_error == 0 then
-        vim.cmd('echom "nvim bgcolor: Set highlight via cwd in tmux"')
-        return
-      end
-      -- 2. actually do the rest of the code, so, a no-op here lol
-    end
-    
-    local base_color = default_neovide_bg -- fallback color
-    local color_found = false
-    local reason = "fallback"
-
-    -- Check for .tmux-bgcolor in git root
-    local file_path = vim.api.nvim_buf_get_name(0)
-    local dir = vim.fn.fnamemodify(file_path, ':p:h')
-
-    -- Check for .tmux-bgcolor in git root based on the current buffer's directory
-    local git_root_cmd = "git -C " .. vim.fn.shellescape(dir) .. " rev-parse --show-toplevel"
-    local git_root = vim.fn.trim(vim.fn.system(git_root_cmd .. " 2>/dev/null"))
-
-    if vim.v.shell_error == 0 and git_root ~= "" then
-      local bgcolor_file_path = git_root .. "/.tmux-bgcolor"
-      local f = io.open(bgcolor_file_path, "r")
-      if f then
-        local color_from_file = f:read("*l") -- Read first line
-        f:close()
-        if color_from_file and color_from_file ~= "" then
-          base_color = vim.fn.trim(color_from_file)
-          color_found = true
-          reason = "file: " .. bgcolor_file_path
-        end
-      end
-    end
-
-    -- If not found via .tmux-bgcolor, use the script
-    if not color_found then
-      local file_path = vim.api.nvim_buf_get_name(0)
-      local dir = vim.fn.fnamemodify(file_path, ':p:h')
-      local color_script_path = vim.env.HOME .. "/util/color-pane.sh"
-      if vim.fn.executable(color_script_path) == 1 then
-        local cmd = "cd " .. vim.fn.shellescape(dir) .. " && " .. vim.fn.shellescape(color_script_path) .. " --get-color"
-        local script_output = vim.fn.trim(vim.fn.system(cmd))
-        local contextInfo = "cmd: '".. cmd .."' output: '" .. script_output .. "'"
-        if script_output and script_output:match("^#") then
-          base_color = script_output
-          reason = "script: " .. color_script_path .. " on " .. contextInfo
-        else
-          reason = "script invalid output: " .. contextInfo
-        end
-      else
-        reason = "script at " .. color_script_path .. " not found/executable"
-      end
-    end
-
-    local sanitized_color = base_color
-    if sanitized_color:match("^#%x%x%x%x%x%x%x%x$") then
-      sanitized_color = sanitized_color:sub(1, 7)
-    elseif not sanitized_color:match("^#%x%x%x%x%x%x$") then
-      sanitized_color = default_neovide_bg
-      reason = reason .. " (invalid color, reverted to default)"
-    end
-
-    if sanitized_color ~= last_neovide_normal_bg then
-      for _, group in ipairs({ "Normal", "NormalNC" }) do
-        vim.cmd(string.format("highlight %s guibg=%s", group, sanitized_color))
-      end
-      last_neovide_normal_bg = sanitized_color
-      -- vim.cmd('echom "nvim bgcolor set highlight to ' .. sanitized_color .. ' (reason: ' .. reason .. ')"')
-    end
-  end
-  
-  set_neovide_background_color() -- Set color on startup
-  
-  vim.api.nvim_create_autocmd("BufEnter", {
-    callback = set_neovide_background_color,
-    pattern = "*",
-    desc = "Update neovide background color on buffer change"
-  })
-  vim.api.nvim_create_autocmd("ColorScheme", {
-    callback = function()
-      last_neovide_normal_bg = nil
-      set_neovide_background_color()
-    end,
-    desc = "Reapply neovide background color after colorscheme changes"
-  })
+  -- Background color updates are handled globally by `bgcolor-manager` (Neovide and TUI).
 
   vim.g.neovide_refresh_rate = 240
   vim.g.neovide_refresh_rate_idle = 1
