@@ -3300,10 +3300,10 @@ vim.cmd[[
     change_scale_factor(1 / 1.01)
   end
 
-  for _, lhs in ipairs({ "<D-=>", "<M-S-=>" }) do
+  for _, lhs in ipairs({ "<D-=>", "<M-+>" }) do
     vim.keymap.set("n", lhs, increase_scale)
   end
-  for _, lhs in ipairs({ "<D-->", "<M-S-->" }) do
+  for _, lhs in ipairs({ "<D-->", "<M-_>" }) do
     vim.keymap.set("n", lhs, decrease_scale)
   end
 
