@@ -10,3 +10,4 @@ mthesaur.txt
 !.tmux.conf
 .aider*
 .env
+.nvimlog

@@ -3293,12 +3293,19 @@ vim.cmd[[
   local change_scale_factor = function(delta)
     vim.g.neovide_scale_factor = vim.g.neovide_scale_factor * delta
   end
-  vim.keymap.set("n", "<D-=>", function()
+  local increase_scale = function()
     change_scale_factor(1.01)
-  end)
-  vim.keymap.set("n", "<D-->", function()
-    change_scale_factor(1/1.01)
-  end)
+  end
+  local decrease_scale = function()
+    change_scale_factor(1 / 1.01)
+  end
+
+  for _, lhs in ipairs({ "<D-=>", "<M-S-=>" }) do
+    vim.keymap.set("n", lhs, increase_scale)
+  end
+  for _, lhs in ipairs({ "<D-->", "<M-S-->" }) do
+    vim.keymap.set("n", lhs, decrease_scale)
+  end
 
   -- vim.keymap.set('i', '<D-s>', '<ESC>:w<CR>') -- Save
   -- vim.keymap.set('n', '<D-s>', ':w<CR>') -- Save
