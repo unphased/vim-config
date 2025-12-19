@@ -92,76 +92,94 @@ return {
     branch = "main",
     lazy = false, -- required; main doesn't support lazy-loading
     build = ":TSUpdate",
+    init = function ()
+      require'nvim-treesitter'.install {
+        'rust', 'javascript', 'zig',
+        "markdown_inline",
+        "c",
+        "lua",
+        "vim",
+        "bash",
+        "comment",
+        "gitcommit",
+        "diff",
+        "git_rebase",
+      }
+      vim.api.nvim_create_autocmd('FileType', {
+        pattern = { '<filetype>' },
+        callback = function() vim.treesitter.start() end,
+      })
+    end
   },
 
-  {
-    "MeanderingProgrammer/treesitter-modules.nvim",
-    dependencies = { "nvim-treesitter/nvim-treesitter" },
-    opts = {
-      -- your old ensure_installed
-      -- ensure_installed = {
-      --   "markdown_inline",
-      --   "c",
-      --   "lua",
-      --   "vim",
-      --   "bash",
-      --   "comment",
-      --   "gitcommit",
-      --   "diff",
-      --   "git_rebase",
-      -- },
-
-      sync_install = false,
-      auto_install = true,
-      ignore_install = {},
-
-      fold = {
-        enable = false,
-        disable = false,
-      },
-
-      highlight = {
-        enable = true,
-
-        disable = function(lang, buf)
-          -- healthchecks / FileType probing can call this with a non-bufnr
-          if type(buf) ~= "number" or not vim.api.nvim_buf_is_valid(buf) then
-            return false
-          end
-
-          if lang == "tmux" then
-            return true -- disable tmux
-          end
-
-          local max_filesize = 100 * 1024
-          local name = vim.api.nvim_buf_get_name(buf)
-          if name == "" then
-            return false
-          end
-
-          local ok, stats = pcall(vim.loop.fs_stat, name)
-          return ok and stats and stats.size > max_filesize
-        end,
-        additional_vim_regex_highlighting = false,
-      },
-
-      indent = {
-        enable = true,
-        disable = { "python", "lua" },
-      },
-
-      incremental_selection = {
-        enable = true,
-        disable = false,
-        keymaps = {
-          init_selection = "<M-CR>",
-          node_incremental = "<M-CR>",
-          -- note: module supports scope_incremental too, but you didn't map it
-          node_decremental = "<S-C-CR>",
-        },
-      },
-    },
-  },
+  -- {
+  --   "MeanderingProgrammer/treesitter-modules.nvim",
+  --   dependencies = { "nvim-treesitter/nvim-treesitter" },
+  --   opts = {
+  --     -- your old ensure_installed
+  --     -- ensure_installed = {
+  --     --   "markdown_inline",
+  --     --   "c",
+  --     --   "lua",
+  --     --   "vim",
+  --     --   "bash",
+  --     --   "comment",
+  --     --   "gitcommit",
+  --     --   "diff",
+  --     --   "git_rebase",
+  --     -- },
+  --
+  --     sync_install = false,
+  --     auto_install = true,
+  --     ignore_install = {},
+  --
+  --     fold = {
+  --       enable = false,
+  --       disable = false,
+  --     },
+  --
+  --     highlight = {
+  --       enable = true,
+  --
+  --       disable = function(lang, buf)
+  --         -- healthchecks / FileType probing can call this with a non-bufnr
+  --         if type(buf) ~= "number" or not vim.api.nvim_buf_is_valid(buf) then
+  --           return false
+  --         end
+  --
+  --         if lang == "tmux" then
+  --           return true -- disable tmux
+  --         end
+  --
+  --         local max_filesize = 100 * 1024
+  --         local name = vim.api.nvim_buf_get_name(buf)
+  --         if name == "" then
+  --           return false
+  --         end
+  --
+  --         local ok, stats = pcall(vim.loop.fs_stat, name)
+  --         return ok and stats and stats.size > max_filesize
+  --       end,
+  --       additional_vim_regex_highlighting = false,
+  --     },
+  --
+  --     indent = {
+  --       enable = true,
+  --       disable = { "python", "lua" },
+  --     },
+  --
+  --     incremental_selection = {
+  --       enable = true,
+  --       disable = false,
+  --       keymaps = {
+  --         init_selection = "<M-CR>",
+  --         node_incremental = "<M-CR>",
+  --         -- note: module supports scope_incremental too, but you didn't map it
+  --         node_decremental = "<S-C-CR>",
+  --       },
+  --     },
+  --   },
+  -- },
   -- 'nvim-treesitter/nvim-treesitter-textobjects',
   "nvim-treesitter/nvim-treesitter-context",
   "onsails/lspkind-nvim", -- status line plugin

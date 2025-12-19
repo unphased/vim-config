@@ -962,7 +962,6 @@ require("gitsigns").setup({
     untracked = { text = "┆" },
   },
   -- base = "@^", -- to set diff base to HEAD^
-  show_deleted = false,
   numhl = false, -- Toggle with `:Gitsigns toggle_numhl`
   linehl = false, -- Toggle with `:Gitsigns toggle_linehl`
   word_diff = true, -- Toggle with `:Gitsigns toggle_word_diff`
@@ -1672,22 +1671,22 @@ require("lazydev").setup({
 })
 
 require("mason").setup({})
-require("mason-lspconfig").setup({
-  -- A list of servers to automatically install if they're not already installed. Example: { "rust_analyzer@nightly", "lua_ls" }
-  -- This setting has no relation with the `automatic_installation` setting.
-  ensure_installed = {
-    "clangd", "lua_ls"
-  },
-
-  -- Whether servers that are set up (via lspconfig) should be automatically installed if they're not already installed.
-  -- This setting has no relation with the `ensure_installed` setting.
-  -- Can either be:
-  --   - false: Servers are not automatically installed.
-  --   - true: All servers set up via lspconfig are automatically installed.
-  --   - { exclude: string[] }: All servers set up via lspconfig, except the ones provided in the list, are automatically installed.
-  --       Example: automatic_installation = { exclude = { "rust_analyzer", "solargraph" } }
-  automatic_installation = true,
-})
+-- require("mason-lspconfig").setup({
+--   -- A list of servers to automatically install if they're not already installed. Example: { "rust_analyzer@nightly", "lua_ls" }
+--   -- This setting has no relation with the `automatic_installation` setting.
+--   ensure_installed = {
+--     "clangd", "lua_ls"
+--   },
+--
+--   -- Whether servers that are set up (via lspconfig) should be automatically installed if they're not already installed.
+--   -- This setting has no relation with the `ensure_installed` setting.
+--   -- Can either be:
+--   --   - false: Servers are not automatically installed.
+--   --   - true: All servers set up via lspconfig are automatically installed.
+--   --   - { exclude: string[] }: All servers set up via lspconfig, except the ones provided in the list, are automatically installed.
+--   --       Example: automatic_installation = { exclude = { "rust_analyzer", "solargraph" } }
+--   automatic_installation = true,
+-- })
 
 -- local null_ls = safeRequire("null-ls")
 --
@@ -1744,7 +1743,7 @@ require("mason-lspconfig").setup({
 --   }
 -- })
 
-local capabilities = safeRequire('cmp_nvim_lsp').default_capabilities()
+-- local capabilities = safeRequire('cmp_nvim_lsp').default_capabilities()
 
 -- oh man written by GPT4
 local function deep_copy(tbl)
@@ -1910,25 +1909,26 @@ end
 }
 --]]
 
-local lspconf_util = require 'lspconfig.util'
-local function get_typescript_server_path(root_dir)
+-- local lspconf_util = require 'lspconfig.util'
+-- local function get_typescript_server_path(root_dir)
+--
+--   local global_ts = '/Users/slu/Web-OneFrontend/AccuWeather.Web.Frontend/node_modules/typescript/lib'
+--   -- Alternative location if installed as root:
+--   -- local global_ts = '/usr/local/lib/node_modules/typescript/lib'
+--   local found_ts = ''
+--   local function check_dir(path)
+--     found_ts =  lspconf_util.path.join(path, 'node_modules', 'typescript', 'lib')
+--     if lspconf_util.path.exists(found_ts) then
+--       return path
+--     end
+--   end
+--   if lspconf_util.search_ancestors(root_dir, check_dir) then
+--     return found_ts
+--   else
+--     return global_ts
+--   end
+-- end
 
-  local global_ts = '/Users/slu/Web-OneFrontend/AccuWeather.Web.Frontend/node_modules/typescript/lib'
-  -- Alternative location if installed as root:
-  -- local global_ts = '/usr/local/lib/node_modules/typescript/lib'
-  local found_ts = ''
-  local function check_dir(path)
-    found_ts =  lspconf_util.path.join(path, 'node_modules', 'typescript', 'lib')
-    if lspconf_util.path.exists(found_ts) then
-      return path
-    end
-  end
-  if lspconf_util.search_ancestors(root_dir, check_dir) then
-    return found_ts
-  else
-    return global_ts
-  end
-end
 -- require'lspconfig'.volar.setup{
 --   on_new_config = function(new_config, new_root_dir)
 --     new_config.init_options.typescript.tsdk = get_typescript_server_path(new_root_dir)
@@ -1948,15 +1948,15 @@ local function find_venv(root_dir)
   return nil
 end
 
-require'lspconfig'.pyright.setup({
-  on_new_config = function(new_config, root_dir)
-    local venv_python = find_venv(root_dir)
-    if venv_python then
-      -- log('venv_python worked out to be', venv_python, 'new_config',  new_config)
-      new_config.settings.python.pythonPath = venv_python
-    end
-  end,
-})
+-- require'lspconfig'.pyright.setup({
+--   on_new_config = function(new_config, root_dir)
+--     local venv_python = find_venv(root_dir)
+--     if venv_python then
+--       -- log('venv_python worked out to be', venv_python, 'new_config',  new_config)
+--       new_config.settings.python.pythonPath = venv_python
+--     end
+--   end,
+-- })
 
 -- require'lspconfig'.ts_ls.setup{
 --   init_options = {
@@ -2201,19 +2201,19 @@ vim.diagnostic.config({
 -- vim.keymap.set("", "<f1>", toggle_profile)
 
 
-safeRequire('treesitter-context').setup{
-  enable = true, -- Enable this plugin (Can be enabled/disabled later via commands)
-  max_lines = 0, -- How many lines the window should span. Values <= 0 mean no limit.
-  min_window_height = 0, -- Minimum editor window height to enable context. Values <= 0 mean no limit.
-  line_numbers = true,
-  multiline_threshold = 20, -- Maximum number of lines to collapse for a single context line
-  trim_scope = 'inner', -- Which context lines to discard if `max_lines` is exceeded. Choices: 'inner', 'outer'
-  mode = 'topline',  -- Line used to calculate context. Choices: 'cursor', 'topline'
-  -- Separator between context and content. Should be a single character string, like '-'.
-  -- When separator is set, the context will only show up when there are at least 2 lines above cursorline.
-  separator = nil,
-  zindex = 20, -- The Z-index of the context window
-}
+-- safeRequire('treesitter-context').setup{
+--   enable = true, -- Enable this plugin (Can be enabled/disabled later via commands)
+--   max_lines = 0, -- How many lines the window should span. Values <= 0 mean no limit.
+--   min_window_height = 0, -- Minimum editor window height to enable context. Values <= 0 mean no limit.
+--   line_numbers = true,
+--   multiline_threshold = 20, -- Maximum number of lines to collapse for a single context line
+--   trim_scope = 'inner', -- Which context lines to discard if `max_lines` is exceeded. Choices: 'inner', 'outer'
+--   mode = 'topline',  -- Line used to calculate context. Choices: 'cursor', 'topline'
+--   -- Separator between context and content. Should be a single character string, like '-'.
+--   -- When separator is set, the context will only show up when there are at least 2 lines above cursorline.
+--   separator = nil,
+--   zindex = 20, -- The Z-index of the context window
+-- }
 
 -- nvim-spider
 vim.keymap.set({"n", "o", "x"}, "w", "<cmd>lua require('spider').motion('w')<CR>", { desc = "Spider-w (hit sub words, skip to word chars)" })
@@ -3221,6 +3221,9 @@ vim.api.nvim_create_user_command("BgTerm", function(cmd)
       init_cmd = arg:sub(7)
     elseif arg == "--debug" then
       init_cmd = ((init_cmd and (init_cmd .. "; ")) or "") .. "export NVIM_BGCOLOR_DEBUG=1"
+    elseif arg == "--simple-prompt" or arg == "--no-rprompt" then
+      init_cmd = ((init_cmd and (init_cmd .. "; ")) or "")
+        .. "unset RPROMPT RPS1; RPROMPT=''; PROMPT='%n@%m:%~%# '"
     elseif not cwd and vim.fn.isdirectory(arg) == 1 then
       cwd = arg
     end
@@ -3229,7 +3232,7 @@ vim.api.nvim_create_user_command("BgTerm", function(cmd)
   open_bgcolor_terminal({ cwd = cwd, init_cmd = init_cmd })
 end, {
   nargs = "*",
-  desc = "Open a shell terminal with bgcolor integration (supports --cwd=, --cmd=, --debug)",
+  desc = "Open a shell terminal with bgcolor integration (supports --cwd=, --cmd=, --debug, --simple-prompt)",
 })
 
 -- neovide: we don't need to separate these defines out because sometimes we run vim with headless and connect neovide
