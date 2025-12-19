@@ -10,4 +10,4 @@ switch-right=['<Super>l', '<Super>Right']
 hide-window=@as []
 
 [org/gnome/settings-daemon/plugins/media-keys]
-screensaver=@as []
+screensaver=['<Super><Shift>l']
