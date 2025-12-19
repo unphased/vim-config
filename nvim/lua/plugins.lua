@@ -99,17 +99,17 @@ return {
     dependencies = { "nvim-treesitter/nvim-treesitter" },
     opts = {
       -- your old ensure_installed
-      ensure_installed = {
-        "markdown_inline",
-        "c",
-        "lua",
-        "vim",
-        "bash",
-        "comment",
-        "gitcommit",
-        "diff",
-        "git_rebase",
-      },
+      -- ensure_installed = {
+      --   "markdown_inline",
+      --   "c",
+      --   "lua",
+      --   "vim",
+      --   "bash",
+      --   "comment",
+      --   "gitcommit",
+      --   "diff",
+      --   "git_rebase",
+      -- },
 
       sync_install = false,
       auto_install = true,
