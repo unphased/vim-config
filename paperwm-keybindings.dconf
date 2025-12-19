@@ -1,10 +1,13 @@
 # Load this file with dconf (see paperwm-keybindings.apply.sh) to apply
 # the PaperWM and GNOME keybinding overrides in one shot.
 [org/gnome/shell/extensions/paperwm/keybindings]
-switch-left=['<Super>h']
-switch-down=['<Super>j']
-switch-up=['<Super>k']
-switch-right=['<Super>l']
+switch-left=['<Super>h', '<Super>Left']
+switch-down=['<Super>j', '<Super>Down']
+switch-up=['<Super>k', '<Super>Up']
+switch-right=['<Super>l', '<Super>Right']
 
 [org/gnome/desktop/wm/keybindings]
 hide-window=@as []
+
+[org/gnome/settings-daemon/plugins/media-keys]
+screensaver=@as []
