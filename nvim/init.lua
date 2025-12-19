@@ -3589,3 +3589,10 @@ end, { desc = 'Highlights ANSI termcodes in curbuf' })
 -- vim.opt.foldnestmax = 8
 
 require("github-preview").setup({})
+
+-- turns on highlight for treesitter
+vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
+  callback = function()
+    pcall(vim.treesitter.start)
+  end,
+})
