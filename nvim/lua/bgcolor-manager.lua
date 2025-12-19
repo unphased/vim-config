@@ -87,7 +87,7 @@ local function apply_hex(hex)
     return
   end
 
-  for _, group in ipairs({ "NormalModeBackground", "Normal", "NormalNC", "SignColumn" }) do
+  for _, group in ipairs({ "NormalModeBackground", "InsertModeBackground", "Normal", "NormalNC", "SignColumn" }) do
     pcall(vim.api.nvim_set_hl, 0, group, { bg = hex })
   end
 
@@ -169,4 +169,3 @@ function M.setup(opts)
 end
 
 return M
-

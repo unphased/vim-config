@@ -3187,8 +3187,18 @@ local function open_bgcolor_terminal(opts)
   vim.b[bufnr].nvim_term_cwd = cwd
 
   local env = vim.fn.environ()
-  env.NVIM = vim.v.servername or ""
+  local servername = vim.v.servername
+  if type(servername) ~= "string" then
+    servername = ""
+  end
+  if servername == "" then
+    local run_dir = vim.fn.stdpath("run")
+    local sock = string.format("%s/nvim.%s.sock", run_dir, tostring(vim.fn.getpid()))
+    servername = vim.fn.serverstart(sock)
+  end
+  env.NVIM = servername or ""
   env.NVIM_TERM_BUF = tostring(bufnr)
+  env.NVIM_BGCOLOR_NO_OSC11 = "1"
 
   vim.fn.termopen(shell, { cwd = cwd, env = env })
   vim.cmd("startinsert")
