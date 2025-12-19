@@ -3173,6 +3173,7 @@ local function open_bgcolor_terminal(opts)
 
   local height = opts.height or 15
   local cwd = opts.cwd or vim.fn.getcwd(0)
+  local init_cmd = opts.init_cmd
   local shell = vim.env.SHELL or vim.o.shell
 
   vim.cmd("botright new")
@@ -3200,16 +3201,35 @@ local function open_bgcolor_terminal(opts)
   env.NVIM_TERM_BUF = tostring(bufnr)
   env.NVIM_BGCOLOR_NO_OSC11 = "1"
 
-  vim.fn.termopen(shell, { cwd = cwd, env = env })
+  local job_id = vim.fn.termopen(shell, { cwd = cwd, env = env })
+  if type(init_cmd) == "string" and init_cmd ~= "" and type(job_id) == "number" and job_id > 0 then
+    vim.defer_fn(function()
+      pcall(vim.api.nvim_chan_send, job_id, init_cmd .. "\n")
+    end, 30)
+  end
   vim.cmd("startinsert")
 end
 
 vim.api.nvim_create_user_command("BgTerm", function(cmd)
-  open_bgcolor_terminal({ cwd = cmd.args ~= "" and cmd.args or nil })
+  local cwd
+  local init_cmd
+
+  for _, arg in ipairs(cmd.fargs or {}) do
+    if vim.startswith(arg, "--cwd=") then
+      cwd = arg:sub(7)
+    elseif vim.startswith(arg, "--cmd=") then
+      init_cmd = arg:sub(7)
+    elseif arg == "--debug" then
+      init_cmd = ((init_cmd and (init_cmd .. "; ")) or "") .. "export NVIM_BGCOLOR_DEBUG=1"
+    elseif not cwd and vim.fn.isdirectory(arg) == 1 then
+      cwd = arg
+    end
+  end
+
+  open_bgcolor_terminal({ cwd = cwd, init_cmd = init_cmd })
 end, {
-  nargs = "?",
-  complete = "dir",
-  desc = "Open a shell terminal with bgcolor integration (exports NVIM + NVIM_TERM_BUF)",
+  nargs = "*",
+  desc = "Open a shell terminal with bgcolor integration (supports --cwd=, --cmd=, --debug)",
 })
 
 -- neovide: we don't need to separate these defines out because sometimes we run vim with headless and connect neovide
