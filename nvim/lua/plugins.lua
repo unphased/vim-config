@@ -105,10 +105,15 @@ return {
         "diff",
         "git_rebase",
       }
+
+      -- sets highlight for the file (unsure if needed)
       vim.api.nvim_create_autocmd('FileType', {
         pattern = { '<filetype>' },
         callback = function() vim.treesitter.start() end,
       })
+
+      -- for indentation
+      vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
     end
   },
 
