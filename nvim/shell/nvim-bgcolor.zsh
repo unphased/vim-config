@@ -15,6 +15,7 @@
 # - `nvim` (client mode) for notifying Neovim (optional)
 
 nvim_bgcolor_hook() {
+  zmodload zsh/datetime 2>/dev/null || true
   local bgcolor_script="${HOME}/util/bgcolor.sh"
   [[ -x "$bgcolor_script" ]] || return 0
   local debug="${NVIM_BGCOLOR_DEBUG:-}"
@@ -80,12 +81,20 @@ nvim_bgcolor_hook() {
   # Calls the global Lua function `_G.NvimSetTermBg(bufnr, cwd, hex)` defined by `bgcolor-manager`.
   local expr="luaeval('NvimSetTermBg(_A[1], _A[2], _A[3])', [${NVIM_TERM_BUF}, '${cwd_escaped}', '${hex}'])"
   local nvim_out nvim_status
+  local t0="${EPOCHREALTIME:-}"
   nvim_out="$(nvim --server "$NVIM" --remote-expr "$expr" 2>&1)"
+  local t1="${EPOCHREALTIME:-}"
   nvim_status=$?
 
   if [[ -n "$debug" && "$debug" != "0" ]]; then
+    local elapsed=""
+    if [[ -n "$t0" && -n "$t1" ]]; then
+      local -F 6 dt
+      dt=$(( t1 - t0 ))
+      elapsed="${dt}s"
+    fi
     {
-      printf '%s [nvim-bgcolor] pushed hex=%q to bufnr=%q status=%q out=%q\n' "$(date '+%Y-%m-%dT%H:%M:%S')" "$hex" "${NVIM_TERM_BUF:-}" "$nvim_status" "$nvim_out"
+      printf '%s [nvim-bgcolor] pushed hex=%q to bufnr=%q status=%q elapsed=%q out=%q\n' "$(date '+%Y-%m-%dT%H:%M:%S')" "$hex" "${NVIM_TERM_BUF:-}" "$nvim_status" "$elapsed" "$nvim_out"
     } >>/tmp/nvim-bgcolor-hook.log 2>/dev/null || true
   fi
 }
