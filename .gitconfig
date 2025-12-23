@@ -134,3 +134,6 @@
   helper = store
 [pull]
   rebase = false
+[safe]
+	directory = /home/slu/comfyui-storage/storage/ComfyUI/custom_nodes/code-nodes
+	directory = /home/slu/comfyui-storage/storage/ComfyUI/custom_nodes/save-load-lat-cond
