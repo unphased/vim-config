@@ -82,7 +82,7 @@ nvim_bgcolor_hook() {
   local expr="luaeval('NvimSetTermBg(_A[1], _A[2], _A[3])', [${NVIM_TERM_BUF}, '${cwd_escaped}', '${hex}'])"
   local nvim_out nvim_status
   local t0="${EPOCHREALTIME:-}"
-  nvim_out="$(nvim --server "$NVIM" --remote-expr "$expr" 2>&1)"
+  nvim_out="$(nvim --headless --server "$NVIM" --remote-expr "$expr" 2>&1)"
   local t1="${EPOCHREALTIME:-}"
   nvim_status=$?
 

@@ -18,7 +18,7 @@ When updating background, pick an anchor path based on the currently focused win
   - Configure nvim-tree to update **window-local cwd** (`:lcd`) on root changes (not global `:cd`).
   - Use Neovim `DirChanged` (scope=window) + `WinEnter`/`BufEnter` to refresh background.
 - Terminal buffers: anchor is the **live shell cwd**, pushed from shell integration (no polling).
-  - Shell computes the color (same `bgcolor.sh`) and sends it to Neovim via `nvim --server ... --remote-expr ...` along with the terminal buffer id.
+  - Shell computes the color (same `bgcolor.sh`) and sends it to Neovim via `nvim --headless --server ... --remote-expr ...` along with the terminal buffer id.
   - Neovim stores per-terminal-buffer `cwd`/`color` and applies it when that terminal is focused.
 
 ### Shell integration (zsh)
@@ -28,6 +28,6 @@ When updating background, pick an anchor path based on the currently focused win
 - zsh hook (e.g. `chpwd`/`precmd`) computes:
   - `hex=$(bgcolor.sh --format=hex "$PWD")`
   - emits OSC11 locally
-  - calls `nvim --server "$NVIM" --remote-expr ...` to notify Neovim with `(bufnr, cwd, hex)`
+  - calls `nvim --headless --server "$NVIM" --remote-expr ...` to notify Neovim with `(bufnr, cwd, hex)`
 
 Recommended: use a single hook function that always emits OSC11 and conditionally pushes to Neovim when `NVIM`/`NVIM_TERM_BUF` are set (see `nvim/shell/nvim-bgcolor.zsh`).
