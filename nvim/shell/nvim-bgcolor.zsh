@@ -12,7 +12,7 @@
 #
 # Requirements:
 # - `~/util/bgcolor.sh` for computing `#RRGGBB`
-# - `nvr` for notifying Neovim (optional but recommended)
+# - `nvim` (client mode) for notifying Neovim (optional)
 
 nvim_bgcolor_hook() {
   local bgcolor_script="${HOME}/util/bgcolor.sh"
@@ -65,10 +65,10 @@ nvim_bgcolor_hook() {
 
   [[ -n "${NVIM:-}" ]] || return 0
   [[ -n "${NVIM_TERM_BUF:-}" ]] || return 0
-  if ! command -v nvr >/dev/null 2>&1; then
+  if ! command -v nvim >/dev/null 2>&1; then
     if [[ -n "$debug" && "$debug" != "0" ]]; then
       {
-        printf '%s [nvim-bgcolor] nvr not found in PATH\n' "$(date '+%Y-%m-%dT%H:%M:%S')"
+        printf '%s [nvim-bgcolor] nvim not found in PATH\n' "$(date '+%Y-%m-%dT%H:%M:%S')"
       } >>/tmp/nvim-bgcolor-hook.log 2>/dev/null || true
     fi
     return 0
@@ -79,13 +79,13 @@ nvim_bgcolor_hook() {
 
   # Calls the global Lua function `_G.NvimSetTermBg(bufnr, cwd, hex)` defined by `bgcolor-manager`.
   local expr="luaeval('NvimSetTermBg(_A[1], _A[2], _A[3])', [${NVIM_TERM_BUF}, '${cwd_escaped}', '${hex}'])"
-  local nvr_out nvr_status
-  nvr_out="$(nvr --servername "$NVIM" --remote-expr "$expr" 2>&1)"
-  nvr_status=$?
+  local nvim_out nvim_status
+  nvim_out="$(nvim --server "$NVIM" --remote-expr "$expr" 2>&1)"
+  nvim_status=$?
 
   if [[ -n "$debug" && "$debug" != "0" ]]; then
     {
-      printf '%s [nvim-bgcolor] pushed hex=%q to bufnr=%q status=%q out=%q\n' "$(date '+%Y-%m-%dT%H:%M:%S')" "$hex" "${NVIM_TERM_BUF:-}" "$nvr_status" "$nvr_out"
+      printf '%s [nvim-bgcolor] pushed hex=%q to bufnr=%q status=%q out=%q\n' "$(date '+%Y-%m-%dT%H:%M:%S')" "$hex" "${NVIM_TERM_BUF:-}" "$nvim_status" "$nvim_out"
     } >>/tmp/nvim-bgcolor-hook.log 2>/dev/null || true
   fi
 }
