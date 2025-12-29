@@ -78,7 +78,7 @@ cmd open ${{
             gzip -dc "$f" | view_stream "$f" ;;
         application/brotli|application/x-brotli)
             brotli -dc "$f" | view_stream "$f" ;;
-        application/json)
+        application/json|application/x-ndjson)
             view_file "$f" ;;
         text/*)
             view_file "$f" ;;
@@ -87,7 +87,13 @@ cmd open ${{
                 *.br)
                     brotli -dc "$f" | view_stream "$f" ;;
                 *)
-                    hexyl "$f" | less -R ;;
+                    if command -v hexyl >/dev/null 2>&1; then
+                        hexyl "$f" | less -R
+                    elif command -v xxd >/dev/null 2>&1; then
+                        xxd -l 4096 "$f" | less -R
+                    else
+                        less -R "$f"
+                    fi ;;
             esac ;;
     esac
 }}
