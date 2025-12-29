@@ -131,7 +131,7 @@ cmd delete ${{
 map D trash
 # map <delete> delete
 
-set previewer bat-lf-previewer
+set previewer ~/.vim/bat-lf-previewer
 
 # --- Preview Commands (Send Actions to Script) ---
 
