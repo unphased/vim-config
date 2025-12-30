@@ -142,6 +142,7 @@ git -c color.ui=always log \
 
     if (n > 0) {
       anno_color = "\033[36m"
+      tag_color = "\033[33m"
       tag_block = ""
 
       for (i = 1; i <= n; i++) {
@@ -151,14 +152,14 @@ git -c color.ui=always log \
 
         if (tag_block != "") tag_block = tag_block ", "
         tag_block = tag_block "tag: " tag
-        if (subj != "") tag_block = tag_block " " anno_color subj color_reset
+        if (subj != "") tag_block = tag_block " " anno_color subj color_reset tag_color
       }
 
       if (tag_block != "") {
         if (deco_text != "") {
-          deco_text = insert_before_last_paren(deco_text, ", " tag_block)
+          deco_text = insert_before_last_paren(deco_text, ", " tag_color tag_block)
         } else {
-          deco_text = " (" tag_block ")"
+          deco_text = tag_color " (" tag_block ")"
         }
       }
     }
