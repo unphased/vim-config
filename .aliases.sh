@@ -54,9 +54,9 @@ alias gde="GIT_EXTERNAL_DIFF=sift GIT_PAGER=less git diff --ext-diff"
 alias de="gde"
 alias gdc="gd --cached"
 #unalias gg # some git gui thing from ohmyzsh
-alias gg="git lg --all"
+alias gg="git lgt --all"
 alias gfp="git push --force-with-lease" # for force push when e.g. amending
-alias ggs="git lg --all --stat"
+alias ggs="git lgt --all --stat"
 alias gca="git commit -av"
 alias gcm="git commit-message"
 #unalias gcp # I rarely cherry pick (if not using ohmyzsh, this will cause bash to emit a warning)

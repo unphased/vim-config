@@ -3,7 +3,7 @@
 # git-lg-tags-annotations.sh
 #
 # Dense, “subway graph” git log that also shows *annotated tag subjects*
-# inline, right after the normal decoration list (%d).
+# inline, inside the normal decoration parens area (next to `tag: ...`).
 #
 # Why:
 #   - Your commits are high-velocity (AI generated).
@@ -14,8 +14,8 @@
 #   1) Run `git log --graph` with a custom pretty format.
 #   2) For each commit line, extract the full commit SHA.
 #   3) Ask git: “which tags point at this SHA?”
-#   4) For annotated tags only, take the first line of the annotation
-#      and inject it into the log output immediately after %d.
+#   4) For annotated tags only, take the first line of the annotation and
+#      inject it next to the corresponding `tag: <name>` decoration.
 #   5) Page through `less` with colors preserved.
 #
 # Notes:
@@ -29,15 +29,18 @@
 SEP=$'\x1f'
 
 ###############################################################################
-# Step 1: Produce a 3-field log line for each commit
+# Step 1: Produce a multi-field log line for each commit
 ###############################################################################
 #
-# We print 3 “fields” separated by SEP:
-#   field 1: "<abbrev-hash> -<decorations>"    (includes tags/branches via %d)
-#   field 2: "<commit subject + time + author>"
-#   field 3: "<full 40-hex SHA>"              (used to look up tags)
+# We print multiple “fields” separated by SEP:
+#   field 1: "<abbrev-hash> -"                  (graph prefix included)
+#   field 2: "<start decoration color seq>"     (%C(auto))
+#   field 3: "<decorations>"                    (%d, branches only)
+#   field 4: "<reset color seq>"                (%Creset)
+#   field 5: "<commit subject + time + author>"
+#   field 6: "<full 40-hex SHA>"                (used to look up tags)
 #
-# Field 3 is hidden from the user later; it’s only to support lookups.
+# Field 6 is hidden from the user later; it’s only to support lookups.
 #
 # `-c color.ui=always` forces color even when piped.
 
@@ -46,12 +49,25 @@ git -c color.ui=always log \
   --date-order \
   --abbrev-commit \
   --decorate \
-  --pretty=format:"%C(bold magenta)%h%Creset -%C(auto)%d%Creset${SEP}%s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset${SEP}%H" \
+  --decorate-refs-exclude=refs/tags \
+  --pretty=format:"%C(bold magenta)%h%Creset -${SEP}%C(auto)${SEP}%d${SEP}%Creset${SEP}%s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset${SEP}%H" \
   "$@" \
 | awk -v FS="$SEP" '
   #############################################################################
-  # Helper: collect annotated tag subjects for a given commit SHA
+  # Helpers
   #############################################################################
+  function ltrim(s) { sub(/^[[:space:]]+/, "", s); return s }
+
+  function insert_before_last_paren(s, addition,    i) {
+    for (i = length(s); i > 0; i--) {
+      if (substr(s, i, 1) == ")") {
+        return substr(s, 1, i - 1) addition substr(s, i)
+      }
+    }
+    return s addition
+  }
+
+  # Load annotated tag subjects for a commit SHA.
   #
   # We run:
   #   git for-each-ref refs/tags --points-at <sha> --format="name<TAB>type<TAB>subject"
@@ -61,68 +77,93 @@ git -c color.ui=always log \
   #   %(objecttype)       -> "tag" for annotated tags, "commit" for lightweight
   #   %(contents:subject) -> first line of the tag annotation message
   #
-  # We return a single summary string, like:
-  #   "tag1: subject | tag2: subject"
+  # Populates:
+  #   subjects[tagname] = subject
+  #   order[1..n]       = tagname (stable-ish ordering from git)
   #
-  function tag_summaries(sha,    cmd, t, a, out) {
+  function load_tag_subjects(sha, subjects, order,    cmd, t, a, n, tag, subj, prefix) {
     cmd = "git for-each-ref refs/tags --points-at " sha \
           " --format=\"%(refname:short)\t%(objecttype)\t%(contents:subject)\""
 
-    out = ""
-
-    # Read each matching tag line from the command output.
+    n = 0
     while ((cmd | getline t) > 0) {
       split(t, a, "\t")
-      # a[1] = tag name
-      # a[2] = objecttype ("tag" or "commit")
-      # a[3] = tag annotation subject (first line), if any
+      tag  = a[1]
+      subj = ""
 
-      # Only annotated tags ("tag") have message content worth showing.
-      if (a[2] == "tag" && a[3] != "") {
-        if (out != "") out = out " | "
-        out = out a[1] ": " a[3]
+      if (tag == "") continue
+
+      # Only annotated tags ("tag") have their own annotation message.
+      if (a[2] == "tag") {
+        subj = a[3]
+        if (subj != "") {
+          # If the subject redundantly starts with the tag name, strip it.
+          prefix = tag ":"
+          if (substr(subj, 1, length(prefix)) == prefix) {
+            subj = ltrim(substr(subj, length(prefix) + 1))
+          } else {
+            prefix = tag " -"
+            if (substr(subj, 1, length(prefix)) == prefix) {
+              subj = ltrim(substr(subj, length(prefix) + 1))
+            }
+          }
+        }
       }
+
+      subjects[tag] = subj
+      order[++n] = tag
     }
 
     close(cmd)
-    return out
+    return n
   }
 
   #############################################################################
   # Main: rewrite each log line
   #############################################################################
   #
-  # Input fields from git log:
-  #   $1 = "<abbrev-hash> - (decorations...)"
-  #   $2 = "<commit subject + timestamp + author...>"
-  #   $3 = "<full SHA>"
-  #
-  # Output:
-  #   - If no annotated tags: print "$1 $2"
-  #   - If annotated tags exist: print "$1 {tags} $2"
-  #
   {
-    left  = $1  # hash + decorations (%d lives here)
-    right = $2  # subject + times + author
-    sha   = $3  # full commit SHA
+    left             = $1  # hash + trailing " -"
+    deco_color_start = $2  # start color seq for decorations
+    deco_text        = $3  # %d (leading space + parens), may be empty
+    color_reset      = $4  # reset seq (also used when we temporarily colorize)
+    right            = $5  # subject + times + author
+    sha              = $6  # full commit SHA
 
     # Defensive: if a line somehow lacks SHA, just print it unchanged.
     if (sha == "" || sha !~ /^[0-9a-f]{40}$/) {
-      print left " " right
+      print left deco_color_start deco_text color_reset " " right
       next
     }
 
-    tags = tag_summaries(sha)
+    delete subjects
+    delete order
+    n = load_tag_subjects(sha, subjects, order)
 
-    if (tags != "") {
-      # Cyan block inserted immediately after decorations.
-      # This is the key “move”: it sits next to the tag names in %d,
-      # not at the end of the line.
-      print left " \033[36m{ " tags " }\033[0m " right
-    } else {
-      print left " " right
+    if (n > 0) {
+      anno_color = "\033[36m"
+      tag_block = ""
+
+      for (i = 1; i <= n; i++) {
+        tag = order[i]
+        subj = subjects[tag]
+        if (tag == "") continue
+
+        if (tag_block != "") tag_block = tag_block ", "
+        tag_block = tag_block "tag: " tag
+        if (subj != "") tag_block = tag_block " " anno_color subj color_reset
+      }
+
+      if (tag_block != "") {
+        if (deco_text != "") {
+          deco_text = insert_before_last_paren(deco_text, ", " tag_block)
+        } else {
+          deco_text = " (" tag_block ")"
+        }
+      }
     }
+
+    print left deco_color_start deco_text color_reset " " right
   }
 ' 2>/dev/null \
 | LESS='-FRS' less -R
-
