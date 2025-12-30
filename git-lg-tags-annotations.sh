@@ -44,6 +44,15 @@ SEP=$'\x1f'
 #
 # `-c color.ui=always` forces color even when piped.
 
+TAG_COLOR=$(
+  git config --get-color color.decorate.tag "yellow" 2>/dev/null \
+    || printf '\033[33m'
+)
+ANNO_COLOR=$(
+  git config --get-color color.lgt.annotation "cyan" 2>/dev/null \
+    || printf '\033[36m'
+)
+
 git -c color.ui=always log \
   --graph \
   --date-order \
@@ -52,7 +61,7 @@ git -c color.ui=always log \
   --decorate-refs-exclude=refs/tags \
   --pretty=format:"%C(bold magenta)%h%Creset -${SEP}%C(auto)${SEP}%d${SEP}%Creset${SEP}%s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset${SEP}%H" \
   "$@" \
-| awk -v FS="$SEP" '
+| awk -v FS="$SEP" -v TAG_COLOR="$TAG_COLOR" -v ANNO_COLOR="$ANNO_COLOR" '
   #############################################################################
   # Helpers
   #############################################################################
@@ -141,8 +150,8 @@ git -c color.ui=always log \
     n = load_tag_subjects(sha, subjects, order)
 
     if (n > 0) {
-      anno_color = "\033[36m"
-      tag_color = "\033[33m"
+      anno_color = ANNO_COLOR
+      tag_color = TAG_COLOR
       tag_block = ""
 
       for (i = 1; i <= n; i++) {
