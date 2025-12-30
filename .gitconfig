@@ -56,14 +56,14 @@
   ui = true
 [alias]
   lg = log --graph --date-order --pretty=format:'%C(bold magenta)%h%Creset -%C(auto)%d%Creset %s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
-
   lgt = "!f() { \
+    FMT='%(refname:short)%09%(objecttype)%09%(contents:subject)'; \
     git -c color.ui=always log --graph --date-order --abbrev-commit --decorate \
       --pretty=format:'%C(bold magenta)%h%Creset -%C(auto)%d%Creset %s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset%x1f%H' \"$@\" \
-    | awk -v FS='\\x1f' ' \
+    | awk -v FS='\\x1f' -v fmt=\"$FMT\" ' \
         { \
           line=$1; sha=$2; \
-          cmd=\"git for-each-ref refs/tags --points-at \" sha \" --format=\\x27%(refname:short)\\t%(objecttype)\\t%(contents:subject)\\x27\"; \
+          cmd=\"git for-each-ref refs/tags --points-at \" sha \" --format=\\\"\" fmt \"\\\"\"; \
           tags=\"\"; \
           while ((cmd | getline t) > 0) { \
             split(t,a,\"\\t\"); \
@@ -77,8 +77,6 @@
         }' \
     | LESS='-FRSX' less -R; \
   }; f"
-
-
 
   s = "!f() { git status --short; ignored=$(git ignored); [ -n \"$ignored\" ] && echo \"$ignored\"; };f"
   unadd = reset HEAD
