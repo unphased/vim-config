@@ -5,9 +5,9 @@
 # Create an annotated tag with a short annotation (subject = first line).
 #
 # Usage:
-#   git tagann <tag> [<commit-ish>]
-#   git tagann <tag> [<commit-ish>] -- <message...>
-#   git tagann -m "message" <tag> [<commit-ish>]
+#   git ta <tag> [<commit-ish>]
+#   git ta <tag> [<commit-ish>] -- <message...>
+#   git ta -m "message" <tag> [<commit-ish>]
 #
 # Options:
 #   -m, --message <msg>     Use <msg> as the annotation message.
@@ -131,5 +131,4 @@ if [[ "$push" == true ]]; then
   git push "$remote" "refs/tags/$tag"
 fi
 
-printf 'tagann: created %s at %s\n' "$tag" "${target_sha:0:12}"
-
+printf 'ta: created %s at %s\n' "$tag" "${target_sha:0:12}"

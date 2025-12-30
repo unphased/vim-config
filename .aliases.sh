@@ -33,6 +33,8 @@ alias vd='v $(git diff --name-only | while read file; do printf "$(git rev-parse
 alias g="git"
 alias gs="git s" # short status 
 alias gco="git checkout"
+alias gta="git ta"
+alias gtap="git tap"
 alias glpo="git --no-pager log -p --color=always | less"
 alias glpa="git log -p --all"
 alias glpf="git log -p --follow"

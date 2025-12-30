@@ -57,8 +57,8 @@
 [alias]
   lg = log --graph --date-order --pretty=format:'%C(bold magenta)%h%Creset -%C(auto)%d%Creset %s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
   lgt = "!$HOME/.vim/git-lg-tags-annotations.sh"
-  tagann = "!$HOME/.vim/git-tag-annotate.sh"
-  tagannp = "!$HOME/.vim/git-tag-annotate.sh --push"
+  ta = "!$HOME/.vim/git-tag-annotate.sh"
+  tap = "!$HOME/.vim/git-tag-annotate.sh --push"
 
   s = "!f() { git status --short; ignored=$(git ignored); [ -n \"$ignored\" ] && echo \"$ignored\"; };f"
   unadd = reset HEAD
