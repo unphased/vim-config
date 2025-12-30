@@ -56,6 +56,27 @@
   ui = true
 [alias]
   lg = log --graph --date-order --pretty=format:'%C(bold magenta)%h%Creset -%C(auto)%d%Creset %s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+  lgt = "!f() { \
+  git log --graph --date-order --abbrev-commit \
+    --pretty=format:'%C(bold magenta)%h%Creset -%C(auto)%d%Creset %s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset%x1f%H' \"$@\" \
+  | awk -v RS='\\n' -v FS='\\x1f' ' \
+      { \
+        line=$1; sha=$2; \
+        cmd=\"git for-each-ref refs/tags --points-at \" sha \" --format=\\x27%(refname:short)\\t%(objecttype)\\t%(contents:subject)\\x27\"; \
+        tags=\"\"; \
+        while ((cmd | getline t) > 0) { \
+          split(t,a,\"\\t\"); \
+          if (a[2]==\"tag\" && a[3] != \"\") { \
+            if (tags!=\"\") tags=tags \" | \"; \
+            tags=tags a[1] \": \" a[3]; \
+          } \
+        } \
+        close(cmd); \
+        if (tags!=\"\") print line \" \" \"\\033[36m\" \"{ \" tags \" }\" \"\\033[0m\"; else print line; \
+      }'; \
+}; f"
+
+
   s = "!f() { git status --short; ignored=$(git ignored); [ -n \"$ignored\" ] && echo \"$ignored\"; };f"
   unadd = reset HEAD
   ignore = update-index --skip-worktree
