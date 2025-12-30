@@ -60,7 +60,6 @@
     git -c color.ui=always log --graph --date-order --abbrev-commit --decorate \
       --pretty=format:'%C(bold magenta)%h%Creset -%C(auto)%d%Creset %s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset%x1f%H' \"$@\" \
     | awk -v FS='\\x1f' ' \
-        function esc(s){ gsub(/\"/,\"\\\\\\\"\",s); return s } \
         { \
           line=$1; sha=$2; \
           if (sha==\"\" || sha !~ /^[0-9a-f]{40}$/) { print line; next } \
@@ -75,9 +74,10 @@
           } \
           close(cmd); \
           if (tags!=\"\") print line \" \" \"\\033[36m\" \"{ \" tags \" }\" \"\\033[0m\"; else print line; \
-        }' \
-    | LESS='-FRSX' less -R; \
+        }' 2>/dev/null \
+    | LESS='-FRS' less -R; \
   }; f"
+
 
 
   s = "!f() { git status --short; ignored=$(git ignored); [ -n \"$ignored\" ] && echo \"$ignored\"; };f"
