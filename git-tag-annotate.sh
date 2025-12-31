@@ -2,25 +2,28 @@
 #
 # git-tag-annotate.sh
 #
-# Create an annotated tag with a short annotation (subject = first line).
+# Create an annotated tag for quick human notes (subject = first line).
 #
 # Usage:
-#   git ta <tag> [<commit-ish>]
-#   git ta <tag> [<commit-ish>] -- <message...>
-#   git ta -m "message" <tag> [<commit-ish>]
+#   git ta <category> <heading...> [-- <body...>] [@<commit-ish>]
+#
+# Examples:
+#   git ta deployed/prod Deployed at 2025-12-11T22:47:23+07:00
+#   git ta note Investigate CI flake -- likely due to cache race @HEAD~2
+#   git tap note Hotfix deployed -- see incident 1234
 #
 # Options:
-#   -m, --message <msg>     Use <msg> as the annotation message.
-#   -F, --file <path>       Read the annotation message from <path>.
-#   --at <commit-ish>       Target commit (default: HEAD).
+#   --at <commit-ish>       Target commit (default: HEAD). Shorthand: @<commit-ish>
+#   --tag <name>            Override generated tag name.
 #   -f, --force             Replace tag if it already exists.
+#   -e, --edit              Open editor to edit the message before saving.
 #   -p, --push              Push the created tag to the remote.
 #   -r, --remote <name>     Remote to push to (default: origin).
 #   -h, --help              Show help.
 #
 # Notes:
-#   - If no message is provided, git will open $GIT_EDITOR/$EDITOR for you.
-#   - The first line of the message is what `git lgt` shows inline.
+#   - We generate a unique-ish tag name: <category>-<UTC timestamp>[-N].
+#   - The first line (“heading”) is what `git lgt` shows inline.
 
 set -euo pipefail
 
@@ -32,8 +35,8 @@ remote="origin"
 push=false
 force=false
 commitish="HEAD"
-message=""
-message_file=""
+tag_override=""
+edit=false
 
 positional=()
 
@@ -42,6 +45,11 @@ while [[ $# -gt 0 ]]; do
     -h|--help)
       usage
       exit 0
+      ;;
+    --)
+      shift
+      positional+=(-- "$@")
+      break
       ;;
     -p|--push)
       push=true
@@ -56,27 +64,19 @@ while [[ $# -gt 0 ]]; do
       force=true
       shift
       ;;
+    -e|--edit)
+      edit=true
+      shift
+      ;;
     --at)
       commitish="${2:-}"
       [[ -n "$commitish" ]] || { echo "error: --at requires a commit-ish" >&2; exit 2; }
       shift 2
       ;;
-    -m|--message)
-      message="${2:-}"
-      [[ -n "$message" ]] || { echo "error: --message requires a value" >&2; exit 2; }
+    --tag)
+      tag_override="${2:-}"
+      [[ -n "$tag_override" ]] || { echo "error: --tag requires a value" >&2; exit 2; }
       shift 2
-      ;;
-    -F|--file)
-      message_file="${2:-}"
-      [[ -n "$message_file" ]] || { echo "error: --file requires a path" >&2; exit 2; }
-      shift 2
-      ;;
-    --)
-      shift
-      if [[ $# -gt 0 ]]; then
-        message="$*"
-      fi
-      break
       ;;
     -*)
       echo "error: unknown option: $1" >&2
@@ -90,14 +90,39 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ ${#positional[@]} -lt 1 ]]; then
+if [[ ${#positional[@]} -lt 2 ]]; then
   usage >&2
   exit 2
 fi
 
-tag="${positional[0]}"
-if [[ ${#positional[@]} -ge 2 ]]; then
-  commitish="${positional[1]}"
+category="${positional[0]}"
+
+heading_parts=()
+body_parts=()
+in_body=false
+
+for ((i=1; i<${#positional[@]}; i++)); do
+  arg="${positional[i]}"
+  if [[ "$arg" == -- ]]; then
+    in_body=true
+    continue
+  fi
+  if [[ "$arg" == @* ]]; then
+    commitish="${arg#@}"
+    continue
+  fi
+
+  if [[ "$in_body" == true ]]; then
+    body_parts+=("$arg")
+  else
+    heading_parts+=("$arg")
+  fi
+done
+
+if [[ ${#heading_parts[@]} -eq 0 ]]; then
+  echo "error: missing heading (first line of annotation)" >&2
+  usage >&2
+  exit 2
 fi
 
 git rev-parse --git-dir >/dev/null 2>&1 || { echo "error: not in a git repo" >&2; exit 2; }
@@ -108,21 +133,65 @@ if [[ -z "$target_sha" ]]; then
   exit 2
 fi
 
-if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
-  if [[ "$force" != true ]]; then
-    echo "error: tag already exists: $tag (use --force to replace)" >&2
-    exit 1
-  fi
-  git tag -d "$tag" >/dev/null
+sanitize_category() {
+  local input="$1"
+  local output
+  output="$(printf '%s' "$input" | tr ' ' '-' | tr -c 'A-Za-z0-9._/-' '-')"
+  output="$(
+    printf '%s' "$output" | sed -E '
+      s/-+/-/g;
+      s#/+#/#g;
+      s#^/##;
+      s#/$##;
+      s/^-+//;
+      s/-+$//;
+    '
+  )"
+  printf '%s' "$output"
+}
+
+category="$(sanitize_category "$category")"
+if [[ -z "$category" ]]; then
+  echo "error: invalid/empty category after sanitization" >&2
+  exit 2
 fi
 
-tag_args=(tag -a "$tag" "$target_sha")
+tag="$tag_override"
+if [[ -z "$tag" ]]; then
+  ts="$(date -u +%Y%m%dT%H%M%SZ)"
+  base="${category}-${ts}"
+  tag="$base"
+  if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
+    if [[ "$force" == true ]]; then
+      git tag -d "$tag" >/dev/null
+    else
+      n=2
+      while git rev-parse -q --verify "refs/tags/${base}-${n}" >/dev/null; do
+        n=$((n + 1))
+      done
+      tag="${base}-${n}"
+    fi
+  fi
+else
+  if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
+    if [[ "$force" != true ]]; then
+      echo "error: tag already exists: $tag (use --force to replace)" >&2
+      exit 1
+    fi
+    git tag -d "$tag" >/dev/null
+  fi
+fi
 
-if [[ -n "$message_file" ]]; then
-  [[ -f "$message_file" ]] || { echo "error: message file not found: $message_file" >&2; exit 2; }
-  tag_args+=(-F "$message_file")
-elif [[ -n "$message" ]]; then
-  tag_args+=(-m "$message")
+heading="${heading_parts[*]}"
+body="${body_parts[*]}"
+message="$heading"
+if [[ -n "$body" ]]; then
+  message+=$'\n\n'"$body"
+fi
+
+tag_args=(tag -a "$tag" "$target_sha" -m "$message")
+if [[ "$edit" == true ]]; then
+  tag_args+=(-e)
 fi
 
 git "${tag_args[@]}"
