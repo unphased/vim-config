@@ -22,7 +22,7 @@
 #   -h, --help              Show help.
 #
 # Notes:
-#   - We generate a unique-ish tag name: <category>-<UTC timestamp>[-N].
+#   - We generate a tag name: <category>-<N> (N increments per category).
 #   - The first line (“heading”) is what `git lgt` shows inline.
 
 set -euo pipefail
@@ -156,22 +156,31 @@ if [[ -z "$category" ]]; then
   exit 2
 fi
 
+next_category_tag_number() {
+  local prefix="$1"
+  local max=0
+  local name suffix
+
+  while IFS= read -r name; do
+    [[ "$name" == "$prefix-"* ]] || continue
+    suffix="${name#"$prefix-"}"
+    [[ -n "$suffix" ]] || continue
+    [[ "$suffix" =~ ^[0-9]+$ ]] || continue
+    (( suffix > max )) && max=$suffix
+  done < <(git for-each-ref --format='%(refname:short)' "refs/tags/${prefix}-*" 2>/dev/null || true)
+
+  printf '%s' "$((max + 1))"
+}
+
 tag="$tag_override"
 if [[ -z "$tag" ]]; then
-  ts="$(date -u +%Y%m%dT%H%M%SZ)"
-  base="${category}-${ts}"
-  tag="$base"
-  if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
-    if [[ "$force" == true ]]; then
-      git tag -d "$tag" >/dev/null
-    else
-      n=2
-      while git rev-parse -q --verify "refs/tags/${base}-${n}" >/dev/null; do
-        n=$((n + 1))
-      done
-      tag="${base}-${n}"
-    fi
-  fi
+  n="$(next_category_tag_number "$category")"
+  tag="${category}-${n}"
+
+  while git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; do
+    n=$((n + 1))
+    tag="${category}-${n}"
+  done
 else
   if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
     if [[ "$force" != true ]]; then
