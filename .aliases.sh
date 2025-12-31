@@ -35,6 +35,7 @@ alias gs="git s" # short status
 alias gco="git checkout"
 alias gta="git ta"
 alias gtap="git tap"
+alias gte="git te"
 alias glpo="git --no-pager log -p --color=always | less"
 alias glpa="git log -p --all"
 alias glpf="git log -p --follow"
