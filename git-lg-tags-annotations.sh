@@ -137,10 +137,15 @@ git -c color.ui=always log \
     deco_text        = $3  # %d (leading space + parens), may be empty
     color_reset      = $4  # reset seq (also used when we temporarily colorize)
     right            = $5  # subject + times + author
-    sha              = $6  # full commit SHA
+    sha_raw          = $6  # full commit SHA (may have --graph/--stat trailing chars)
+
+    sha = ""
+    if (sha_raw ~ /^[0-9a-f]{40}/) {
+      sha = substr(sha_raw, 1, 40)
+    }
 
     # Defensive: if a line somehow lacks SHA, just print it unchanged.
-    if (sha == "" || sha !~ /^[0-9a-f]{40}$/) {
+    if (sha == "") {
       print left deco_color_start deco_text color_reset " " right
       next
     }
