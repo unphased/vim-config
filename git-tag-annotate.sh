@@ -37,6 +37,8 @@ force=false
 commitish="HEAD"
 tag_override=""
 edit=false
+gitdir=""
+unpushed_file=""
 
 positional=()
 
@@ -205,8 +207,36 @@ fi
 
 git "${tag_args[@]}"
 
+gitdir="$(git rev-parse --git-dir 2>/dev/null || true)"
+if [[ -n "$gitdir" ]]; then
+  unpushed_file="${gitdir}/lgt-unpushed-tags"
+fi
+
+mark_unpushed() {
+  local tag_name="$1"
+  local file_path="$2"
+  [[ -n "$file_path" ]] || return 0
+  touch "$file_path" 2>/dev/null || return 0
+  grep -Fxq "$tag_name" "$file_path" 2>/dev/null && return 0
+  printf '%s\n' "$tag_name" >>"$file_path" 2>/dev/null || true
+}
+
+unmark_unpushed() {
+  local tag_name="$1"
+  local file_path="$2"
+  local tmp
+  [[ -n "$file_path" && -f "$file_path" ]] || return 0
+  tmp="$(mktemp "${file_path}.XXXXXX" 2>/dev/null || true)"
+  [[ -n "$tmp" ]] || return 0
+  grep -Fxv "$tag_name" "$file_path" >"$tmp" 2>/dev/null || true
+  mv -f "$tmp" "$file_path" 2>/dev/null || rm -f "$tmp" 2>/dev/null || true
+}
+
 if [[ "$push" == true ]]; then
   git push "$remote" "refs/tags/$tag"
+  unmark_unpushed "$tag" "$unpushed_file"
+else
+  mark_unpushed "$tag" "$unpushed_file"
 fi
 
 printf 'ta: created %s at %s\n' "$tag" "${target_sha:0:12}"
