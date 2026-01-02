@@ -52,6 +52,18 @@ ANNO_COLOR=$(
   git config --get-color color.lgt.annotation "cyan" 2>/dev/null \
     || printf '\033[36m'
 )
+UNPUSHED_COLOR=$(
+  git config --get-color color.lgt.unpushed "red bold" 2>/dev/null \
+    || printf '\033[1;31m'
+)
+REMOTE_TAG_STATUS=$(
+  git config --bool lgt.remoteTagStatus 2>/dev/null \
+    || printf 'false'
+)
+LGT_REMOTE=$(
+  git config --get lgt.remote 2>/dev/null \
+    || printf 'origin'
+)
 
 git -c color.ui=always log \
   --graph \
@@ -61,7 +73,23 @@ git -c color.ui=always log \
   --decorate-refs-exclude=refs/tags \
   --pretty=format:"%C(bold magenta)%h%Creset -${SEP}%C(auto)${SEP}%d${SEP}%Creset${SEP}%s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset${SEP}%H" \
   "$@" \
-| awk -v FS="$SEP" -v TAG_COLOR="$TAG_COLOR" -v ANNO_COLOR="$ANNO_COLOR" '
+| awk -v FS="$SEP" -v TAG_COLOR="$TAG_COLOR" -v ANNO_COLOR="$ANNO_COLOR" -v UNPUSHED_COLOR="$UNPUSHED_COLOR" -v REMOTE_TAG_STATUS="$REMOTE_TAG_STATUS" -v LGT_REMOTE="$LGT_REMOTE" '
+  BEGIN {
+    remote_enabled = (REMOTE_TAG_STATUS == "true")
+    if (remote_enabled) {
+      cmd = "git ls-remote --tags --refs " LGT_REMOTE " 2>/dev/null"
+      while ((cmd | getline line) > 0) {
+        split(line, a, "\t")
+        ref = a[2]
+        sub(/^refs\/tags\//, "", ref)
+        if (ref != "") remote_tags[ref] = 1
+      }
+      remote_ok = (close(cmd) == 0)
+    } else {
+      remote_ok = 0
+    }
+  }
+
   #############################################################################
   # Helpers
   #############################################################################
@@ -157,6 +185,7 @@ git -c color.ui=always log \
     if (n > 0) {
       anno_color = ANNO_COLOR
       tag_color = TAG_COLOR
+      unpushed_color = UNPUSHED_COLOR
       tag_block = ""
 
       for (i = 1; i <= n; i++) {
@@ -166,6 +195,9 @@ git -c color.ui=always log \
 
         if (tag_block != "") tag_block = tag_block ", "
         tag_block = tag_block "tag: " tag
+        if (remote_enabled && remote_ok && !(tag in remote_tags)) {
+          tag_block = tag_block " " unpushed_color "UNPUSHED" color_reset tag_color
+        }
         if (subj != "") tag_block = tag_block " " anno_color subj color_reset tag_color
       }
 
