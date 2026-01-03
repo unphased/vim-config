@@ -38,9 +38,35 @@ alias gtap="git tap"
 alias gte="git te"
 alias gna="git na"
 alias gn="git gn"
-alias gnl="git log --graph --oneline refs/notes/commits"
-alias gnlp="git log --graph --oneline -p refs/notes/commits"
-alias gnls="git log --graph --oneline --stat refs/notes/commits"
+gnl() {
+  local -a refs
+  refs=($(git for-each-ref refs/notes --format='%(refname)' 2>/dev/null))
+  if [[ ${#refs[@]} -eq 0 ]]; then
+    echo "gnl: no refs/notes/* found" >&2
+    return 1
+  fi
+  git log --graph --oneline "${refs[@]}"
+}
+
+gnlp() {
+  local -a refs
+  refs=($(git for-each-ref refs/notes --format='%(refname)' 2>/dev/null))
+  if [[ ${#refs[@]} -eq 0 ]]; then
+    echo "gnlp: no refs/notes/* found" >&2
+    return 1
+  fi
+  git log --graph --oneline -p "${refs[@]}"
+}
+
+gnls() {
+  local -a refs
+  refs=($(git for-each-ref refs/notes --format='%(refname)' 2>/dev/null))
+  if [[ ${#refs[@]} -eq 0 ]]; then
+    echo "gnls: no refs/notes/* found" >&2
+    return 1
+  fi
+  git log --graph --oneline --stat "${refs[@]}"
+}
 alias glpo="git --no-pager log -p --color=always | less"
 alias glpa="git log -p --all"
 alias glpf="git log -p --follow"
