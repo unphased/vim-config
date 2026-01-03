@@ -52,15 +52,156 @@ ANNO_COLOR=$(
   git config --get-color color.lgt.annotation "cyan" 2>/dev/null \
     || printf '\033[36m'
 )
+NOTE_COLOR=$(
+  git config --get-color color.lgt.note "green" 2>/dev/null \
+    || printf '\033[32m'
+)
 UNPUSHED_COLOR=$(
   git config --get-color color.lgt.unpushed "red bold" 2>/dev/null \
     || printf '\033[1;31m'
 )
+UNPUSHED_LABEL=$(
+  git config --get lgt.unpushedLabel 2>/dev/null \
+    || printf 'UNPUSHED'
+)
+REMOTE_TAG_STATUS=$(
+  git config --bool lgt.remoteTagStatus 2>/dev/null \
+    || printf 'false'
+)
+LGT_REMOTE=$(
+  git config --get lgt.remote 2>/dev/null \
+    || printf 'origin'
+)
 
-gitdir="$(git rev-parse --git-dir 2>/dev/null || true)"
-unpushed_file=""
-if [[ -n "$gitdir" ]]; then
-  unpushed_file="${gitdir}/lgt-unpushed-tags"
+# Optional: inline first-line display of git notes.
+# Enable with: `git config lgt.showNotes true`
+# Configure refs with: `git config --add lgt.notesRef commits` (or refs/notes/<name>)
+SHOW_NOTES="$(
+  git config --bool lgt.showNotes 2>/dev/null \
+    || printf 'false'
+)"
+
+expand_notes_ref() {
+  if [[ "$1" == refs/notes/* ]]; then
+    printf '%s' "$1"
+  else
+    printf 'refs/notes/%s' "$1"
+  fi
+}
+
+notes_map_file=""
+if [[ "$SHOW_NOTES" == "true" ]]; then
+  mapfile -t notes_refs < <(git config --get-all lgt.notesRef 2>/dev/null || true)
+  if [[ ${#notes_refs[@]} -eq 0 ]]; then
+    notes_refs=(refs/notes/commits)
+  fi
+
+  notes_map_file="$(mktemp "${TMPDIR:-/tmp}/lgt-notes.XXXXXXXX" 2>/dev/null || true)"
+  if [[ -n "$notes_map_file" ]]; then
+    trap 'rm -f "$notes_map_file" 2>/dev/null || true' EXIT
+
+    for ref in "${notes_refs[@]}"; do
+      ref_full="$(expand_notes_ref "$ref")"
+      ref_short="${ref_full#refs/notes/}"
+
+      if command -v python3 >/dev/null 2>&1; then
+        git notes --ref "$ref_full" list 2>/dev/null \
+        | python3 /dev/fd/3 "$ref_short" 3<<'PY' >>"$notes_map_file"
+import subprocess
+import sys
+
+ref_short = sys.argv[1] if len(sys.argv) > 1 else "commits"
+pairs = []
+note_ids = []
+
+for line in sys.stdin:
+    line = line.strip()
+    if not line:
+        continue
+    parts = line.split()
+    if len(parts) < 2:
+        continue
+    note, obj = parts[0], parts[1]
+    pairs.append((obj, note))
+    note_ids.append(note)
+
+if not pairs:
+    sys.exit(0)
+
+proc = subprocess.Popen(
+    ["git", "cat-file", "--batch"],
+    stdin=subprocess.PIPE,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.DEVNULL,
+)
+assert proc.stdin is not None
+assert proc.stdout is not None
+
+proc.stdin.write(("\n".join(note_ids) + "\n").encode("ascii", "replace"))
+proc.stdin.close()
+
+out = proc.stdout
+
+def read_header():
+    line = out.readline()
+    if not line:
+        return None
+    return line.decode("ascii", "replace").strip()
+
+def read_exact(n: int) -> bytes:
+    data = b""
+    while len(data) < n:
+        chunk = out.read(n - len(data))
+        if not chunk:
+            break
+        data += chunk
+    return data
+
+for (obj, _note_id) in pairs:
+    header = read_header()
+    if header is None:
+        break
+    hparts = header.split()
+    if len(hparts) >= 2 and hparts[1] == "missing":
+        sys.stdout.write(f"{obj}\t{ref_short}\t\n")
+        continue
+    if len(hparts) < 3:
+        continue
+    size = int(hparts[2])
+
+    first = b""
+    consumed = 0
+    while consumed < size:
+        b = out.read(1)
+        if not b:
+            break
+        consumed += 1
+        if b == b"\n":
+            break
+        first += b
+
+    remaining = size - consumed
+    if remaining > 0:
+        read_exact(remaining)
+
+    out.read(1)  # trailing newline after the object
+
+    first_line = first.decode("utf-8", "replace").replace("\t", " ").rstrip("\r")
+    sys.stdout.write(f"{obj}\t{ref_short}\t{first_line}\n")
+
+proc.wait()
+PY
+      else
+        git notes --ref "$ref_full" list 2>/dev/null \
+        | while read -r note obj; do
+            first="$(git cat-file -p "$note" 2>/dev/null | sed -n '1p' | tr '\t' ' ' | tr -d '\r')"
+            printf '%s\t%s\t%s\n' "$obj" "$ref_short" "$first"
+          done >>"$notes_map_file"
+      fi
+    done
+
+    [[ -s "$notes_map_file" ]] || notes_map_file=""
+  fi
 fi
 
 git -c color.ui=always log \
@@ -71,13 +212,36 @@ git -c color.ui=always log \
   --decorate-refs-exclude=refs/tags \
   --pretty=format:"%C(bold magenta)%h%Creset -${SEP}%C(auto)${SEP}%d${SEP}%Creset${SEP}%s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset${SEP}%H" \
   "$@" \
-| awk -v FS="$SEP" -v TAG_COLOR="$TAG_COLOR" -v ANNO_COLOR="$ANNO_COLOR" -v UNPUSHED_COLOR="$UNPUSHED_COLOR" -v UNPUSHED_FILE="$unpushed_file" '
+| awk -v FS="$SEP" -v TAG_COLOR="$TAG_COLOR" -v ANNO_COLOR="$ANNO_COLOR" -v NOTE_COLOR="$NOTE_COLOR" -v UNPUSHED_COLOR="$UNPUSHED_COLOR" -v UNPUSHED_LABEL="$UNPUSHED_LABEL" -v REMOTE_TAG_STATUS="$REMOTE_TAG_STATUS" -v LGT_REMOTE="$LGT_REMOTE" -v NOTES_MAP_FILE="$notes_map_file" '
   BEGIN {
-    if (UNPUSHED_FILE != "") {
-      while ((getline line < UNPUSHED_FILE) > 0) {
-        if (line != "") unpushed[line] = 1
+    RESET = "\033[0m"
+    PAIR_SEP = "\034"
+    FIELD_SEP = "\035"
+
+    remote_enabled = (REMOTE_TAG_STATUS == "true")
+    if (remote_enabled) {
+      cmd = "git ls-remote --tags --refs " LGT_REMOTE " 2>/dev/null"
+      while ((cmd | getline line) > 0) {
+        split(line, a, "\t")
+        ref = a[2]
+        sub(/^refs\/tags\//, "", ref)
+        if (ref != "") remote_tags[ref] = 1
       }
-      close(UNPUSHED_FILE)
+      remote_ok = (close(cmd) == 0)
+    } else {
+      remote_ok = 0
+    }
+
+    if (NOTES_MAP_FILE != "") {
+      while ((getline line < NOTES_MAP_FILE) > 0) {
+        split(line, a, "\t")
+        sha = a[1]
+        ref = a[2]
+        txt = a[3]
+        if (sha == "" || txt == "") continue
+        notes_raw[sha] = notes_raw[sha] PAIR_SEP ref FIELD_SEP txt
+      }
+      close(NOTES_MAP_FILE)
     }
   }
 
@@ -93,6 +257,12 @@ git -c color.ui=always log \
       }
     }
     return s addition
+  }
+
+  function truncate(s, max,    out) {
+    out = s
+    if (max > 0 && length(out) > max) out = substr(out, 1, max - 1) "…"
+    return out
   }
 
   # Load annotated tag subjects for a commit SHA.
@@ -177,6 +347,7 @@ git -c color.ui=always log \
       anno_color = ANNO_COLOR
       tag_color = TAG_COLOR
       unpushed_color = UNPUSHED_COLOR
+      unpushed_label = UNPUSHED_LABEL
       tag_block = ""
 
       for (i = 1; i <= n; i++) {
@@ -186,8 +357,8 @@ git -c color.ui=always log \
 
         if (tag_block != "") tag_block = tag_block ", "
         tag_block = tag_block "tag: " tag
-        if (tag in unpushed) {
-          tag_block = tag_block " " unpushed_color "UNPUSHED" color_reset tag_color
+        if (remote_enabled && remote_ok && !(tag in remote_tags)) {
+          tag_block = tag_block " " unpushed_color unpushed_label color_reset tag_color
         }
         if (subj != "") tag_block = tag_block " " anno_color subj color_reset tag_color
       }
@@ -197,6 +368,28 @@ git -c color.ui=always log \
           deco_text = insert_before_last_paren(deco_text, ", " tag_color tag_block)
         } else {
           deco_text = tag_color " (" tag_block ")"
+        }
+      }
+    }
+
+    if (sha in notes_raw) {
+      note_block = ""
+      np = split(notes_raw[sha], pairs, PAIR_SEP)
+      for (i = 1; i <= np; i++) {
+        if (pairs[i] == "") continue
+        split(pairs[i], f, FIELD_SEP)
+        nref = f[1]
+        ntxt = truncate(f[2], 80)
+        if (nref == "" || ntxt == "") continue
+        if (note_block != "") note_block = note_block " | "
+        note_block = note_block "note:" nref " " NOTE_COLOR ntxt RESET TAG_COLOR
+      }
+
+      if (note_block != "") {
+        if (deco_text != "") {
+          deco_text = insert_before_last_paren(deco_text, ", " TAG_COLOR note_block)
+        } else {
+          deco_text = TAG_COLOR " (" note_block ")"
         }
       }
     }
