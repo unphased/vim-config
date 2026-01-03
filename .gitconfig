@@ -54,7 +54,7 @@
   pager = sed 's/\t/→\t/g' | delta --paging=always
 [color]
   ui = true
-[lgt]
+[lgtn]
   showNotes = true
 [log]
   ; Always show git notes after commit messages in `git log`.
@@ -64,7 +64,7 @@
   displayRef = refs/notes/*
 [alias]
   lg = "!$HOME/.vim/git-lg-notes.sh"
-  lgt = "!$HOME/.vim/git-lg-tags-annotations.sh"
+  lgtn = "!$HOME/.vim/git-lg-tags-notes.sh"
   ta = "!$HOME/.vim/git-tag-annotate.sh"
   tap = "!$HOME/.vim/git-tag-annotate.sh --push"
   gn = "!$HOME/.vim/git-note-annotate.sh"

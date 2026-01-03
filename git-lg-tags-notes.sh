@@ -36,7 +36,7 @@ SEP=$'\x1f'
 ###############################################################################
 #
 # If you want to browse the notes DAG commits themselves, run:
-#   git lgt --all --include-notes-dag
+#   git lgtn --all --include-notes-dag
 #
 # Notes are still shown inline (via `git notes ...`) even when the notes DAG
 # commits are excluded from the main log traversal.
@@ -94,67 +94,67 @@ TAG_COLOR=$(
     || printf '\033[33m'
 )
 ANNO_COLOR=$(
-  git config --get-color color.lgt.annotation "cyan" 2>/dev/null \
+  git config --get-color color.lgtn.annotation "cyan" 2>/dev/null \
     || printf '\033[36m'
 )
 NOTE_COLOR=$(
-  git config --get-color color.lgt.note "green" 2>/dev/null \
+  git config --get-color color.lgtn.note "green" 2>/dev/null \
     || printf '\033[32m'
 )
 NOTE_META_COLOR=$(
-  git config --get-color color.lgt.noteMeta "cyan" 2>/dev/null \
+  git config --get-color color.lgtn.noteMeta "cyan" 2>/dev/null \
     || printf '\033[36m'
 )
 NOTE_META_LINES_COLOR=$(
-  git config --get-color color.lgt.noteMetaLines "green" 2>/dev/null \
+  git config --get-color color.lgtn.noteMetaLines "green" 2>/dev/null \
     || printf '\033[32m'
 )
 NOTE_META_LINES_WARN_COLOR=$(
-  git config --get-color color.lgt.noteMetaLinesWarn "yellow" 2>/dev/null \
+  git config --get-color color.lgtn.noteMetaLinesWarn "yellow" 2>/dev/null \
     || printf '\033[33m'
 )
 NOTE_META_LINES_HOT_COLOR=$(
-  git config --get-color color.lgt.noteMetaLinesHot "red bold" 2>/dev/null \
+  git config --get-color color.lgtn.noteMetaLinesHot "red bold" 2>/dev/null \
     || printf '\033[1;31m'
 )
 NOTE_META_BYTES_COLOR=$(
-  git config --get-color color.lgt.noteMetaBytes "magenta" 2>/dev/null \
+  git config --get-color color.lgtn.noteMetaBytes "magenta" 2>/dev/null \
     || printf '\033[35m'
 )
 NOTE_META_BYTES_WARN_COLOR=$(
-  git config --get-color color.lgt.noteMetaBytesWarn "yellow" 2>/dev/null \
+  git config --get-color color.lgtn.noteMetaBytesWarn "yellow" 2>/dev/null \
     || printf '\033[33m'
 )
 NOTE_META_BYTES_HOT_COLOR=$(
-  git config --get-color color.lgt.noteMetaBytesHot "red bold" 2>/dev/null \
+  git config --get-color color.lgtn.noteMetaBytesHot "red bold" 2>/dev/null \
     || printf '\033[1;31m'
 )
 NOTES_COMMIT_COLOR=$(
-  git config --get-color color.lgt.notesCommit "cyan bold" 2>/dev/null \
+  git config --get-color color.lgtn.notesCommit "cyan bold" 2>/dev/null \
     || printf '\033[1;36m'
 )
 UNPUSHED_COLOR=$(
-  git config --get-color color.lgt.unpushed "red bold" 2>/dev/null \
+  git config --get-color color.lgtn.unpushed "red bold" 2>/dev/null \
     || printf '\033[1;31m'
 )
 UNPUSHED_LABEL=$(
-  git config --get lgt.unpushedLabel 2>/dev/null \
+  git config --get lgtn.unpushedLabel 2>/dev/null \
     || printf 'UNPUSHED'
 )
 REMOTE_TAG_STATUS=$(
-  git config --bool lgt.remoteTagStatus 2>/dev/null \
+  git config --bool lgtn.remoteTagStatus 2>/dev/null \
     || printf 'false'
 )
-LGT_REMOTE=$(
-  git config --get lgt.remote 2>/dev/null \
+LGTN_REMOTE=$(
+  git config --get lgtn.remote 2>/dev/null \
     || printf 'origin'
 )
 
 # Optional: inline first-line display of git notes.
-# Enable with: `git config lgt.showNotes true`
-# Configure refs with: `git config --add lgt.notesRef commits` (or refs/notes/<name>)
+# Enable with: `git config lgtn.showNotes true`
+# Configure refs with: `git config --add lgtn.notesRef commits` (or refs/notes/<name>)
 SHOW_NOTES="$(
-  git config --bool lgt.showNotes 2>/dev/null \
+  git config --bool lgtn.showNotes 2>/dev/null \
     || printf 'false'
 )"
 
@@ -168,7 +168,7 @@ expand_notes_ref() {
 
 notes_map_file=""
 if [[ "$SHOW_NOTES" == "true" ]]; then
-  mapfile -t notes_refs < <(git config --get-all lgt.notesRef 2>/dev/null || true)
+  mapfile -t notes_refs < <(git config --get-all lgtn.notesRef 2>/dev/null || true)
   if [[ ${#notes_refs[@]} -eq 0 ]]; then
     mapfile -t notes_refs < <(git for-each-ref refs/notes --format='%(refname)' 2>/dev/null || true)
     if [[ ${#notes_refs[@]} -eq 0 ]]; then
@@ -176,7 +176,7 @@ if [[ "$SHOW_NOTES" == "true" ]]; then
     fi
   fi
 
-  notes_map_file="$(mktemp "${TMPDIR:-/tmp}/lgt-notes.XXXXXXXX" 2>/dev/null || true)"
+  notes_map_file="$(mktemp "${TMPDIR:-/tmp}/lgtn-notes.XXXXXXXX" 2>/dev/null || true)"
   if [[ -n "$notes_map_file" ]]; then
     trap 'rm -f "$notes_map_file" 2>/dev/null || true' EXIT
 
@@ -303,7 +303,7 @@ git -c color.ui=always log \
   --decorate-refs-exclude=refs/tags \
   --pretty=format:"%C(bold magenta)%h%Creset -${SEP}%C(auto)${SEP}%d${SEP}%Creset${SEP}%s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset${SEP}%H" \
   "${log_args[@]}" \
-| awk -v FS="$SEP" -v TAG_COLOR="$TAG_COLOR" -v ANNO_COLOR="$ANNO_COLOR" -v NOTE_COLOR="$NOTE_COLOR" -v NOTE_META_COLOR="$NOTE_META_COLOR" -v NOTE_META_LINES_COLOR="$NOTE_META_LINES_COLOR" -v NOTE_META_LINES_WARN_COLOR="$NOTE_META_LINES_WARN_COLOR" -v NOTE_META_LINES_HOT_COLOR="$NOTE_META_LINES_HOT_COLOR" -v NOTE_META_BYTES_COLOR="$NOTE_META_BYTES_COLOR" -v NOTE_META_BYTES_WARN_COLOR="$NOTE_META_BYTES_WARN_COLOR" -v NOTE_META_BYTES_HOT_COLOR="$NOTE_META_BYTES_HOT_COLOR" -v NOTES_COMMIT_COLOR="$NOTES_COMMIT_COLOR" -v UNPUSHED_COLOR="$UNPUSHED_COLOR" -v UNPUSHED_LABEL="$UNPUSHED_LABEL" -v REMOTE_TAG_STATUS="$REMOTE_TAG_STATUS" -v LGT_REMOTE="$LGT_REMOTE" -v NOTES_MAP_FILE="$notes_map_file" '
+| awk -v FS="$SEP" -v TAG_COLOR="$TAG_COLOR" -v ANNO_COLOR="$ANNO_COLOR" -v NOTE_COLOR="$NOTE_COLOR" -v NOTE_META_COLOR="$NOTE_META_COLOR" -v NOTE_META_LINES_COLOR="$NOTE_META_LINES_COLOR" -v NOTE_META_LINES_WARN_COLOR="$NOTE_META_LINES_WARN_COLOR" -v NOTE_META_LINES_HOT_COLOR="$NOTE_META_LINES_HOT_COLOR" -v NOTE_META_BYTES_COLOR="$NOTE_META_BYTES_COLOR" -v NOTE_META_BYTES_WARN_COLOR="$NOTE_META_BYTES_WARN_COLOR" -v NOTE_META_BYTES_HOT_COLOR="$NOTE_META_BYTES_HOT_COLOR" -v NOTES_COMMIT_COLOR="$NOTES_COMMIT_COLOR" -v UNPUSHED_COLOR="$UNPUSHED_COLOR" -v UNPUSHED_LABEL="$UNPUSHED_LABEL" -v REMOTE_TAG_STATUS="$REMOTE_TAG_STATUS" -v LGTN_REMOTE="$LGTN_REMOTE" -v NOTES_MAP_FILE="$notes_map_file" '
   BEGIN {
     RESET = "\033[0m"
     PAIR_SEP = "\034"
@@ -311,7 +311,7 @@ git -c color.ui=always log \
 
     remote_enabled = (REMOTE_TAG_STATUS == "true")
     if (remote_enabled) {
-      cmd = "git ls-remote --tags --refs " LGT_REMOTE " 2>/dev/null"
+      cmd = "git ls-remote --tags --refs " LGTN_REMOTE " 2>/dev/null"
       while ((cmd | getline line) > 0) {
         split(line, a, "\t")
         ref = a[2]
