@@ -98,7 +98,7 @@ ANNO_COLOR=$(
     || printf '\033[36m'
 )
 NOTE_COLOR=$(
-  git config --get-color color.lgtn.note "green" 2>/dev/null \
+  git config --get-color color.lgtn.note "blue" 2>/dev/null \
     || printf '\033[32m'
 )
 NOTE_META_COLOR=$(
