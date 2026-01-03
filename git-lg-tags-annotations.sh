@@ -56,6 +56,10 @@ NOTE_COLOR=$(
   git config --get-color color.lgt.note "green" 2>/dev/null \
     || printf '\033[32m'
 )
+NOTES_COMMIT_COLOR=$(
+  git config --get-color color.lgt.notesCommit "cyan bold" 2>/dev/null \
+    || printf '\033[1;36m'
+)
 UNPUSHED_COLOR=$(
   git config --get-color color.lgt.unpushed "red bold" 2>/dev/null \
     || printf '\033[1;31m'
@@ -93,7 +97,10 @@ notes_map_file=""
 if [[ "$SHOW_NOTES" == "true" ]]; then
   mapfile -t notes_refs < <(git config --get-all lgt.notesRef 2>/dev/null || true)
   if [[ ${#notes_refs[@]} -eq 0 ]]; then
-    notes_refs=(refs/notes/commits)
+    mapfile -t notes_refs < <(git for-each-ref refs/notes --format='%(refname)' 2>/dev/null || true)
+    if [[ ${#notes_refs[@]} -eq 0 ]]; then
+      notes_refs=(refs/notes/commits)
+    fi
   fi
 
   notes_map_file="$(mktemp "${TMPDIR:-/tmp}/lgt-notes.XXXXXXXX" 2>/dev/null || true)"
@@ -212,7 +219,7 @@ git -c color.ui=always log \
   --decorate-refs-exclude=refs/tags \
   --pretty=format:"%C(bold magenta)%h%Creset -${SEP}%C(auto)${SEP}%d${SEP}%Creset${SEP}%s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset${SEP}%H" \
   "$@" \
-| awk -v FS="$SEP" -v TAG_COLOR="$TAG_COLOR" -v ANNO_COLOR="$ANNO_COLOR" -v NOTE_COLOR="$NOTE_COLOR" -v UNPUSHED_COLOR="$UNPUSHED_COLOR" -v UNPUSHED_LABEL="$UNPUSHED_LABEL" -v REMOTE_TAG_STATUS="$REMOTE_TAG_STATUS" -v LGT_REMOTE="$LGT_REMOTE" -v NOTES_MAP_FILE="$notes_map_file" '
+| awk -v FS="$SEP" -v TAG_COLOR="$TAG_COLOR" -v ANNO_COLOR="$ANNO_COLOR" -v NOTE_COLOR="$NOTE_COLOR" -v NOTES_COMMIT_COLOR="$NOTES_COMMIT_COLOR" -v UNPUSHED_COLOR="$UNPUSHED_COLOR" -v UNPUSHED_LABEL="$UNPUSHED_LABEL" -v REMOTE_TAG_STATUS="$REMOTE_TAG_STATUS" -v LGT_REMOTE="$LGT_REMOTE" -v NOTES_MAP_FILE="$notes_map_file" '
   BEGIN {
     RESET = "\033[0m"
     PAIR_SEP = "\034"
@@ -339,6 +346,13 @@ git -c color.ui=always log \
       next
     }
 
+    # Make the notes-ref history commits stand out when using `--all`.
+    # These commits are created by git itself and have subjects like:
+    #   Notes added by git notes add
+    if (right ~ /^Notes /) {
+      right = NOTES_COMMIT_COLOR right
+    }
+
     delete subjects
     delete order
     n = load_tag_subjects(sha, subjects, order)
@@ -397,4 +411,10 @@ git -c color.ui=always log \
     print left deco_color_start deco_text color_reset " " right
   }
 ' 2>/dev/null \
-| LESS='-FRS' less -R
+| {
+    if [[ -t 1 ]] && command -v less >/dev/null 2>&1; then
+      LESS='-FRS' less -R
+    else
+      cat
+    fi
+  }
