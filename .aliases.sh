@@ -288,7 +288,13 @@ aider_function() {
 
 alias aider='aider_function'
 
-alias nv="neovide"
+nv() {
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    NEOVIDE_FRAME=transparent neovide "$@"
+  else
+    NEOVIDE_FRAME=full neovide "$@"
+  fi
+}
 
 # just sets the N prefix to a sane and safe location in home dir. Although the default is reasonable and works almost
 # out of the box on macos (it isn't though, on account of /usr/local/n needing chowning) the default path does not work

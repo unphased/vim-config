@@ -1,6 +1,8 @@
 neovim-bin = "/opt/homebrew/bin/nvim"
 no-tabs = true
-frame = "transparent"
+; Linux does not support the macOS-only `transparent` frame mode.
+; Keep the config portable and override per-OS via `$NEOVIDE_FRAME` (see `nv` in `.aliases.sh`).
+frame = "full"
 
 [font]
 normal = ["IosevkaTerm Nerd Font Mono"]
