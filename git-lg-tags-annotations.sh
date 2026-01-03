@@ -102,8 +102,32 @@ NOTE_COLOR=$(
     || printf '\033[32m'
 )
 NOTE_META_COLOR=$(
-  git config --get-color color.lgt.noteMeta "green" 2>/dev/null \
+  git config --get-color color.lgt.noteMeta "cyan" 2>/dev/null \
+    || printf '\033[36m'
+)
+NOTE_META_LINES_COLOR=$(
+  git config --get-color color.lgt.noteMetaLines "green" 2>/dev/null \
     || printf '\033[32m'
+)
+NOTE_META_LINES_WARN_COLOR=$(
+  git config --get-color color.lgt.noteMetaLinesWarn "yellow" 2>/dev/null \
+    || printf '\033[33m'
+)
+NOTE_META_LINES_HOT_COLOR=$(
+  git config --get-color color.lgt.noteMetaLinesHot "red bold" 2>/dev/null \
+    || printf '\033[1;31m'
+)
+NOTE_META_BYTES_COLOR=$(
+  git config --get-color color.lgt.noteMetaBytes "magenta" 2>/dev/null \
+    || printf '\033[35m'
+)
+NOTE_META_BYTES_WARN_COLOR=$(
+  git config --get-color color.lgt.noteMetaBytesWarn "yellow" 2>/dev/null \
+    || printf '\033[33m'
+)
+NOTE_META_BYTES_HOT_COLOR=$(
+  git config --get-color color.lgt.noteMetaBytesHot "red bold" 2>/dev/null \
+    || printf '\033[1;31m'
 )
 NOTES_COMMIT_COLOR=$(
   git config --get-color color.lgt.notesCommit "cyan bold" 2>/dev/null \
@@ -279,7 +303,7 @@ git -c color.ui=always log \
   --decorate-refs-exclude=refs/tags \
   --pretty=format:"%C(bold magenta)%h%Creset -${SEP}%C(auto)${SEP}%d${SEP}%Creset${SEP}%s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset${SEP}%H" \
   "${log_args[@]}" \
-| awk -v FS="$SEP" -v TAG_COLOR="$TAG_COLOR" -v ANNO_COLOR="$ANNO_COLOR" -v NOTE_COLOR="$NOTE_COLOR" -v NOTE_META_COLOR="$NOTE_META_COLOR" -v NOTES_COMMIT_COLOR="$NOTES_COMMIT_COLOR" -v UNPUSHED_COLOR="$UNPUSHED_COLOR" -v UNPUSHED_LABEL="$UNPUSHED_LABEL" -v REMOTE_TAG_STATUS="$REMOTE_TAG_STATUS" -v LGT_REMOTE="$LGT_REMOTE" -v NOTES_MAP_FILE="$notes_map_file" '
+| awk -v FS="$SEP" -v TAG_COLOR="$TAG_COLOR" -v ANNO_COLOR="$ANNO_COLOR" -v NOTE_COLOR="$NOTE_COLOR" -v NOTE_META_COLOR="$NOTE_META_COLOR" -v NOTE_META_LINES_COLOR="$NOTE_META_LINES_COLOR" -v NOTE_META_LINES_WARN_COLOR="$NOTE_META_LINES_WARN_COLOR" -v NOTE_META_LINES_HOT_COLOR="$NOTE_META_LINES_HOT_COLOR" -v NOTE_META_BYTES_COLOR="$NOTE_META_BYTES_COLOR" -v NOTE_META_BYTES_WARN_COLOR="$NOTE_META_BYTES_WARN_COLOR" -v NOTE_META_BYTES_HOT_COLOR="$NOTE_META_BYTES_HOT_COLOR" -v NOTES_COMMIT_COLOR="$NOTES_COMMIT_COLOR" -v UNPUSHED_COLOR="$UNPUSHED_COLOR" -v UNPUSHED_LABEL="$UNPUSHED_LABEL" -v REMOTE_TAG_STATUS="$REMOTE_TAG_STATUS" -v LGT_REMOTE="$LGT_REMOTE" -v NOTES_MAP_FILE="$notes_map_file" '
   BEGIN {
     RESET = "\033[0m"
     PAIR_SEP = "\034"
@@ -332,6 +356,13 @@ git -c color.ui=always log \
     out = s
     if (max > 0 && length(out) > max) out = substr(out, 1, max - 1) "…"
     return out
+  }
+
+  function heat_color(n, small, warn, hot, warn_at, hot_at,    c) {
+    c = small
+    if (n >= hot_at) c = hot
+    else if (n >= warn_at) c = warn
+    return c
   }
 
   # Load annotated tag subjects for a commit SHA.
@@ -461,8 +492,12 @@ git -c color.ui=always log \
         if (nref == "" || ntxt == "") continue
         if (note_block != "") note_block = note_block " | "
         note_meta = ""
-        if (nlns > 0 || nbyt > 0) note_meta = NOTE_META_COLOR " [" nlns "L/" nbyt "B]" RESET TAG_COLOR
-        note_block = note_block "note:" nref " " NOTE_COLOR ntxt RESET TAG_COLOR note_meta
+        if (nlns > 0 || nbyt > 0) {
+          lc = heat_color(nlns, NOTE_META_LINES_COLOR, NOTE_META_LINES_WARN_COLOR, NOTE_META_LINES_HOT_COLOR, 5, 20)
+          bc = heat_color(nbyt, NOTE_META_BYTES_COLOR, NOTE_META_BYTES_WARN_COLOR, NOTE_META_BYTES_HOT_COLOR, 200, 2000)
+          note_meta = NOTE_META_COLOR "[" lc nlns "L" NOTE_META_COLOR "/" bc nbyt "B" NOTE_META_COLOR "]" RESET " "
+        }
+        note_block = note_block "note:" nref " " note_meta NOTE_COLOR ntxt RESET TAG_COLOR
       }
 
       if (note_block != "") {
