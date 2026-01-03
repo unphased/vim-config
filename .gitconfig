@@ -63,13 +63,27 @@
   ; Display notes from all note namespaces (refs/notes/*).
   displayRef = refs/notes/*
 [alias]
+  ; Does shenanigans to render notes right (lighter version of lgtn)
   lg = "!$HOME/.vim/git-lg-notes.sh"
+
+  ; Old `lg` oneliner subway graph preserved for safety reasons
   lgo = log --graph --date-order --pretty=format:'%C(bold magenta)%h%Creset -%C(auto)%d%Creset %s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset %C(bold cyan)%N%Creset' --abbrev-commit
+
+  ; Does shenanigans to render tags and notes right. The main "lg" entrypoint nowadays.
   lgtn = "!$HOME/.vim/git-lg-tags-notes.sh"
+
+  ; use to rapidly author annotated tags
   ta = "!$HOME/.vim/git-tag-annotate.sh"
+
+  ; prob want to push tags after making them if you really want tags...
   tap = "!$HOME/.vim/git-tag-annotate.sh --push"
+
+  ; use to rapidly create notes. important to know, includes an edit mode
   gn = "!$HOME/.vim/git-note-annotate.sh"
+
+  ; use to revert note commits (need to use special note commits, rare)
   nr = "!$HOME/.vim/git-notes-revert.sh"
+
   te = "!f() { \
     tag=\"$1\"; \
     if [ -z \"$tag\" ]; then \

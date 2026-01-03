@@ -293,6 +293,7 @@ nv() {
   launcher="$(command -v neovide-launch.sh 2>/dev/null || true)"
   [[ -n "$launcher" ]] || launcher="neovide"
   if [[ -f "$HOME/.vim/neovide-config.toml" ]]; then
+    # backup forcing config to load from real location on disk instead of relying on a symlink
     export NEOVIDE_CONFIG="$HOME/.vim/neovide-config.toml"
   fi
   if command -v nvim >/dev/null 2>&1; then
