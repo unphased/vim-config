@@ -11,7 +11,7 @@
 # Shorthands:
 #   - `@<commit-ish>` sets the target object (default: HEAD)
 #     - `@-<N>` is sugar for `@HEAD~<N>` (e.g. `@-1` -> previous commit)
-#   - `^<notes-ref>` sets the notes ref (default: refs/notes/commits)
+#   - `^<notes-ref>` or `:<notes-ref>` sets the notes ref (default: refs/notes/commits)
 #     If <notes-ref> does not start with `refs/notes/`, it is treated as a
 #     short name and expanded to `refs/notes/<notes-ref>`.
 #
@@ -112,6 +112,10 @@ for arg in "${positional[@]}"; do
     if [[ "$commitish" =~ ^-([0-9]+)(.*)$ ]]; then
       commitish="HEAD~${BASH_REMATCH[1]}${BASH_REMATCH[2]}"
     fi
+    continue
+  fi
+  if [[ "$arg" =~ ^:[A-Za-z].* ]]; then
+    notes_ref="$(expand_notes_ref "${arg#:}")"
     continue
   fi
   if [[ "$arg" == ^* ]]; then
