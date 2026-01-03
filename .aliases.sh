@@ -310,10 +310,10 @@ nv() {
   frame="full"
   [[ "$(uname -s)" == "Darwin" ]] && frame="transparent"
 
-  local -a env_prefix
-  env_prefix=(NEOVIDE_FRAME="$frame")
-  [[ -n "$neovide_config" ]] && env_prefix+=(NEOVIDE_CONFIG="$neovide_config")
-  [[ -n "$neovim_bin" ]] && env_prefix+=(NEOVIM_BIN="$neovim_bin")
+  local -a env_args
+  env_args=(NEOVIDE_FRAME="$frame")
+  [[ -n "$neovide_config" ]] && env_args+=(NEOVIDE_CONFIG="$neovide_config")
+  [[ -n "$neovim_bin" ]] && env_args+=(NEOVIM_BIN="$neovim_bin")
 
   local -a start_cmd
   if command -v setsid >/dev/null 2>&1; then
@@ -327,14 +327,14 @@ nv() {
   if [[ -n "${ZSH_VERSION:-}" ]]; then
     (
       cd "$cwd" && \
-      exec </dev/null >/dev/null 2>&1 && \
-      "${env_prefix[@]}" "${start_cmd[@]}" "$launcher" "$@"
+      exec </dev/null >/dev/null && \
+      env "${env_args[@]}" "${start_cmd[@]}" "$launcher" "$@"
     ) &!
   else
     (
       cd "$cwd" && \
-      exec </dev/null >/dev/null 2>&1 && \
-      "${env_prefix[@]}" "${start_cmd[@]}" "$launcher" "$@"
+      exec </dev/null >/dev/null && \
+      env "${env_args[@]}" "${start_cmd[@]}" "$launcher" "$@"
     ) &
     disown 2>/dev/null || true
   fi
