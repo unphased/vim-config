@@ -292,6 +292,12 @@ nv() {
   local launcher
   launcher="$(command -v neovide-launch.sh 2>/dev/null || true)"
   [[ -n "$launcher" ]] || launcher="neovide"
+  if [[ -f "$HOME/.vim/neovide-config.toml" ]]; then
+    export NEOVIDE_CONFIG="$HOME/.vim/neovide-config.toml"
+  fi
+  if command -v nvim >/dev/null 2>&1; then
+    export NEOVIM_BIN="$(command -v nvim)"
+  fi
   if [[ "$(uname -s)" == "Darwin" ]]; then
     ( NEOVIDE_FRAME=transparent "$launcher" "$@" & )
   else
