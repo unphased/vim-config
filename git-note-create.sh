@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
-# git-note-annotate.sh
+# git-note-create.sh
 #
 # Quick git-notes writer with a "heading/body" CLI similar to `git ta`.
 #
 # Usage:
-#   git na [^<notes-ref>] <heading...> [-- <body...>] [@<commit-ish>]
-#   git na --ref <notes-ref> <heading...> [-- <body...>] [--at <commit-ish>]
+#   git gn [^<notes-ref>] <heading...> [-- <body...>] [@<commit-ish>]
+#   git gn --ref <notes-ref> <heading...> [-- <body...>] [--at <commit-ish>]
 #
 # Shorthands:
 #   - `@<commit-ish>` sets the target object (default: HEAD)
@@ -149,7 +149,7 @@ fi
 
 if [[ "$edit" == true ]]; then
   git notes --ref "$notes_ref" edit "$target_sha"
-  printf 'na: edited note (%s) on %s\n' "${notes_ref#refs/notes/}" "${target_sha:0:12}"
+  printf 'gn: edited note (%s) on %s\n' "${notes_ref#refs/notes/}" "${target_sha:0:12}"
   exit 0
 fi
 
@@ -172,4 +172,4 @@ else
   git notes --ref "$notes_ref" append -m "$message" "$target_sha"
 fi
 
-printf 'na: wrote note (%s) on %s\n' "${notes_ref#refs/notes/}" "${target_sha:0:12}"
+printf 'gn: wrote note (%s) on %s\n' "${notes_ref#refs/notes/}" "${target_sha:0:12}"

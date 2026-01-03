@@ -79,7 +79,7 @@
   tap = "!$HOME/.vim/git-tag-annotate.sh --push"
 
   ; use to rapidly create notes. important to know, includes an edit mode
-  gn = "!$HOME/.vim/git-note-annotate.sh"
+  gn = "!$HOME/.vim/git-note-create.sh"
 
   ; use to revert note commits (need to use special note commits, rare)
   nr = "!$HOME/.vim/git-notes-revert.sh"
