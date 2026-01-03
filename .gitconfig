@@ -64,6 +64,7 @@
   displayRef = refs/notes/*
 [alias]
   lg = "!$HOME/.vim/git-lg-notes.sh"
+  lgo = log --graph --date-order --pretty=format:'%C(bold magenta)%h%Creset -%C(auto)%d%Creset %s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
   lgtn = "!$HOME/.vim/git-lg-tags-notes.sh"
   ta = "!$HOME/.vim/git-tag-annotate.sh"
   tap = "!$HOME/.vim/git-tag-annotate.sh --push"
