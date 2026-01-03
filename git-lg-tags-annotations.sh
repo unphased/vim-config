@@ -22,11 +22,56 @@
 #   - Lightweight tags have no annotation message. We ignore them.
 #   - If you quit `less` early, awk can get SIGPIPE and complain; we
 #     silence awk stderr because that’s expected for an interactive viewer.
+#   - When you pass `--all`, git will normally include `refs/notes/*` histories
+#     (git’s internal notes DAG commits) which is often too noisy; this script
+#     hides those by default unless you pass `--include-notes-dag`.
 
 # A rarely-used ASCII control character used to separate fields safely.
 # We want to split the output line into multiple fields without risking
 # collisions with normal text.
 SEP=$'\x1f'
+
+###############################################################################
+# Args: default to hiding the notes DAG in `--all` views
+###############################################################################
+#
+# If you want to browse the notes DAG commits themselves, run:
+#   git lgt --all --include-notes-dag
+#
+# Notes are still shown inline (via `git notes ...`) even when the notes DAG
+# commits are excluded from the main log traversal.
+
+include_notes_dag=false
+log_args=()
+
+for arg in "$@"; do
+  case "$arg" in
+    --include-notes-dag)
+      include_notes_dag=true
+      ;;
+    *)
+      log_args+=("$arg")
+      ;;
+  esac
+done
+
+has_all=false
+for arg in "${log_args[@]}"; do
+  [[ "$arg" == "--all" ]] && { has_all=true; break; }
+done
+
+if [[ "$has_all" == true && "$include_notes_dag" == false ]]; then
+  # `--all` includes every ref under `refs/` (including `refs/notes/*`), which
+  # makes the output very noisy. We treat `--all` as “branches + remotes + tags”
+  # for the default view, and reserve the true “all refs (including notes DAG)”
+  # behavior for `--include-notes-dag`.
+  filtered=()
+  for arg in "${log_args[@]}"; do
+    [[ "$arg" == "--all" ]] && continue
+    filtered+=("$arg")
+  done
+  log_args=("${filtered[@]}" --branches --remotes --tags)
+fi
 
 ###############################################################################
 # Step 1: Produce a multi-field log line for each commit
@@ -233,7 +278,7 @@ git -c color.ui=always log \
   --decorate \
   --decorate-refs-exclude=refs/tags \
   --pretty=format:"%C(bold magenta)%h%Creset -${SEP}%C(auto)${SEP}%d${SEP}%Creset${SEP}%s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset${SEP}%H" \
-  "$@" \
+  "${log_args[@]}" \
 | awk -v FS="$SEP" -v TAG_COLOR="$TAG_COLOR" -v ANNO_COLOR="$ANNO_COLOR" -v NOTE_COLOR="$NOTE_COLOR" -v NOTE_META_COLOR="$NOTE_META_COLOR" -v NOTES_COMMIT_COLOR="$NOTES_COMMIT_COLOR" -v UNPUSHED_COLOR="$UNPUSHED_COLOR" -v UNPUSHED_LABEL="$UNPUSHED_LABEL" -v REMOTE_TAG_STATUS="$REMOTE_TAG_STATUS" -v LGT_REMOTE="$LGT_REMOTE" -v NOTES_MAP_FILE="$notes_map_file" '
   BEGIN {
     RESET = "\033[0m"
