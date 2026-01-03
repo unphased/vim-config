@@ -293,9 +293,9 @@ nv() {
   launcher="$(command -v neovide-launch.sh 2>/dev/null || true)"
   [[ -n "$launcher" ]] || launcher="neovide"
   if [[ "$(uname -s)" == "Darwin" ]]; then
-    NEOVIDE_FRAME=transparent "$launcher" "$@"
+    ( NEOVIDE_FRAME=transparent "$launcher" "$@" & )
   else
-    NEOVIDE_FRAME=full "$launcher" "$@"
+    ( NEOVIDE_FRAME=full "$launcher" "$@" & )
   fi
 }
 
