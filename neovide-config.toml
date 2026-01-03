@@ -1,10 +1,6 @@
 no-tabs = true
-; Linux does not support the macOS-only `transparent` frame mode.
-; Keep the config portable and override per-OS via `$NEOVIDE_FRAME` (see `nv` in `.aliases.sh`).
 frame = "full"
 
 [font]
-; Provide a couple of fallbacks so Neovide can still start if one family name
-; isn't resolvable on a given machine.
 normal = ["IosevkaTerm Nerd Font Mono", "IosevkaTerm NFM", "monospace"]
 size = 16
