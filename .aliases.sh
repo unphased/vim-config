@@ -75,6 +75,9 @@ gnls() {
   fi
   git log --graph --oneline --stat "${refs[@]}"
 }
+
+# Notes DAG, patch view (mnemonic: git log notes -p)
+alias glnp="gnlp"
 alias glpo="git --no-pager log -p --color=always | less"
 alias glpa="git log -p --all"
 alias glpf="git log -p --follow"
