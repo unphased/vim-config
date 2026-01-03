@@ -36,8 +36,16 @@ alias gco="git checkout"
 alias gta="git ta"
 alias gtap="git tap"
 alias gte="git te"
-alias gna="git na"
-alias gn="git gn"
+if [[ -n "${ZSH_VERSION:-}" ]]; then
+  # In zsh with extendedglob enabled, `^slu` expands to "everything except slu".
+  # The notes helpers intentionally use `^<ref>` shorthands, so disable globbing
+  # for these commands to prevent accidental expansion into filenames.
+  alias gna="noglob git na"
+  alias gn="noglob git gn"
+else
+  alias gna="git na"
+  alias gn="git gn"
+fi
 gnl() {
   local -a refs
   refs=($(git for-each-ref refs/notes --format='%(refname)' 2>/dev/null))
