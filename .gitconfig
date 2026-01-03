@@ -68,6 +68,7 @@
   ta = "!$HOME/.vim/git-tag-annotate.sh"
   tap = "!$HOME/.vim/git-tag-annotate.sh --push"
   gn = "!$HOME/.vim/git-note-annotate.sh"
+  nr = "!$HOME/.vim/git-notes-revert.sh"
   te = "!f() { \
     tag=\"$1\"; \
     if [ -z \"$tag\" ]; then \

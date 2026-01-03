@@ -42,9 +42,11 @@ if [[ -n "${ZSH_VERSION:-}" ]]; then
   # for these commands to prevent accidental expansion into filenames.
   alias gn="noglob git gn"
   alias gne="noglob git gn --edit"
+  alias gnr="noglob git nr"
 else
   alias gn="git gn"
   alias gne="git gn --edit"
+  alias gnr="git nr"
 fi
 gnl() {
   local -a refs
