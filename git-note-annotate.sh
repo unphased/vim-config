@@ -99,6 +99,13 @@ for arg in "${positional[@]}"; do
     in_body=true
     continue
   fi
+
+  # After `--`, treat everything literally as note body (no @/^ shorthands).
+  if [[ "$in_body" == true ]]; then
+    body_parts+=("$arg")
+    continue
+  fi
+
   if [[ "$arg" == @* ]]; then
     commitish="${arg#@}"
     continue
@@ -147,4 +154,3 @@ else
 fi
 
 printf 'na: wrote note (%s) on %s\n' "${notes_ref#refs/notes/}" "${target_sha:0:12}"
-
