@@ -292,13 +292,32 @@ nv() {
   local launcher
   launcher="$(command -v neovide-launch.sh 2>/dev/null || true)"
   [[ -n "$launcher" ]] || launcher="neovide"
+  if [[ -f "$HOME/.vim/neovide-config.toml" ]]; then
+    export NEOVIDE_CONFIG="$HOME/.vim/neovide-config.toml"
+  fi
   if command -v nvim >/dev/null 2>&1; then
     export NEOVIM_BIN="$(command -v nvim)"
   fi
-  if [[ "$(uname -s)" == "Darwin" ]]; then
-    ( NEOVIDE_FRAME=transparent "$launcher" "$@" & )
+  local cwd frame
+  cwd="$(pwd -P)"
+  if [[ "${1:-}" == "-C" || "${1:-}" == "--cwd" ]]; then
+    cwd="${2:-}"
+    shift 2 || true
+  elif [[ -n "${1:-}" && "${1:-}" != -* && -d "${1:-}" ]]; then
+    cwd="$1"
+    shift
+  fi
+
+  [[ -d "$cwd" ]] || cwd="$HOME"
+
+  frame="full"
+  [[ "$(uname -s)" == "Darwin" ]] && frame="transparent"
+
+  if [[ -n "${ZSH_VERSION:-}" ]]; then
+    ( cd "$cwd" && exec </dev/null >/dev/null 2>&1 && NEOVIDE_FRAME="$frame" "$launcher" "$@" ) &!
   else
-    ( NEOVIDE_FRAME=full "$launcher" "$@" & )
+    ( cd "$cwd" && exec </dev/null >/dev/null 2>&1 && NEOVIDE_FRAME="$frame" "$launcher" "$@" ) &
+    disown 2>/dev/null || true
   fi
 }
 
