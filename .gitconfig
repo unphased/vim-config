@@ -59,6 +59,7 @@
   lgt = "!$HOME/.vim/git-lg-tags-annotations.sh"
   ta = "!$HOME/.vim/git-tag-annotate.sh"
   tap = "!$HOME/.vim/git-tag-annotate.sh --push"
+  na = "!$HOME/.vim/git-note-annotate.sh"
   te = "!f() { \
     tag=\"$1\"; \
     if [ -z \"$tag\" ]; then \
