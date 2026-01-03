@@ -36,6 +36,7 @@ git rev-parse --git-dir >/dev/null 2>&1 || { echo "error: not in a git repo" >&2
 
 notes_ref="refs/notes/commits"
 commitish="HEAD"
+commitish_set=false
 edit=false
 replace=false
 
@@ -68,6 +69,7 @@ while [[ $# -gt 0 ]]; do
     --at)
       commitish="${2:-}"
       [[ -n "$commitish" ]] || { echo "error: --at requires a value" >&2; exit 2; }
+      commitish_set=true
       shift 2
       ;;
     -*)
@@ -112,6 +114,7 @@ for arg in "${positional[@]}"; do
     if [[ "$commitish" =~ ^-([0-9]+)(.*)$ ]]; then
       commitish="HEAD~${BASH_REMATCH[1]}${BASH_REMATCH[2]}"
     fi
+    commitish_set=true
     continue
   fi
   if [[ "$arg" =~ ^:[A-Za-z].* ]]; then
@@ -120,6 +123,14 @@ for arg in "${positional[@]}"; do
   fi
   if [[ "$arg" == ^* ]]; then
     notes_ref="$(expand_notes_ref "${arg#^}")"
+    continue
+  fi
+
+  # Convenience: in edit mode, allow a bare commit-ish (no leading `@`) so
+  # `gne <sha>` edits the note on that object.
+  if [[ "$edit" == true && "$commitish_set" == false ]]; then
+    commitish="$arg"
+    commitish_set=true
     continue
   fi
 
