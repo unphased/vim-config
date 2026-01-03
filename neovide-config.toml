@@ -1,5 +1,4 @@
 no-tabs = true
-
 ; Linux does not support the macOS-only `transparent` frame mode.
 ; Keep the config portable and override per-OS via `$NEOVIDE_FRAME` (see `nv` in `.aliases.sh`).
 frame = "full"

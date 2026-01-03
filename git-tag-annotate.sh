@@ -23,7 +23,7 @@
 #
 # Notes:
 #   - We generate a tag name: <category>-<N> (N increments per category).
-#   - The first line (“heading”) is what `git lgt` shows inline.
+#   - The first line (“heading”) is what `git lgtn` shows inline.
 
 set -euo pipefail
 

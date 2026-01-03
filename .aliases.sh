@@ -101,11 +101,11 @@ alias gde="GIT_EXTERNAL_DIFF=sift GIT_PAGER=less git diff --ext-diff"
 alias de="gde"
 alias gdc="gd --cached"
 #unalias gg # some git gui thing from ohmyzsh
-alias gg="git lgt --all"
-alias ggn="git lgt --all --include-notes-dag"
+alias gg="git lgtn --all"
+alias ggn="git lgtn --all --include-notes-dag"
 alias gfp="git push --force-with-lease" # for force push when e.g. amending
-alias ggs="git lgt --all --stat"
-alias ggsn="git lgt --all --stat --include-notes-dag"
+alias ggs="git lgtn --all --stat"
+alias ggsn="git lgtn --all --stat --include-notes-dag"
 alias gca="git commit -av"
 alias gcm="git commit-message"
 #unalias gcp # I rarely cherry pick (if not using ohmyzsh, this will cause bash to emit a warning)

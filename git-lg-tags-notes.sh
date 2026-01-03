@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# git-lg-tags-annotations.sh
+# git-lg-tags-notes.sh
 #
 # Dense, “subway graph” git log that also shows *annotated tag subjects*
 # inline, inside the normal decoration parens area (next to `tag: ...`).
