@@ -40,14 +40,10 @@ if [[ -n "${ZSH_VERSION:-}" ]]; then
   # In zsh with extendedglob enabled, `^slu` expands to "everything except slu".
   # The notes helpers intentionally use `^<ref>` shorthands, so disable globbing
   # for these commands to prevent accidental expansion into filenames.
-  alias gna="noglob git na"
   alias gn="noglob git gn"
-  alias gnae="noglob git na --edit"
   alias gne="noglob git gn --edit"
 else
-  alias gna="git na"
   alias gn="git gn"
-  alias gnae="git na --edit"
   alias gne="git gn --edit"
 fi
 gnl() {
