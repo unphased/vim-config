@@ -289,10 +289,13 @@ aider_function() {
 alias aider='aider_function'
 
 nv() {
+  local launcher
+  launcher="$(command -v neovide-launch.sh 2>/dev/null || true)"
+  [[ -n "$launcher" ]] || launcher="neovide"
   if [[ "$(uname -s)" == "Darwin" ]]; then
-    NEOVIDE_FRAME=transparent neovide "$@"
+    NEOVIDE_FRAME=transparent "$launcher" "$@"
   else
-    NEOVIDE_FRAME=full neovide "$@"
+    NEOVIDE_FRAME=full "$launcher" "$@"
   fi
 }
 
