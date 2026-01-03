@@ -56,6 +56,10 @@ NOTE_COLOR=$(
   git config --get-color color.lgt.note "green" 2>/dev/null \
     || printf '\033[32m'
 )
+NOTE_META_COLOR=$(
+  git config --get-color color.lgt.noteMeta "green" 2>/dev/null \
+    || printf '\033[32m'
+)
 NOTES_COMMIT_COLOR=$(
   git config --get-color color.lgt.notesCommit "cyan bold" 2>/dev/null \
     || printf '\033[1;36m'
@@ -170,11 +174,12 @@ for (obj, _note_id) in pairs:
         break
     hparts = header.split()
     if len(hparts) >= 2 and hparts[1] == "missing":
-        sys.stdout.write(f"{obj}\t{ref_short}\t\n")
+        sys.stdout.write(f"{obj}\t{ref_short}\t\t0\t0\n")
         continue
     if len(hparts) < 3:
         continue
     size = int(hparts[2])
+    total_bytes = size
 
     first = b""
     consumed = 0
@@ -188,13 +193,21 @@ for (obj, _note_id) in pairs:
         first += b
 
     remaining = size - consumed
+    rest = b""
     if remaining > 0:
-        read_exact(remaining)
+        rest = read_exact(remaining)
 
     out.read(1)  # trailing newline after the object
 
     first_line = first.decode("utf-8", "replace").replace("\t", " ").rstrip("\r")
-    sys.stdout.write(f"{obj}\t{ref_short}\t{first_line}\n")
+    # Notes are plain text; count lines (including first line). If the note ends
+    # with a trailing newline, Git will store it, so avoid overcounting an empty
+    # final line.
+    content = first + b"\n" + rest if consumed < total_bytes else first + rest
+    line_count = content.count(b"\n") + 1 if content else 0
+    if content.endswith(b"\n"):
+        line_count -= 1
+    sys.stdout.write(f"{obj}\t{ref_short}\t{first_line}\t{line_count}\t{total_bytes}\n")
 
 proc.wait()
 PY
@@ -202,7 +215,9 @@ PY
         git notes --ref "$ref_full" list 2>/dev/null \
         | while read -r note obj; do
             first="$(git cat-file -p "$note" 2>/dev/null | sed -n '1p' | tr '\t' ' ' | tr -d '\r')"
-            printf '%s\t%s\t%s\n' "$obj" "$ref_short" "$first"
+            bytes="$(git cat-file -s "$note" 2>/dev/null || printf '0')"
+            lines="$(git cat-file -p "$note" 2>/dev/null | wc -l | tr -d ' ')"
+            printf '%s\t%s\t%s\t%s\t%s\n' "$obj" "$ref_short" "$first" "$lines" "$bytes"
           done >>"$notes_map_file"
       fi
     done
@@ -219,7 +234,7 @@ git -c color.ui=always log \
   --decorate-refs-exclude=refs/tags \
   --pretty=format:"%C(bold magenta)%h%Creset -${SEP}%C(auto)${SEP}%d${SEP}%Creset${SEP}%s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset${SEP}%H" \
   "$@" \
-| awk -v FS="$SEP" -v TAG_COLOR="$TAG_COLOR" -v ANNO_COLOR="$ANNO_COLOR" -v NOTE_COLOR="$NOTE_COLOR" -v NOTES_COMMIT_COLOR="$NOTES_COMMIT_COLOR" -v UNPUSHED_COLOR="$UNPUSHED_COLOR" -v UNPUSHED_LABEL="$UNPUSHED_LABEL" -v REMOTE_TAG_STATUS="$REMOTE_TAG_STATUS" -v LGT_REMOTE="$LGT_REMOTE" -v NOTES_MAP_FILE="$notes_map_file" '
+| awk -v FS="$SEP" -v TAG_COLOR="$TAG_COLOR" -v ANNO_COLOR="$ANNO_COLOR" -v NOTE_COLOR="$NOTE_COLOR" -v NOTE_META_COLOR="$NOTE_META_COLOR" -v NOTES_COMMIT_COLOR="$NOTES_COMMIT_COLOR" -v UNPUSHED_COLOR="$UNPUSHED_COLOR" -v UNPUSHED_LABEL="$UNPUSHED_LABEL" -v REMOTE_TAG_STATUS="$REMOTE_TAG_STATUS" -v LGT_REMOTE="$LGT_REMOTE" -v NOTES_MAP_FILE="$notes_map_file" '
   BEGIN {
     RESET = "\033[0m"
     PAIR_SEP = "\034"
@@ -245,8 +260,10 @@ git -c color.ui=always log \
         sha = a[1]
         ref = a[2]
         txt = a[3]
+        lns = a[4]
+        byt = a[5]
         if (sha == "" || txt == "") continue
-        notes_raw[sha] = notes_raw[sha] PAIR_SEP ref FIELD_SEP txt
+        notes_raw[sha] = notes_raw[sha] PAIR_SEP ref FIELD_SEP txt FIELD_SEP lns FIELD_SEP byt
       }
       close(NOTES_MAP_FILE)
     }
@@ -394,9 +411,13 @@ git -c color.ui=always log \
         split(pairs[i], f, FIELD_SEP)
         nref = f[1]
         ntxt = truncate(f[2], 80)
+        nlns = f[3] + 0
+        nbyt = f[4] + 0
         if (nref == "" || ntxt == "") continue
         if (note_block != "") note_block = note_block " | "
-        note_block = note_block "note:" nref " " NOTE_COLOR ntxt RESET TAG_COLOR
+        note_meta = ""
+        if (nlns > 0 || nbyt > 0) note_meta = NOTE_META_COLOR " [" nlns "L/" nbyt "B]" RESET TAG_COLOR
+        note_block = note_block "note:" nref " " NOTE_COLOR ntxt RESET TAG_COLOR note_meta
       }
 
       if (note_block != "") {
