@@ -491,13 +491,18 @@ git -c color.ui=always log \
         nbyt = f[4] + 0
         if (nref == "" || ntxt == "") continue
         if (note_block != "") note_block = note_block " | "
+
+        note_label = "note:" nref
+        if (nref == "commits") note_label = "note"
+
         note_meta = ""
-        if (nlns > 0 || nbyt > 0) {
+        # For single-line notes, keep output compact: no size indicator.
+        if (nlns > 1) {
           lc = heat_color(nlns, NOTE_META_LINES_COLOR, NOTE_META_LINES_WARN_COLOR, NOTE_META_LINES_HOT_COLOR, 5, 20)
           bc = heat_color(nbyt, NOTE_META_BYTES_COLOR, NOTE_META_BYTES_WARN_COLOR, NOTE_META_BYTES_HOT_COLOR, 200, 2000)
           note_meta = NOTE_META_COLOR "[" lc nlns "L" NOTE_META_COLOR "/" bc nbyt "B" NOTE_META_COLOR "]" RESET " "
         }
-        note_block = note_block "note:" nref " " note_meta NOTE_COLOR ntxt RESET TAG_COLOR
+        note_block = note_block note_label " " note_meta NOTE_COLOR ntxt RESET TAG_COLOR
       }
 
       if (note_block != "") {
