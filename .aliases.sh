@@ -289,16 +289,12 @@ aider_function() {
 alias aider='aider_function'
 
 nv() {
-  local launcher
+  local launcher neovide_config neovim_bin
   launcher="$(command -v neovide-launch.sh 2>/dev/null || true)"
   [[ -n "$launcher" ]] || launcher="neovide"
-  if [[ -f "$HOME/.vim/neovide-config.toml" ]]; then
-    # backup forcing config to load from real location on disk instead of relying on a symlink
-    export NEOVIDE_CONFIG="$HOME/.vim/neovide-config.toml"
-  fi
-  if command -v nvim >/dev/null 2>&1; then
-    export NEOVIM_BIN="$(command -v nvim)"
-  fi
+  neovide_config="$HOME/.vim/neovide-config.toml"
+  [[ -f "$neovide_config" ]] || neovide_config=""
+  neovim_bin="$(command -v nvim 2>/dev/null || true)"
   local cwd frame
   cwd="$(pwd -P)"
   if [[ "${1:-}" == "-C" || "${1:-}" == "--cwd" ]]; then
@@ -314,10 +310,32 @@ nv() {
   frame="full"
   [[ "$(uname -s)" == "Darwin" ]] && frame="transparent"
 
-  if [[ -n "${ZSH_VERSION:-}" ]]; then
-    ( cd "$cwd" && exec </dev/null >/dev/null 2>&1 && NEOVIDE_FRAME="$frame" "$launcher" "$@" ) &!
+  local -a env_prefix
+  env_prefix=(NEOVIDE_FRAME="$frame")
+  [[ -n "$neovide_config" ]] && env_prefix+=(NEOVIDE_CONFIG="$neovide_config")
+  [[ -n "$neovim_bin" ]] && env_prefix+=(NEOVIM_BIN="$neovim_bin")
+
+  local -a start_cmd
+  if command -v setsid >/dev/null 2>&1; then
+    start_cmd=(setsid)
+  elif command -v nohup >/dev/null 2>&1; then
+    start_cmd=(nohup)
   else
-    ( cd "$cwd" && exec </dev/null >/dev/null 2>&1 && NEOVIDE_FRAME="$frame" "$launcher" "$@" ) &
+    start_cmd=()
+  fi
+
+  if [[ -n "${ZSH_VERSION:-}" ]]; then
+    (
+      cd "$cwd" && \
+      exec </dev/null >/dev/null 2>&1 && \
+      "${env_prefix[@]}" "${start_cmd[@]}" "$launcher" "$@"
+    ) &!
+  else
+    (
+      cd "$cwd" && \
+      exec </dev/null >/dev/null 2>&1 && \
+      "${env_prefix[@]}" "${start_cmd[@]}" "$launcher" "$@"
+    ) &
     disown 2>/dev/null || true
   fi
 }
