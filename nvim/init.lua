@@ -347,7 +347,7 @@ local cycle = require('config.cycle')
 local CycleWindowsOrBuffers = cycle.CycleWindowsOrBuffers
 _G.CycleWindowsOrBuffers = CycleWindowsOrBuffers
 
-vim.keymap.set("n", "<tab>", function () CycleWindowsOrBuffers(true) end, { desc = 'cycle windows or buffers' })
+vim.keymap.set({ "n", "x" }, "<tab>", function () CycleWindowsOrBuffers(true) end, { desc = 'cycle windows or buffers' })
 vim.keymap.set("n", "<C-PageDown>", function () CycleWindowsOrBuffers(true) end, { desc = 'cycle windows or buffers' })
 vim.keymap.set("n", "<s-tab>", function () CycleWindowsOrBuffers(false) end, { desc = 'cycle windows or buffers (back)' })
 vim.keymap.set("n", "<C-PageUp>", function () CycleWindowsOrBuffers(false) end, { desc = 'cycle windows or buffers (back)' })
@@ -2365,9 +2365,6 @@ require('snippy').setup({
     is = {
       ['<C-Tab>'] = 'expand_or_advance',
       ['<C-S-Tab>'] = 'previous',
-    },
-    x = {
-      ['<Tab>'] = 'cut_text',
     },
   },
   scopes = {
