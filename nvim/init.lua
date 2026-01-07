@@ -1234,7 +1234,7 @@ vim.keymap.set('n', '<c-p>', "<cmd>Files<CR>", { desc = "fzf Files"})
 vim.keymap.set('n', '<f7>', ":AutoSession search<CR>", { desc = "browse sessions"})
 vim.keymap.set('n', '<f6>', "<cmd>History<CR>", { desc = "fzf History (files/buffers)"})
 vim.keymap.set('n', '<f8>', '<cmd>GithubPreviewToggle<CR>', { desc = "Github (markdown) preview toggle"})
-vim.keymap.set('n', '<f9>', "<cmd>History/<CR>", { desc = "fzf Search History"})
+vim.keymap.set('n', '<f9>', "<cmd>History/<CR>", { desc = "fzf Vim Search History"})
 vim.keymap.set('n', '<leader>g', "<cmd>Rg<CR>", { desc = "fzf ripgrep" })
 vim.keymap.set('n', '<leader>h', "<cmd>Rg --hidden --glob '!.git/*'<CR>", { desc = "fzf ripgrep (hidden)" })
 
