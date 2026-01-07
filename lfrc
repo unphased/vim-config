@@ -27,6 +27,10 @@ set cursorpreviewfmt "\033[7;2m"
 # use enter for shell commands
 map <enter> shell
 
+# best-attempt viewer (your custom `cmd open`)
+map <right> open
+map l open
+
 # show the result of execution of previous commands
 map ` !true
 
@@ -54,6 +58,13 @@ cmd open ${{
     exec 2>> ~/.lf_open.debug  # keep the trace
     set -x                          # remove when done
 
+    warn() {
+        printf '%s\n' "$*" >&2
+        if command -v lf >/dev/null 2>&1; then
+            lf -remote "send $id echo '$*'" 2>/dev/null || true
+        fi
+    }
+
     mime=$(file --mime-type -Lb "$f")        # e.g. text/plain, application/octet-stream
     size=$(stat -c%s "$f" 2>/dev/null || stat -f%z "$f")
 
@@ -61,7 +72,12 @@ cmd open ${{
         if [ "${size:-0}" -gt 2097152 ]; then
             less -R "$1"
         else
-            bat --paging=always "$1"
+            if command -v bat >/dev/null 2>&1; then
+                bat --paging=always "$1"
+            else
+                warn "bat not found; using less"
+                less -R "$1"
+            fi
         fi
     }
 
@@ -69,7 +85,12 @@ cmd open ${{
         if [ "${size:-0}" -gt 2097152 ]; then
             less -R
         else
-            bat --paging=always --file-name "$1"
+            if command -v bat >/dev/null 2>&1; then
+                bat --paging=always --file-name "$1"
+            else
+                warn "bat not found; using less"
+                less -R
+            fi
         fi
     }
 
@@ -78,7 +99,7 @@ cmd open ${{
             gzip -dc "$f" | view_stream "$f" ;;
         application/brotli|application/x-brotli)
             brotli -dc "$f" | view_stream "$f" ;;
-        application/json)
+        application/json|application/x-ndjson)
             view_file "$f" ;;
         text/*)
             view_file "$f" ;;
@@ -87,10 +108,31 @@ cmd open ${{
                 *.br)
                     brotli -dc "$f" | view_stream "$f" ;;
                 *)
-                    hexyl "$f" | less -R ;;
+                    if command -v hexyl >/dev/null 2>&1; then
+                        hexyl "$f" | less -R
+                    elif command -v xxd >/dev/null 2>&1; then
+                        warn "hexyl not found; using xxd"
+                        xxd -l 4096 "$f" | less -R
+                    else
+                        warn "hexyl not found; using less"
+                        less -R "$f"
+                    fi ;;
             esac ;;
     esac
 }}
+
+cmd openless ${{
+    set -f
+    less -R -- $fx
+}}
+
+cmd editnvim ${{
+    set -f
+    nvim -- $fx
+}}
+
+map i openless
+map e editnvim
 
 # let's make any file that has ".log" extension (or any extension like .log.1) open in bat, and the rest in neovim.
 # Furthermore if a file is over 2MB if it would open with neovim open it with bat anyway. please make that the behavior
@@ -131,7 +173,7 @@ cmd delete ${{
 map D trash
 # map <delete> delete
 
-set previewer bat-lf-previewer
+set previewer ~/.vim/bat-lf-previewer
 
 # --- Preview Commands (Send Actions to Script) ---
 

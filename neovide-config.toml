@@ -1,7 +1,6 @@
-neovim-bin = "/opt/homebrew/bin/nvim"
 no-tabs = true
-frame = "transparent"
+frame = "full"
 
 [font]
-normal = ["IosevkaTerm Nerd Font Mono"]
+normal = ["IosevkaTerm Nerd Font Mono", "IosevkaTerm NFM", "monospace"]
 size = 16

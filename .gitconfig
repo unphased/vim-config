@@ -54,8 +54,50 @@
   pager = sed 's/\t/→\t/g' | delta --paging=always
 [color]
   ui = true
+[lgtn]
+  showNotes = true
+[log]
+  ; Always show git notes after commit messages in `git log`.
+  showNotes = true
+[notes]
+  ; Display notes from all note namespaces (refs/notes/*).
+  displayRef = refs/notes/*
 [alias]
-  lg = log --graph --date-order --pretty=format:'%C(bold magenta)%h%Creset -%C(auto)%d%Creset %s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+  ; Does shenanigans to render notes right (lighter version of lgtn)
+  lg = "!$HOME/.vim/git-lg-notes.sh"
+
+  ; Old `lg` oneliner subway graph preserved for safety reasons
+  lgo = log --graph --date-order --pretty=format:'%C(bold magenta)%h%Creset -%C(auto)%d%Creset %s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset %C(bold cyan)%N%Creset' --abbrev-commit
+
+  ; Does shenanigans to render tags and notes right. The main "lg" entrypoint nowadays.
+  lgtn = "!$HOME/.vim/git-lg-tags-notes.sh"
+
+  ; use to rapidly author annotated tags
+  ta = "!$HOME/.vim/git-tag-annotate.sh"
+
+  ; prob want to push tags after making them if you really want tags...
+  tap = "!$HOME/.vim/git-tag-annotate.sh --push"
+
+  ; use to rapidly create notes. important to know, includes an edit mode
+  gn = "!$HOME/.vim/git-note-create.sh"
+
+  ; use to revert note commits (need to use special note commits, rare)
+  nr = "!$HOME/.vim/git-notes-revert.sh"
+
+  te = "!f() { \
+    tag=\"$1\"; \
+    if [ -z \"$tag\" ]; then \
+      tag=$(git for-each-ref refs/tags --sort=-taggerdate --format='%(refname:short)\t%(objecttype)\t%(taggerdate:unix)' | awk -F '\t' '$2==\"tag\"{print $1; exit}'); \
+    fi; \
+    if [ -z \"$tag\" ]; then \
+      echo \"error: no annotated tags found\" >&2; \
+      exit 1; \
+    fi; \
+    target=$(git rev-parse --verify \"$tag^{}\" 2>/dev/null) || { echo \"error: failed to resolve tag target: $tag\" >&2; exit 2; }; \
+    git tag -f -a \"$tag\" \"$target\" -e; \
+    echo \"te: edited $tag\"; \
+  }; f"
+
   s = "!f() { git status --short; ignored=$(git ignored); [ -n \"$ignored\" ] && echo \"$ignored\"; };f"
   unadd = reset HEAD
   ignore = update-index --skip-worktree
@@ -137,3 +179,4 @@
 [safe]
 	directory = /home/slu/comfyui-storage/storage/ComfyUI/custom_nodes/code-nodes
 	directory = /home/slu/comfyui-storage/storage/ComfyUI/custom_nodes/save-load-lat-cond
+	directory = /home/slu/comfyui-storage/storage/ComfyUI

@@ -33,6 +33,53 @@ alias vd='v $(git diff --name-only | while read file; do printf "$(git rev-parse
 alias g="git"
 alias gs="git s" # short status 
 alias gco="git checkout"
+alias gta="git ta"
+alias gtap="git tap"
+alias gte="git te"
+if [[ -n "${ZSH_VERSION:-}" ]]; then
+  # In zsh with extendedglob enabled, `^slu` expands to "everything except slu".
+  # The notes helpers intentionally use `^<ref>` shorthands, so disable globbing
+  # for these commands to prevent accidental expansion into filenames.
+  alias gn="noglob git gn"
+  alias gne="noglob git gn --edit"
+  alias gnr="noglob git nr"
+else
+  alias gn="git gn"
+  alias gne="git gn --edit"
+  alias gnr="git nr"
+fi
+gnl() {
+  local -a refs
+  refs=($(git for-each-ref refs/notes --format='%(refname)' 2>/dev/null))
+  if [[ ${#refs[@]} -eq 0 ]]; then
+    echo "gnl: no refs/notes/* found" >&2
+    return 1
+  fi
+  git log --graph --oneline "${refs[@]}"
+}
+
+gnlp() {
+  local -a refs
+  refs=($(git for-each-ref refs/notes --format='%(refname)' 2>/dev/null))
+  if [[ ${#refs[@]} -eq 0 ]]; then
+    echo "gnlp: no refs/notes/* found" >&2
+    return 1
+  fi
+  git log --graph --oneline -p "${refs[@]}"
+}
+
+gnls() {
+  local -a refs
+  refs=($(git for-each-ref refs/notes --format='%(refname)' 2>/dev/null))
+  if [[ ${#refs[@]} -eq 0 ]]; then
+    echo "gnls: no refs/notes/* found" >&2
+    return 1
+  fi
+  git log --graph --oneline --stat "${refs[@]}"
+}
+
+# Notes DAG, patch view (mnemonic: git log notes -p)
+alias glnp="gnlp"
 alias glpo="git --no-pager log -p --color=always | less"
 alias glpa="git log -p --all"
 alias glpf="git log -p --follow"
@@ -54,9 +101,11 @@ alias gde="GIT_EXTERNAL_DIFF=sift GIT_PAGER=less git diff --ext-diff"
 alias de="gde"
 alias gdc="gd --cached"
 #unalias gg # some git gui thing from ohmyzsh
-alias gg="git lg --all"
+alias gg="git lgtn --all"
+alias ggn="git lgtn --all --include-notes-dag"
 alias gfp="git push --force-with-lease" # for force push when e.g. amending
-alias ggs="git lg --all --stat"
+alias ggs="git lgtn --all --stat"
+alias ggsn="git lgtn --all --stat --include-notes-dag"
 alias gca="git commit -av"
 alias gcm="git commit-message"
 #unalias gcp # I rarely cherry pick (if not using ohmyzsh, this will cause bash to emit a warning)
@@ -239,7 +288,57 @@ aider_function() {
 
 alias aider='aider_function'
 
-alias nv="neovide"
+nv() {
+  local launcher neovide_config neovim_bin
+  launcher="$(command -v neovide-launch.sh 2>/dev/null || true)"
+  [[ -n "$launcher" ]] || launcher="neovide"
+  neovide_config="$HOME/.vim/neovide-config.toml"
+  [[ -f "$neovide_config" ]] || neovide_config=""
+  neovim_bin="$(command -v nvim 2>/dev/null || true)"
+  local cwd frame
+  cwd="$(pwd -P)"
+  if [[ "${1:-}" == "-C" || "${1:-}" == "--cwd" ]]; then
+    cwd="${2:-}"
+    shift 2 || true
+  elif [[ -n "${1:-}" && "${1:-}" != -* && -d "${1:-}" ]]; then
+    cwd="$1"
+    shift
+  fi
+
+  [[ -d "$cwd" ]] || cwd="$HOME"
+
+  frame="full"
+  [[ "$(uname -s)" == "Darwin" ]] && frame="transparent"
+
+  local -a env_args
+  env_args=(NEOVIDE_FRAME="$frame")
+  [[ -n "$neovide_config" ]] && env_args+=(NEOVIDE_CONFIG="$neovide_config")
+  [[ -n "$neovim_bin" ]] && env_args+=(NEOVIM_BIN="$neovim_bin")
+
+  local -a start_cmd
+  if command -v setsid >/dev/null 2>&1; then
+    start_cmd=(setsid)
+  elif command -v nohup >/dev/null 2>&1; then
+    start_cmd=(nohup)
+  else
+    start_cmd=()
+  fi
+
+  if [[ -n "${ZSH_VERSION:-}" ]]; then
+    (
+      cd "$cwd" && \
+      exec </dev/null >/dev/null && \
+      env "${env_args[@]}" "${start_cmd[@]}" "$launcher" "$@"
+    ) &!
+  else
+    (
+      cd "$cwd" && \
+      exec </dev/null >/dev/null && \
+      env "${env_args[@]}" "${start_cmd[@]}" "$launcher" "$@"
+    ) &
+    disown 2>/dev/null || true
+  fi
+}
 
 # just sets the N prefix to a sane and safe location in home dir. Although the default is reasonable and works almost
 # out of the box on macos (it isn't though, on account of /usr/local/n needing chowning) the default path does not work

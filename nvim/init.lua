@@ -347,7 +347,7 @@ local cycle = require('config.cycle')
 local CycleWindowsOrBuffers = cycle.CycleWindowsOrBuffers
 _G.CycleWindowsOrBuffers = CycleWindowsOrBuffers
 
-vim.keymap.set("n", "<tab>", function () CycleWindowsOrBuffers(true) end, { desc = 'cycle windows or buffers' })
+vim.keymap.set({ "n", "x" }, "<tab>", function () CycleWindowsOrBuffers(true) end, { desc = 'cycle windows or buffers' })
 vim.keymap.set("n", "<C-PageDown>", function () CycleWindowsOrBuffers(true) end, { desc = 'cycle windows or buffers' })
 vim.keymap.set("n", "<s-tab>", function () CycleWindowsOrBuffers(false) end, { desc = 'cycle windows or buffers (back)' })
 vim.keymap.set("n", "<C-PageUp>", function () CycleWindowsOrBuffers(false) end, { desc = 'cycle windows or buffers (back)' })
@@ -1743,7 +1743,13 @@ require("mason").setup({})
 --   }
 -- })
 
--- local capabilities = safeRequire('cmp_nvim_lsp').default_capabilities()
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+do
+  local ok_cmp, cmp_nvim_lsp = pcall(require, "cmp_nvim_lsp")
+  if ok_cmp then
+    capabilities = cmp_nvim_lsp.default_capabilities(capabilities)
+  end
+end
 
 -- oh man written by GPT4
 local function deep_copy(tbl)
@@ -1791,123 +1797,97 @@ local lsp_attach = function (x, bufnr)
   vim.keymap.set('n', '<leader>=', function() vim.lsp.buf.format { async = true } end, ext(bufopts, "desc", "Format Buffer"))
 end
 
--- note duplicated from lsp_attach...
-  local bufopts = { noremap=true, silent=true, buffer=bufnr }
-  vim.keymap.set('n', '<leader>ca', vim.lsp.with( vim.lsp.buf.code_action, {border = nil} ), ext(bufopts, "desc", "Code Action Menu"))
-  vim.keymap.set('x', '<leader>ca', vim.lsp.buf.code_action, ext(bufopts, "desc", "Code Action Menu"))
+do
+  local ok_mason_lspconfig, mason_lspconfig = pcall(require, "mason-lspconfig")
+  local ok_lspconfig, lspconfig = pcall(require, "lspconfig")
+  if ok_mason_lspconfig and ok_lspconfig then
+    local handlers = {
+      function(server_name)
+        lspconfig[server_name].setup({
+          capabilities = capabilities,
+          on_attach = lsp_attach,
+        })
+      end,
+      ["clangd"] = function()
+        lspconfig.clangd.setup({
+          on_attach = lsp_attach,
+          capabilities = capabilities,
+          cmd = {
+            "clangd",
+            "--offset-encoding=utf-16",
+          },
+        })
+      end,
+      ["lua_ls"] = function()
+        lspconfig.lua_ls.setup({
+          root_dir = function()
+            return config_dir
+          end,
+          capabilities = capabilities,
+          on_attach = lsp_attach,
+          settings = {
+            Lua = {
+              runtime = { version = "LuaJIT" },
+              workspace = {
+                library = {
+                  [config_dir] = true,
+                },
+              },
+              telemetry = { enable = false },
+            },
+          },
+        })
+      end,
+      ["ts_ls"] = function()
+        local vue_plugin_location
+        do
+          local ok_registry, registry = pcall(require, "mason-registry")
+          if ok_registry and registry.has_package("vue-language-server") then
+            vue_plugin_location = registry.get_package("vue-language-server"):get_install_path()
+              .. "/node_modules/@vue/language-server"
+          end
+        end
 
-  ---- THESE ARE THE OLD setup_handlers config, they should get converted into the following format: https://github.com/mason-org/mason-lspconfig.nvim/issues/545#issuecomment-2925270862
-
-  --[[
-
---   -- The first entry (without a key) will be the default handler
---   -- and will be called for each installed server that doesn't have
---   -- a dedicated handler.
-  function (server_name) -- default handler (optional)
-    safeRequire("lspconfig")[server_name].setup {
-      capabilities = capabilities,
-      on_attach = lsp_attach,
-    }
-  end,
-  -- ["ts_ls"] = function () log "exception applied for mason lspconfig setup for tsserver as we want to use typescript-tools instead." end,
-
-  -- holy shit i got vue working. Via https://github.com/mason-org/mason-registry/issues/5064#issuecomment-2016431978
-  -- TODO figure out how to enable with typescript-tools instead of ts_ls...
-  ["ts_ls"] = function ()
-    require('lspconfig')["ts_ls"].setup {
-      init_options = {
-        plugins = {
-          {
+        local plugins = {}
+        if vue_plugin_location then
+          plugins[1] = {
             name = "@vue/typescript-plugin",
-            location = require("mason-registry").get_package("vue-language-server"):get_install_path() .. "/node_modules/@vue/language-server",
+            location = vue_plugin_location,
             languages = { "vue" },
             configNamespace = "typescript",
             enableForWorkspaceTypeScriptVersions = true,
-          },
-        },
-      },
-      filetypes = {
-        "vue", "typescript", "javascript", "javascriptreact", "typescriptreact"
-      },
-    }
-  end,
---
---   -- ["tsserver"] = function ()
---   --   log('executing tsserver mason-lspconfig handler cb');
---   --   safeRequire("lspconfig")["tsserver"].setup {
---   --     capabilities = capabilities,
---   --     on_attach = lsp_attach,
---   --     settings = {
---   --       test_option = 'blargle',
---   --       typescript = {
---   --         tsserver = {
---   --           logDirectory = "/tmp/tsserver/",
---   --           experimental = {
---   --             enableProjectDiagnostics = true
---   --           },
---   --           enableTracing = true,
---   --           trace = "verbose",
---   --         },
---   --       },
---   --     }
---   --   }
---   -- end,
---   ["clangd"] = function ()
---     safeRequire("lspconfig")["clangd"].setup {
---       on_attach = lsp_attach,
---       capabilities = capabilities,
---       cmd = {
---         "clangd",
---         "--offset-encoding=utf-16",
---       },
---     }
---   end,
---   ["dockerls"] = function ()
---     -- print("dockerls caps =" .. vim.inspect(capabilities))
---     safeRequire("lspconfig")["dockerls"].setup {
---       capabilities = capabilities,
---       on_attach = lsp_attach,
---     }
---   end,
-    ["lua_ls"] = function ()
-      safeRequire("lspconfig")["lua_ls"].setup {
-        root_dir = config_dir,  -- force the workspace to be your Neovim config folder
-        capabilities = capabilities,
-        on_attach = lsp_attach,
-        settings = {
-          Lua = {
-            runtime = { version = "LuaJIT" },
-            workspace = {
-              library = {
-                [config_dir] = true,  -- use a table where the key is the path and value is true
-              },
-            },
-            telemetry = { enable = false },
-          },
-        },
-      }
-    end,
---
---   -- ["emmet_ls"] = function ()
---   --   safeRequire('lspconfig').emmet_ls.setup({
---   --     on_attach = lsp_attach,
---   --     capabilities = capabilities,
---   --     filetypes = { "css", "eruby", "html", "javascript", "javascriptreact", "less", "sass", "scss", "svelte", "pug", "typescriptreact", "vue" },
---   --     init_options = {
---   --       html = {
---   --         options = {
---   --           -- For possible options, see: https://github.com/emmetio/emmet/blob/master/src/config.ts#L79-L267
---   --           ["bem.enabled"] = true,
---   --         },
---   --       },
---   --     }
---   --   })
---   -- end
--- }
+          }
+        end
 
---
-}
---]]
+        lspconfig.ts_ls.setup({
+          capabilities = capabilities,
+          on_attach = lsp_attach,
+          init_options = (#plugins > 0) and { plugins = plugins } or nil,
+          filetypes = {
+            "vue",
+            "typescript",
+            "javascript",
+            "javascriptreact",
+            "typescriptreact",
+          },
+        })
+      end,
+    }
+
+    local opts = {
+      ensure_installed = { "clangd", "lua_ls" },
+      automatic_installation = true,
+    }
+
+    if mason_lspconfig.setup_handlers then
+      mason_lspconfig.setup(opts)
+      mason_lspconfig.setup_handlers(handlers)
+    else
+      opts.handlers = handlers
+      mason_lspconfig.setup(opts)
+    end
+  end
+end
 
 -- local lspconf_util = require 'lspconfig.util'
 -- local function get_typescript_server_path(root_dir)
@@ -2385,9 +2365,6 @@ require('snippy').setup({
     is = {
       ['<C-Tab>'] = 'expand_or_advance',
       ['<C-S-Tab>'] = 'previous',
-    },
-    x = {
-      ['<Tab>'] = 'cut_text',
     },
   },
   scopes = {
