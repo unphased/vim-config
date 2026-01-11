@@ -148,6 +148,8 @@
   added = yellow
   changed = green
   untracked = cyan
+[color "lgtn"]
+  note = 117
 [rerere]
   enabled = true
 [merge]
