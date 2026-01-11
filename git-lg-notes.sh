@@ -183,6 +183,34 @@ PY
   [[ -s "$notes_map_file" ]] || notes_map_file=""
 fi
 
+###############################################################################
+# Width passthrough for `--stat` when piped (git assumes 80 cols otherwise)
+###############################################################################
+
+stat_width_args=()
+if [[ -t 1 ]]; then
+  term_cols=""
+
+  if command -v tput >/dev/null 2>&1 && [[ -r /dev/tty ]]; then
+    term_cols="$(tput cols </dev/tty 2>/dev/null || true)"
+  fi
+
+  if [[ -z "$term_cols" ]]; then
+    term_cols="${COLUMNS:-}"
+  fi
+
+  if [[ "$term_cols" =~ ^[0-9]+$ ]] && [[ "$term_cols" -gt 0 ]]; then
+    for arg in "$@"; do
+      case "$arg" in
+        --stat|--stat=*|--patch-with-stat|--patch-with-stat=*|--numstat|--shortstat)
+          stat_width_args=(--stat-width="$term_cols" --stat-name-width="$term_cols")
+          break
+          ;;
+      esac
+    done
+  fi
+fi
+
 git -c color.ui=always log \
   --no-notes \
   --graph \
@@ -190,6 +218,7 @@ git -c color.ui=always log \
   --abbrev-commit \
   --decorate \
   --pretty=format:"%C(bold magenta)%h%Creset -${SEP}%C(auto)${SEP}%d${SEP}%Creset${SEP}%s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset${SEP}%H" \
+  "${stat_width_args[@]}" \
   "$@" \
 | awk -v FS="$SEP" \
   -v NOTE_COLOR="$NOTE_COLOR" \
@@ -299,4 +328,3 @@ git -c color.ui=always log \
       cat
     fi
   }
-

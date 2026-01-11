@@ -295,6 +295,39 @@ PY
   fi
 fi
 
+###############################################################################
+# Width passthrough for `--stat` when piped (git assumes 80 cols otherwise)
+###############################################################################
+#
+# This script pipes `git log` into awk (and then usually into less). When git
+# isn't writing directly to a TTY, it falls back to an 80-column assumption for
+# `--stat` and truncates paths aggressively. If we're interactive, compute the
+# real terminal width and pass it explicitly to git.
+
+stat_width_args=()
+if [[ -t 1 ]]; then
+  term_cols=""
+
+  if command -v tput >/dev/null 2>&1 && [[ -r /dev/tty ]]; then
+    term_cols="$(tput cols </dev/tty 2>/dev/null || true)"
+  fi
+
+  if [[ -z "$term_cols" ]]; then
+    term_cols="${COLUMNS:-}"
+  fi
+
+  if [[ "$term_cols" =~ ^[0-9]+$ ]] && [[ "$term_cols" -gt 0 ]]; then
+    for arg in "${log_args[@]}"; do
+      case "$arg" in
+        --stat|--stat=*|--patch-with-stat|--patch-with-stat=*|--numstat|--shortstat)
+          stat_width_args=(--stat-width="$term_cols" --stat-name-width="$term_cols")
+          break
+          ;;
+      esac
+    done
+  fi
+fi
+
 git -c color.ui=always log \
   --graph \
   --date-order \
@@ -302,6 +335,7 @@ git -c color.ui=always log \
   --decorate \
   --decorate-refs-exclude=refs/tags \
   --pretty=format:"%C(bold magenta)%h%Creset -${SEP}%C(auto)${SEP}%d${SEP}%Creset${SEP}%s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset${SEP}%H" \
+  "${stat_width_args[@]}" \
   "${log_args[@]}" \
 | awk -v FS="$SEP" -v TAG_COLOR="$TAG_COLOR" -v ANNO_COLOR="$ANNO_COLOR" -v NOTE_COLOR="$NOTE_COLOR" -v NOTE_META_COLOR="$NOTE_META_COLOR" -v NOTE_META_LINES_COLOR="$NOTE_META_LINES_COLOR" -v NOTE_META_LINES_WARN_COLOR="$NOTE_META_LINES_WARN_COLOR" -v NOTE_META_LINES_HOT_COLOR="$NOTE_META_LINES_HOT_COLOR" -v NOTE_META_BYTES_COLOR="$NOTE_META_BYTES_COLOR" -v NOTE_META_BYTES_WARN_COLOR="$NOTE_META_BYTES_WARN_COLOR" -v NOTE_META_BYTES_HOT_COLOR="$NOTE_META_BYTES_HOT_COLOR" -v NOTES_COMMIT_COLOR="$NOTES_COMMIT_COLOR" -v UNPUSHED_COLOR="$UNPUSHED_COLOR" -v UNPUSHED_LABEL="$UNPUSHED_LABEL" -v REMOTE_TAG_STATUS="$REMOTE_TAG_STATUS" -v LGTN_REMOTE="$LGTN_REMOTE" -v NOTES_MAP_FILE="$notes_map_file" '
   BEGIN {
