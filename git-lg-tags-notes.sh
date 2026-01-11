@@ -317,10 +317,15 @@ if [[ -t 1 ]]; then
   fi
 
   if [[ "$term_cols" =~ ^[0-9]+$ ]] && [[ "$term_cols" -gt 0 ]]; then
+    stat_cols="$term_cols"
+    if (( stat_cols > 5 )); then
+      stat_cols=$((stat_cols - 5))
+    fi
+
     for arg in "${log_args[@]}"; do
       case "$arg" in
         --stat|--stat=*|--patch-with-stat|--patch-with-stat=*|--numstat|--shortstat)
-          stat_width_args=(--stat-width="$term_cols" --stat-name-width="$term_cols")
+          stat_width_args=(--stat-width="$stat_cols" --stat-name-width="$stat_cols")
           break
           ;;
       esac
