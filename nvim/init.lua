@@ -3274,6 +3274,42 @@ end, {
   -- vim.keymap.set('n', '<D-s>', ':w<CR>') -- Save
 
   vim.keymap.set('v', '<D-c>', '"+y') -- Copy
+
+  local function get_system_clipboard_text()
+    local text = vim.fn.getreg("+")
+    if text ~= nil and text ~= "" then
+      return text
+    end
+
+    text = vim.fn.getreg("*")
+    if text ~= nil and text ~= "" then
+      return text
+    end
+
+    for _, cmd in ipairs({
+      { "wl-paste" },
+      { "xclip", "-selection", "clipboard", "-o" },
+      { "xsel", "--clipboard", "--output" },
+    }) do
+      if vim.fn.executable(cmd[1]) == 1 then
+        local result = vim.system(cmd, { text = true }):wait()
+        if result.code == 0 and result.stdout and result.stdout ~= "" then
+          return result.stdout
+        end
+      end
+    end
+
+    return ""
+  end
+
+  local function paste_from_system_clipboard()
+    local text = get_system_clipboard_text()
+    if text == "" then
+      return
+    end
+    vim.api.nvim_paste(text, true, -1)
+  end
+
   -- vim.keymap.set('n', '<D-v>', '"+P') -- Paste normal mode
   -- vim.keymap.set('v', '<D-v>', '"+P') -- Paste visual mode
   -- vim.keymap.set('c', '<D-v>', '<C-R>+') -- Paste command mode
@@ -3282,7 +3318,7 @@ end, {
   vim.keymap.set(
     {'n', 'v', 's', 'x', 'o', 'i', 'l', 'c', 't'},
     '<D-v>',
-    function() vim.api.nvim_paste(vim.fn.getreg('+'), true, -1) end,
+    paste_from_system_clipboard,
     { noremap = true, silent = true }
   )
 
@@ -3332,10 +3368,28 @@ end, {
 -- end
 
 if vim.g.neovide then
+  vim.g.neovide_input_use_logo = 1
+
   -- override osc52 yank (not useful in neovide) with regular yank
   vim.keymap.set({"n", 'x'}, "<leader>y", '"+y', { desc = "Copy to + clipboard (neovide override)" })
 
   vim.keymap.set("n", "<leader>Y", 'ggVG"+y', { desc = "Copy entire buffer to clipboard (neovide override)"})
+
+  vim.keymap.set({ "n", "v", "s", "x", "o", "i", "l", "c", "t" }, "<C-S-v>", paste_from_system_clipboard, {
+    noremap = true,
+    silent = true,
+    desc = "Paste from system clipboard (Neovide)",
+  })
+  vim.keymap.set({ "n", "v", "s", "x", "o", "i", "l", "c", "t" }, "<S-Insert>", paste_from_system_clipboard, {
+    noremap = true,
+    silent = true,
+    desc = "Paste from system clipboard (Neovide)",
+  })
+  vim.keymap.set({ "i", "c", "t" }, "<C-v>", paste_from_system_clipboard, {
+    noremap = true,
+    silent = true,
+    desc = "Paste from system clipboard (Neovide)",
+  })
 
   -- shift enter works in neovide but not under terminal. therefore bind S-CR recursively to M-CR
   -- shift enter in insert mode will insert a newline above the current line and go there.
