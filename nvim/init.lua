@@ -3276,6 +3276,22 @@ end, {
   vim.keymap.set('v', '<D-c>', '"+y') -- Copy
 
   local function get_system_clipboard_text()
+    local function run_text_cmd(cmd)
+      if vim.system then
+        local result = vim.system(cmd, { text = true }):wait()
+        if result.code == 0 and result.stdout and result.stdout ~= "" then
+          return result.stdout
+        end
+        return nil
+      end
+
+      local out = vim.fn.system(cmd)
+      if vim.v.shell_error == 0 and out ~= "" then
+        return out
+      end
+      return nil
+    end
+
     local text = vim.fn.getreg("+")
     if text ~= nil and text ~= "" then
       return text
@@ -3292,9 +3308,9 @@ end, {
       { "xsel", "--clipboard", "--output" },
     }) do
       if vim.fn.executable(cmd[1]) == 1 then
-        local result = vim.system(cmd, { text = true }):wait()
-        if result.code == 0 and result.stdout and result.stdout ~= "" then
-          return result.stdout
+        local out = run_text_cmd(cmd)
+        if out ~= nil then
+          return out
         end
       end
     end
