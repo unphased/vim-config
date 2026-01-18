@@ -3337,6 +3337,14 @@ if vim.g.neovide then
 
   vim.keymap.set("n", "<leader>Y", 'ggVG"+y', { desc = "Copy entire buffer to clipboard (neovide override)"})
 
+  if vim.fn.has("linux") == 1 then
+    vim.keymap.set({ "n", "v", "s", "x", "o", "i", "l", "c", "t" }, "<C-S-v>", "<D-v>", {
+      remap = true,
+      silent = true,
+      desc = "Paste (Neovide)",
+    })
+  end
+
   -- shift enter works in neovide but not under terminal. therefore bind S-CR recursively to M-CR
   -- shift enter in insert mode will insert a newline above the current line and go there.
   vim.keymap.set({'i', 'n'}, '<S-CR>', '<M-CR>', { remap = true })
