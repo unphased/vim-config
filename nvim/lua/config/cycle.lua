@@ -42,7 +42,7 @@ local function indexOf(array, value)
 end
 
 -- cycle thruogh the windows with tab. If the current tab has only one window, actually cycle through all the buffers which are not already open in other tabs (if applicable).
-M.CycleWindowsOrBuffers = function (forward)
+M.CycleWindowsOrBuffers = function (forward, fallback_tmux)
   local curwin = vim.api.nvim_get_current_win()
   local wins = filter_to_real_wins(vim.api.nvim_list_wins())
   local tabs = vim.api.nvim_list_tabpages()
@@ -77,6 +77,9 @@ M.CycleWindowsOrBuffers = function (forward)
         next_index = ((current_index - 2 + #real_buffers) % #real_buffers) + 1
       end
       vim.api.nvim_set_current_buf(real_buffers[next_index])
+    elseif fallback_tmux then
+      local cmd = forward and "next-window" or "previous-window"
+      vim.fn.system({"tmux", cmd})
     end
   elseif #tabs == 1 then
     -- log("CycleWindowsOrBuffers only one tab, going forward to next window", forward)
