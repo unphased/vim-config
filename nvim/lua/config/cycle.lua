@@ -78,8 +78,40 @@ M.CycleWindowsOrBuffers = function (forward, fallback_tmux)
       end
       vim.api.nvim_set_current_buf(real_buffers[next_index])
     elseif fallback_tmux then
-      local cmd = forward and "next-window" or "previous-window"
-      vim.fn.system({"tmux", cmd})
+      if vim.env.TMUX then
+        local cmd = forward and "next-window" or "previous-window"
+        vim.fn.system({"tmux", cmd})
+       elseif vim.g.neovide then
+         -- NOTE: No current implementation for Neovide window cycling.
+         --
+         -- A BETTER APPROACH: Use Neovim RPC to focus other Neovide instances via :NeovideFocus command.
+         -- This is fully portable across macOS/Linux and doesn't require external dependencies.
+         --
+         -- How it works:
+         -- 1. Each Neovide instance sets NVIM environment variable pointing to its RPC socket.
+         -- 2. List all Neovide processes and their NVIM sockets.
+         -- 3. Send RPC command to target instance: nvim --server "$SOCKET" --remote-expr "execute('NeovideFocus')"
+         -- 4. This brings that Neovide window to front without OS-specific hacks.
+         --
+         -- Example implementation:
+         -- local function focus_neovide_instance(socket_path)
+         --   if vim.fn.exists(":NeovideFocus") == 2 then
+         --     vim.cmd("NeovideFocus")
+         --   else
+         --     -- Fallback: send RPC to target instance
+         --     vim.fn.system({"nvim", "--server", socket_path, "--remote-expr", "execute('NeovideFocus')"})
+         --   end
+         -- end
+         --
+         -- To list instances:
+         -- - macOS: Hammerspoon already tracks PIDs/CWDs; extend to get NVIM sockets
+         -- - Linux: pgrep -f neovide, then inspect /proc/$PID/environ for NVIM=...
+         --
+         -- For cycling: Collect list of sockets, find current, activate next/prev.
+         --
+         -- TODO: Implement this RPC-based approach for true portability.
+         -- For now, no Neovide window cycling when not in tmux.
+      end
     end
   elseif #tabs == 1 then
     -- log("CycleWindowsOrBuffers only one tab, going forward to next window", forward)
