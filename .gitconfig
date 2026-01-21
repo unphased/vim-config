@@ -84,6 +84,10 @@
   ; use to revert note commits (need to use special note commits, rare)
   nr = "!$HOME/.vim/git-notes-revert.sh"
 
+  ; push/pull all notes namespaces (refs/notes/*)
+  gnp = "!$HOME/.vim/git-notes-sync.sh push"
+  gnl = "!$HOME/.vim/git-notes-sync.sh pull"
+
   te = "!f() { \
     tag=\"$1\"; \
     if [ -z \"$tag\" ]; then \
