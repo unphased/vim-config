@@ -365,3 +365,5 @@ alias last3='!-3 && !-2 && !!'
 alias last4='!-4 && !-3 && !-2 && !!'
 alias last5='!-5 && !-4 && !-3 && !-2 && !!'
 alias last6='!-6 && !-5 && !-4 && !-3 && !-2 && !!'
+
+alias oc=opencode
