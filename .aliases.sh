@@ -367,3 +367,8 @@ alias last5='!-5 && !-4 && !-3 && !-2 && !!'
 alias last6='!-6 && !-5 && !-4 && !-3 && !-2 && !!'
 
 alias oc=opencode-launch
+
+# Took a while to learn about the sane way to run rsync:
+# --info=progress2 furnishes the progress 
+# --no-i-r allows the reported progress to be the FULL progress
+alias rsync=rsync --info=progress2 --no-i-r
