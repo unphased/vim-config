@@ -89,6 +89,9 @@ alias glpen="git --no-pager log -p --color=always | less"
 # alias glpes="git log -p --ext-diff --stat"
 alias gd="git --no-pager diff --color=always | less"
 alias gf='git fetch'
+
+# an override of gfa from omz, --tags sometimes causes conflicts
+alias gfa='git fetch --all --prune --jobs=10'
 alias gds="git diff --stat"
 alias di="git diff-with-ignored"
 alias gc!="git commit --amend"
