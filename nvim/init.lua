@@ -3353,6 +3353,25 @@ else
   vim.keymap.set("n", "<leader>yy", "<leader>y_", { remap = true, desc = "Copy entire line to host term system clipboard via OSC 52" })
   vim.keymap.set("x", "<leader>y", safeRequire("osc52").copy_visual, { desc = "Copy visual selection to host term system clipboard via OSC 52" })
   vim.keymap.set("n", "<leader>Y", "ggVG<leader>y", { remap = true, desc = "Copy entire buffer to host clipboard via OSC 52"})
+
+  -- Copy file path/location to clipboard via OSC 52
+  vim.keymap.set("n", "<leader>cp", function()
+    local text = vim.fn.expand("%:p") .. ":" .. vim.fn.line(".")
+    require("osc52").copy(text)
+    vim.notify("Copied: " .. text)
+  end, { desc = "Copy full path:line to clipboard via OSC 52" })
+
+  vim.keymap.set("n", "<leader>cr", function()
+    local text = vim.fn.expand("%:.") .. ":" .. vim.fn.line(".")
+    require("osc52").copy(text)
+    vim.notify("Copied: " .. text)
+  end, { desc = "Copy relative path:line to clipboard via OSC 52" })
+
+  vim.keymap.set("n", "<leader>cf", function()
+    local text = vim.fn.expand("%:p")
+    require("osc52").copy(text)
+    vim.notify("Copied: " .. text)
+  end, { desc = "Copy full path to clipboard via OSC 52" })
 end
 
 require('config.handy-workflow')
