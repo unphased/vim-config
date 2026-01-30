@@ -3353,26 +3353,29 @@ else
   vim.keymap.set("n", "<leader>yy", "<leader>y_", { remap = true, desc = "Copy entire line to host term system clipboard via OSC 52" })
   vim.keymap.set("x", "<leader>y", safeRequire("osc52").copy_visual, { desc = "Copy visual selection to host term system clipboard via OSC 52" })
   vim.keymap.set("n", "<leader>Y", "ggVG<leader>y", { remap = true, desc = "Copy entire buffer to host clipboard via OSC 52"})
-
-  -- Copy file path/location to clipboard via OSC 52
-  vim.keymap.set("n", "<leader>cp", function()
-    local text = vim.fn.expand("%:p") .. ":" .. vim.fn.line(".")
-    require("osc52").copy(text)
-    vim.notify("Copied: " .. text)
-  end, { desc = "Copy full path:line to clipboard via OSC 52" })
-
-  vim.keymap.set("n", "<leader>cr", function()
-    local text = vim.fn.expand("%:.") .. ":" .. vim.fn.line(".")
-    require("osc52").copy(text)
-    vim.notify("Copied: " .. text)
-  end, { desc = "Copy relative path:line to clipboard via OSC 52" })
-
-  vim.keymap.set("n", "<leader>cf", function()
-    local text = vim.fn.expand("%:p")
-    require("osc52").copy(text)
-    vim.notify("Copied: " .. text)
-  end, { desc = "Copy full path to clipboard via OSC 52" })
 end
+
+-- Copy file path/location to clipboard (works in both Neovide and terminal)
+local function copy_to_clipboard(text)
+  if vim.g.neovide then
+    vim.fn.setreg("+", text)
+  else
+    require("osc52").copy(text)
+  end
+  vim.notify("Copied: " .. text)
+end
+
+vim.keymap.set("n", "<leader>cp", function()
+  copy_to_clipboard(vim.fn.expand("%:p") .. ":" .. vim.fn.line("."))
+end, { desc = "Copy full path:line to clipboard" })
+
+vim.keymap.set("n", "<leader>cr", function()
+  copy_to_clipboard(vim.fn.expand("%:.") .. ":" .. vim.fn.line("."))
+end, { desc = "Copy relative path:line to clipboard" })
+
+vim.keymap.set("n", "<leader>cf", function()
+  copy_to_clipboard(vim.fn.expand("%:p"))
+end, { desc = "Copy full path to clipboard" })
 
 require('config.handy-workflow')
 
