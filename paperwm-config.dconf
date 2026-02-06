@@ -1,4 +1,3 @@
-# PaperWM configuration (system -> repo: ./paperwm-config.backup.sh | repo -> system: ./paperwm-config.apply.sh)
 [/]
 last-used-display-server='Wayland'
 open-window-position=1
