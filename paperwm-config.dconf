@@ -8,8 +8,17 @@ restore-workspaces-only-on-primary='false'
 
 [keybindings]
 switch-down=['<Super>j', '<Super>Down']
+switch-eighth=['<Super>8']
+switch-fifth=['<Super>5']
+switch-first=['<Super>1']
+switch-fourth=['<Super>4']
 switch-left=['<Super>h', '<Super>Left', '<Super>ScrollUp']
+switch-ninth=['<Super>9']
 switch-right=['<Super>l', '<Super>Right', '<Super>ScrollDown']
+switch-second=['<Super>2']
+switch-seventh=['<Super>7']
+switch-sixth=['<Super>6']
+switch-third=['<Super>3']
 switch-up=['<Super>k', '<Super>Up']
 
 [workspaces]
