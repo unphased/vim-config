@@ -1,7 +1,4 @@
-# PaperWM configuration dump from dconf
-# To apply: dconf load /org/gnome/shell/extensions/paperwm/ < paperwm-full-config.dconf
-# To save changes made in GNOME Settings: ./paperwm-full-config.save.sh
-# To restore from this file: ./paperwm-full-config.load.sh
+# PaperWM configuration (system -> repo: ./paperwm-config.backup.sh | repo -> system: ./paperwm-config.apply.sh)
 [/]
 last-used-display-server='Wayland'
 open-window-position=1
