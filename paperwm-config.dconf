@@ -1,5 +1,6 @@
 [/]
 last-used-display-server='Wayland'
+winprops=['{"title":"/wl-clipboard/","scratch_layer":true,"focus":false}']
 open-window-position=1
 restore-attach-modal-dialogs='false'
 restore-edge-tiling='false'
