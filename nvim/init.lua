@@ -2068,6 +2068,9 @@ require('winhl-manager').setup({
 
 require("bgcolor-manager").setup({
   default_color = "#2f9117",
+  -- Set false to keep cmdline/Neovide chrome at the colorscheme default
+  -- instead of following the active window's resolved bgcolor.
+  -- global_ui_follows_active = true,
 })
 
 -- vim.fn.matchadd("DiagnosticInfo", "\\(TODO:\\)")
