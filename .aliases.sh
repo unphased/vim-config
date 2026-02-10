@@ -369,7 +369,13 @@ alias last4='!-4 && !-3 && !-2 && !!'
 alias last5='!-5 && !-4 && !-3 && !-2 && !!'
 alias last6='!-6 && !-5 && !-4 && !-3 && !-2 && !!'
 
-alias oc=opencode-launch
+# OpenCode with profile support
+# oc       - default (currently omo via symlink)
+# ocs      - slim mode (token efficient, runtime fallback)
+# och      - heavy mode (full omo with metis/momus/prometheus)
+alias oc='opencode-launch'
+alias ocs='opencode-launch --slim'
+alias och='opencode-launch --omo'
 
 # Took a while to learn about the sane way to run rsync:
 # --info=progress2 furnishes the progress 
