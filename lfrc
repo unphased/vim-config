@@ -96,9 +96,9 @@ cmd open ${{
 
     case "$mime" in
         application/gzip)
-            gzip -dc "$f" | view_stream "$f" ;;
+            gzip -dc "$f" | view_stream "${f%.gz}" ;;
         application/brotli|application/x-brotli)
-            brotli -dc "$f" | view_stream "$f" ;;
+            brotli -dc "$f" | view_stream "${f%.br}" ;;
         application/json|application/x-ndjson)
             view_file "$f" ;;
         text/*)
