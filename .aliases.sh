@@ -380,4 +380,4 @@ alias och='opencode-launch --omo'
 # Took a while to learn about the sane way to run rsync:
 # --info=progress2 furnishes the progress 
 # --no-i-r allows the reported progress to be the FULL progress
-alias rsync=rsync --info=progress2 --no-i-r
+alias rsync='rsync --info=progress2 --no-i-r'
