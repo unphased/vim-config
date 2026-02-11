@@ -1,5 +1,6 @@
 [/]
 last-used-display-server='Wayland'
+# Keep transient wl-clipboard helper windows out of PaperWM tiling/navigation.
 winprops=['{"title":"/wl-clipboard/","scratch_layer":true,"focus":false}']
 open-window-position=1
 restore-attach-modal-dialogs='false'
