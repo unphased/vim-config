@@ -94,29 +94,56 @@ cmd open ${{
         fi
     }
 
-    case "$mime" in
-        application/gzip)
-            gzip -dc "$f" | view_stream "${f%.gz}" ;;
-        application/brotli|application/x-brotli)
-            brotli -dc "$f" | view_stream "${f%.br}" ;;
-        application/json|application/x-ndjson)
-            view_file "$f" ;;
-        text/*)
-            view_file "$f" ;;
-        *) # Default case for binary or other non-text files
-            case "$f" in
-                *.br)
-                    brotli -dc "$f" | view_stream "$f" ;;
-                *)
-                    if command -v hexyl >/dev/null 2>&1; then
-                        hexyl "$f" | less -R
-                    elif command -v xxd >/dev/null 2>&1; then
-                        warn "hexyl not found; using xxd"
-                        xxd -l 4096 "$f" | less -R
-                    else
-                        warn "hexyl not found; using less"
-                        less -R "$f"
-                    fi ;;
+    view_jsonl_file() {
+        if command -v jq >/dev/null 2>&1; then
+            jq -C . "$1" | less -R
+        else
+            warn "jq not found; using default viewer"
+            view_file "$1"
+        fi
+    }
+
+    view_jsonl_stream() {
+        if command -v jq >/dev/null 2>&1; then
+            jq -C . | less -R
+        else
+            warn "jq not found; using default viewer"
+            view_stream "$1"
+        fi
+    }
+
+    case "$f" in
+        *.jsonl|*.ndjson|*.jsonlines)
+            view_jsonl_file "$f" ;;
+        *.jsonl.gz|*.ndjson.gz|*.jsonlines.gz)
+            gzip -dc "$f" | view_jsonl_stream "${f%.gz}" ;;
+        *.jsonl.br|*.ndjson.br|*.jsonlines.br)
+            brotli -dc "$f" | view_jsonl_stream "${f%.br}" ;;
+        *)
+            case "$mime" in
+                application/gzip)
+                    gzip -dc "$f" | view_stream "${f%.gz}" ;;
+                application/brotli|application/x-brotli)
+                    brotli -dc "$f" | view_stream "${f%.br}" ;;
+                application/json|application/x-ndjson)
+                    view_file "$f" ;;
+                text/*)
+                    view_file "$f" ;;
+                *) # Default case for binary or other non-text files
+                    case "$f" in
+                        *.br)
+                            brotli -dc "$f" | view_stream "$f" ;;
+                        *)
+                            if command -v hexyl >/dev/null 2>&1; then
+                                hexyl "$f" | less -R
+                            elif command -v xxd >/dev/null 2>&1; then
+                                warn "hexyl not found; using xxd"
+                                xxd -l 4096 "$f" | less -R
+                            else
+                                warn "hexyl not found; using less"
+                                less -R "$f"
+                            fi ;;
+                    esac ;;
             esac ;;
     esac
 }}
