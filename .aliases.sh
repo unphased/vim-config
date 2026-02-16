@@ -291,6 +291,7 @@ aider_function() {
 
 alias aider='aider_function'
 
+# neovim launcher
 nv() {
   local launcher neovide_config neovim_bin
   launcher="$(command -v neovide-launch.sh 2>/dev/null || true)"
