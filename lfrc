@@ -95,21 +95,78 @@ cmd open ${{
     }
 
     view_jsonl_file() {
-        if command -v jq >/dev/null 2>&1; then
+        if command -v jq >/dev/null 2>&1 && command -v bat >/dev/null 2>&1; then
+            render_jsonl_with_stable_lines "$1"
+        elif command -v jq >/dev/null 2>&1; then
             jq -C . "$1" | less -R
         else
-            warn "jq not found; using default viewer"
+            warn "jq or bat not found; using default viewer"
             view_file "$1"
         fi
     }
 
     view_jsonl_stream() {
-        if command -v jq >/dev/null 2>&1; then
+        if command -v jq >/dev/null 2>&1 && command -v bat >/dev/null 2>&1; then
+            render_jsonl_with_stable_lines - "$1"
+        elif command -v jq >/dev/null 2>&1; then
             jq -C . | less -R
         else
-            warn "jq not found; using default viewer"
+            warn "jq or bat not found; using default viewer"
             view_stream "$1"
         fi
+    }
+
+    render_jsonl_with_stable_lines() {
+        input="$1"
+        label="${2:-$1}"
+        line_no=0
+
+        if [ "$input" = "-" ]; then
+            src="/dev/stdin"
+        else
+            src="$input"
+        fi
+
+        {
+            printf 'File: %s\n\n' "$label"
+            while IFS= read -r line || [ -n "$line" ]; do
+                line_no=$((line_no + 1))
+                if pretty=$(printf '%s\n' "$line" | jq . 2>/dev/null); then
+                    printf '%s\n' "$pretty" |
+                        bat --paging=never --style=plain --color=always --language=json |
+                        awk -v n="$line_no" 'NR == 1 { printf "%6d ║ %s\n", n, $0; next } { printf "       ║ %s\n", $0 }'
+                    render_prettified_strings_for_jsonl_record "$line"
+                else
+                    printf '%6d ║ %s\n' "$line_no" "$line"
+                fi
+            done < "$src"
+        } | less -R
+    }
+
+    render_prettified_strings_for_jsonl_record() {
+        record="$1"
+        paths_tmp=$(mktemp "/tmp/lf_jsonl_paths.XXXXXX")
+        has_strings=0
+
+        if ! printf '%s\n' "$record" | jq -c 'paths(strings)' > "$paths_tmp" 2>/dev/null; then
+            rm -f "$paths_tmp"
+            return
+        fi
+
+        while IFS= read -r path_json || [ -n "$path_json" ]; do
+            [ -z "$path_json" ] && continue
+
+            if [ "$has_strings" -eq 0 ]; then
+                printf '       ║ ~~ prettified strings (display-only; not literal JSON) ~~\n'
+                has_strings=1
+            fi
+
+            path_label=$(printf '%s\n' "$path_json" | jq -r 'reduce .[] as $x ("$"; . + (if ($x|type) == "number" then "[\($x)]" else ".\($x)" end))')
+            printf '       ║ @ %s\n' "$path_label"
+            printf '%s\n' "$record" | jq -r --argjson p "$path_json" 'getpath($p)' | awk '{ printf "       ║   %s\n", $0 }'
+        done < "$paths_tmp"
+
+        rm -f "$paths_tmp"
     }
 
     case "$f" in
