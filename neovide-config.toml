@@ -2,5 +2,5 @@ no-tabs = true
 frame = "full"
 
 [font]
-normal = ["IosevkaTerm Nerd Font Mono", "IosevkaTerm NFM", "monospace"]
+normal = ["IosevkaTerm Nerd Font Mono", "IosevkaTerm NFM"]
 size = 16
