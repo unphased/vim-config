@@ -17,10 +17,10 @@ fi
 
 case "$platform" in
   macos)
-    target="${HOME}/.vim/ghostty.binds.macos.conf"
+    source_file="${HOME}/.vim/ghostty.mac.conf"
     ;;
   linux)
-    target="${HOME}/.vim/ghostty.binds.linux.conf"
+    source_file="${HOME}/.vim/ghostty.linux.conf"
     ;;
   *)
     echo "Usage: $0 [macos|linux|auto]" >&2
@@ -28,5 +28,5 @@ case "$platform" in
     ;;
 esac
 
-printf 'config-file = %s\n' "$target" > "$out_file"
-printf 'Wrote %s -> %s\n' "$out_file" "$target"
+ln -sfn "$source_file" "$out_file"
+printf 'Linked %s -> %s\n' "$out_file" "$source_file"
