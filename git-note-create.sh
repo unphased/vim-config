@@ -18,6 +18,17 @@
 # Behavior:
 #   - Writes an entry to git notes using `append` (so multiple notes accumulate).
 #   - The "heading" becomes the first line; optional body becomes subsequent lines.
+#   - Notes are stored on a separate ref (for example `refs/notes/commits`), not
+#     on the commit itself and not on your branch.
+#
+# Remote sync:
+#   - Normal branch `git push` / `git pull` does not move notes refs.
+#   - Push/fetch them explicitly with `git gnp [remote]` / `git gnl [remote]`
+#     (or raw `git push` / `git fetch` of `refs/notes/*`).
+#   - Adding a note to an already-pushed commit does not rewrite that commit; it
+#     only advances the notes ref.
+#   - A force push is only for rewritten/diverged notes refs, not just because
+#     the target commit was already on the remote.
 #
 # Options:
 #   -e, --edit              Open editor to edit note instead of using args.
@@ -29,7 +40,7 @@
 set -euo pipefail
 
 usage() {
-  sed -n '1,140p' "$0" | sed -n '1,/^set -euo pipefail$/p' | sed '$d' | sed 's/^# \{0,1\}//'
+  sed -n '2,/^set -euo pipefail$/p' "$0" | sed '$d' | sed 's/^# \{0,1\}//'
 }
 
 git rev-parse --git-dir >/dev/null 2>&1 || { echo "error: not in a git repo" >&2; exit 2; }
