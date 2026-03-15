@@ -36,6 +36,7 @@ alias gco="git checkout"
 alias gta="git ta"
 alias gtap="git tap"
 alias gte="git te"
+alias gnm="git gnm"
 if [[ -n "${ZSH_VERSION:-}" ]]; then
   # In zsh with extendedglob enabled, `^slu` expands to "everything except slu".
   # The notes helpers intentionally use `^<ref>` shorthands, so disable globbing
@@ -48,6 +49,9 @@ else
   alias gne="git gn --edit"
   alias gnr="git nr"
 fi
+
+# Local notes DAG history viewers. These inspect refs/notes/* history; they are
+# separate from `git gnl` / `git gnp` / `git gnm`, which sync notes refs.
 gnl() {
   local -a refs
   refs=($(git for-each-ref refs/notes --format='%(refname)' 2>/dev/null))
@@ -84,6 +88,7 @@ alias glpo="git --no-pager log -p --color=always | less"
 alias glpa="git log -p --all"
 alias glpf="git log -p --follow"
 alias glp="git log -p"
+alias glpr="git --no-pager -c color.ui=false log -p --no-ext-diff"
 alias glpe="GIT_EXTERNAL_DIFF=sift GIT_PAGER=less git log -p --ext-diff --pretty=format:'%C(bold yellow)%H%Creset%C(auto)%d%Creset %s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset'"
 alias glpen="git --no-pager log -p --color=always | less"
 # alias glpes="git log -p --ext-diff --stat"

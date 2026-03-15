@@ -87,6 +87,7 @@
   ; push/pull all notes namespaces (refs/notes/*)
   gnp = "!$HOME/.vim/git-notes-sync.sh push"
   gnl = "!$HOME/.vim/git-notes-sync.sh pull"
+  gnm = "!$HOME/.vim/git-notes-sync.sh merge"
 
   te = "!f() { \
     tag=\"$1\"; \

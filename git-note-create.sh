@@ -29,12 +29,9 @@
 #   - Before adding notes in another clone, or after time away, run
 #     `git gnl [remote]` first. That fetch is ff-only for `refs/notes/*`, so it
 #     rejects on divergence instead of overwriting your local notes.
-#   - If `git gnl` or `git gnp` rejects, fetch remote notes to side refs and
-#     merge them explicitly, then push (shown for the default `commits`
-#     namespace; swap in your notes namespace as needed):
-#       `git fetch <remote> 'refs/notes/*:refs/notes/<remote>/*'`
-#       `git notes --ref refs/notes/commits merge refs/notes/<remote>/commits`
-#       `git gnp [remote]`
+#   - If `git gnl` or `git gnp` rejects, run `git gnm [remote]` to reconcile
+#     remote notes into your local notes refs, then push again with
+#     `git gnp [remote]`.
 #   - Force-push notes only when you intentionally want local notes history to
 #     replace the remote notes history.
 #
