@@ -21,14 +21,22 @@
 #   - Notes are stored on a separate ref (for example `refs/notes/commits`), not
 #     on the commit itself and not on your branch.
 #
-# Remote sync:
-#   - Normal branch `git push` / `git pull` does not move notes refs.
-#   - Push/fetch them explicitly with `git gnp [remote]` / `git gnl [remote]`
-#     (or raw `git push` / `git fetch` of `refs/notes/*`).
-#   - Adding a note to an already-pushed commit does not rewrite that commit; it
-#     only advances the notes ref.
-#   - A force push is only for rewritten/diverged notes refs, not just because
-#     the target commit was already on the remote.
+# Workflow:
+#   - You can add a note before or after pushing the target commit; the commit
+#     itself is unchanged either way.
+#   - Notes do not travel with normal branch `git push` / `git pull`. After
+#     changing notes, publish them separately with `git gnp [remote]`.
+#   - Before adding notes in another clone, or after time away, run
+#     `git gnl [remote]` first. That fetch is ff-only for `refs/notes/*`, so it
+#     rejects on divergence instead of overwriting your local notes.
+#   - If `git gnl` or `git gnp` rejects, fetch remote notes to side refs and
+#     merge them explicitly, then push (shown for the default `commits`
+#     namespace; swap in your notes namespace as needed):
+#       `git fetch <remote> 'refs/notes/*:refs/notes/<remote>/*'`
+#       `git notes --ref refs/notes/commits merge refs/notes/<remote>/commits`
+#       `git gnp [remote]`
+#   - Force-push notes only when you intentionally want local notes history to
+#     replace the remote notes history.
 #
 # Options:
 #   -e, --edit              Open editor to edit note instead of using args.

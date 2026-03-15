@@ -6,19 +6,32 @@
 #
 # Usage:
 #   git gnp [<remote>]        # push refs/notes/* to remote
-#   git gnl [<remote>]        # fetch refs/notes/* from remote
+#   git gnl [<remote>]        # ff-fetch refs/notes/* from remote into local refs
 #
-# Notes:
+# Workflow:
+#   - After adding/editing notes locally, run `git gnp [remote]` to publish
+#     them. Normal branch push/pull does not move notes refs.
+#   - Before editing notes in another clone, run `git gnl [remote]` so that
+#     clone fast-forwards its local `refs/notes/*` first.
+#   - `git gnl` is safe against clobbering local notes: it rejects
+#     non-fast-forward updates instead of overwriting your local notes refs.
+#   - If `git gnl` or `git gnp` rejects, fetch the remote notes to side refs
+#     and merge them explicitly, then push again (shown for the default
+#     `commits` namespace; swap in your notes namespace as needed):
+#       `git fetch <remote> 'refs/notes/*:refs/notes/<remote>/*'`
+#       `git notes --ref refs/notes/commits merge refs/notes/<remote>/commits`
+#       `git gnp [remote]`
+#   - Only force-push notes refs when you intentionally want local notes
+#     history to replace remote history.
+#
+# Remote selection:
 #   - If <remote> is omitted, we try to infer it from @{upstream}. If that
 #     fails, and there is exactly 1 remote configured, we use that.
-#   - If notes refs have diverged, fetch/push may be rejected; in that case,
-#     you likely want to `git fetch <remote> 'refs/notes/*:refs/notes/<remote>/*'`
-#     and then merge notes refs explicitly.
 
 set -euo pipefail
 
 usage() {
-  sed -n '1,120p' "$0" | sed -n '1,/^set -euo pipefail$/p' | sed '$d' | sed 's/^# \{0,1\}//'
+  sed -n '2,/^set -euo pipefail$/p' "$0" | sed '$d' | sed 's/^# \{0,1\}//'
 }
 
 git rev-parse --git-dir >/dev/null 2>&1 || { echo "error: not in a git repo" >&2; exit 2; }
@@ -101,4 +114,3 @@ else
   echo "gnl: fetching refs/notes/* <- $remote"
   git fetch "$remote" "$notes_refspec"
 fi
-
