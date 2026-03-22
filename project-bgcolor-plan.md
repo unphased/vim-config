@@ -5,7 +5,7 @@
   simple `printf`, removing tmux-specific coupling while keeping visual context consistent.
 - Share one color policy across shells, Neovim buffers, Neovide windows, etc. so location-based cues remain aligned even
   when buffers diverge from process working directories.
-- Continue to support per-directory overrides (e.g. `.tmux-bgcolor`) while also enabling deterministic fallbacks when no
+- Continue to support per-directory overrides (e.g. `.project-bgcolor`) while also enabling deterministic fallbacks when no
   override exists.
 - Offer lightweight, composable entry points (POSIX shell preferred) that apps can call to obtain color decisions and
   then apply them with their native mechanisms (OSC 11, Neovim highlights, future integrations).
@@ -13,7 +13,7 @@
 ## Current Pain Points
 - **Path context remains tricky:** Neovim buffers, LSP-driven edits, and shell jobs may all point at different
   directories, so we still need a first-class way to declare “what location are we coloring?” beyond `$PWD`.
-- **Override discovery is duplicated:** `.tmux-bgcolor` lookup and git-root discovery still live in both Lua and shell
+- **Override discovery is duplicated:** `.project-bgcolor` lookup and git-root discovery still live in both Lua and shell
   code, increasing maintenance cost.
 - **Highlight layering in Neovim:** We must coordinate global background (for command line/UI) with per-buffer `Normal`
   highlights so buffer-specific colors persist without fighting each other.
@@ -29,7 +29,7 @@
   providing stable identifiers so callers can avoid reapplying colors unnecessarily.
 
 ### 2. Override & Metadata Store
-- Centralize `.tmux-bgcolor` discovery.
+- Centralize `.project-bgcolor` discovery.
 - Cache lookup results by absolute path to minimize repeated filesystem walks while still allowing invalidation knobs
   (env var or timestamp awareness).
 
@@ -70,7 +70,7 @@
 - Consolidate the logic currently spread across `color-pane.sh` and `set-bgcolor-by-cwd-tmux.zsh` into a single script
   (`~/util/bgcolor.sh`).
 - Default behavior: accept an optional path argument (fall back to `$PWD`), locate the repo root, check for
-  `.tmux-bgcolor`, derive the deterministic color when no override is found, and emit an OSC 11 sequence.
+  `.project-bgcolor`, derive the deterministic color when no override is found, and emit an OSC 11 sequence.
 - Provide lightweight output controls such as `--format=hex` (for Neovim) and `--format=osc11` (default) so other tools
   can reuse the same script without extra plumbing.
 - Keep the implementation stateless for v1—every invocation recomputes so we can deliver quickly.
@@ -83,7 +83,7 @@
 - Verify no other shell scripts depend on the old helper; update or delete them as part of the rollout.
 
 ### Neovim Integration (~/nvim)
-- Identify the Lua module currently invoking `.tmux-bgcolor` logic and update it to run the resolver via `vim.system()`
+- Identify the Lua module currently invoking `.project-bgcolor` logic and update it to run the resolver via `vim.system()`
   or `vim.fn.system()` with the active buffer path.
 - Apply the resolved color by setting the global background highlight (affects command line/Neovide) and a buffer-local
   `Normal` highlight so per-buffer colors persist across window splits.

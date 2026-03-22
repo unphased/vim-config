@@ -269,7 +269,7 @@ function M.set_term_state(bufnr, cwd, hex)
 end
 
 --- Flush the path→hex cache and reapply all windows.  Call this after editing
---- a `.tmux-bgcolor` file or changing the color policy.
+--- a `.project-bgcolor` file or changing the color policy.
 function M.clear_cache()
   path_cache = {}
   win_hex = {}

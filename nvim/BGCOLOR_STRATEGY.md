@@ -5,7 +5,7 @@ Goal: Assign a deterministic project background color without relying on Neovimâ
 ### Color source of truth
 
 - Use `~/util/bgcolor.sh --format=hex <path>` to compute `#RRGGBB`.
-  - Supports `.tmux-bgcolor` overrides up the directory tree.
+  - Supports `.project-bgcolor` overrides up the directory tree.
   - Falls back to deterministic hashing of git repo root (or absolute dir if not in git).
 - Neovim applies background via highlights (`Normal`/`NormalNC`) for consistent behavior in Neovide and TUI.
 
