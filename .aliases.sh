@@ -222,9 +222,9 @@ alias grepc='grep --color=always --exclude=\*{.,-}min.\*'
 alias mkae='make'
 
 # only for macos
-if [[ "$(uname -a)" =~ "Darwin Kernel" ]]; then
-  alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
-fi
+# if [[ "$(uname -a)" =~ "Darwin Kernel" ]]; then
+#   alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
+# fi
 
 # to make fzf's file finding usage (mainly when using vim but should work for 
 # non-vim) work like i want, which is let me comb through all the files ever. 
