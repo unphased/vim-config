@@ -341,14 +341,13 @@ return {
   -- 'stevearc/profile.nvim',
   -- For more proper profiling, also check out https://github.com/nvim-lua/plenary.nvim#plenaryprofile
   -- https://github.com/norcalli/profiler.nvim is another but this seems only for requires
-  { 'simrat39/symbols-outline.nvim',
+  { 'hedyhli/outline.nvim',
     config = function()
-      require('symbols-outline').setup({
+      require('outline').setup({
         keymaps = {
-          -- These keymaps can be a string or a table for multiple keys
           close = {"<Esc>", "q"},
           goto_location = "<Cr>",
-          focus_location = "o",
+          peek_location = "o",
           hover_symbol = "<C-space>",
           toggle_preview = "p",
           rename_symbol = "r",
@@ -359,10 +358,12 @@ return {
           unfold_all = "E",
           fold_reset = "R",
         },
-        auto_preview = false,
+        preview_window = {
+          auto_preview = false,
+        },
       })
       vim.cmd([[
-        nnoremap <silent> <leader>s :SymbolsOutline<CR>
+        nnoremap <silent> <leader>s :Outline<CR>
       ]])
     end
   },
@@ -499,7 +500,7 @@ return {
     end
   },
   {
-    "ggandor/leap.nvim",
+    url = "https://codeberg.org/andyg/leap.nvim",
     -- keys = {
     --   { "s", mode = { "n", "o" }, desc = "Leap forward to" },
     --   -- { "S", mode = { "n", "o" }, desc = "Leap backward to" },
