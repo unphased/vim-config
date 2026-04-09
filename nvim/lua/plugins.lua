@@ -93,9 +93,8 @@ return {
     lazy = false, -- required; main doesn't support lazy-loading
     build = ":TSUpdate",
     init = function ()
-      require'nvim-treesitter'.install {
+      local install_langs = {
         'rust', 'javascript', 'zig',
-        "markdown_inline",
         "c",
         "lua",
         "vim",
@@ -105,6 +104,21 @@ return {
         "diff",
         "git_rebase",
       }
+
+      local progpath = vim.fn.resolve(vim.v.progpath)
+      local nvim_root = vim.fn.fnamemodify(progpath, ":h:h")
+      local parser_dir = nvim_root .. "/lib/nvim/parser"
+      local builtin_markdown = parser_dir .. "/markdown.so"
+      local builtin_markdown_inline = parser_dir .. "/markdown_inline.so"
+
+      if vim.fn.filereadable(builtin_markdown) == 1 and vim.fn.filereadable(builtin_markdown_inline) == 1 then
+        vim.treesitter.language.add("markdown", { path = builtin_markdown })
+        vim.treesitter.language.add("markdown_inline", { path = builtin_markdown_inline })
+      else
+        table.insert(install_langs, "markdown_inline")
+      end
+
+      require'nvim-treesitter'.install(install_langs)
 
       -- for indentation
       vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
@@ -182,11 +196,7 @@ return {
   -- 'nvim-treesitter/nvim-treesitter-textobjects',
   {
     "nvim-treesitter/nvim-treesitter-context",
-    opts = {
-      on_attach = function(buf)
-        return vim.bo[buf].filetype ~= "markdown"
-      end,
-    },
+    opts = {},
   },
   "onsails/lspkind-nvim", -- status line plugin
   -- {
@@ -743,20 +753,19 @@ return {
   --     require('sg').setup{}
   --   end
   -- },
-  -- Disabled: currently causes Neovim to die on markdown buffers in this setup.
-  -- {
-  --   'MeanderingProgrammer/render-markdown.nvim',
-  --   dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-mini/mini.nvim' },            -- if you use the mini.nvim suite
-  --   -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-mini/mini.icons' },        -- if you use standalone mini plugins
-  --   -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
-  --   ---@module 'render-markdown'
-  --   ---@type render.md.UserConfig
-  --   opts = {
-  --     code = {
-  --       conceal_delimiters = false,
-  --     }
-  --   },
-  -- },
+  {
+    'MeanderingProgrammer/render-markdown.nvim',
+    dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-mini/mini.nvim' },            -- if you use the mini.nvim suite
+    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-mini/mini.icons' },        -- if you use standalone mini plugins
+    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
+    ---@module 'render-markdown'
+    ---@type render.md.UserConfig
+    opts = {
+      code = {
+        conceal_delimiters = false,
+      }
+    },
+  },
   -- {
   --   "OXY2DEV/markview.nvim",
   --   priority = 101,
