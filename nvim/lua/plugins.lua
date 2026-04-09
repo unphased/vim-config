@@ -93,56 +93,10 @@ return {
     lazy = false, -- required; main doesn't support lazy-loading
     build = ":TSUpdate",
     init = function ()
-      -- Neovim 0.12 ships bundled markdown parsers. If a stale user-installed
-      -- markdown_inline parser is also present in ~/.local/share/nvim/site/parser,
-      -- Treesitter can load a mixed markdown/markdown_inline pair from different
-      -- directories. In this setup that caused hard crashes when markdown plugins
-      -- called parser:parse(range).
-      --
-      -- To keep parser selection maintainable and explicit:
-      --   1. Prefer Neovim's bundled markdown + markdown_inline parser pair when
-      --      the current Neovim build ships both files.
-      --   2. Otherwise install BOTH markdown parsers from nvim-treesitter so the
-      --      fallback also stays version-matched.
-      --
-      -- Related upstream context:
-      --   nvim-treesitter#3970 "Conflicting parser paths"
-      local function prefer_builtin_markdown_parser_pair()
-        local progpath = vim.fn.resolve(vim.v.progpath)
-        local nvim_root = vim.fn.fnamemodify(progpath, ":h:h")
-        local parser_dir = nvim_root .. "/lib/nvim/parser"
-        local builtin_markdown = parser_dir .. "/markdown.so"
-        local builtin_markdown_inline = parser_dir .. "/markdown_inline.so"
+      local treesitter_policy = require("config.treesitter")
+      local install_langs = treesitter_policy.apply_parser_policy()
 
-        if vim.fn.filereadable(builtin_markdown) ~= 1 then
-          return false
-        end
-        if vim.fn.filereadable(builtin_markdown_inline) ~= 1 then
-          return false
-        end
-
-        vim.treesitter.language.add("markdown", { path = builtin_markdown })
-        vim.treesitter.language.add("markdown_inline", { path = builtin_markdown_inline })
-        return true
-      end
-
-      local install_langs = {
-        'rust', 'javascript', 'zig',
-        "c",
-        "lua",
-        "vim",
-        "bash",
-        "comment",
-        "gitcommit",
-        "diff",
-        "git_rebase",
-      }
-
-      if not prefer_builtin_markdown_parser_pair() then
-        table.insert(install_langs, "markdown")
-        table.insert(install_langs, "markdown_inline")
-      end
-
+      treesitter_policy.setup_user_commands()
       require'nvim-treesitter'.install(install_langs)
 
       -- for indentation
