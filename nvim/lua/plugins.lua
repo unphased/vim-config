@@ -93,19 +93,61 @@ return {
     lazy = false, -- required; main doesn't support lazy-loading
     build = ":TSUpdate",
     init = function ()
-      require'nvim-treesitter'.install {
-        'rust', 'javascript', 'zig',
-        "markdown",
-        "markdown_inline",
-        "c",
-        "lua",
-        "vim",
-        "bash",
-        "comment",
-        "gitcommit",
-        "diff",
-        "git_rebase",
+      local managed_languages = {
+        rust = true,
+        javascript = true,
+        zig = true,
+        markdown = true,
+        c = true,
+        lua = true,
+        vim = true,
+        bash = true,
+        comment = true,
+        gitcommit = true,
+        diff = true,
+        git_rebase = true,
       }
+      local installing = {}
+
+      vim.api.nvim_create_autocmd("User", {
+        pattern = "TSUpdate",
+        callback = function()
+          installing = {}
+          local buf = vim.api.nvim_get_current_buf()
+          local lang = vim.treesitter.language.get_lang(vim.bo[buf].filetype)
+          if not lang or not managed_languages[lang] then
+            return
+          end
+          vim.bo[buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+          pcall(vim.treesitter.start, buf, lang)
+        end,
+      })
+
+      vim.api.nvim_create_autocmd("FileType", {
+        callback = function(args)
+          local filetype = vim.bo[args.buf].filetype
+          local lang = vim.treesitter.language.get_lang(filetype)
+          if not lang or not managed_languages[lang] then
+            return
+          end
+
+          local installed = require("nvim-treesitter").get_installed("parsers")
+          if vim.list_contains(installed, lang) then
+            vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+            return
+          end
+          if installing[lang] then
+            return
+          end
+
+          installing[lang] = true
+          vim.notify(("Installing Treesitter parser for %s"):format(lang), vim.log.levels.INFO)
+          vim.schedule(function()
+            pcall(vim.cmd, "TSInstall " .. lang)
+            installing[lang] = nil
+          end)
+        end,
+      })
 
       -- for indentation
       vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
