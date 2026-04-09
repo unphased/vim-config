@@ -93,11 +93,19 @@ return {
     lazy = false, -- required; main doesn't support lazy-loading
     build = ":TSUpdate",
     init = function ()
-      local treesitter_policy = require("config.treesitter")
-      local install_langs = treesitter_policy.apply_parser_policy()
-
-      treesitter_policy.setup_user_commands()
-      require'nvim-treesitter'.install(install_langs)
+      require'nvim-treesitter'.install {
+        'rust', 'javascript', 'zig',
+        "markdown",
+        "markdown_inline",
+        "c",
+        "lua",
+        "vim",
+        "bash",
+        "comment",
+        "gitcommit",
+        "diff",
+        "git_rebase",
+      }
 
       -- for indentation
       vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
