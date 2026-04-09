@@ -108,11 +108,22 @@ return {
         git_rebase = true,
       }
       local installing = {}
+      local installed = {}
+
+      local function refresh_installed()
+        installed = {}
+        for _, lang in ipairs(require("nvim-treesitter").get_installed("parsers")) do
+          installed[lang] = true
+        end
+      end
+
+      refresh_installed()
 
       vim.api.nvim_create_autocmd("User", {
         pattern = "TSUpdate",
         callback = function()
           installing = {}
+          refresh_installed()
           local buf = vim.api.nvim_get_current_buf()
           local lang = vim.treesitter.language.get_lang(vim.bo[buf].filetype)
           if not lang or not managed_languages[lang] then
@@ -131,8 +142,7 @@ return {
             return
           end
 
-          local installed = require("nvim-treesitter").get_installed("parsers")
-          if vim.list_contains(installed, lang) then
+          if installed[lang] then
             vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
             return
           end
