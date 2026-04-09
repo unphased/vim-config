@@ -180,7 +180,14 @@ return {
   --   },
   -- },
   -- 'nvim-treesitter/nvim-treesitter-textobjects',
-  "nvim-treesitter/nvim-treesitter-context",
+  {
+    "nvim-treesitter/nvim-treesitter-context",
+    opts = {
+      on_attach = function(buf)
+        return vim.bo[buf].filetype ~= "markdown"
+      end,
+    },
+  },
   "onsails/lspkind-nvim", -- status line plugin
   -- {
   --   "MunifTanjim/nougat.nvim",
@@ -736,19 +743,20 @@ return {
   --     require('sg').setup{}
   --   end
   -- },
-  {
-    'MeanderingProgrammer/render-markdown.nvim',
-    dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-mini/mini.nvim' },            -- if you use the mini.nvim suite
-    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-mini/mini.icons' },        -- if you use standalone mini plugins
-    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
-    ---@module 'render-markdown'
-    ---@type render.md.UserConfig
-    opts = {
-      code = {
-        conceal_delimiters = false,
-      }
-    },
-  },
+  -- Disabled: currently causes Neovim to die on markdown buffers in this setup.
+  -- {
+  --   'MeanderingProgrammer/render-markdown.nvim',
+  --   dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-mini/mini.nvim' },            -- if you use the mini.nvim suite
+  --   -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-mini/mini.icons' },        -- if you use standalone mini plugins
+  --   -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
+  --   ---@module 'render-markdown'
+  --   ---@type render.md.UserConfig
+  --   opts = {
+  --     code = {
+  --       conceal_delimiters = false,
+  --     }
+  --   },
+  -- },
   -- {
   --   "OXY2DEV/markview.nvim",
   --   priority = 101,
