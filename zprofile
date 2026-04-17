@@ -8,7 +8,3 @@ export PATH="/opt/homebrew/opt/node@16/bin:/opt/homebrew/bin:/opt/homebrew/sbin:
 source ~/.sensitive_app_access_tokens.sh
 
 export PATH="$HOME/go/bin:$PATH"
-
-if [[ -n "${GHOSTTY_QUICK_TERMINAL:-}" && -z "${TMUX:-}" ]]; then
-  exec "$HOME/.vim/ghostty-quickdash.sh"
-fi
