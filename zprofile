@@ -10,5 +10,5 @@ source ~/.sensitive_app_access_tokens.sh
 export PATH="$HOME/go/bin:$PATH"
 
 if [[ -n "${GHOSTTY_QUICK_TERMINAL:-}" && -z "${TMUX:-}" ]]; then
-  exec /usr/local/bin/tmux new-session -A -s quickdash
+  exec "$HOME/.vim/ghostty-quickdash.sh"
 fi
