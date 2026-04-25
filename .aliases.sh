@@ -109,11 +109,75 @@ alias gde="GIT_EXTERNAL_DIFF=sift GIT_PAGER=less git diff --ext-diff"
 alias de="gde"
 alias gdc="gd --cached"
 #unalias gg # some git gui thing from ohmyzsh
-alias gg="git lgtn --all"
-alias ggn="git lgtn --all --include-notes-dag"
+unalias gg ggn ggs ggsn 2>/dev/null || true
+
+__git_lgtn_view() {
+  local include_notes_dag=false
+  local arg
+  local -a log_opts revs paths cmd
+
+  while [[ $# -gt 0 ]]; do
+    arg="$1"
+    shift
+
+    case "$arg" in
+      --include-notes-dag)
+        include_notes_dag=true
+        ;;
+      --stat)
+        log_opts+=("$arg")
+        ;;
+      --)
+        while [[ $# -gt 0 ]]; do
+          paths+=("$1")
+          shift
+        done
+        ;;
+      --author|--committer|--grep|--grep-reflog|--since|--after|--until|--before|--max-count|--skip|--date|--format|--diff-filter|--glob|--exclude|--decorate-refs|--decorate-refs-exclude|--stat-width|--stat-name-width|--stat-count|-n|-L|-S|-G)
+        log_opts+=("$arg")
+        if [[ $# -gt 0 ]]; then
+          log_opts+=("$1")
+          shift
+        fi
+        ;;
+      --*=*|-[0-9]*|-*)
+        log_opts+=("$arg")
+        ;;
+      *)
+        if [[ -e "$arg" || "$arg" == "." || "$arg" == ".." || "$arg" == ./* || "$arg" == ../* || "$arg" == */* ]]; then
+          paths+=("$arg")
+        else
+          revs+=("$arg")
+        fi
+        ;;
+    esac
+  done
+
+  cmd=(git lgtn)
+  [[ "$include_notes_dag" == true ]] && cmd+=(--include-notes-dag)
+  cmd+=("${log_opts[@]}" --all "${revs[@]}")
+  if [[ ${#paths[@]} -gt 0 ]]; then
+    cmd+=(-- "${paths[@]}")
+  fi
+  "${cmd[@]}"
+}
+
+gg() {
+  __git_lgtn_view "$@"
+}
+
+ggn() {
+  __git_lgtn_view --include-notes-dag "$@"
+}
+
 alias gfp="git push --force-with-lease" # for force push when e.g. amending
-alias ggs="git lgtn --all --stat"
-alias ggsn="git lgtn --all --stat --include-notes-dag"
+ggs() {
+  __git_lgtn_view --stat "$@"
+}
+
+ggsn() {
+  __git_lgtn_view --stat --include-notes-dag "$@"
+}
 alias gca="git commit -av"
 alias gcm="git commit-message"
 #unalias gcp # I rarely cherry pick (if not using ohmyzsh, this will cause bash to emit a warning)

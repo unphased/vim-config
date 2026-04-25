@@ -62,15 +62,17 @@ done
 
 if [[ "$has_all" == true && "$include_notes_dag" == false ]]; then
   # `--all` includes every ref under `refs/` (including `refs/notes/*`), which
-  # makes the output very noisy. We treat `--all` as "branches + remotes + tags + HEAD"
-  # for the default view, and reserve the true "all refs (including notes DAG)"
-  # behavior for `--include-notes-dag`.
+  # makes the output very noisy. Exclude note refs from each `--all` traversal
+  # without appending pseudo-ref options after user pathspecs.
   filtered=()
   for arg in "${log_args[@]}"; do
-    [[ "$arg" == "--all" ]] && continue
-    filtered+=("$arg")
+    if [[ "$arg" == "--all" ]]; then
+      filtered+=("--exclude=refs/notes/*" --all)
+    else
+      filtered+=("$arg")
+    fi
   done
-  log_args=("${filtered[@]}" --branches --remotes --tags HEAD)
+  log_args=("${filtered[@]}")
 fi
 
 ###############################################################################
