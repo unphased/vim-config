@@ -1197,7 +1197,6 @@ telescope.setup{
 
 -- loads my config files under config-auto. TODO they are not currently having exports surfaced but i can add that later
 local config_dir = vim.fn.stdpath('config')
-print('config_dir', config_dir)
 
 local function load_auto_modules()
   local config_auto_dir = config_dir .. '/lua/config-auto'

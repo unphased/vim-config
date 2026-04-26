@@ -948,6 +948,7 @@ return {
   {
     -- Treat your local directory as a plugin
     'indicator', -- This name matches the directory in lua/projects/
+    enabled = false,
     -- Optional: Specify configuration options
     opts = {
       -- You can override defaults here, e.g.:
@@ -962,6 +963,7 @@ return {
   },
   {
     "hinell/lsp-timeout.nvim",
+    enabled = not vim.g.neovide,
     dependencies={ "neovim/nvim-lspconfig" }
   },
   {
