@@ -4,5 +4,3 @@ k back-scroll
 h left-scroll
 l right-scroll
  back-screen
-J search-forward ^commit
-K search-backward ^commit
