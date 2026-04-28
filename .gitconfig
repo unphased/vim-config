@@ -18,6 +18,7 @@
   minus-emph-style = bold syntax "#680000"
   zero-style = syntax "#1a1a1a"
   navigate = true
+  navigate-regex = "^commit "
 
 ; [delta "decorations"]
 ;   ; commit-style = raw
