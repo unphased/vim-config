@@ -13,3 +13,14 @@ way to set it up is
 3. back `~/.vimrc` up if it exists. Then delete it.
 4. `cd ~ && ln -s .vim/.vimrc .vimrc`  
 
+Linux virtual terminal setup is tracked here too:
+
+```
+~/.vim/linux-vt-install.sh
+```
+
+That script links the VT palette/setup files into `~/.config` and adds guarded
+Bash/Zsh hooks so the setup only runs when `TERM=linux`.
+
+Use `--force` if an existing local copy should be replaced by the tracked
+symlink.
