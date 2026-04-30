@@ -20,7 +20,7 @@ Linux virtual terminal setup is tracked here too:
 ```
 
 That script links the VT palette/setup files into `~/.config` and adds guarded
-Bash/Zsh hooks so the setup only runs when `TERM=linux`.
+Bash/Zsh hooks so the root-level setup script only runs when `TERM=linux`.
 
 Use `--force` if an existing local copy should be replaced by the tracked
 symlink.
