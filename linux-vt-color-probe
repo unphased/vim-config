@@ -1,0 +1,231 @@
+#!/usr/bin/env bash
+
+set -u
+
+esc=$'\033'
+reset="${esc}[0m"
+palette_file="${LINUX_VT_PALETTE:-$HOME/.config/tty-pastel}"
+
+usage() {
+  printf 'usage: %s [--palette FILE]\n' "${0##*/}"
+  printf '\n'
+  printf 'Probe Linux virtual terminal, framebuffer console, and tmux color behavior.\n'
+  printf 'Run it once directly on a Linux VT and once inside tmux on that same VT.\n'
+}
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --palette)
+      shift
+      if [ "$#" -eq 0 ]; then
+        usage >&2
+        exit 2
+      fi
+      palette_file=$1
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      usage >&2
+      exit 2
+      ;;
+  esac
+  shift
+done
+
+term_colors() {
+  if command -v tput >/dev/null 2>&1; then
+    tput colors 2>/dev/null || printf 'unknown'
+  else
+    printf 'tput missing'
+  fi
+}
+
+infocmp_colors() {
+  if [ -n "${TERM:-}" ] && command -v infocmp >/dev/null 2>&1; then
+    infocmp -1 "$TERM" 2>/dev/null |
+      sed -n 's/^[[:space:]]*colors#\([^,]*\),.*/\1/p' |
+      sed -n '1p'
+  fi
+}
+
+tmux_value() {
+  if [ -n "${TMUX:-}" ] && command -v tmux >/dev/null 2>&1; then
+    tmux display-message -p "$1" 2>/dev/null || true
+  fi
+}
+
+tty_name() {
+  local out
+
+  if out=$(tty 2>/dev/null) && [ "$out" != "not a tty" ]; then
+    printf '%s' "$out"
+  else
+    printf 'not a tty'
+  fi
+}
+
+rule() {
+  printf '\n%s\n' "$1"
+  printf '%s\n' '------------------------------------------------------------'
+}
+
+sample_cell() {
+  local sgr=$1 label=$2
+  printf '%b%-9s%b ' "${esc}[${sgr}m" "$label" "$reset"
+}
+
+print_numbered_cells() {
+  local kind=$1 start=$2 end=$3 i sgr
+
+  for ((i = start; i <= end; i++)); do
+    if [ "$kind" = fg ]; then
+      sgr="38;5;${i}"
+    else
+      sgr="48;5;${i}"
+    fi
+    printf '%b%3d%b ' "${esc}[${sgr}m" "$i" "$reset"
+    if [ $(( (i - start + 1) % 16 )) -eq 0 ]; then
+      printf '\n'
+    fi
+  done
+  if [ $(( (end - start + 1) % 16 )) -ne 0 ]; then
+    printf '\n'
+  fi
+}
+
+print_truecolor_ramp() {
+  local r g b label i
+
+  printf 'Background 24-bit ramps. Linux VT should quantize these, not show smooth gradients.\n'
+  for label in red green blue gray; do
+    printf '%-5s ' "$label"
+    for ((i = 0; i <= 255; i += 17)); do
+      case "$label" in
+        red) r=$i; g=0; b=0 ;;
+        green) r=0; g=$i; b=0 ;;
+        blue) r=0; g=0; b=$i ;;
+        gray) r=$i; g=$i; b=$i ;;
+      esac
+      printf '%b  %b' "${esc}[48;2;${r};${g};${b}m" "$reset"
+    done
+    printf '\n'
+  done
+}
+
+print_palette_file() {
+  local file=$1 line red_line green_line blue_line old_ifs
+  local -a reds greens blues
+  local i hex
+
+  if [ ! -r "$file" ]; then
+    printf 'Palette file: %s (not readable)\n' "$file"
+    return
+  fi
+
+  {
+    IFS= read -r red_line || true
+    IFS= read -r green_line || true
+    IFS= read -r blue_line || true
+  } < "$file"
+
+  old_ifs=$IFS
+  IFS=,
+  read -r -a reds <<< "$red_line"
+  read -r -a greens <<< "$green_line"
+  read -r -a blues <<< "$blue_line"
+  IFS=$old_ifs
+
+  printf 'Palette file: %s\n' "$file"
+  printf 'Index  Hex      Foreground  Background\n'
+  for ((i = 0; i < 16; i++)); do
+    if [ -z "${reds[$i]:-}" ] || [ -z "${greens[$i]:-}" ] || [ -z "${blues[$i]:-}" ]; then
+      printf 'Palette parse stopped at index %d; expected 16 comma-separated R/G/B values per line.\n' "$i"
+      return
+    fi
+    printf -v hex '#%02x%02x%02x' "${reds[$i]}" "${greens[$i]}" "${blues[$i]}"
+    if [ "$i" -lt 8 ]; then
+      printf '%5d  %-7s  ' "$i" "$hex"
+      sample_cell "$((30 + i))" "fg $i"
+      sample_cell "$((40 + i))" "bg $i"
+      printf '\n'
+    else
+      printf '%5d  %-7s  ' "$i" "$hex"
+      sample_cell "$((90 + i - 8))" "fg $i"
+      sample_cell "$((100 + i - 8))" "bg $i"
+      printf '\n'
+    fi
+  done
+}
+
+printf 'Linux VT color probe\n'
+printf 'Run context\n'
+printf '  tty:             %s\n' "$(tty_name)"
+printf '  TERM:            %s\n' "${TERM:-unset}"
+printf '  COLORTERM:       %s\n' "${COLORTERM:-unset}"
+if [ -n "${TMUX:-}" ]; then
+  printf '  TMUX:            yes\n'
+else
+  printf '  TMUX:            no\n'
+fi
+printf '  tput colors:     %s\n' "$(term_colors)"
+info_colors=$(infocmp_colors)
+printf '  infocmp colors:  %s\n' "${info_colors:-unknown}"
+
+if [ -n "${TMUX:-}" ]; then
+  printf '  tmux version:    %s\n' "$(tmux -V 2>/dev/null || printf 'unknown')"
+  printf '  tmux client:     %s\n' "$(tmux_value 'term=#{client_termname} features=#{client_termfeatures}')"
+fi
+
+rule 'Direct 16-color SGR'
+printf 'Normal foregrounds 30..37:\n'
+for i in {0..7}; do sample_cell "$((30 + i))" "$((30 + i))"; done
+printf '\n'
+printf 'Bright foregrounds 90..97:\n'
+for i in {0..7}; do sample_cell "$((90 + i))" "$((90 + i))"; done
+printf '\n\n'
+
+printf 'Normal backgrounds 40..47:\n'
+for i in {0..7}; do sample_cell "$((40 + i))" "$((40 + i))"; done
+printf '\n'
+printf 'Bright background requests 100..107:\n'
+for i in {0..7}; do sample_cell "$((100 + i))" "$((100 + i))"; done
+printf '\n'
+printf 'Linux console documentation says 100..107 map like 40..47; bright backgrounds are not supported there.\n'
+
+rule 'Intensity and attribute checks'
+sample_cell '31' '31 red'
+sample_cell '1;31' '1;31'
+sample_cell '91' '91'
+sample_cell '2;31' '2;31'
+sample_cell '4;31' '4;31'
+sample_cell '3;31' '3;31'
+printf '\n'
+printf 'On Linux VT, dim/italic/underline may be simulated using palette slots rather than rendered as distinct text styles.\n'
+
+rule '256-color collapse check'
+printf 'Foreground 38;5;0..31:\n'
+print_numbered_cells fg 0 31
+printf 'Background 48;5;0..31:\n'
+print_numbered_cells bg 0 31
+printf 'Linux VT accepts 256-color syntax, but folds it into the small console palette. If these are all distinct, this is not the limiting layer.\n'
+
+rule '24-bit collapse check'
+print_truecolor_ramp
+
+rule 'Configured 16-slot palette'
+print_palette_file "$palette_file"
+
+rule 'Interpretation'
+cat <<'EOF'
+Expected Linux VT result:
+  - terminfo for TERM=linux usually reports 8 colors.
+  - Direct SGR gives 8 normal foregrounds plus 8 bright foregrounds.
+  - Backgrounds are effectively 8 slots; 100..107 are not bright on Linux VT.
+  - 256-color and 24-bit sequences are accepted by modern kernels but quantized into the console palette.
+  - tmux can advertise tmux-256color inside the pane, but the final renderer is still the outer console.
+
+For tmux on a real VT, compare this script outside tmux and inside tmux. If the direct 16-color sections match but the 256/24-bit sections collapse, tune applications/tmux toward the 16 palette rather than expecting true 256/RGB rendering.
+EOF
