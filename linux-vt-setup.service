@@ -1,0 +1,15 @@
+[Unit]
+Description=Linux virtual terminal setup
+Documentation=man:setterm(1) man:loadkeys(1) man:setfont(8) man:setvtrgb(8)
+ConditionPathExists=/dev/tty1
+RequiresMountsFor=/home/slu/.vim /home/slu/.config
+After=systemd-vconsole-setup.service
+Before=getty@tty1.service display-manager.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/home/slu/.vim/linux-vt-setup.sh --console /dev/tty1
+
+[Install]
+WantedBy=multi-user.target

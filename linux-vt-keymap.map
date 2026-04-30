@@ -1,0 +1,2 @@
+alt keycode 68 = F70
+string F70 = "\033[21;3~"

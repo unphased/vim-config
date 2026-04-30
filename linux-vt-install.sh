@@ -2,17 +2,22 @@
 set -u
 
 repo_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P) || exit 1
+target_home=${LINUX_VT_HOME:-$(dirname -- "$repo_dir")}
 changed=0
 force=0
+systemd=0
 
-case "${1:-}" in
-  --force) force=1 ;;
-  "" ) ;;
-  *)
-    printf 'usage: %s [--force]\n' "$0" >&2
-    exit 2
-    ;;
-esac
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --force) force=1 ;;
+    --systemd) systemd=1 ;;
+    *)
+      printf 'usage: %s [--force] [--systemd]\n' "$0" >&2
+      exit 2
+      ;;
+  esac
+  shift
+done
 
 log() {
   printf '%s\n' "$*"
@@ -105,7 +110,7 @@ ensure_shell_hook() {
 }
 
 cleanup_old_setup_link() {
-  dest=$HOME/.config/linux-vt-setup.sh
+  dest=$target_home/.config/linux-vt-setup.sh
   old_src=$repo_dir/.config/linux-vt-setup.sh
 
   [ -L "$dest" ] || return 0
@@ -117,10 +122,32 @@ cleanup_old_setup_link() {
   fi
 }
 
-ensure_symlink "$repo_dir/.config/tty-pastel" "$HOME/.config/tty-pastel"
+ensure_systemd_unit() {
+  unit_src=$repo_dir/linux-vt-setup.service
+  unit_dest=/etc/systemd/system/linux-vt-setup.service
+
+  if [ "$(id -u)" -ne 0 ]; then
+    log "skipped systemd setup; rerun with sudo and --systemd to install $unit_dest"
+    return 0
+  fi
+
+  ensure_symlink "$unit_src" "$unit_dest"
+
+  if command -v systemctl >/dev/null 2>&1; then
+    systemctl daemon-reload
+    systemctl enable linux-vt-setup.service
+    mark_changed "enabled linux-vt-setup.service"
+  fi
+}
+
+ensure_symlink "$repo_dir/.config/tty-pastel" "$target_home/.config/tty-pastel"
 cleanup_old_setup_link
 
-ensure_shell_hook "$HOME/.bashrc"
-ensure_shell_hook "$HOME/.zshrc"
+ensure_shell_hook "$target_home/.bashrc"
+ensure_shell_hook "$target_home/.zshrc"
+
+if [ "$systemd" -eq 1 ]; then
+  ensure_systemd_unit
+fi
 
 printf 'changed=%s\n' "$changed"
