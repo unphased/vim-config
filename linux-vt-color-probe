@@ -196,9 +196,16 @@ printf '\n'
 printf 'Linux console documentation says 100..107 map like 40..47; bright backgrounds are not supported there.\n'
 
 rule 'Intensity and attribute checks'
+printf 'Baseline foreground:\n'
 sample_cell '31' '31 red'
+printf '\n'
+
+printf 'Bright red paths. Compare SGR bold-red with direct bright-red:\n'
 sample_cell '1;31' '1;31'
 sample_cell '91' '91'
+printf '\n'
+
+printf 'Style requests on red. Linux VT may simulate these with alternate palette colors:\n'
 sample_cell '2;31' '2;31'
 sample_cell '4;31' '4;31'
 sample_cell '3;31' '3;31'
