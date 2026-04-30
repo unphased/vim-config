@@ -144,6 +144,7 @@ write_systemd_unit() {
     printf '%s\n' '[Service]'
     printf '%s\n' 'Type=oneshot'
     printf '%s\n' 'RemainAfterExit=yes'
+    printf '%s\n' 'Environment=TERM=linux'
     printf 'Environment=LINUX_VT_HOME=%s\n' "$target_home"
     printf 'Environment=LINUX_VT_KEYMAP=%s/linux-vt-keymap.map\n' "$repo_dir"
     printf 'Environment=LINUX_VT_PALETTE=%s/.config/tty-pastel\n' "$target_home"

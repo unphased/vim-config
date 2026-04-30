@@ -8,6 +8,8 @@ case "${1:-}" in
       printf 'usage: %s [--console /dev/ttyN]\n' "${0:-linux-vt-setup.sh}" >&2
       return 2 2>/dev/null || exit 2
     fi
+    TERM=linux
+    export TERM
     ;;
   "")
     case "${TERM:-}" in

@@ -9,6 +9,7 @@ Before=getty@tty1.service display-manager.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
+Environment=TERM=linux
 Environment=LINUX_VT_HOME=/home/slu
 Environment=LINUX_VT_KEYMAP=/home/slu/.vim/linux-vt-keymap.map
 Environment=LINUX_VT_PALETTE=/home/slu/.config/tty-pastel
