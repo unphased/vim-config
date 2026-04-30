@@ -25,9 +25,11 @@ Bash/Zsh hooks so the root-level setup script only runs when `TERM=linux`.
 Use `--force` if an existing local copy should be replaced by the tracked
 symlink.
 
-Use `--systemd` to install the boot-time VT setup service. The installer
+The installer also sets up the boot-time VT setup service by default. It
 applies the user files first, then asks sudo only for the systemd unit:
 
 ```
-~/.vim/linux-vt-install.sh --force --systemd
+~/.vim/linux-vt-install.sh --force
 ```
+
+Use `--no-systemd` only when the system unit should be left untouched.

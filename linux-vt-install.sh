@@ -5,19 +5,20 @@ repo_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P) || exit 1
 target_home=${LINUX_VT_HOME:-$(dirname -- "$repo_dir")}
 changed=0
 force=0
-systemd=0
+systemd=1
 systemd_only=0
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --force) force=1 ;;
     --systemd) systemd=1 ;;
+    --no-systemd) systemd=0 ;;
     --systemd-only)
       systemd=1
       systemd_only=1
       ;;
     *)
-      printf 'usage: %s [--force] [--systemd]\n' "$0" >&2
+      printf 'usage: %s [--force] [--no-systemd]\n' "$0" >&2
       exit 2
       ;;
   esac
