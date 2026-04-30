@@ -115,6 +115,32 @@ print_truecolor_ramp() {
   done
 }
 
+print_fg_bg_matrix() {
+  local bg fg fg_sgr label
+
+  printf 'Rows are practical Linux VT background slots 0..7. Columns are foreground slots 0..15.\n'
+  printf 'Use this to spot combinations that collapse, wash out, or remain readable.\n\n'
+  printf 'bg\\fg '
+  for ((fg = 0; fg < 16; fg++)); do
+    printf '%4d' "$fg"
+  done
+  printf '\n'
+
+  for ((bg = 0; bg < 8; bg++)); do
+    printf 'bg %-2d ' "$bg"
+    for ((fg = 0; fg < 16; fg++)); do
+      if [ "$fg" -lt 8 ]; then
+        fg_sgr=$((30 + fg))
+      else
+        fg_sgr=$((90 + fg - 8))
+      fi
+      printf -v label '%02d' "$fg"
+      printf '%b %2s %b' "${esc}[${fg_sgr};$((40 + bg))m" "$label" "$reset"
+    done
+    printf '\n'
+  done
+}
+
 print_palette_file() {
   local file=$1 line red_line green_line blue_line old_ifs
   local -a reds greens blues
@@ -194,6 +220,9 @@ printf 'Bright background requests 100..107:\n'
 for i in {0..7}; do sample_cell "$((100 + i))" "$((100 + i))"; done
 printf '\n'
 printf 'Linux console documentation says 100..107 map like 40..47; bright backgrounds are not supported there.\n'
+
+rule '8x16 foreground/background matrix'
+print_fg_bg_matrix
 
 rule 'Intensity and attribute checks'
 printf 'Baseline foreground:\n'
