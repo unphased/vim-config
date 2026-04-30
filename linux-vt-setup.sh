@@ -24,7 +24,9 @@ esac
 linux_vt_font="${LINUX_VT_FONT:-ter-v20n}"
 linux_vt_blank_minutes="${LINUX_VT_BLANK_MINUTES:-1}"
 linux_vt_powerdown_minutes="${LINUX_VT_POWERDOWN_MINUTES:-1}"
-linux_vt_keymap="${LINUX_VT_KEYMAP:-$HOME/.vim/linux-vt-keymap.map}"
+linux_vt_home="${LINUX_VT_HOME:-$HOME}"
+linux_vt_keymap="${LINUX_VT_KEYMAP:-$linux_vt_home/.vim/linux-vt-keymap.map}"
+linux_vt_palette="${LINUX_VT_PALETTE:-$linux_vt_home/.config/tty-pastel}"
 
 if [ -n "$linux_vt_font" ] && command -v setfont >/dev/null 2>&1; then
   if [ -n "$linux_vt_console" ]; then
@@ -34,11 +36,11 @@ if [ -n "$linux_vt_font" ] && command -v setfont >/dev/null 2>&1; then
   fi
 fi
 
-if command -v setvtrgb >/dev/null 2>&1 && [ -r "$HOME/.config/tty-pastel" ]; then
+if command -v setvtrgb >/dev/null 2>&1 && [ -r "$linux_vt_palette" ]; then
   if [ -n "$linux_vt_console" ]; then
-    setvtrgb -C "$linux_vt_console" "$HOME/.config/tty-pastel" >/dev/null 2>&1 || true
+    setvtrgb -C "$linux_vt_console" "$linux_vt_palette" >/dev/null 2>&1 || true
   else
-    setvtrgb "$HOME/.config/tty-pastel" >/dev/null 2>&1 || true
+    setvtrgb "$linux_vt_palette" >/dev/null 2>&1 || true
   fi
 fi
 

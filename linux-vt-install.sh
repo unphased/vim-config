@@ -6,11 +6,16 @@ target_home=${LINUX_VT_HOME:-$(dirname -- "$repo_dir")}
 changed=0
 force=0
 systemd=0
+systemd_only=0
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --force) force=1 ;;
     --systemd) systemd=1 ;;
+    --systemd-only)
+      systemd=1
+      systemd_only=1
+      ;;
     *)
       printf 'usage: %s [--force] [--systemd]\n' "$0" >&2
       exit 2
@@ -122,29 +127,80 @@ cleanup_old_setup_link() {
   fi
 }
 
-ensure_systemd_unit() {
-  unit_src=$repo_dir/linux-vt-setup.service
-  unit_dest=/etc/systemd/system/linux-vt-setup.service
+write_systemd_unit() {
+  unit_dest=$1
+  tmp=$unit_dest.$$
 
-  if [ "$(id -u)" -ne 0 ]; then
-    log "skipped systemd setup; rerun with sudo and --systemd to install $unit_dest"
+  {
+    printf '%s\n' '[Unit]'
+    printf '%s\n' 'Description=Linux virtual terminal setup'
+    printf '%s\n' 'Documentation=man:setterm(1) man:loadkeys(1) man:setfont(8) man:setvtrgb(8)'
+    printf '%s\n' 'ConditionPathExists=/dev/tty1'
+    printf 'RequiresMountsFor=%s %s\n' "$repo_dir" "$target_home/.config"
+    printf '%s\n' 'After=systemd-vconsole-setup.service'
+    printf '%s\n' 'Before=getty@tty1.service display-manager.service'
+    printf '%s\n' ''
+    printf '%s\n' '[Service]'
+    printf '%s\n' 'Type=oneshot'
+    printf '%s\n' 'RemainAfterExit=yes'
+    printf 'Environment=LINUX_VT_HOME=%s\n' "$target_home"
+    printf 'Environment=LINUX_VT_KEYMAP=%s/linux-vt-keymap.map\n' "$repo_dir"
+    printf 'Environment=LINUX_VT_PALETTE=%s/.config/tty-pastel\n' "$target_home"
+    printf 'ExecStart=%s/linux-vt-setup.sh --console /dev/tty1\n' "$repo_dir"
+    printf '%s\n' ''
+    printf '%s\n' '[Install]'
+    printf '%s\n' 'WantedBy=multi-user.target'
+  } > "$tmp" || {
+    rm -f -- "$tmp"
+    return 1
+  }
+
+  if [ -e "$unit_dest" ] && cmp -s -- "$tmp" "$unit_dest"; then
+    rm -f -- "$tmp"
     return 0
   fi
 
-  ensure_symlink "$unit_src" "$unit_dest"
+  mv -f -- "$tmp" "$unit_dest"
+  mark_changed "installed $unit_dest"
+}
+
+ensure_systemd_unit() {
+  unit_dest=/etc/systemd/system/linux-vt-setup.service
+
+  if [ "$(id -u)" -ne 0 ]; then
+    if ! command -v sudo >/dev/null 2>&1; then
+      log "skipped systemd setup; sudo is not available to install $unit_dest"
+      return 0
+    fi
+
+    if [ "$force" -eq 1 ]; then
+      sudo LINUX_VT_HOME="$target_home" "$repo_dir/linux-vt-install.sh" --force --systemd-only || return $?
+    else
+      sudo LINUX_VT_HOME="$target_home" "$repo_dir/linux-vt-install.sh" --systemd-only || return $?
+    fi
+    return 0
+  fi
+
+  write_systemd_unit "$unit_dest"
 
   if command -v systemctl >/dev/null 2>&1; then
     systemctl daemon-reload
-    systemctl enable linux-vt-setup.service
-    mark_changed "enabled linux-vt-setup.service"
+    if systemctl is-enabled linux-vt-setup.service >/dev/null 2>&1; then
+      :
+    else
+      systemctl enable linux-vt-setup.service
+      mark_changed "enabled linux-vt-setup.service"
+    fi
   fi
 }
 
-ensure_symlink "$repo_dir/.config/tty-pastel" "$target_home/.config/tty-pastel"
-cleanup_old_setup_link
+if [ "$systemd_only" -eq 0 ]; then
+  ensure_symlink "$repo_dir/.config/tty-pastel" "$target_home/.config/tty-pastel"
+  cleanup_old_setup_link
 
-ensure_shell_hook "$target_home/.bashrc"
-ensure_shell_hook "$target_home/.zshrc"
+  ensure_shell_hook "$target_home/.bashrc"
+  ensure_shell_hook "$target_home/.zshrc"
+fi
 
 if [ "$systemd" -eq 1 ]; then
   ensure_systemd_unit
