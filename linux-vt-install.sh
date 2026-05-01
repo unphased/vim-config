@@ -7,6 +7,7 @@ changed=0
 force=0
 systemd=1
 systemd_only=0
+context=user
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -16,6 +17,7 @@ while [ "$#" -gt 0 ]; do
     --systemd-only)
       systemd=1
       systemd_only=1
+      context=systemd
       ;;
     *)
       printf 'usage: %s [--force] [--no-systemd]\n' "$0" >&2
@@ -26,7 +28,7 @@ while [ "$#" -gt 0 ]; do
 done
 
 log() {
-  printf '%s\n' "$*"
+  printf '[%s] %s\n' "$context" "$*"
 }
 
 mark_changed() {
@@ -237,4 +239,4 @@ if [ "$systemd" -eq 1 ]; then
   ensure_systemd_unit
 fi
 
-printf 'changed=%s\n' "$changed"
+printf '[%s] changed=%s\n' "$context" "$changed"
