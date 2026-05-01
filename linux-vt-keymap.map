@@ -1,2 +1,8 @@
+shift keycode 68 = F71
 alt keycode 68 = F70
+
+control keycode 14 = F72
+
 string F70 = "\033[21;3~"
+string F71 = "\033[21;2~"
+string F72 = "\027"
