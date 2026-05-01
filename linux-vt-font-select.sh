@@ -35,42 +35,21 @@ quote_words() {
 }
 
 show_command() {
-  printf '+ setfont' >&2
+  printf '+ %s' "$1" >&2
+  shift
   quote_words "$@" >&2
   printf '\n' >&2
 }
 
-console_candidates() {
-  printf '%s\n' /dev/tty
-
-  tty_path=$(tty 2>/dev/null || true)
-  case "$tty_path" in
-    /dev/tty[0-9]*)
-      printf '%s\n' "$tty_path"
-      ;;
-  esac
-
-  if command -v fgconsole >/dev/null 2>&1; then
-    active_vt=$(fgconsole 2>/dev/null || true)
-    case "$active_vt" in
-      [0-9]*)
-        printf '/dev/tty%s\n' "$active_vt"
-        ;;
-    esac
-  fi
-
-  printf '%s\n' /dev/tty0 /dev/console
-}
-
 run_setfont() {
   if [ -n "$console" ]; then
-    show_command -C "$console" "$@"
+    show_command setfont -C "$console" "$@"
     setfont -C "$console" "$@"
     return $?
   fi
 
   err_file=$(mktemp "${TMPDIR:-/tmp}/linux-vt-setfont.XXXXXX") || exit 1
-  show_command "$@"
+  show_command setfont "$@"
   setfont "$@" 2>"$err_file"
   status=$?
   if [ "$status" -eq 0 ]; then
@@ -81,31 +60,14 @@ run_setfont() {
   err_text=$(cat "$err_file")
   rm -f -- "$err_file"
 
-  # setfont sometimes cannot infer the console from a script's stdio even
-  # when the same command works by hand in tmux on a VT. In that case, retry
-  # with explicit console devices.
-  show_command "$@" '<' /dev/tty '>' /dev/tty
-  if [ -e /dev/tty ] && ( setfont "$@" </dev/tty >/dev/tty ) 2>/dev/null; then
-    printf 'Applied via /dev/tty\n' >&2
-    return 0
+  printf '%s\n' "$err_text" >&2
+
+  if command -v sudo >/dev/null 2>&1; then
+    show_command sudo setfont "$@"
+    sudo setfont "$@"
+    return $?
   fi
 
-  seen=' '
-  for candidate in $(console_candidates); do
-    case "$seen" in
-      *" $candidate "*) continue ;;
-    esac
-    seen="$seen$candidate "
-    [ -e "$candidate" ] || continue
-
-    show_command -C "$candidate" "$@"
-    if setfont -C "$candidate" "$@" 2>/dev/null; then
-      printf 'Applied via %s\n' "$candidate" >&2
-      return 0
-    fi
-  done
-
-  printf '%s\n' "$err_text" >&2
   return "$status"
 }
 
