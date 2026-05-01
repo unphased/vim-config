@@ -27,6 +27,70 @@ die() {
   exit 1
 }
 
+console_candidates() {
+  printf '%s\n' /dev/tty
+
+  tty_path=$(tty 2>/dev/null || true)
+  case "$tty_path" in
+    /dev/tty[0-9]*)
+      printf '%s\n' "$tty_path"
+      ;;
+  esac
+
+  if command -v fgconsole >/dev/null 2>&1; then
+    active_vt=$(fgconsole 2>/dev/null || true)
+    case "$active_vt" in
+      [0-9]*)
+        printf '/dev/tty%s\n' "$active_vt"
+        ;;
+    esac
+  fi
+
+  printf '%s\n' /dev/tty0 /dev/console
+}
+
+run_setfont() {
+  if [ -n "$console" ]; then
+    setfont -C "$console" "$@"
+    return $?
+  fi
+
+  err_file=$(mktemp "${TMPDIR:-/tmp}/linux-vt-setfont.XXXXXX") || exit 1
+  if setfont "$@" 2>"$err_file"; then
+    rm -f -- "$err_file"
+    return 0
+  fi
+
+  status=$?
+  err_text=$(cat "$err_file")
+  rm -f -- "$err_file"
+
+  # setfont sometimes cannot infer the console from a script's stdio even
+  # when the same command works by hand in tmux on a VT. In that case, retry
+  # with explicit console devices.
+  if [ -e /dev/tty ] && ( setfont "$@" </dev/tty >/dev/tty ) 2>/dev/null; then
+    printf 'Applied via /dev/tty\n' >&2
+    return 0
+  fi
+
+  seen=' '
+  for candidate in $(console_candidates); do
+    case "$seen" in
+      *" $candidate "*) continue ;;
+    esac
+    seen="$seen$candidate "
+    [ -e "$candidate" ] || continue
+
+    if setfont -C "$candidate" "$@" 2>/dev/null; then
+      printf 'Applied via %s\n' "$candidate" >&2
+      return 0
+    fi
+  done
+
+  printf '%s\n' "$err_text" >&2
+  return "$status"
+}
+
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --console|-C)
@@ -41,11 +105,7 @@ while [ "$#" -gt 0 ]; do
       once=1
       ;;
     --reset)
-      if [ -n "$console" ]; then
-        setfont -C "$console" -R
-      else
-        setfont -R
-      fi
+      run_setfont -R
       exit $?
       ;;
     --help|-h)
@@ -115,11 +175,7 @@ build_font_list() {
 
 apply_font() {
   font=$1
-  if [ -n "$console" ]; then
-    setfont -C "$console" "$font"
-  else
-    setfont "$font"
-  fi
+  run_setfont "$font"
 }
 
 find_font_by_name() {
@@ -131,9 +187,13 @@ find_font_by_name() {
       sub(/^.*\//, "", name)
       short = name
       sub(/\.(psf|psfu|fnt)(\.gz)?$/, "", short)
-      if (path == wanted || name == wanted || short == wanted) {
-        print path
-        exit
+      if (found == "" && (path == wanted || name == wanted || short == wanted)) {
+        found = path
+      }
+    }
+    END {
+      if (found != "") {
+        print found
       }
     }
   '
@@ -155,8 +215,8 @@ choose_font() {
     }
     font=$(awk -F '\t' -v choice="$choice" '$1 == choice { print $2; exit }' "$list_file")
   else
-    nl -w2 -s'. ' "$list_file" | sed 's/\t.*$//'
-    printf 'Font number: '
+    nl -w2 -s'. ' "$list_file" | sed 's/\t.*$//' >&2
+    printf 'Font number: ' >&2
     IFS= read -r number || {
       rm -f -- "$list_file"
       return 1
@@ -206,11 +266,7 @@ while :; do
       exit 0
       ;;
     r|R)
-      if [ -n "$console" ]; then
-        setfont -C "$console" -R
-      else
-        setfont -R
-      fi
+      run_setfont -R
       ;;
   esac
 done
