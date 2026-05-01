@@ -2,11 +2,11 @@
 
 set -eu
 
-tmux_bin=/usr/local/bin/tmux
+tmux_bin=$(command -v tmux)
 session=quickdash
-home_dir=${HOME:-/Users/slu}
-htop_bin=/opt/homebrew/bin/htop
-watch_bin=/opt/homebrew/bin/watch
+home_dir=${HOME:-/home/slu}
+htop_bin=$(command -v htop)
+watch_bin=$(command -v watch)
 quota_script="$home_dir/hyperion/tools/quota/quota-latest.sh"
 
 if ! "$tmux_bin" has-session -t "$session" 2>/dev/null; then
