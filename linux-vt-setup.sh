@@ -1,3 +1,4 @@
+#!/bin/sh
 # Linux virtual terminal setup. Safe to source from interactive shells.
 linux_vt_console=
 
