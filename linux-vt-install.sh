@@ -130,6 +130,7 @@ cleanup_old_setup_link() {
 
 write_systemd_unit() {
   unit_dest=$1
+  payload_dir=$2
   tmp=$unit_dest.$$
 
   {
@@ -137,7 +138,7 @@ write_systemd_unit() {
     printf '%s\n' 'Description=Linux virtual terminal setup'
     printf '%s\n' 'Documentation=man:setterm(1) man:loadkeys(1) man:setfont(8) man:setvtrgb(8)'
     printf '%s\n' 'ConditionPathExists=/dev/tty1'
-    printf 'RequiresMountsFor=%s %s\n' "$repo_dir" "$target_home/.config"
+    printf 'RequiresMountsFor=%s\n' "$payload_dir"
     printf '%s\n' 'After=systemd-vconsole-setup.service'
     printf '%s\n' 'Before=getty@tty1.service display-manager.service'
     printf '%s\n' ''
@@ -146,9 +147,9 @@ write_systemd_unit() {
     printf '%s\n' 'RemainAfterExit=yes'
     printf '%s\n' 'Environment=TERM=linux'
     printf 'Environment=LINUX_VT_HOME=%s\n' "$target_home"
-    printf 'Environment=LINUX_VT_KEYMAP=%s/linux-vt-keymap.map\n' "$repo_dir"
-    printf 'Environment=LINUX_VT_PALETTE=%s/.config/tty-pastel\n' "$target_home"
-    printf 'ExecStart=%s/linux-vt-setup.sh --console /dev/tty1\n' "$repo_dir"
+    printf 'Environment=LINUX_VT_KEYMAP=%s/linux-vt-keymap.map\n' "$payload_dir"
+    printf 'Environment=LINUX_VT_PALETTE=%s/tty-pastel\n' "$payload_dir"
+    printf 'ExecStart=/usr/bin/sh %s/linux-vt-setup.sh --console /dev/tty1\n' "$payload_dir"
     printf '%s\n' ''
     printf '%s\n' '[Install]'
     printf '%s\n' 'WantedBy=multi-user.target'
@@ -166,8 +167,33 @@ write_systemd_unit() {
   mark_changed "installed $unit_dest"
 }
 
+install_file() {
+  src=$1
+  dest=$2
+  mode=$3
+
+  if [ ! -e "$dest" ] || ! cmp -s -- "$src" "$dest"; then
+    cp -- "$src" "$dest" || return 1
+    chmod "$mode" "$dest" || return 1
+    mark_changed "installed $dest"
+    return 0
+  fi
+
+  chmod "$mode" "$dest" || return 1
+}
+
+install_systemd_payload() {
+  payload_dir=$1
+
+  mkdir -p -- "$payload_dir" || return 1
+  install_file "$repo_dir/linux-vt-setup.sh" "$payload_dir/linux-vt-setup.sh" 0755 || return 1
+  install_file "$repo_dir/linux-vt-keymap.map" "$payload_dir/linux-vt-keymap.map" 0644 || return 1
+  install_file "$repo_dir/.config/tty-pastel" "$payload_dir/tty-pastel" 0644 || return 1
+}
+
 ensure_systemd_unit() {
   unit_dest=/etc/systemd/system/linux-vt-setup.service
+  payload_dir=/etc/linux-vt
 
   if [ "$(id -u)" -ne 0 ]; then
     if ! command -v sudo >/dev/null 2>&1; then
@@ -183,7 +209,8 @@ ensure_systemd_unit() {
     return 0
   fi
 
-  write_systemd_unit "$unit_dest"
+  install_systemd_payload "$payload_dir"
+  write_systemd_unit "$unit_dest" "$payload_dir"
 
   if command -v systemctl >/dev/null 2>&1; then
     systemctl daemon-reload

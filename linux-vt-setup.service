@@ -2,7 +2,7 @@
 Description=Linux virtual terminal setup
 Documentation=man:setterm(1) man:loadkeys(1) man:setfont(8) man:setvtrgb(8)
 ConditionPathExists=/dev/tty1
-RequiresMountsFor=/home/slu/.vim /home/slu/.config
+RequiresMountsFor=/etc/linux-vt
 After=systemd-vconsole-setup.service
 Before=getty@tty1.service display-manager.service
 
@@ -11,9 +11,9 @@ Type=oneshot
 RemainAfterExit=yes
 Environment=TERM=linux
 Environment=LINUX_VT_HOME=/home/slu
-Environment=LINUX_VT_KEYMAP=/home/slu/.vim/linux-vt-keymap.map
-Environment=LINUX_VT_PALETTE=/home/slu/.config/tty-pastel
-ExecStart=/home/slu/.vim/linux-vt-setup.sh --console /dev/tty1
+Environment=LINUX_VT_KEYMAP=/etc/linux-vt/linux-vt-keymap.map
+Environment=LINUX_VT_PALETTE=/etc/linux-vt/tty-pastel
+ExecStart=/usr/bin/sh /etc/linux-vt/linux-vt-setup.sh --console /dev/tty1
 
 [Install]
 WantedBy=multi-user.target

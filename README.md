@@ -33,3 +33,5 @@ applies the user files first, then asks sudo only for the systemd unit:
 ```
 
 Use `--no-systemd` only when the system unit should be left untouched.
+The systemd install syncs a root-owned runtime copy into `/etc/linux-vt` so the
+unit does not execute scripts directly from the home directory.
