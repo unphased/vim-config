@@ -127,6 +127,17 @@ print_font_entry() {
   name=$(basename -- "$font")
   info=$(font_info "$font")
   [ -n "$info" ] || info='unknown font data'
+
+  glyph_count=$(printf '%s\n' "$info" | sed -n 's/.* \([0-9][0-9]*\) characters.*/\1/p')
+  case "$glyph_count" in
+    ''|*[!0-9]*)
+      ;;
+    *)
+      # The Linux console rejects PSF fonts beyond its 512-glyph slot limit.
+      [ "$glyph_count" -le 512 ] || return 0
+      ;;
+  esac
+
   printf '%s/%s  --  %s\t%s\n' "$source" "$name" "$info" "$font"
 }
 
@@ -160,7 +171,9 @@ apply_font() {
 
 find_font_by_name() {
   wanted=$1
-  build_font_list | awk -F '\t' -v wanted="$wanted" '
+  font_list=$2
+
+  awk -F '\t' -v wanted="$wanted" '
     {
       path = $2
       name = path
@@ -176,21 +189,14 @@ find_font_by_name() {
         print found
       }
     }
-  '
+  ' "$font_list"
 }
 
 choose_font() {
-  list_file=$(mktemp "${TMPDIR:-/tmp}/linux-vt-fonts.XXXXXX") || exit 1
-  build_font_list > "$list_file"
-
-  if [ ! -s "$list_file" ]; then
-    rm -f -- "$list_file"
-    die 'no console fonts found'
-  fi
+  list_file=$1
 
   if command -v fzf >/dev/null 2>&1; then
     choice=$(cut -f1 "$list_file" | fzf --prompt='VT font> ' --height=80% --reverse) || {
-      rm -f -- "$list_file"
       return 1
     }
     font=$(awk -F '\t' -v choice="$choice" '$1 == choice { print $2; exit }' "$list_file")
@@ -198,25 +204,31 @@ choose_font() {
     nl -w2 -s'. ' "$list_file" | sed 's/\t.*$//' >&2
     printf 'Font number: ' >&2
     IFS= read -r number || {
-      rm -f -- "$list_file"
       return 1
     }
     case "$number" in
       ''|*[!0-9]*)
-        rm -f -- "$list_file"
         return 1
         ;;
     esac
     font=$(sed -n "${number}p" "$list_file" | awk -F '\t' '{ print $2 }')
   fi
 
-  rm -f -- "$list_file"
   [ -n "$font" ] || return 1
   printf '%s\n' "$font"
 }
 
+font_list=$(mktemp "${TMPDIR:-/tmp}/linux-vt-fonts.XXXXXX") || exit 1
+trap 'rm -f -- "$font_list"' EXIT HUP INT TERM
+
+build_font_list > "$font_list"
+
+if [ ! -s "$font_list" ]; then
+  die 'no console fonts found'
+fi
+
 if [ "$list_only" -eq 1 ]; then
-  build_font_list | sed 's/\t/ -> /'
+  sed 's/\t/ -> /' "$font_list"
   exit 0
 fi
 
@@ -226,27 +238,19 @@ if [ "$#" -gt 0 ]; then
     exit $?
   fi
 
-  resolved=$(find_font_by_name "$1")
+  resolved=$(find_font_by_name "$1" "$font_list")
   [ -n "$resolved" ] || die "font not found: $1"
   apply_font "$resolved"
   exit $?
 fi
 
 while :; do
-  selected=$(choose_font) || exit 1
-  apply_font "$selected" || exit $?
-  printf 'Applied: %s\n' "$selected"
+  selected=$(choose_font "$font_list") || exit 0
+  if apply_font "$selected"; then
+    printf 'Applied: %s\n' "$selected"
+  else
+    printf 'Failed: %s\n' "$selected" >&2
+  fi
 
   [ "$once" -eq 1 ] && exit 0
-
-  printf 'Enter=choose another, k=keep, r=reset, q=quit: '
-  IFS= read -r answer || exit 0
-  case "$answer" in
-    k|K|q|Q)
-      exit 0
-      ;;
-    r|R)
-      run_setfont -R
-      ;;
-  esac
 done
