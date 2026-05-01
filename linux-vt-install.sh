@@ -182,6 +182,8 @@ install_file() {
   chmod "$mode" "$dest" || return 1
 }
 
+# System-owned runtime files are always converged by content. --force only
+# affects replacement of conflicting user files such as ~/.config/tty-pastel.
 install_systemd_payload() {
   payload_dir=$1
 

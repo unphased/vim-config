@@ -22,16 +22,15 @@ Linux virtual terminal setup is tracked here too:
 That script links the VT palette/setup files into `~/.config` and adds guarded
 Bash/Zsh hooks so the root-level setup script only runs when `TERM=linux`.
 
-Use `--force` if an existing local copy should be replaced by the tracked
-symlink.
-
 The installer also sets up the boot-time VT setup service by default. It
 applies the user files first, then asks sudo only for the systemd unit:
 
 ```
-~/.vim/linux-vt-install.sh --force
+~/.vim/linux-vt-install.sh
 ```
 
+Use `--force` only if an existing local `~/.config/tty-pastel` file should be
+replaced by the tracked symlink.
 Use `--no-systemd` only when the system unit should be left untouched.
 The systemd install syncs a root-owned runtime copy into `/etc/linux-vt` so the
 unit does not execute scripts directly from the home directory.
