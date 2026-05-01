@@ -27,6 +27,19 @@ die() {
   exit 1
 }
 
+quote_words() {
+  for word do
+    quoted=$(printf '%s\n' "$word" | sed "s/'/'\\\\''/g")
+    printf " '%s'" "$quoted"
+  done
+}
+
+show_command() {
+  printf '+ setfont' >&2
+  quote_words "$@" >&2
+  printf '\n' >&2
+}
+
 console_candidates() {
   printf '%s\n' /dev/tty
 
@@ -51,23 +64,27 @@ console_candidates() {
 
 run_setfont() {
   if [ -n "$console" ]; then
+    show_command -C "$console" "$@"
     setfont -C "$console" "$@"
     return $?
   fi
 
   err_file=$(mktemp "${TMPDIR:-/tmp}/linux-vt-setfont.XXXXXX") || exit 1
-  if setfont "$@" 2>"$err_file"; then
+  show_command "$@"
+  setfont "$@" 2>"$err_file"
+  status=$?
+  if [ "$status" -eq 0 ]; then
     rm -f -- "$err_file"
     return 0
   fi
 
-  status=$?
   err_text=$(cat "$err_file")
   rm -f -- "$err_file"
 
   # setfont sometimes cannot infer the console from a script's stdio even
   # when the same command works by hand in tmux on a VT. In that case, retry
   # with explicit console devices.
+  show_command "$@" '<' /dev/tty '>' /dev/tty
   if [ -e /dev/tty ] && ( setfont "$@" </dev/tty >/dev/tty ) 2>/dev/null; then
     printf 'Applied via /dev/tty\n' >&2
     return 0
@@ -81,6 +98,7 @@ run_setfont() {
     seen="$seen$candidate "
     [ -e "$candidate" ] || continue
 
+    show_command -C "$candidate" "$@"
     if setfont -C "$candidate" "$@" 2>/dev/null; then
       printf 'Applied via %s\n' "$candidate" >&2
       return 0
