@@ -32,6 +32,7 @@ linux_vt_keymap="${LINUX_VT_KEYMAP:-$linux_vt_home/.vim/linux-vt-keymap.map}"
 linux_vt_palette="${LINUX_VT_PALETTE:-$linux_vt_home/.config/tty-pastel}"
 linux_vt_underline_color="${LINUX_VT_UNDERLINE_COLOR:-14}"
 linux_vt_dim_color="${LINUX_VT_DIM_COLOR:-8}"
+linux_vt_cursor="${LINUX_VT_CURSOR:-17;0;32}"
 
 case "$linux_vt_underline_color" in
   [0-9]|1[0-5]) ;;
@@ -60,15 +61,19 @@ fi
 
 # Linux console simulates underline and dim by rendering text in configured
 # palette slots rather than drawing underline or lower-intensity glyphs.
+# The cursor sequence uses the Linux software cursor: 17 hides the hardware
+# cursor and enables a steady software block; 32 sets normal green background.
 if [ -n "$linux_vt_console" ]; then
-  printf '\033[1;%s]\033[2;%s]' \
+  printf '\033[1;%s]\033[2;%s]\033[?%sc' \
     "$linux_vt_underline_color" \
     "$linux_vt_dim_color" \
+    "$linux_vt_cursor" \
     > "$linux_vt_console" 2>/dev/null || true
 elif [ -t 1 ]; then
-  printf '\033[1;%s]\033[2;%s]' \
+  printf '\033[1;%s]\033[2;%s]\033[?%sc' \
     "$linux_vt_underline_color" \
     "$linux_vt_dim_color" \
+    "$linux_vt_cursor" \
     2>/dev/null || true
 fi
 
