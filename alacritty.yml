@@ -290,7 +290,7 @@ keyboard:
   - { key: Key0,     mods: Command,       action: ResetFontSize    }
   - { key: Equals,   mods: Command,       action: IncreaseFontSize }
   - { key: Minus,    mods: Command,       action: DecreaseFontSize }
-  - { key: Return,   mods: Shift,         chars: "\x1b\x0a"         }
+  - { key: Return,   mods: Shift,         chars: "\x1b\x0d"         }
   - { key: Comma,    mods: Alt,           chars: "\x1b,"           }
   - { key: Comma,    mods: Command,       chars: "\x1b,"           }
   - { key: Comma,    mods: Control,       chars: "\x1bcomma]"      }
