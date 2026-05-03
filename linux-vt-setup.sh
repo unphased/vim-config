@@ -24,10 +24,10 @@ case "${1:-}" in
     ;;
 esac
 
-linux_vt_font="${LINUX_VT_FONT:-ter-118b}"
+linux_vt_home="${LINUX_VT_HOME:-$HOME}"
+linux_vt_font="${LINUX_VT_FONT:-$linux_vt_home/.local/share/consolefonts/Ttyp0-18b-437.psf.gz}"
 linux_vt_blank_minutes="${LINUX_VT_BLANK_MINUTES:-1}"
 linux_vt_powerdown_minutes="${LINUX_VT_POWERDOWN_MINUTES:-1}"
-linux_vt_home="${LINUX_VT_HOME:-$HOME}"
 linux_vt_keymap="${LINUX_VT_KEYMAP:-$linux_vt_home/.vim/linux-vt-keymap.map}"
 linux_vt_palette="${LINUX_VT_PALETTE:-$linux_vt_home/.config/tty-pastel}"
 linux_vt_underline_color="${LINUX_VT_UNDERLINE_COLOR:-14}"
