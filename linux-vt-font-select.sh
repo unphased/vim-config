@@ -194,12 +194,22 @@ find_font_by_name() {
 
 choose_font() {
   list_file=$1
+  start_pos=${2:-1}
+
+  case "$start_pos" in
+    ''|0|*[!0-9]*)
+      start_pos=1
+      ;;
+  esac
 
   if command -v fzf >/dev/null 2>&1; then
-    choice=$(cut -f1 "$list_file" | fzf --prompt='VT font> ' --height=80% --reverse) || {
+    choice=$(awk -F '\t' '{ printf "%d\t%s\n", NR, $1 }' "$list_file" |
+      fzf --prompt='VT font> ' --height=80% --reverse \
+        --delimiter='\t' --with-nth=2.. --bind="start:pos($start_pos)") || {
       return 1
     }
-    font=$(awk -F '\t' -v choice="$choice" '$1 == choice { print $2; exit }' "$list_file")
+    position=$(printf '%s\n' "$choice" | awk -F '\t' '{ print $1 }')
+    font=$(sed -n "${position}p" "$list_file" | awk -F '\t' '{ print $2 }')
   else
     nl -w2 -s'. ' "$list_file" | sed 's/\t.*$//' >&2
     printf 'Font number: ' >&2
@@ -211,11 +221,12 @@ choose_font() {
         return 1
         ;;
     esac
-    font=$(sed -n "${number}p" "$list_file" | awk -F '\t' '{ print $2 }')
+    position=$number
+    font=$(sed -n "${position}p" "$list_file" | awk -F '\t' '{ print $2 }')
   fi
 
   [ -n "$font" ] || return 1
-  printf '%s\n' "$font"
+  printf '%s\t%s\n' "$position" "$font"
 }
 
 font_list=$(mktemp "${TMPDIR:-/tmp}/linux-vt-fonts.XXXXXX") || exit 1
@@ -244,8 +255,12 @@ if [ "$#" -gt 0 ]; then
   exit $?
 fi
 
+font_position=1
+
 while :; do
-  selected=$(choose_font "$font_list") || exit 0
+  selection=$(choose_font "$font_list" "$font_position") || exit 0
+  font_position=$(printf '%s\n' "$selection" | awk -F '\t' '{ print $1 }')
+  selected=$(printf '%s\n' "$selection" | awk -F '\t' '{ print $2 }')
   if apply_font "$selected"; then
     printf 'Applied: %s\n' "$selected"
   else
