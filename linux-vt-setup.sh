@@ -24,7 +24,7 @@ case "${1:-}" in
     ;;
 esac
 
-linux_vt_font="${LINUX_VT_FONT:-ter-v20n}"
+linux_vt_font="${LINUX_VT_FONT:-ter-118b}"
 linux_vt_blank_minutes="${LINUX_VT_BLANK_MINUTES:-1}"
 linux_vt_powerdown_minutes="${LINUX_VT_POWERDOWN_MINUTES:-1}"
 linux_vt_home="${LINUX_VT_HOME:-$HOME}"
