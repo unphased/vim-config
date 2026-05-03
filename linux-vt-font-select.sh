@@ -205,7 +205,7 @@ choose_font() {
   if command -v fzf >/dev/null 2>&1; then
     choice=$(awk -F '\t' '{ printf "%d\t%s\n", NR, $1 }' "$list_file" |
       fzf --prompt='VT font> ' --height=80% --reverse \
-        --delimiter='\t' --with-nth=2.. --bind="start:pos($start_pos)") || {
+        --delimiter='\t' --with-nth=2.. --bind="load:pos($start_pos)") || {
       return 1
     }
     position=$(printf '%s\n' "$choice" | awk -F '\t' '{ print $1 }')
