@@ -11,6 +11,7 @@ Type=oneshot
 RemainAfterExit=yes
 Environment=TERM=linux
 Environment=LINUX_VT_HOME=/home/slu
+Environment=LINUX_VT_FONT=/home/slu/.local/share/consolefonts/Ttyp0-18b-437.psf.gz
 Environment=LINUX_VT_KEYMAP=/etc/linux-vt/linux-vt-keymap.map
 Environment=LINUX_VT_PALETTE=/etc/linux-vt/tty-pastel
 ExecStart=/usr/bin/sh /etc/linux-vt/linux-vt-setup.sh --console /dev/tty1

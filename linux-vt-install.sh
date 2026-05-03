@@ -149,6 +149,7 @@ write_systemd_unit() {
     printf '%s\n' 'RemainAfterExit=yes'
     printf '%s\n' 'Environment=TERM=linux'
     printf 'Environment=LINUX_VT_HOME=%s\n' "$target_home"
+    printf 'Environment=LINUX_VT_FONT=%s/.local/share/consolefonts/Ttyp0-18b-437.psf.gz\n' "$target_home"
     printf 'Environment=LINUX_VT_KEYMAP=%s/linux-vt-keymap.map\n' "$payload_dir"
     printf 'Environment=LINUX_VT_PALETTE=%s/tty-pastel\n' "$payload_dir"
     printf 'ExecStart=/usr/bin/sh %s/linux-vt-setup.sh --console /dev/tty1\n' "$payload_dir"

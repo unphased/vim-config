@@ -24,14 +24,15 @@ case "${1:-}" in
     ;;
 esac
 
-linux_vt_font="${LINUX_VT_FONT:-ter-v20n}"
+linux_vt_home="${LINUX_VT_HOME:-$HOME}"
+linux_vt_font="${LINUX_VT_FONT:-$linux_vt_home/.local/share/consolefonts/Ttyp0-18b-437.psf.gz}"
 linux_vt_blank_minutes="${LINUX_VT_BLANK_MINUTES:-1}"
 linux_vt_powerdown_minutes="${LINUX_VT_POWERDOWN_MINUTES:-1}"
-linux_vt_home="${LINUX_VT_HOME:-$HOME}"
 linux_vt_keymap="${LINUX_VT_KEYMAP:-$linux_vt_home/.vim/linux-vt-keymap.map}"
 linux_vt_palette="${LINUX_VT_PALETTE:-$linux_vt_home/.config/tty-pastel}"
 linux_vt_underline_color="${LINUX_VT_UNDERLINE_COLOR:-14}"
 linux_vt_dim_color="${LINUX_VT_DIM_COLOR:-8}"
+linux_vt_cursor="${LINUX_VT_CURSOR:-6}"
 
 case "$linux_vt_underline_color" in
   [0-9]|1[0-5]) ;;
@@ -92,4 +93,12 @@ elif command -v setterm >/dev/null 2>&1 && [ -t 1 ]; then
     --powersave powerdown \
     --powerdown "$linux_vt_powerdown_minutes" \
     2>/dev/null || true
+fi
+
+# Linux console cursor shape. 6 is the documented block cursor and works on
+# more console backends than the colorable VGA software cursor sequences.
+if [ -n "$linux_vt_console" ]; then
+  printf '\033[?%sc' "$linux_vt_cursor" > "$linux_vt_console" 2>/dev/null || true
+elif [ -t 1 ]; then
+  printf '\033[?%sc' "$linux_vt_cursor" 2>/dev/null || true
 fi
