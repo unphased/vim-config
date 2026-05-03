@@ -2,6 +2,8 @@
 set -u
 
 local_font_dir=${LINUX_VT_LOCAL_FONT_DIR:-"$HOME/.local/share/consolefonts"}
+state_dir=${XDG_STATE_HOME:-"$HOME/.local/state"}
+position_file=${LINUX_VT_FONT_POSITION_FILE:-"$state_dir/linux-vt-font-select.position"}
 console=
 list_only=0
 once=0
@@ -192,6 +194,35 @@ find_font_by_name() {
   ' "$font_list"
 }
 
+read_saved_position() {
+  [ -r "$position_file" ] || {
+    printf '1\n'
+    return
+  }
+
+  IFS= read -r saved_position < "$position_file" || saved_position=1
+  case "$saved_position" in
+    ''|0|*[!0-9]*)
+      saved_position=1
+      ;;
+  esac
+  printf '%s\n' "$saved_position"
+}
+
+save_position() {
+  position=$1
+
+  case "$position" in
+    ''|0|*[!0-9]*)
+      return
+      ;;
+  esac
+
+  position_dir=$(dirname -- "$position_file")
+  mkdir -p -- "$position_dir" 2>/dev/null || return
+  printf '%s\n' "$position" > "$position_file" 2>/dev/null || true
+}
+
 choose_font() {
   list_file=$1
   start_pos=${2:-1}
@@ -208,7 +239,7 @@ choose_font() {
         --delimiter='\t' --with-nth=2.. --bind="load:pos($start_pos)") || {
       return 1
     }
-    position=$(printf '%s\n' "$choice" | awk -F '\t' '{ print $1 }')
+    position=$(printf '%s\n' "$choice" | awk -F '\t' 'NR == 1 { print $1 }')
     font=$(sed -n "${position}p" "$list_file" | awk -F '\t' '{ print $2 }')
   else
     nl -w2 -s'. ' "$list_file" | sed 's/\t.*$//' >&2
@@ -255,12 +286,13 @@ if [ "$#" -gt 0 ]; then
   exit $?
 fi
 
-font_position=1
+font_position=$(read_saved_position)
 
 while :; do
   selection=$(choose_font "$font_list" "$font_position") || exit 0
-  font_position=$(printf '%s\n' "$selection" | awk -F '\t' '{ print $1 }')
-  selected=$(printf '%s\n' "$selection" | awk -F '\t' '{ print $2 }')
+  font_position=$(printf '%s\n' "$selection" | awk -F '\t' 'NR == 1 { print $1 }')
+  save_position "$font_position"
+  selected=$(printf '%s\n' "$selection" | awk -F '\t' 'NR == 1 { print $2 }')
   if apply_font "$selected"; then
     printf 'Applied: %s\n' "$selected"
   else
