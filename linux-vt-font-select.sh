@@ -226,6 +226,7 @@ save_position() {
 choose_font() {
   list_file=$1
   start_pos=${2:-1}
+  start_query=${3:-}
 
   case "$start_pos" in
     ''|0|*[!0-9]*)
@@ -234,14 +235,27 @@ choose_font() {
   esac
 
   if command -v fzf >/dev/null 2>&1; then
-    choice=$(awk -F '\t' '{ printf "%d\t%s\n", NR, $1 }' "$list_file" |
-      fzf --prompt='VT font> ' --height=80% --reverse \
-        --delimiter='\t' --with-nth=2.. --bind="load:pos($start_pos)") || {
-      return 1
-    }
-    position=$(printf '%s\n' "$choice" | awk -F '\t' 'NR == 1 { print $1 }')
+    if [ -n "$start_query" ]; then
+      choice=$(awk -F '\t' '{ printf "%d\t%s\n", NR, $1 }' "$list_file" |
+        fzf --prompt='VT font> ' --height=80% --reverse \
+          --delimiter='\t' --with-nth=2.. --query="$start_query" --print-query) || {
+        return 1
+      }
+    else
+      choice=$(awk -F '\t' '{ printf "%d\t%s\n", NR, $1 }' "$list_file" |
+        fzf --prompt='VT font> ' --height=80% --reverse \
+          --delimiter='\t' --with-nth=2.. --bind="load:pos($start_pos)" --print-query) || {
+        return 1
+      }
+    fi
+
+    query=$(printf '%s\n' "$choice" | sed -n '1p')
+    selected_line=$(printf '%s\n' "$choice" | sed -n '2p')
+    [ -n "$selected_line" ] || return 1
+    position=$(printf '%s\n' "$selected_line" | awk -F '\t' '{ print $1 }')
     font=$(sed -n "${position}p" "$list_file" | awk -F '\t' '{ print $2 }')
   else
+    query=
     nl -w2 -s'. ' "$list_file" | sed 's/\t.*$//' >&2
     printf 'Font number: ' >&2
     IFS= read -r number || {
@@ -257,7 +271,7 @@ choose_font() {
   fi
 
   [ -n "$font" ] || return 1
-  printf '%s\t%s\n' "$position" "$font"
+  printf '%s\n%s\n%s\n' "$query" "$position" "$font"
 }
 
 font_list=$(mktemp "${TMPDIR:-/tmp}/linux-vt-fonts.XXXXXX") || exit 1
@@ -287,12 +301,14 @@ if [ "$#" -gt 0 ]; then
 fi
 
 font_position=$(read_saved_position)
+font_query=
 
 while :; do
-  selection=$(choose_font "$font_list" "$font_position") || exit 0
-  font_position=$(printf '%s\n' "$selection" | awk -F '\t' 'NR == 1 { print $1 }')
+  selection=$(choose_font "$font_list" "$font_position" "$font_query") || exit 0
+  font_query=$(printf '%s\n' "$selection" | sed -n '1p')
+  font_position=$(printf '%s\n' "$selection" | sed -n '2p')
   save_position "$font_position"
-  selected=$(printf '%s\n' "$selection" | awk -F '\t' 'NR == 1 { print $2 }')
+  selected=$(printf '%s\n' "$selection" | sed -n '3p')
   if apply_font "$selected"; then
     printf 'Applied: %s\n' "$selected"
   else
