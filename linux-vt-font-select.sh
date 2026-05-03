@@ -227,35 +227,66 @@ choose_font() {
   list_file=$1
   start_pos=${2:-1}
   start_query=${3:-}
+  start_result_pos=${4:-1}
 
   case "$start_pos" in
     ''|0|*[!0-9]*)
       start_pos=1
       ;;
   esac
+  case "$start_result_pos" in
+    ''|0|*[!0-9]*)
+      start_result_pos=1
+      ;;
+  esac
 
   if command -v fzf >/dev/null 2>&1; then
+    fzf_pos_file=$(mktemp /tmp/linux-vt-fzf-pos.XXXXXX) || exit 1
+    rm -f -- "$fzf_pos_file"
+    accept_bind="enter:execute-silent(printf '%s\n' \"\$FZF_POS\" > $fzf_pos_file)+accept"
+
     if [ -n "$start_query" ]; then
       choice=$(awk -F '\t' '{ printf "%d\t%s\n", NR, $1 }' "$list_file" |
         fzf --prompt='VT font> ' --height=80% --reverse \
-          --delimiter='\t' --with-nth=2.. --query="$start_query" --print-query) || {
+          --delimiter='\t' --with-nth=2.. --query="$start_query" --print-query \
+          --bind="result:pos($start_result_pos)+unbind(result)" \
+          --bind="$accept_bind") || {
+        rm -f -- "$fzf_pos_file"
         return 1
       }
     else
       choice=$(awk -F '\t' '{ printf "%d\t%s\n", NR, $1 }' "$list_file" |
         fzf --prompt='VT font> ' --height=80% --reverse \
-          --delimiter='\t' --with-nth=2.. --bind="load:pos($start_pos)" --print-query) || {
+          --delimiter='\t' --with-nth=2.. --print-query \
+          --bind="load:pos($start_pos)" \
+          --bind="$accept_bind") || {
+        rm -f -- "$fzf_pos_file"
         return 1
       }
     fi
 
     query=$(printf '%s\n' "$choice" | sed -n '1p')
     selected_line=$(printf '%s\n' "$choice" | sed -n '2p')
-    [ -n "$selected_line" ] || return 1
+    if [ -z "$selected_line" ]; then
+      rm -f -- "$fzf_pos_file"
+      return 1
+    fi
     position=$(printf '%s\n' "$selected_line" | awk -F '\t' '{ print $1 }')
+    if [ -r "$fzf_pos_file" ]; then
+      IFS= read -r result_position < "$fzf_pos_file" || result_position=1
+    else
+      result_position=1
+    fi
+    rm -f -- "$fzf_pos_file"
+    case "$result_position" in
+      ''|0|*[!0-9]*)
+        result_position=1
+        ;;
+    esac
     font=$(sed -n "${position}p" "$list_file" | awk -F '\t' '{ print $2 }')
   else
     query=
+    result_position=1
     nl -w2 -s'. ' "$list_file" | sed 's/\t.*$//' >&2
     printf 'Font number: ' >&2
     IFS= read -r number || {
@@ -271,7 +302,7 @@ choose_font() {
   fi
 
   [ -n "$font" ] || return 1
-  printf '%s\n%s\n%s\n' "$query" "$position" "$font"
+  printf '%s\n%s\n%s\n%s\n' "$query" "$position" "$result_position" "$font"
 }
 
 font_list=$(mktemp "${TMPDIR:-/tmp}/linux-vt-fonts.XXXXXX") || exit 1
@@ -302,13 +333,15 @@ fi
 
 font_position=$(read_saved_position)
 font_query=
+font_result_position=1
 
 while :; do
-  selection=$(choose_font "$font_list" "$font_position" "$font_query") || exit 0
+  selection=$(choose_font "$font_list" "$font_position" "$font_query" "$font_result_position") || exit 0
   font_query=$(printf '%s\n' "$selection" | sed -n '1p')
   font_position=$(printf '%s\n' "$selection" | sed -n '2p')
+  font_result_position=$(printf '%s\n' "$selection" | sed -n '3p')
   save_position "$font_position"
-  selected=$(printf '%s\n' "$selection" | sed -n '3p')
+  selected=$(printf '%s\n' "$selection" | sed -n '4p')
   if apply_font "$selected"; then
     printf 'Applied: %s\n' "$selected"
   else
