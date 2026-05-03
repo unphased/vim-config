@@ -207,7 +207,12 @@ alias ga="git add"
 alias gb="git branch"
 
 alias ds="dirs -v | head -10"
-alias d="g diff --no-ext-diff"
+# d: git diff (paged through delta), and stash the list of files appearing in
+# the diff into ~/.vim/.search-found so `os a` can open them all.
+d() {
+	git diff --no-ext-diff --name-only "$@" > "$HOME/.vim/.search-found" 2>/dev/null
+	git diff --no-ext-diff "$@"
+}
 
 alias nri="rm -rf ./node_modules/ && npm i"
 
