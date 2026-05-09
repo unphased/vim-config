@@ -977,222 +977,222 @@ require("gitsigns").setup({
 local Layout = require("nui.layout")
 local Popup = require("nui.popup")
 
-local telescope = require("telescope")
-local TSLayout = require("telescope.pickers.layout")
-
-local tele_actions = safeRequire('telescope.actions')
-telescope.setup{
-  defaults = {
-    mappings = {
-      i = {
-        -- remove me to get normal mode in telescope
-        ["<esc>"] = tele_actions.close,
-        ["<RightMouse>"] = tele_actions.close,
-        -- clicking will not interpret the location of the click but mouse can be used with scroll to pick or cancel, which is a lot better than always dismissing and clicking through underneath
-        ["<LeftMouse>"] = tele_actions.select_default,
-        ["<ScrollWheelDown>"] = tele_actions.preview_scrolling_down,
-        ["<ScrollWheelUp>"] = tele_actions.preview_scrolling_up,
-        ["<C-Down>"] = tele_actions.cycle_history_next,
-        ["<C-Up>"] = tele_actions.cycle_history_prev,
-      }
-    },
-    scroll_strategy = "limit",
-    layout_config = {
-      scroll_speed = 3
-    },
-    border = false,
-    -- create_layout = function(picker)
-    --   local border = {
-    --     results = {
-    --       top_left = "┌",
-    --       top = "─",
-    --       top_right = "┬",
-    --       right = "│",
-    --       bottom_right = "",
-    --       bottom = "",
-    --       bottom_left = "",
-    --       left = "│",
-    --     },
-    --     results_patch = {
-    --       minimal = {
-    --         top_left = "┌",
-    --         top_right = "┐",
-    --       },
-    --       horizontal = {
-    --         top_left = "┌",
-    --         top_right = "┬",
-    --       },
-    --       vertical = {
-    --         top_left = "├",
-    --         top_right = "┤",
-    --       },
-    --     },
-    --     prompt = {
-    --       top_left = "├",
-    --       top = "─",
-    --       top_right = "┤",
-    --       right = "│",
-    --       bottom_right = "┘",
-    --       bottom = "─",
-    --       bottom_left = "└",
-    --       left = "│",
-    --     },
-    --     prompt_patch = {
-    --       minimal = {
-    --         bottom_right = "┘",
-    --       },
-    --       horizontal = {
-    --         bottom_right = "┴",
-    --       },
-    --       vertical = {
-    --         bottom_right = "┘",
-    --       },
-    --     },
-    --     preview = {
-    --       top_left = "┌",
-    --       top = "─",
-    --       top_right = "┐",
-    --       right = "│",
-    --       bottom_right = "┘",
-    --       bottom = "─",
-    --       bottom_left = "└",
-    --       left = "│",
-    --     },
-    --     preview_patch = {
-    --       minimal = {},
-    --       horizontal = {
-    --         bottom = "─",
-    --         bottom_left = "",
-    --         bottom_right = "┘",
-    --         left = "",
-    --         top_left = "",
-    --       },
-    --       vertical = {
-    --         bottom = "",
-    --         bottom_left = "",
-    --         bottom_right = "",
-    --         left = "│",
-    --         top_left = "┌",
-    --       },
-    --     },
-    --   }
-    --
-    --   local results = Popup({
-    --     focusable = false,
-    --     border = {
-    --       style = border.results,
-    --       text = {
-    --         top = picker.results_title,
-    --         top_align = "center",
-    --       },
-    --     },
-    --     win_options = {
-    --       winhighlight = "Normal:Normal",
-    --     },
-    --   })
-    --
-    --   local prompt = Popup({
-    --     enter = true,
-    --     border = {
-    --       style = border.prompt,
-    --       text = {
-    --         top = picker.prompt_title,
-    --         top_align = "center",
-    --       },
-    --     },
-    --     win_options = {
-    --       winhighlight = "Normal:Normal",
-    --     },
-    --   })
-    --
-    --   local preview = Popup({
-    --     focusable = false,
-    --     border = {
-    --       style = border.preview,
-    --       text = {
-    --         top = picker.preview_title,
-    --         top_align = "center",
-    --       },
-    --     },
-    --   })
-    --
-    --   local box_by_kind = {
-    --     vertical = Layout.Box({
-    --       Layout.Box(preview, { grow = 1 }),
-    --       Layout.Box(results, { grow = 1 }),
-    --       Layout.Box(prompt, { size = 3 }),
-    --     }, { dir = "col" }),
-    --     horizontal = Layout.Box({
-    --       Layout.Box({
-    --         Layout.Box(results, { grow = 1 }),
-    --         Layout.Box(prompt, { size = 3 }),
-    --       }, { dir = "col", size = "30%" }),
-    --       Layout.Box(preview, { size = "70%" }),
-    --     }, { dir = "row" }),
-    --     minimal = Layout.Box({
-    --       Layout.Box(results, { grow = 1 }),
-    --       Layout.Box(prompt, { size = 3 }),
-    --     }, { dir = "col" }),
-    --   }
-    --
-    --   local function get_box()
-    --     local height, width = vim.o.lines, vim.o.columns
-    --     local box_kind = "horizontal"
-    --     if width < 100 then
-    --       box_kind = "vertical"
-    --       if height < 40 then
-    --         box_kind = "minimal"
-    --       end
-    --     elseif width < 120 then
-    --       box_kind = "minimal"
-    --     end
-    --     return box_by_kind[box_kind], box_kind
-    --   end
-    --
-    --   local function prepare_layout_parts(layout, box_type)
-    --     layout.results = TSLayout.Window(results)
-    --     results.border:set_style(border.results_patch[box_type])
-    --
-    --     layout.prompt = TSLayout.Window(prompt)
-    --     prompt.border:set_style(border.prompt_patch[box_type])
-    --
-    --     if box_type == "minimal" then
-    --       layout.preview = nil
-    --     else
-    --       layout.preview = TSLayout.Window(preview)
-    --       preview.border:set_style(border.preview_patch[box_type])
-    --     end
-    --   end
-    --
-    --   local box, box_kind = get_box()
-    --   local layout = Layout({
-    --     relative = "editor",
-    --     position = "50%",
-    --     size = {
-    --       height = "80%",
-    --       width = "90%",
-    --     },
-    --   }, box)
-    --
-    --   layout.picker = picker
-    --   prepare_layout_parts(layout, box_kind)
-    --
-    --   local layout_update = layout.update
-    --   function layout:update()
-    --     local box, box_kind = get_box()
-    --     prepare_layout_parts(layout, box_kind)
-    --     layout_update(self, box)
-    --   end
-    --
-    --   return TSLayout(layout)
-    -- end,
-  },
-  extensions = {
-    -- ["ui-select"] = {
-    --   require("telescope.themes").get_cursor { }
-    -- }
-  }
-}
+-- local telescope = require("telescope")
+-- local TSLayout = require("telescope.pickers.layout")
+--
+-- local tele_actions = safeRequire('telescope.actions')
+-- telescope.setup{
+--   defaults = {
+--     mappings = {
+--       i = {
+--         -- remove me to get normal mode in telescope
+--         ["<esc>"] = tele_actions.close,
+--         ["<RightMouse>"] = tele_actions.close,
+--         -- clicking will not interpret the location of the click but mouse can be used with scroll to pick or cancel, which is a lot better than always dismissing and clicking through underneath
+--         ["<LeftMouse>"] = tele_actions.select_default,
+--         ["<ScrollWheelDown>"] = tele_actions.preview_scrolling_down,
+--         ["<ScrollWheelUp>"] = tele_actions.preview_scrolling_up,
+--         ["<C-Down>"] = tele_actions.cycle_history_next,
+--         ["<C-Up>"] = tele_actions.cycle_history_prev,
+--       }
+--     },
+--     scroll_strategy = "limit",
+--     layout_config = {
+--       scroll_speed = 3
+--     },
+--     border = false,
+--     -- create_layout = function(picker)
+--     --   local border = {
+--     --     results = {
+--     --       top_left = "┌",
+--     --       top = "─",
+--     --       top_right = "┬",
+--     --       right = "│",
+--     --       bottom_right = "",
+--     --       bottom = "",
+--     --       bottom_left = "",
+--     --       left = "│",
+--     --     },
+--     --     results_patch = {
+--     --       minimal = {
+--     --         top_left = "┌",
+--     --         top_right = "┐",
+--     --       },
+--     --       horizontal = {
+--     --         top_left = "┌",
+--     --         top_right = "┬",
+--     --       },
+--     --       vertical = {
+--     --         top_left = "├",
+--     --         top_right = "┤",
+--     --       },
+--     --     },
+--     --     prompt = {
+--     --       top_left = "├",
+--     --       top = "─",
+--     --       top_right = "┤",
+--     --       right = "│",
+--     --       bottom_right = "┘",
+--     --       bottom = "─",
+--     --       bottom_left = "└",
+--     --       left = "│",
+--     --     },
+--     --     prompt_patch = {
+--     --       minimal = {
+--     --         bottom_right = "┘",
+--     --       },
+--     --       horizontal = {
+--     --         bottom_right = "┴",
+--     --       },
+--     --       vertical = {
+--     --         bottom_right = "┘",
+--     --       },
+--     --     },
+--     --     preview = {
+--     --       top_left = "┌",
+--     --       top = "─",
+--     --       top_right = "┐",
+--     --       right = "│",
+--     --       bottom_right = "┘",
+--     --       bottom = "─",
+--     --       bottom_left = "└",
+--     --       left = "│",
+--     --     },
+--     --     preview_patch = {
+--     --       minimal = {},
+--     --       horizontal = {
+--     --         bottom = "─",
+--     --         bottom_left = "",
+--     --         bottom_right = "┘",
+--     --         left = "",
+--     --         top_left = "",
+--     --       },
+--     --       vertical = {
+--     --         bottom = "",
+--     --         bottom_left = "",
+--     --         bottom_right = "",
+--     --         left = "│",
+--     --         top_left = "┌",
+--     --       },
+--     --     },
+--     --   }
+--     --
+--     --   local results = Popup({
+--     --     focusable = false,
+--     --     border = {
+--     --       style = border.results,
+--     --       text = {
+--     --         top = picker.results_title,
+--     --         top_align = "center",
+--     --       },
+--     --     },
+--     --     win_options = {
+--     --       winhighlight = "Normal:Normal",
+--     --     },
+--     --   })
+--     --
+--     --   local prompt = Popup({
+--     --     enter = true,
+--     --     border = {
+--     --       style = border.prompt,
+--     --       text = {
+--     --         top = picker.prompt_title,
+--     --         top_align = "center",
+--     --       },
+--     --     },
+--     --     win_options = {
+--     --       winhighlight = "Normal:Normal",
+--     --     },
+--     --   })
+--     --
+--     --   local preview = Popup({
+--     --     focusable = false,
+--     --     border = {
+--     --       style = border.preview,
+--     --       text = {
+--     --         top = picker.preview_title,
+--     --         top_align = "center",
+--     --       },
+--     --     },
+--     --   })
+--     --
+--     --   local box_by_kind = {
+--     --     vertical = Layout.Box({
+--     --       Layout.Box(preview, { grow = 1 }),
+--     --       Layout.Box(results, { grow = 1 }),
+--     --       Layout.Box(prompt, { size = 3 }),
+--     --     }, { dir = "col" }),
+--     --     horizontal = Layout.Box({
+--     --       Layout.Box({
+--     --         Layout.Box(results, { grow = 1 }),
+--     --         Layout.Box(prompt, { size = 3 }),
+--     --       }, { dir = "col", size = "30%" }),
+--     --       Layout.Box(preview, { size = "70%" }),
+--     --     }, { dir = "row" }),
+--     --     minimal = Layout.Box({
+--     --       Layout.Box(results, { grow = 1 }),
+--     --       Layout.Box(prompt, { size = 3 }),
+--     --     }, { dir = "col" }),
+--     --   }
+--     --
+--     --   local function get_box()
+--     --     local height, width = vim.o.lines, vim.o.columns
+--     --     local box_kind = "horizontal"
+--     --     if width < 100 then
+--     --       box_kind = "vertical"
+--     --       if height < 40 then
+--     --         box_kind = "minimal"
+--     --       end
+--     --     elseif width < 120 then
+--     --       box_kind = "minimal"
+--     --     end
+--     --     return box_by_kind[box_kind], box_kind
+--     --   end
+--     --
+--     --   local function prepare_layout_parts(layout, box_type)
+--     --     layout.results = TSLayout.Window(results)
+--     --     results.border:set_style(border.results_patch[box_type])
+--     --
+--     --     layout.prompt = TSLayout.Window(prompt)
+--     --     prompt.border:set_style(border.prompt_patch[box_type])
+--     --
+--     --     if box_type == "minimal" then
+--     --       layout.preview = nil
+--     --     else
+--     --       layout.preview = TSLayout.Window(preview)
+--     --       preview.border:set_style(border.preview_patch[box_type])
+--     --     end
+--     --   end
+--     --
+--     --   local box, box_kind = get_box()
+--     --   local layout = Layout({
+--     --     relative = "editor",
+--     --     position = "50%",
+--     --     size = {
+--     --       height = "80%",
+--     --       width = "90%",
+--     --     },
+--     --   }, box)
+--     --
+--     --   layout.picker = picker
+--     --   prepare_layout_parts(layout, box_kind)
+--     --
+--     --   local layout_update = layout.update
+--     --   function layout:update()
+--     --     local box, box_kind = get_box()
+--     --     prepare_layout_parts(layout, box_kind)
+--     --     layout_update(self, box)
+--     --   end
+--     --
+--     --   return TSLayout(layout)
+--     -- end,
+--   },
+--   extensions = {
+--     -- ["ui-select"] = {
+--     --   require("telescope.themes").get_cursor { }
+--     -- }
+--   }
+-- }
 -- telescope.load_extension("ui-select")
 
 -- loads my config files under config-auto. TODO they are not currently having exports surfaced but i can add that later
@@ -1221,7 +1221,7 @@ end
 
 load_auto_modules()
 
-local telescope_builtin = safeRequire("telescope.builtin")
+-- local telescope_builtin = safeRequire("telescope.builtin")
 -- vim.keymap.set("n", "<c-p>", function ()
 --   -- explicitly giving most likely path for fd because sometimes we launch neovim in neovide through a basic shell
 --   -- without cargo in PATH.
@@ -1255,27 +1255,27 @@ end, { desc = "fzf ripgrep word" })
 -- vim.keymap.set('n', '<leader>h', telescope_builtin.help_tags, { desc = "Telescope Help Tags" })
 
 -- alt+shift+p will open a command history searcher, reminiscent of something like commands via cmd p in vscode
-vim.keymap.set("n", "<M-P>", function()
-    telescope_builtin.command_history({
-        filter_fn = function(cmd)
-            local patterns = {
-                "^w[aq;]?$",
-                "^qa?$",
-                "^e$",
-                "^mes$",
-                "^h ",
-                "^map ?",
-                "^%d+$"
-            }
-            for _, pattern in ipairs(patterns) do
-                if string.match(cmd, pattern) then
-                    return false -- A match was found, exclude this command
-                end
-            end
-            return true -- No matches were found, include this command
-        end
-    })
-end, { desc = 'Telescope command_history' })
+-- vim.keymap.set("n", "<M-P>", function()
+--     telescope_builtin.command_history({
+--         filter_fn = function(cmd)
+--             local patterns = {
+--                 "^w[aq;]?$",
+--                 "^qa?$",
+--                 "^e$",
+--                 "^mes$",
+--                 "^h ",
+--                 "^map ?",
+--                 "^%d+$"
+--             }
+--             for _, pattern in ipairs(patterns) do
+--                 if string.match(cmd, pattern) then
+--                     return false -- A match was found, exclude this command
+--                 end
+--             end
+--             return true -- No matches were found, include this command
+--         end
+--     })
+-- end, { desc = 'Telescope command_history' })
 
 
 safeRequire("nvim-lastplace").setup({})
@@ -2275,18 +2275,18 @@ vim.keymap.set("x", "<C-Up>", '<cmd>STSSwapPrevVisual<cr>', opts)
 -- vim.g.copilot_filetypes = {markdown = true, yaml = true}
 
 -- load refactoring Telescope extension
-telescope.load_extension("refactoring")
+-- telescope.load_extension("refactoring")
 
 -- remap to open the Telescope refactoring menu in visual mode
-vim.api.nvim_set_keymap(
-  "n", "<leader>R", "<cmd>lua require('telescope').extensions.refactoring.refactors()<CR>", { noremap = true, desc = "refactors ()" }
-)
-vim.api.nvim_set_keymap(
-  "v",
-  "<leader>r",
-  "<Esc><cmd>lua require('telescope').extensions.refactoring.refactors()<CR>",
-  { noremap = true, desc = "Open refactoring menu in visual mode"}
-)
+-- vim.api.nvim_set_keymap(
+--   "n", "<leader>R", "<cmd>lua require('telescope').extensions.refactoring.refactors()<CR>", { noremap = true, desc = "refactors ()" }
+-- )
+-- vim.api.nvim_set_keymap(
+--   "v",
+--   "<leader>r",
+--   "<Esc><cmd>lua require('telescope').extensions.refactoring.refactors()<CR>",
+--   { noremap = true, desc = "Open refactoring menu in visual mode"}
+-- )
 
 -- vim.keymap.set("n", "<leader>r", function()
 --   return ":IncRename " .. vim.fn.expand("<cword>")

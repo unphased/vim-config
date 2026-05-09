@@ -76,7 +76,7 @@ return {
 
     end,
   },
-  { 'nvim-telescope/telescope.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
+  -- { 'nvim-telescope/telescope.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
   -- 'nvim-telescope/telescope-ui-select.nvim',
   'norcalli/nvim-colorizer.lua',
   -- {
@@ -367,17 +367,17 @@ return {
   'hrsh7th/cmp-path',
   'hrsh7th/cmp-nvim-lua',
   'rhysd/conflict-marker.vim',
-  {
-    "aaronhallaert/advanced-git-search.nvim",
-    config = function()
-      require("telescope").load_extension("advanced_git_search")
-    end,
-    dependencies = {
-      "nvim-telescope/telescope.nvim",
-      -- to show diff splits and open commits in browser
-      "tpope/vim-fugitive",
-    },
-  },
+  -- {
+  --   "aaronhallaert/advanced-git-search.nvim",
+  --   config = function()
+  --     require("telescope").load_extension("advanced_git_search")
+  --   end,
+  --   dependencies = {
+  --     "nvim-telescope/telescope.nvim",
+  --     -- to show diff splits and open commits in browser
+  --     "tpope/vim-fugitive",
+  --   },
+  -- },
   {
     "rebelot/heirline.nvim",
     -- You can optionally lazy-load heirline on UiEnter
@@ -727,15 +727,15 @@ return {
       require("oil").setup()
     end
   },
-  {
-    "LintaoAmons/bookmarks.nvim",
-    -- tag = "v0.5.4", -- optional, pin the plugin at specific version for stability
-    dependencies = {
-      {"nvim-telescope/telescope.nvim"},
-      {"kkharji/sqlite.lua"},
-      {"stevearc/dressing.nvim"} -- optional: to have the same UI shown in the GIF
-    }
-  },
+  -- {
+  --   "LintaoAmons/bookmarks.nvim",
+  --   -- tag = "v0.5.4", -- optional, pin the plugin at specific version for stability
+  --   dependencies = {
+  --     {"nvim-telescope/telescope.nvim"},
+  --     {"kkharji/sqlite.lua"},
+  --     {"stevearc/dressing.nvim"} -- optional: to have the same UI shown in the GIF
+  --   }
+  -- },
   -- 'Shatur/neovim-session-manager',
   'Vimjas/vim-python-pep8-indent',
   {
