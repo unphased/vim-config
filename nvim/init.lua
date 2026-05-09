@@ -97,6 +97,52 @@ require("lazy").setup("plugins", {
   }
 })
 
+if vim.fn.exists(":lsp") == 2 and vim.fn.exists(":LspStart") == 0 then
+  vim.api.nvim_create_user_command("LspStart", function(info)
+    local servers = info.fargs
+
+    if #servers == 0 then
+      local filetype = vim.bo.filetype
+      for name, _ in pairs(vim.lsp.config._configs or {}) do
+        local config = vim.lsp.config[name]
+        if config and config.filetypes and vim.tbl_contains(config.filetypes, filetype) then
+          table.insert(servers, name)
+        end
+      end
+    end
+
+    vim.lsp.enable(servers)
+  end, {
+    desc = "Compatibility alias for Nvim 0.12 :lsp enable",
+    nargs = "*",
+  })
+end
+
+if vim.fn.exists(":lsp") == 2 and vim.fn.exists(":LspStop") == 0 then
+  vim.api.nvim_create_user_command("LspStop", function(info)
+    local servers = info.fargs
+
+    if #servers == 0 then
+      for _, client in ipairs(vim.lsp.get_clients({ bufnr = 0 })) do
+        table.insert(servers, client.name)
+      end
+    end
+
+    for _, name in ipairs(servers) do
+      vim.lsp.enable(name, false)
+      if info.bang then
+        for _, client in ipairs(vim.lsp.get_clients({ name = name })) do
+          client:stop(true)
+        end
+      end
+    end
+  end, {
+    bang = true,
+    desc = "Compatibility alias for Nvim 0.12 :lsp disable",
+    nargs = "*",
+  })
+end
+
 -- vim.cmd.colorscheme 'midnight'
 
 -- mappings
