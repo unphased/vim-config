@@ -1499,6 +1499,18 @@ vim.opt.completeopt="menu,menuone,noselect"
 local cmp = require'cmp'
 local lspkind = safeRequire('lspkind')
 
+local function current_buffer_is_tsv()
+  return vim.bo.filetype == "tsv" or vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":e") == "tsv"
+end
+
+local function insert_literal_tab(fallback)
+  if cmp.visible() then
+    cmp.abort()
+  end
+
+  fallback()
+end
+
 cmp.setup({
   formatting = {
     format = lspkind.cmp_format({
@@ -1548,7 +1560,9 @@ cmp.setup({
     --   end
     -- end, { "s" }),
     ["<Tab>"] = cmp.mapping(function(fallback)
-      if cmp.visible() then
+      if current_buffer_is_tsv() then
+        insert_literal_tab(fallback)
+      elseif cmp.visible() then
         if require'snippy'.can_expand_or_advance() then
           -- log('Tab using select behavior select')
           cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
@@ -1570,7 +1584,9 @@ cmp.setup({
     end, { "i", "s" }),
 
     ["<S-Tab>"] = cmp.mapping(function(fallback)
-      if cmp.visible() then
+      if current_buffer_is_tsv() then
+        fallback()
+      elseif cmp.visible() then
         if require'snippy'.can_expand_or_advance() then
           log('using select behavior select')
           cmp.select_prev_item({ behavior = cmp.SelectBehavior.Select })
