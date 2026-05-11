@@ -9,7 +9,19 @@ case $pane_pid in
         ;;
 esac
 
-ps -axo pid=,ppid=,comm=,args= 2>/dev/null | awk -v root="$pane_pid" -v mode="$mode" '
+emit_process_table() {
+    if ps -axo pid=,ppid=,comm=,args= 2>/dev/null; then
+        return 0
+    fi
+
+    if command -v gps >/dev/null 2>&1 && gps -axo pid=,ppid=,comm=,args= 2>/dev/null; then
+        return 0
+    fi
+
+    ps -eo pid=,ppid=,comm=,args= 2>/dev/null
+}
+
+emit_process_table | awk -v root="$pane_pid" -v mode="$mode" '
 function basename(path) {
     sub(/^.*\//, "", path)
     return path
