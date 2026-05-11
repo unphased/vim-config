@@ -47,12 +47,11 @@ remote_active_border_fg=#d8a2e8
 remote_border_bg=#2b1d32
 remote_border_fg=#a878b5
 
-blend_color() {
-    base=$1
-    accent=$2
-    percent=$3
+scale_color() {
+    accent=$1
+    percent=$2
 
-    awk -v base="$base" -v accent="$accent" -v percent="$percent" '
+    awk -v accent="$accent" -v percent="$percent" '
     function hex_value(char) {
         char = tolower(char)
         return index("0123456789abcdef", char) - 1
@@ -62,22 +61,28 @@ blend_color() {
         return (hex_value(substr(hex, start, 1)) * 16) + hex_value(substr(hex, start + 1, 1))
     }
 
-    function blend_component(a, b) {
-        return int(a + ((b - a) * percent / 100) + 0.5)
+    function scale_component(value, scaled) {
+        scaled = int(value * percent / 100 + 0.5)
+        if (scaled < 0) {
+            return 0
+        }
+        if (scaled > 255) {
+            return 255
+        }
+        return scaled
     }
 
     BEGIN {
-        sub(/^#/, "", base)
         sub(/^#/, "", accent)
-        if (base !~ /^[0-9a-fA-F]{6}$/ || accent !~ /^[0-9a-fA-F]{6}$/) {
+        if (accent !~ /^[0-9a-fA-F]{6}$/) {
             print "#808080"
             exit
         }
 
         printf "#%02x%02x%02x\n",
-            blend_component(component(base, 1), component(accent, 1)),
-            blend_component(component(base, 3), component(accent, 3)),
-            blend_component(component(base, 5), component(accent, 5))
+            scale_component(component(accent, 1)),
+            scale_component(component(accent, 3)),
+            scale_component(component(accent, 5))
     }
     '
 }
@@ -85,16 +90,11 @@ blend_color() {
 machine_palette() {
     accent=$1
 
-    printf '%s\t' "$(blend_color "$default_status_bg" "$accent" 35)"
-    printf '%s\t' "$(blend_color "$default_status_fg" "$accent" 18)"
-    printf '%s\t' "$(blend_color "$default_window_bg" "$accent" 18)"
-    printf '%s\t' "$(blend_color "$default_window_fg" "$accent" 40)"
-    printf '%s\t' "$(blend_color "$default_current_bg" "$accent" 45)"
-    printf '%s\t' "$(blend_color '#ffffff' "$accent" 10)"
-    printf '%s\t' "$(blend_color "$default_active_border_bg" "$accent" 22)"
-    printf '%s\t' "$(blend_color "$default_active_border_fg" "$accent" 65)"
-    printf '%s\t' "$(blend_color "$default_border_bg" "$accent" 14)"
-    printf '%s\n' "$(blend_color "$default_border_fg" "$accent" 50)"
+    printf '%s\t' "$(scale_color "$accent" 30)"
+    printf '%s\t' "$(scale_color "$accent" 45)"
+    printf '%s\t' "$(scale_color "$accent" 60)"
+    printf '%s\t' "$(scale_color "$accent" 82)"
+    printf '%s\n' "$(scale_color "$accent" 125)"
 }
 
 normalize_candidates() {
@@ -208,6 +208,14 @@ apply_style() {
     "$tmux_bin" setw -g pane-border-style "bg=$border_bg,fg=$border_fg"
 }
 
+apply_status_left() {
+    session_bg=$1
+    session_fg=$2
+    socket_fg=$3
+
+    "$tmux_bin" set -g status-left "#[reverse]#{?client_prefix,#[fg=red] TMUX #[noreverse]#[bg=$session_bg]#[reverse]#[bg=default],}#[fg=$socket_fg] #{s|.*/||:,#{socket_path}} #[fg=$session_fg]#[bg=$session_bg] #{session_name} "
+}
+
 machine_style=$(lookup_machine_style)
 if [ -n "$machine_style" ]; then
     label=${machine_style%%	*}
@@ -223,15 +231,23 @@ if [ -n "$machine_style" ]; then
     IFS='	'
     set -- $palette
     IFS=$old_ifs
-    apply_style "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}"
+    level1=$1
+    level2=$2
+    level3=$3
+    level4=$4
+    level5=$5
+    apply_style "$level2" "$level5" "$level1" "$level4" "$level3" "$level5" "$level3" "$level5" "$level2" "$level4"
+    apply_status_left "$level3" "$foreground" "$level4"
 elif [ "${TMUX_SSH_BOUNDARY:-}" = 1 ]; then
     "$tmux_bin" set -g @machine_color_label ""
     "$tmux_bin" set -g @machine_color_accent ""
     "$tmux_bin" set -g @machine_color_foreground ""
     apply_style "$remote_status_bg" "$remote_status_fg" "$remote_window_bg" "$remote_window_fg" "$remote_current_bg" "$remote_current_fg" "$remote_active_border_bg" "$remote_active_border_fg" "$remote_border_bg" "$remote_border_fg"
+    apply_status_left "$remote_current_bg" "#241b28" "$remote_active_border_fg"
 else
     "$tmux_bin" set -g @machine_color_label ""
     "$tmux_bin" set -g @machine_color_accent ""
     "$tmux_bin" set -g @machine_color_foreground ""
     apply_style "$default_status_bg" "$default_status_fg" "$default_window_bg" "$default_window_fg" "$default_current_bg" "$default_current_fg" "$default_active_border_bg" "$default_active_border_fg" "$default_border_bg" "$default_border_fg"
+    apply_status_left "#606060" "#303030" "#606060"
 fi
