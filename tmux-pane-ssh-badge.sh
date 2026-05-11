@@ -19,7 +19,7 @@ esac
 cache_owner=$(id -u 2>/dev/null || printf unknown)
 cache_dir="${TMPDIR:-/tmp}/tmux-pane-ssh-badge-$cache_owner"
 cache_file="$cache_dir/$pane_pid.label"
-registry=${MACHINE_COLORS_REGISTRY:-$HOME/.vim/machine-colors.tsv}
+registry=${MACHINE_COLORS_REGISTRY:-$HOME/util/machine-colors.tsv}
 
 render_badge() {
     label=${1%%	*}
