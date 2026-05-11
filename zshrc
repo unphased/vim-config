@@ -6,6 +6,10 @@ emulate -LR zsh
 
 . $HOME/.aliases.sh
 
+if [[ -n ${SSH_CONNECTION:-} || -n ${SSH_TTY:-} ]]; then
+    export TMUX_SSH_BOUNDARY=1
+fi
+
 # enable completions
 autoload -Uz compinit && compinit
 
