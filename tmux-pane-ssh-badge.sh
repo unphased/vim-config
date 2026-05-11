@@ -19,17 +19,81 @@ esac
 cache_owner=$(id -u 2>/dev/null || printf unknown)
 cache_dir="${TMPDIR:-/tmp}/tmux-pane-ssh-badge-$cache_owner"
 cache_file="$cache_dir/$pane_pid.label"
+registry=${MACHINE_COLORS_REGISTRY:-$HOME/.vim/machine-colors.tsv}
 
 render_badge() {
-    label=$1
+    label=${1%%	*}
+    rest=${1#*	}
+    if [ "$rest" != "$1" ]; then
+        accent=${rest%%	*}
+        foreground=${rest#*	}
+    else
+        accent=#a980b6
+        foreground=#241b28
+    fi
 
     [ -n "$label" ] || exit 0
 
     if [ "$mode" = compact ]; then
-        printf '#[fg=#241b28]#[bg=#a980b6]#[bold]%s#[default] ' "$label"
+        printf '#[fg=%s]#[bg=%s]#[bold]%s#[default] ' "$foreground" "$accent" "$label"
     else
-        printf '#[fg=#241b28]#[bg=#a980b6]#[bold] %s #[default] ' "$label"
+        printf '#[fg=%s]#[bg=%s]#[bold] %s #[default] ' "$foreground" "$accent" "$label"
     fi
+}
+
+lookup_machine_style() {
+    target=$1
+
+    [ -n "$target" ] || return 1
+    [ -r "$registry" ] || return 1
+
+    awk -F '\t' -v target="$target" '
+    BEGIN {
+        normalized_target = normalize(target)
+    }
+
+    function normalize(value) {
+        value = tolower(value)
+        sub(/^ssh:\/\//, "", value)
+        sub(/^.*@/, "", value)
+        sub(/^\[/, "", value)
+        sub(/\].*/, "", value)
+        sub(/:[0-9]+$/, "", value)
+        sub(/\.$/, "", value)
+        return value
+    }
+
+    function alias_matches(aliases, parts, count, i) {
+        count = split(aliases, parts, /,/)
+        for (i = 1; i <= count; i++) {
+            if (normalize(parts[i]) == normalized_target) {
+                return 1
+            }
+        }
+        return 0
+    }
+
+    NR == 1 || $1 ~ /^#/ {
+        next
+    }
+
+    normalize($1) == normalized_target || alias_matches($5) {
+        label = $2
+        accent = $3
+        foreground = $4
+        if (label == "") {
+            label = $1
+        }
+        if (accent == "") {
+            accent = "#a980b6"
+        }
+        if (foreground == "") {
+            foreground = "#241b28"
+        }
+        printf "%s\t%s\t%s", label, accent, foreground
+        exit
+    }
+    ' "$registry"
 }
 
 now=$(date +%s 2>/dev/null || printf 0)
@@ -63,7 +127,7 @@ emit_process_table() {
     ps -eo pid=,ppid=,comm=,args= 2>/dev/null
 }
 
-label=$(emit_process_table | awk -v root="$pane_pid" '
+label_parts=$(emit_process_table | awk -v root="$pane_pid" '
 function basename(path) {
     sub(/^.*\//, "", path)
     return path
@@ -191,15 +255,31 @@ END {
         exit
     }
 
-    label = ssh_command_name(command_by_pid[best_pid], args_by_pid[best_pid])
+    transport = ssh_command_name(command_by_pid[best_pid], args_by_pid[best_pid])
     destination = destination_from_args(command_by_pid[best_pid], args_by_pid[best_pid])
-    if (destination != "") {
-        label = label " " destination
-    }
-
-    printf "%s", label
+    printf "%s\t%s", transport, destination
 }
 ')
+
+transport=${label_parts%%	*}
+destination=${label_parts#*	}
+if [ "$destination" = "$label_parts" ]; then
+    destination=
+fi
+
+label=
+if [ -n "$transport" ] && [ -n "$destination" ]; then
+    machine_style=$(lookup_machine_style "$destination")
+    if [ -n "$machine_style" ]; then
+        machine_label=${machine_style%%	*}
+        style_rest=${machine_style#*	}
+        label="$transport $machine_label	$style_rest"
+    else
+        label="$transport $destination	#a980b6	#241b28"
+    fi
+elif [ -n "$transport" ]; then
+    label="$transport	#a980b6	#241b28"
+fi
 
 if mkdir -p "$cache_dir" 2>/dev/null; then
     chmod 700 "$cache_dir" 2>/dev/null
