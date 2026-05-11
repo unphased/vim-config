@@ -2,12 +2,54 @@
 
 pane_pid=$1
 mode=${2:-border}
+cache_ttl=${TMUX_PANE_SSH_BADGE_CACHE_TTL:-2}
 
 case $pane_pid in
     ''|*[!0-9]*)
         exit 0
         ;;
 esac
+
+case $cache_ttl in
+    ''|*[!0-9]*)
+        cache_ttl=2
+        ;;
+esac
+
+cache_owner=$(id -u 2>/dev/null || printf unknown)
+cache_dir="${TMPDIR:-/tmp}/tmux-pane-ssh-badge-$cache_owner"
+cache_file="$cache_dir/$pane_pid.label"
+
+render_badge() {
+    label=$1
+
+    [ -n "$label" ] || exit 0
+
+    if [ "$mode" = compact ]; then
+        printf '#[fg=#241b28]#[bg=#a980b6]#[bold]%s#[default] ' "$label"
+    else
+        printf '#[fg=#241b28]#[bg=#a980b6]#[bold] %s #[default] ' "$label"
+    fi
+}
+
+now=$(date +%s 2>/dev/null || printf 0)
+if [ -r "$cache_file" ] && [ "$now" -gt 0 ]; then
+    {
+        IFS= read -r cached_at
+        IFS= read -r cached_label
+    } <"$cache_file"
+
+    case $cached_at in
+        ''|*[!0-9]*)
+            ;;
+        *)
+            if [ $((now - cached_at)) -le "$cache_ttl" ]; then
+                render_badge "$cached_label"
+                exit 0
+            fi
+            ;;
+    esac
+fi
 
 emit_process_table() {
     if ps -axo pid=,ppid=,comm=,args= 2>/dev/null; then
@@ -21,7 +63,7 @@ emit_process_table() {
     ps -eo pid=,ppid=,comm=,args= 2>/dev/null
 }
 
-emit_process_table | awk -v root="$pane_pid" -v mode="$mode" '
+label=$(emit_process_table | awk -v root="$pane_pid" '
 function basename(path) {
     sub(/^.*\//, "", path)
     return path
@@ -155,10 +197,17 @@ END {
         label = label " " destination
     }
 
-    if (mode == "compact") {
-        printf "#[fg=#241b28]#[bg=#a980b6]#[bold]%s#[default] ", label
-    } else {
-        printf "#[fg=#241b28]#[bg=#a980b6]#[bold] %s #[default] ", label
-    }
+    printf "%s", label
 }
-'
+')
+
+if mkdir -p "$cache_dir" 2>/dev/null; then
+    chmod 700 "$cache_dir" 2>/dev/null
+    cache_tmp="$cache_file.$$"
+    {
+        printf '%s\n' "$now"
+        printf '%s\n' "$label"
+    } >"$cache_tmp" 2>/dev/null && mv "$cache_tmp" "$cache_file" 2>/dev/null
+fi
+
+render_badge "$label"
