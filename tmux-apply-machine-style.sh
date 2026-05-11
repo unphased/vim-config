@@ -47,6 +47,56 @@ remote_active_border_fg=#d8a2e8
 remote_border_bg=#2b1d32
 remote_border_fg=#a878b5
 
+blend_color() {
+    base=$1
+    accent=$2
+    percent=$3
+
+    awk -v base="$base" -v accent="$accent" -v percent="$percent" '
+    function hex_value(char) {
+        char = tolower(char)
+        return index("0123456789abcdef", char) - 1
+    }
+
+    function component(hex, start) {
+        return (hex_value(substr(hex, start, 1)) * 16) + hex_value(substr(hex, start + 1, 1))
+    }
+
+    function blend_component(a, b) {
+        return int(a + ((b - a) * percent / 100) + 0.5)
+    }
+
+    BEGIN {
+        sub(/^#/, "", base)
+        sub(/^#/, "", accent)
+        if (base !~ /^[0-9a-fA-F]{6}$/ || accent !~ /^[0-9a-fA-F]{6}$/) {
+            print "#808080"
+            exit
+        }
+
+        printf "#%02x%02x%02x\n",
+            blend_component(component(base, 1), component(accent, 1)),
+            blend_component(component(base, 3), component(accent, 3)),
+            blend_component(component(base, 5), component(accent, 5))
+    }
+    '
+}
+
+machine_palette() {
+    accent=$1
+
+    printf '%s\t' "$(blend_color "$default_status_bg" "$accent" 35)"
+    printf '%s\t' "$(blend_color "$default_status_fg" "$accent" 18)"
+    printf '%s\t' "$(blend_color "$default_window_bg" "$accent" 18)"
+    printf '%s\t' "$(blend_color "$default_window_fg" "$accent" 40)"
+    printf '%s\t' "$(blend_color "$default_current_bg" "$accent" 45)"
+    printf '%s\t' "$(blend_color '#ffffff' "$accent" 10)"
+    printf '%s\t' "$(blend_color "$default_active_border_bg" "$accent" 22)"
+    printf '%s\t' "$(blend_color "$default_active_border_fg" "$accent" 65)"
+    printf '%s\t' "$(blend_color "$default_border_bg" "$accent" 14)"
+    printf '%s\n' "$(blend_color "$default_border_fg" "$accent" 50)"
+}
+
 normalize_candidates() {
     {
         printf '%s\n' "${MACHINE_ID:-}"
@@ -168,7 +218,12 @@ if [ -n "$machine_style" ]; then
     "$tmux_bin" set -g @machine_color_label "$label"
     "$tmux_bin" set -g @machine_color_accent "$accent"
     "$tmux_bin" set -g @machine_color_foreground "$foreground"
-    apply_style "$accent" "$foreground" "$default_window_bg" "$accent" "$accent" "$foreground" "$default_active_border_bg" "$accent" "$default_border_bg" "$accent"
+    palette=$(machine_palette "$accent")
+    old_ifs=$IFS
+    IFS='	'
+    set -- $palette
+    IFS=$old_ifs
+    apply_style "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}"
 elif [ "${TMUX_SSH_BOUNDARY:-}" = 1 ]; then
     "$tmux_bin" set -g @machine_color_label ""
     "$tmux_bin" set -g @machine_color_accent ""
