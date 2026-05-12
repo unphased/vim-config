@@ -164,24 +164,27 @@ lookup_machine_style() {
         return 0
     }
 
+    function aliases_from_record() {
+        if ($4 ~ /^#[0-9a-fA-F]{6}$/ || ($4 == "" && $5 != "")) {
+            return $5
+        }
+        return $4
+    }
+
     NR == 1 || $1 ~ /^#/ {
         next
     }
 
-    wanted[normalize($1)] || alias_matches($5) {
+    wanted[normalize($1)] || alias_matches(aliases_from_record()) {
         label = $2
         accent = $3
-        foreground = $4
         if (label == "") {
             label = $1
         }
         if (accent == "") {
             accent = "#a980b6"
         }
-        if (foreground == "") {
-            foreground = "#241b28"
-        }
-        printf "%s\t%s\t%s", label, accent, foreground
+        printf "%s\t%s", label, accent
         exit
     }
     ' "$registry"
@@ -219,13 +222,10 @@ apply_status_left() {
 machine_style=$(lookup_machine_style)
 if [ -n "$machine_style" ]; then
     label=${machine_style%%	*}
-    rest=${machine_style#*	}
-    accent=${rest%%	*}
-    foreground=${rest#*	}
+    accent=${machine_style#*	}
 
     "$tmux_bin" set -g @machine_color_label "$label"
     "$tmux_bin" set -g @machine_color_accent "$accent"
-    "$tmux_bin" set -g @machine_color_foreground "$foreground"
     palette=$(machine_palette "$accent")
     old_ifs=$IFS
     IFS='	'
@@ -236,8 +236,9 @@ if [ -n "$machine_style" ]; then
     level3=$3
     level4=$4
     level5=$5
+    "$tmux_bin" set -g @machine_color_foreground "$level1"
     apply_style "$level2" "$level5" "$level1" "$level4" "$level3" "$level5" "$level3" "$level5" "$level2" "$level4"
-    apply_status_left "$level3" "$foreground" "$level4"
+    apply_status_left "$level3" "$level1" "$level4"
 elif [ "${TMUX_SSH_BOUNDARY:-}" = 1 ]; then
     "$tmux_bin" set -g @machine_color_label ""
     "$tmux_bin" set -g @machine_color_accent ""

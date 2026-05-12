@@ -29,7 +29,7 @@ render_badge() {
         foreground=${rest#*	}
     else
         accent=#a980b6
-        foreground=#241b28
+        foreground=#332637
     fi
 
     [ -n "$label" ] || exit 0
@@ -73,23 +73,58 @@ lookup_machine_style() {
         return 0
     }
 
+    function aliases_from_record() {
+        if ($4 ~ /^#[0-9a-fA-F]{6}$/ || ($4 == "" && $5 != "")) {
+            return $5
+        }
+        return $4
+    }
+
+    function hex_value(char) {
+        char = tolower(char)
+        return index("0123456789abcdef", char) - 1
+    }
+
+    function component(hex, start) {
+        return (hex_value(substr(hex, start, 1)) * 16) + hex_value(substr(hex, start + 1, 1))
+    }
+
+    function scale_component(value, percent, scaled) {
+        scaled = int(value * percent / 100 + 0.5)
+        if (scaled < 0) {
+            return 0
+        }
+        if (scaled > 255) {
+            return 255
+        }
+        return scaled
+    }
+
+    function scale_color(accent, percent) {
+        sub(/^#/, "", accent)
+        if (accent !~ /^[0-9a-fA-F]{6}$/) {
+            return "#241b28"
+        }
+        return sprintf("#%02x%02x%02x",
+            scale_component(component(accent, 1), percent),
+            scale_component(component(accent, 3), percent),
+            scale_component(component(accent, 5), percent))
+    }
+
     NR == 1 || $1 ~ /^#/ {
         next
     }
 
-    normalize($1) == normalized_target || alias_matches($5) {
+    normalize($1) == normalized_target || alias_matches(aliases_from_record()) {
         label = $2
         accent = $3
-        foreground = $4
         if (label == "") {
             label = $1
         }
         if (accent == "") {
             accent = "#a980b6"
         }
-        if (foreground == "") {
-            foreground = "#241b28"
-        }
+        foreground = scale_color(accent, 30)
         printf "%s\t%s\t%s", label, accent, foreground
         exit
     }
@@ -275,10 +310,10 @@ if [ -n "$transport" ] && [ -n "$destination" ]; then
         style_rest=${machine_style#*	}
         label="$transport $machine_label	$style_rest"
     else
-        label="$transport $destination	#a980b6	#241b28"
+        label="$transport $destination	#a980b6	#332637"
     fi
 elif [ -n "$transport" ]; then
-    label="$transport	#a980b6	#241b28"
+    label="$transport	#a980b6	#332637"
 fi
 
 if mkdir -p "$cache_dir" 2>/dev/null; then
