@@ -236,7 +236,7 @@ if [ -n "$machine_style" ]; then
     level3=$3
     level4=$4
     level5=$5
-    apply_style "$level2" "$level5" "$level1" "$level4" "$level3" "$foreground" "$level3" "$level5" "$level2" "$level4"
+    apply_style "$level2" "$level5" "$level1" "$level4" "$level3" "$level5" "$level3" "$level5" "$level2" "$level4"
     apply_status_left "$level3" "$foreground" "$level4"
 elif [ "${TMUX_SSH_BOUNDARY:-}" = 1 ]; then
     "$tmux_bin" set -g @machine_color_label ""
