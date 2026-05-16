@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-max_title_chars=${TMUX_PROJECT_WINDOW_NAME_MAX:-15}
+max_title_chars=${TMUX_PROJECT_WINDOW_NAME_MAX:-20}
 cwd=${1:-$PWD}
 
 shorten_title() {
     local value=$1
     local max=$2
-    local marker="..."
+    local marker="…"
     local keep front back
 
     if (( ${#value} <= max )); then
