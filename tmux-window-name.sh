@@ -2,7 +2,6 @@
 set -euo pipefail
 
 max_title_chars=${TMUX_PROJECT_WINDOW_NAME_MAX:-20}
-cwd=${1:-$PWD}
 
 shorten_title() {
     local value=$1
@@ -26,9 +25,22 @@ shorten_title() {
     printf '%s%s%s\n' "${value:0:front}" "$marker" "${value: -back}"
 }
 
+if [[ ${1:-} == "--truncate" ]]; then
+    shift
+    if [[ ${1:-} =~ ^[0-9]+$ ]]; then
+        max_title_chars=$1
+        shift
+    fi
+
+    shorten_title "${1:-}" "$max_title_chars"
+    exit 0
+fi
+
+cwd=${1:-$PWD}
+
 if [[ ! -d $cwd ]]; then
     title=${cwd##*/}
-    shorten_title "${title:-$cwd}" "$max_title_chars"
+    printf '%s\n' "${title:-$cwd}"
     exit 0
 fi
 
@@ -46,4 +58,4 @@ else
     title=${cwd##*/}
 fi
 
-shorten_title "${title:-/}" "$max_title_chars"
+printf '%s\n' "${title:-/}"
