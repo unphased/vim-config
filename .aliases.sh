@@ -4,7 +4,39 @@ echo Hello from aliases.sh
 # todo: make me a function
 # idempotent alias check (or prints existing alias -- might wanna suppress that 
 # too)
-alias ls 2>/dev/null >/dev/null || alias ls="ls --color=always"
+if ! alias ls >/dev/null 2>&1; then
+	if ls --color=auto -d . >/dev/null 2>&1; then
+		alias ls="ls --color=auto"
+	elif ls -G -d . >/dev/null 2>&1; then
+		alias ls="ls -G"
+	fi
+fi
+
+if [[ "$(uname)" == Linux ]]; then
+	# GNU dircolors uses background colors for writable/sticky dirs and device
+	# files. Those become unreadable under lf's inverted cursor and can also
+	# make plain ls painful on low-contrast terminal palettes.
+	if [[ -n "${LS_COLORS:-}" ]]; then
+		LS_COLORS="$(
+			printf '%s\n' "$LS_COLORS" |
+				awk -v RS=: -v ORS=: '
+					/^bd=/ { $0 = "bd=01;33" }
+					/^cd=/ { $0 = "cd=01;33" }
+					/^do=/ { $0 = "do=01;35" }
+					/^or=/ { $0 = "or=01;31" }
+					/^su=/ { $0 = "su=01;32" }
+					/^sg=/ { $0 = "sg=01;32" }
+					/^tw=/ { $0 = "tw=01;34" }
+					/^ow=/ { $0 = "ow=01;34" }
+					/^st=/ { $0 = "st=01;34" }
+					NF { print }
+				'
+		)"
+		export LS_COLORS="${LS_COLORS%:}"
+	fi
+
+	export LF_COLORS="${LF_COLORS:-ln=01;36:or=01;31:tw=01;34:ow=01;34:st=01;34:di=01;34:pi=33:so=01;35:bd=01;33:cd=01;33:su=01;32:sg=01;32:ex=01;32:fi=00}"
+fi
 
 # some versions of htop kill high sierra without being run as root.
 # TODO replace me with a version check on htop
@@ -14,7 +46,7 @@ alias ls 2>/dev/null >/dev/null || alias ls="ls --color=always"
 # 	alias htop="sudo htop"
 # fi
 
-if [ "$(uname)" = Linux ] && lsb_release -i | grep Ubuntu; then
+if [ "$(uname)" = Linux ] && command -v lsb_release >/dev/null 2>&1 && lsb_release -i | grep Ubuntu; then
 	alias open="xdg-open"
 fi
 
