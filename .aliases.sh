@@ -12,30 +12,51 @@ if ! alias ls >/dev/null 2>&1; then
 	fi
 fi
 
+__readable_file_list_colors() {
+	# GNU dircolors uses background colors for a few file classes:
+	# - tw/ow/st: sticky and world-writable directories, common with Samba,
+	#   ZFS, exFAT, transfer folders, and camera/media dumps.
+	# - su/sg: setuid/setgid files.
+	# - bd/cd/or/do: device, orphan, and odd platform-specific file types.
+	#
+	# Those SGR backgrounds look especially bad when lf applies its inverted
+	# cursor to a large pane. Keep these classes foreground-only while leaving
+	# extension colors and ordinary directory/executable colors alone.
+	printf '%s\n' "$1" |
+		awk -v RS=: '
+			BEGIN {
+				readable["bd"] = "01;33"
+				readable["cd"] = "01;33"
+				readable["do"] = "01;35"
+				readable["or"] = "01;31"
+				readable["su"] = "01;32"
+				readable["sg"] = "01;32"
+				readable["tw"] = "01;34"
+				readable["ow"] = "01;34"
+				readable["st"] = "01;34"
+			}
+			NF {
+				key = $0
+				sub(/=.*/, "", key)
+				if (key in readable) {
+					$0 = key "=" readable[key]
+				}
+				printf "%s%s", sep, $0
+				sep = ":"
+			}
+			END { if (sep != "") printf "\n" }
+		'
+}
+
 if [[ "$(uname)" == Linux ]]; then
-	# GNU dircolors uses background colors for writable/sticky dirs and device
-	# files. Those become unreadable under lf's inverted cursor and can also
-	# make plain ls painful on low-contrast terminal palettes.
 	if [[ -n "${LS_COLORS:-}" ]]; then
-		LS_COLORS="$(
-			printf '%s\n' "$LS_COLORS" |
-				awk -v RS=: -v ORS=: '
-					/^bd=/ { $0 = "bd=01;33" }
-					/^cd=/ { $0 = "cd=01;33" }
-					/^do=/ { $0 = "do=01;35" }
-					/^or=/ { $0 = "or=01;31" }
-					/^su=/ { $0 = "su=01;32" }
-					/^sg=/ { $0 = "sg=01;32" }
-					/^tw=/ { $0 = "tw=01;34" }
-					/^ow=/ { $0 = "ow=01;34" }
-					/^st=/ { $0 = "st=01;34" }
-					NF { print }
-				'
-		)"
-		export LS_COLORS="${LS_COLORS%:}"
+		LS_COLORS="$(__readable_file_list_colors "$LS_COLORS")"
+		export LS_COLORS
 	fi
 
-	export LF_COLORS="${LF_COLORS:-ln=01;36:or=01;31:tw=01;34:ow=01;34:st=01;34:di=01;34:pi=33:so=01;35:bd=01;33:cd=01;33:su=01;32:sg=01;32:ex=01;32:fi=00}"
+	LF_COLORS="${LF_COLORS:-ln=01;36:or=01;31:tw=01;34:ow=01;34:st=01;34:di=01;34:pi=33:so=01;35:bd=01;33:cd=01;33:su=01;32:sg=01;32:ex=01;32:fi=00}"
+	LF_COLORS="$(__readable_file_list_colors "$LF_COLORS")"
+	export LF_COLORS
 fi
 
 # some versions of htop kill high sierra without being run as root.
