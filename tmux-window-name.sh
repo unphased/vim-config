@@ -1,30 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-max_title_chars=${TMUX_PROJECT_WINDOW_NAME_MAX:-20}
-
-shorten_title() {
-    local value=$1
-    local max=$2
-    local marker="…"
-    local keep front back
-
-    if (( ${#value} <= max )); then
-        printf '%s\n' "$value"
-        return
-    fi
-
-    if (( max <= ${#marker} )); then
-        printf '%.*s\n' "$max" "$value"
-        return
-    fi
-
-    keep=$((max - ${#marker}))
-    front=$(((keep + 1) / 2))
-    back=$((keep - front))
-    printf '%s%s%s\n' "${value:0:front}" "$marker" "${value: -back}"
-}
-
 window_title_for_cwd() {
     local cwd=$1
     local repo_root project prefix title
@@ -54,31 +30,24 @@ window_title_for_cwd() {
 
 refresh_window() {
     local target=$1
-    local cwd=${2:-}
-    local auto current short title title_short fields
+    local auto cwd current title fields
 
-    fields=$(tmux display-message -p -t "$target" '#{automatic-rename}	#{pane_current_path}	#{window_name}	#{@project_window_name_short}' 2>/dev/null) || return 0
-    IFS=$'\t' read -r auto cwd current short <<<"$fields"
+    fields=$(tmux display-message -p -t "$target" '#{automatic-rename}	#{pane_current_path}	#{window_name}' 2>/dev/null) || return 0
+    IFS=$'\t' read -r auto cwd current <<<"$fields"
     [[ $auto == 1 ]] || return 0
 
     title=$(window_title_for_cwd "$cwd")
     [[ -n $title ]] || return 0
 
-    title_short=$(shorten_title "$title" "$max_title_chars")
-
     if [[ $current != "$title" ]]; then
         tmux rename-window -t "$target" "$title"
         tmux set-option -wq -t "$target" automatic-rename on
-    fi
-
-    if [[ $short != "$title_short" ]]; then
-        tmux set-option -wq -t "$target" @project_window_name_short "$title_short"
     fi
 }
 
 refresh_all_windows() {
     local throttle=0
-    local now last window_id auto cwd current short title title_short
+    local now last window_id auto cwd current title
 
     if [[ ${1:-} == "--throttle" ]]; then
         throttle=${2:-0}
@@ -93,35 +62,18 @@ refresh_all_windows() {
         tmux set-option -gq @project_window_names_refreshed_at "$now"
     fi
 
-    while IFS=$'\t' read -r window_id auto cwd current short; do
+    while IFS=$'\t' read -r window_id auto cwd current; do
         [[ $auto == 1 ]] || continue
 
         title=$(window_title_for_cwd "$cwd")
         [[ -n $title ]] || continue
 
-        title_short=$(shorten_title "$title" "$max_title_chars")
-
         if [[ $current != "$title" ]]; then
             tmux rename-window -t "$window_id" "$title"
             tmux set-option -wq -t "$window_id" automatic-rename on
         fi
-
-        if [[ $short != "$title_short" ]]; then
-            tmux set-option -wq -t "$window_id" @project_window_name_short "$title_short"
-        fi
-    done < <(tmux list-windows -a -F '#{window_id}	#{automatic-rename}	#{pane_current_path}	#{window_name}	#{@project_window_name_short}' 2>/dev/null)
+    done < <(tmux list-windows -a -F '#{window_id}	#{automatic-rename}	#{pane_current_path}	#{window_name}' 2>/dev/null)
 }
-
-if [[ ${1:-} == "--truncate" ]]; then
-    shift
-    if [[ ${1:-} =~ ^[0-9]+$ ]]; then
-        max_title_chars=$1
-        shift
-    fi
-
-    shorten_title "${1:-}" "$max_title_chars"
-    exit 0
-fi
 
 if [[ ${1:-} == "--refresh-window" ]]; then
     shift
