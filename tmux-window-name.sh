@@ -30,24 +30,26 @@ window_title_for_cwd() {
 
 refresh_window() {
     local target=$1
-    local auto cwd current title fields
+    local managed cwd current title fields
 
-    fields=$(tmux display-message -p -t "$target" '#{automatic-rename}	#{pane_current_path}	#{window_name}' 2>/dev/null) || return 0
-    IFS=$'\t' read -r auto cwd current <<<"$fields"
-    [[ $auto == 1 ]] || return 0
+    fields=$(tmux display-message -p -t "$target" '#{||:#{automatic-rename},#{@project_window_auto}}|#{pane_current_path}|#{window_name}' 2>/dev/null) || return 0
+    IFS='|' read -r managed cwd current <<<"$fields"
+    [[ $managed == 1 ]] || return 0
 
     title=$(window_title_for_cwd "$cwd")
     [[ -n $title ]] || return 0
 
     if [[ $current != "$title" ]]; then
         tmux rename-window -t "$target" "$title"
-        tmux set-option -wq -t "$target" automatic-rename on
     fi
+
+    tmux set-option -wq -t "$target" automatic-rename off
+    tmux set-option -wq -t "$target" @project_window_auto 1
 }
 
 refresh_all_windows() {
     local throttle=0
-    local now last window_id auto cwd current title
+    local now last window_id managed cwd current title
 
     if [[ ${1:-} == "--throttle" ]]; then
         throttle=${2:-0}
@@ -62,17 +64,19 @@ refresh_all_windows() {
         tmux set-option -gq @project_window_names_refreshed_at "$now"
     fi
 
-    while IFS=$'\t' read -r window_id auto cwd current; do
-        [[ $auto == 1 ]] || continue
+    while IFS='|' read -r window_id managed cwd current; do
+        [[ $managed == 1 ]] || continue
 
         title=$(window_title_for_cwd "$cwd")
         [[ -n $title ]] || continue
 
         if [[ $current != "$title" ]]; then
             tmux rename-window -t "$window_id" "$title"
-            tmux set-option -wq -t "$window_id" automatic-rename on
         fi
-    done < <(tmux list-windows -a -F '#{window_id}	#{automatic-rename}	#{pane_current_path}	#{window_name}' 2>/dev/null)
+
+        tmux set-option -wq -t "$window_id" automatic-rename off
+        tmux set-option -wq -t "$window_id" @project_window_auto 1
+    done < <(tmux list-windows -a -F '#{window_id}|#{||:#{automatic-rename},#{@project_window_auto}}|#{pane_current_path}|#{window_name}' 2>/dev/null)
 }
 
 if [[ ${1:-} == "--refresh-window" ]]; then
