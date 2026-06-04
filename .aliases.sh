@@ -509,3 +509,113 @@ alias och='opencode-launch --omo'
 # --info=progress2 furnishes the progress 
 # --no-i-r allows the reported progress to be the FULL progress
 alias rsync='rsync --info=progress2 --no-i-r --partial --partial-dir=.rsync-partial'
+
+__eject_decode_findmnt() {
+  printf '%b' "$1"
+}
+
+__eject_findmnt_target_for_path() {
+  __eject_decode_findmnt "$(findmnt -T "$1" -n -o TARGET 2>/dev/null | head -n 1)"
+}
+
+__eject_findmnt_source_for_path() {
+  __eject_decode_findmnt "$(findmnt -T "$1" -n -o SOURCE 2>/dev/null | head -n 1)"
+}
+
+__eject_findmnt_target_for_dev() {
+  __eject_decode_findmnt "$(findmnt -rn -S "$1" -o TARGET 2>/dev/null | head -n 1)"
+}
+
+eject() {
+  if [[ "$(uname -s)" != "Linux" ]]; then
+    echo "eject: Linux-only helper" >&2
+    return 1
+  fi
+
+  if [[ $# -gt 0 ]]; then
+    command /usr/bin/eject "$@"
+    return
+  fi
+
+  local target mountpoint source_dev disk_name disk_dev removable hotplug tran
+  local dev mp failed_mountpoint
+  local -a mounted_devs
+
+  target="$(pwd -P)"
+  mountpoint="$(__eject_findmnt_target_for_path "$target")"
+  source_dev="$(__eject_findmnt_source_for_path "$target")"
+
+  [[ -n "$mountpoint" ]] || { echo "eject: could not find a mount containing $target" >&2; return 1; }
+  [[ "$target" == "$mountpoint" ]] || { echo "eject: run from the mounted filesystem root, not from $target" >&2; return 1; }
+
+  case "$mountpoint" in
+    /run/media/*|/media/*|/mnt/*) ;;
+    *) echo "eject: $mountpoint is not under /run/media, /media, or /mnt" >&2; return 1 ;;
+  esac
+
+  case "$mountpoint" in
+    /|/boot|/boot/*|/dev|/dev/*|/etc|/etc/*|/home|/home/*|/opt|/opt/*|/root|/root/*|/srv|/srv/*|/usr|/usr/*|/var|/var/*)
+      echo "eject: refusing to operate on system mountpoint $mountpoint" >&2
+      return 1
+      ;;
+  esac
+
+  [[ "$source_dev" == /dev/* ]] || { echo "eject: $mountpoint is mounted from $source_dev, not a block device" >&2; return 1; }
+  source_dev="${source_dev%%\[*}"
+  source_dev="$(readlink -f "$source_dev")" || { echo "eject: could not resolve block device for $mountpoint" >&2; return 1; }
+  [[ -b "$source_dev" ]] || { echo "eject: $source_dev is not a block device" >&2; return 1; }
+
+  disk_name="$(lsblk -no PKNAME "$source_dev" | head -n 1 | tr -d '[:space:]')"
+  if [[ -z "$disk_name" ]]; then
+    disk_dev="$source_dev"
+  else
+    disk_dev="/dev/$disk_name"
+  fi
+  [[ -b "$disk_dev" ]] || { echo "eject: $disk_dev is not a block device" >&2; return 1; }
+
+  removable="$(lsblk -dno RM "$disk_dev" | tr -d '[:space:]')"
+  hotplug="$(lsblk -dno HOTPLUG "$disk_dev" | tr -d '[:space:]')"
+  tran="$(lsblk -dno TRAN "$disk_dev" | tr -d '[:space:]')"
+  if [[ "$removable" != 1 && "$hotplug" != 1 && "$tran" != usb && "$tran" != mmc && "$tran" != firewire ]]; then
+    echo "eject: $disk_dev does not look removable or hotplugged (RM=$removable HOTPLUG=$hotplug TRAN=${tran:-unknown})" >&2
+    return 1
+  fi
+
+  while IFS= read -r dev; do
+    mp="$(__eject_findmnt_target_for_dev "$dev")"
+    [[ -n "$mp" ]] && mounted_devs+=("$dev")
+  done < <(lsblk -nrpo NAME "$disk_dev")
+  [[ ${#mounted_devs[@]} -gt 0 ]] || { echo "eject: no mounted filesystems found on $disk_dev" >&2; return 1; }
+
+  for dev in "${mounted_devs[@]}"; do
+    mp="$(__eject_findmnt_target_for_dev "$dev")"
+    [[ -n "$mp" ]] || continue
+    case "$mp" in
+      /run/media/*|/media/*|/mnt/*) ;;
+      *) echo "eject: refusing to power off $disk_dev while $dev is mounted at non-removable-media path $mp" >&2; return 1 ;;
+    esac
+  done
+
+  echo "Unmounting filesystems on $disk_dev:"
+  for dev in "${mounted_devs[@]}"; do
+    mp="$(__eject_findmnt_target_for_dev "$dev")"
+    echo "  $dev${mp:+ mounted at $mp}"
+  done
+
+  builtin cd / || return
+
+  for dev in "${mounted_devs[@]}"; do
+    if ! sudo udisksctl unmount -b "$dev"; then
+      failed_mountpoint="$(__eject_findmnt_target_for_dev "$dev")"
+      if command -v cwd-holders >/dev/null 2>&1; then
+        cwd-holders "${failed_mountpoint:-$mountpoint}" >&2
+      else
+        echo "eject: install cwd-holders for detailed cwd/SSH/tmux diagnostics" >&2
+      fi
+      return 1
+    fi
+  done
+
+  echo "Powering off $disk_dev"
+  sudo udisksctl power-off -b "$disk_dev"
+}
