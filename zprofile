@@ -1,5 +1,19 @@
 # echo Hi from ~/.zprofile
 
+# Leave zsh vi mode enabled, but make delayed Esc+p/P inert. A stray Esc can
+# enter vi command mode, then a later p/P can paste clipboard text at the prompt.
+__disable_zsh_vi_put_keys() {
+  [[ -o interactive ]] || return
+
+  bindkey -M vicmd 'p' undefined-key 2>/dev/null
+  bindkey -M vicmd 'P' undefined-key 2>/dev/null
+  precmd_functions=(${precmd_functions:#__disable_zsh_vi_put_keys})
+}
+
+if [[ -z "${precmd_functions[(r)__disable_zsh_vi_put_keys]:-}" ]]; then
+  precmd_functions+=(__disable_zsh_vi_put_keys)
+fi
+
 # Note, the following is insufficient to set homebrew env vars in the proper spots.
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
