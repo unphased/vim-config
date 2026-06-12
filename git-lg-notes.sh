@@ -188,22 +188,8 @@ fi
 ###############################################################################
 
 stat_width_args=()
-term_cols=""
-
-if command -v tput >/dev/null 2>&1 && [[ -r /dev/tty ]]; then
-  term_cols="$(tput cols 2>/dev/null </dev/tty || true)"
-fi
-
-if [[ -z "$term_cols" ]]; then
-  term_cols="${COLUMNS:-}"
-fi
-
-if [[ "$term_cols" =~ ^[0-9]+$ ]] && [[ "$term_cols" -gt 0 ]]; then
-  stat_cols="$term_cols"
-  if (( stat_cols > 5 )); then
-    stat_cols=$((stat_cols - 5))
-  fi
-
+stat_cols="${GIT_STAT_WIDTH:-999}"
+if [[ "$stat_cols" =~ ^[0-9]+$ ]] && [[ "$stat_cols" -gt 0 ]]; then
   for arg in "$@"; do
     case "$arg" in
       --stat|--stat=*|--patch-with-stat|--patch-with-stat=*)

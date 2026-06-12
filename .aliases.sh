@@ -148,22 +148,6 @@ alias glpen="git --no-pager log -p --color=always | less"
 alias gd="git --no-pager diff --color=always | less"
 alias gf='git fetch'
 
-__git_terminal_cols() {
-  local term_cols
-
-  if command -v tput >/dev/null 2>&1 && [[ -r /dev/tty ]]; then
-    term_cols="$(tput cols 2>/dev/null </dev/tty || true)"
-  fi
-
-  if [[ -z "$term_cols" ]]; then
-    term_cols="${COLUMNS:-}"
-  fi
-
-  if [[ "$term_cols" =~ ^[0-9]+$ && "$term_cols" -gt 0 ]]; then
-    printf '%s\n' "$term_cols"
-  fi
-}
-
 __git_args_include_width_adjustable_stat() {
   local arg
 
@@ -179,19 +163,14 @@ __git_args_include_width_adjustable_stat() {
 }
 
 __git_set_stat_width_args() {
-  local term_cols stat_cols
+  local stat_cols
 
   stat_width_args=()
   __git_args_include_width_adjustable_stat "$@" || return 0
 
-  term_cols="$(__git_terminal_cols)"
-  if [[ -z "$term_cols" ]]; then
+  stat_cols="${GIT_STAT_WIDTH:-999}"
+  if [[ ! "$stat_cols" =~ ^[0-9]+$ || "$stat_cols" -le 0 ]]; then
     return 0
-  fi
-
-  stat_cols="$term_cols"
-  if (( stat_cols > 5 )); then
-    stat_cols=$((stat_cols - 5))
   fi
 
   stat_width_args=("--stat-width=$stat_cols" "--stat-name-width=$stat_cols")
