@@ -329,9 +329,19 @@ alias ds="dirs -v | head -10"
 # the diff into ~/.vim/.search-found so `os a` can open them all.
 unalias d 2>/dev/null || true
 d() {
-	local -a stat_width_args
+	local arg
+	local -a stat_width_args name_only_args
 	__git_set_stat_width_args "$@"
-	git diff --no-ext-diff --name-only "$@" > "$HOME/.vim/.search-found" 2>/dev/null
+	for arg in "$@"; do
+		case "$arg" in
+			--stat|--stat=*|--patch-with-stat|--patch-with-stat=*|--numstat|--shortstat)
+				;;
+			*)
+				name_only_args+=("$arg")
+				;;
+		esac
+	done
+	git diff --no-ext-diff --name-only "${name_only_args[@]}" > "$HOME/.vim/.search-found" 2>/dev/null
 	git diff --no-ext-diff "${stat_width_args[@]}" "$@"
 }
 
