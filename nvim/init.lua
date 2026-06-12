@@ -3468,7 +3468,7 @@ for i = 1, 9 do
 end
 vim.keymap.set('n', '<M-0>', function () switch_to_nth_buffer(10) end)
 
-vim.keymap.set('n', '<leader>rr',
+vim.keymap.set('n', '<leader>R',
   function()
     if not vim.env.DVIM_SESSION then
       vim.notify "This is a normal vim session; unable to restart."
