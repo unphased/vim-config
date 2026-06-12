@@ -1,0 +1,87 @@
+{
+    "copyFormatting": "none",
+    "copyOnSelect": false,
+    "initialCols": 200,
+    "initialRows": 60,
+    "profiles": {
+        "defaults": {
+            "antialiasingMode": "cleartype",
+            "colorScheme": "One Half Dark",
+            "font": {
+                "face": "DejaVuSansMono NFM",
+                "size": 9.0,
+                "weight": "normal"
+            },
+            "historySize": 90001,
+            "intenseTextStyle": "bold",
+            "opacity": 90,
+            "useAcrylic": true,
+            "useAtlasEngine": true
+        }
+    },
+    "actions": [
+        {
+            "command": {
+                "action": "sendInput",
+                "input": "\u001b\u007f"
+            },
+            "keys": "ctrl+backspace"
+        },
+        {
+            "command": {
+                "action": "sendInput",
+                "input": "\u001f"
+            },
+            "keys": "ctrl+minus"
+        },
+        {
+            "command": {
+                "action": "sendInput",
+                "input": "\u007f"
+            },
+            "keys": "backspace"
+        },
+        {
+            "command": {
+                "action": "adjustFontSize",
+                "delta": 1.0
+            },
+            "keys": "alt+plus"
+        },
+        {
+            "command": "find",
+            "keys": "ctrl+shift+f"
+        },
+        {
+            "command": {
+                "action": "copy",
+                "singleLine": false
+            },
+            "keys": "ctrl+shift+c"
+        },
+        {
+            "command": {
+                "action": "adjustFontSize",
+                "delta": -1.0
+            },
+            "keys": "alt+minus"
+        },
+        {
+            "command": "paste",
+            "keys": "ctrl+shift+v"
+        },
+        {
+            "command": {
+                "action": "splitPane",
+                "split": "auto",
+                "splitMode": "duplicate"
+            },
+            "keys": "alt+shift+d"
+        },
+        {
+            "command": "unbound",
+            "keys": "ctrl+plus"
+        }
+    ],
+    "useAcrylicInTabRow": true
+}
