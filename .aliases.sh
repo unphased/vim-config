@@ -199,6 +199,7 @@ __git_set_stat_width_args() {
 
 # an override of gfa from omz, --tags sometimes causes conflicts
 alias gfa='git fetch --all --prune --jobs=10'
+unalias gds 2>/dev/null || true
 gds() {
   local -a stat_width_args
   __git_set_stat_width_args --stat "$@"
@@ -315,6 +316,7 @@ alias gb="git branch"
 alias ds="dirs -v | head -10"
 # d: git diff (paged through delta), and stash the list of files appearing in
 # the diff into ~/.vim/.search-found so `os a` can open them all.
+unalias d 2>/dev/null || true
 d() {
 	local -a stat_width_args
 	__git_set_stat_width_args "$@"
