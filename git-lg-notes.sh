@@ -188,32 +188,30 @@ fi
 ###############################################################################
 
 stat_width_args=()
-if [[ -t 1 ]]; then
-  term_cols=""
+term_cols=""
 
-  if command -v tput >/dev/null 2>&1 && [[ -r /dev/tty ]]; then
-    term_cols="$(tput cols </dev/tty 2>/dev/null || true)"
+if command -v tput >/dev/null 2>&1 && [[ -r /dev/tty ]]; then
+  term_cols="$(tput cols 2>/dev/null </dev/tty || true)"
+fi
+
+if [[ -z "$term_cols" ]]; then
+  term_cols="${COLUMNS:-}"
+fi
+
+if [[ "$term_cols" =~ ^[0-9]+$ ]] && [[ "$term_cols" -gt 0 ]]; then
+  stat_cols="$term_cols"
+  if (( stat_cols > 5 )); then
+    stat_cols=$((stat_cols - 5))
   fi
 
-  if [[ -z "$term_cols" ]]; then
-    term_cols="${COLUMNS:-}"
-  fi
-
-  if [[ "$term_cols" =~ ^[0-9]+$ ]] && [[ "$term_cols" -gt 0 ]]; then
-    stat_cols="$term_cols"
-    if (( stat_cols > 5 )); then
-      stat_cols=$((stat_cols - 5))
-    fi
-
-    for arg in "$@"; do
-      case "$arg" in
-        --stat|--stat=*|--patch-with-stat|--patch-with-stat=*|--numstat|--shortstat)
-          stat_width_args=(--stat-width="$stat_cols" --stat-name-width="$stat_cols")
-          break
-          ;;
-      esac
-    done
-  fi
+  for arg in "$@"; do
+    case "$arg" in
+      --stat|--stat=*|--patch-with-stat|--patch-with-stat=*)
+        stat_width_args=(--stat-width="$stat_cols" --stat-name-width="$stat_cols")
+        break
+        ;;
+    esac
+  done
 fi
 
 git -c color.ui=always log \

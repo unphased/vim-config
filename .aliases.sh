@@ -148,9 +148,62 @@ alias glpen="git --no-pager log -p --color=always | less"
 alias gd="git --no-pager diff --color=always | less"
 alias gf='git fetch'
 
+__git_terminal_cols() {
+  local term_cols
+
+  if command -v tput >/dev/null 2>&1 && [[ -r /dev/tty ]]; then
+    term_cols="$(tput cols 2>/dev/null </dev/tty || true)"
+  fi
+
+  if [[ -z "$term_cols" ]]; then
+    term_cols="${COLUMNS:-}"
+  fi
+
+  if [[ "$term_cols" =~ ^[0-9]+$ && "$term_cols" -gt 0 ]]; then
+    printf '%s\n' "$term_cols"
+  fi
+}
+
+__git_args_include_width_adjustable_stat() {
+  local arg
+
+  for arg in "$@"; do
+    case "$arg" in
+      --stat|--stat=*|--patch-with-stat|--patch-with-stat=*)
+        return 0
+        ;;
+    esac
+  done
+
+  return 1
+}
+
+__git_set_stat_width_args() {
+  local term_cols stat_cols
+
+  stat_width_args=()
+  __git_args_include_width_adjustable_stat "$@" || return 0
+
+  term_cols="$(__git_terminal_cols)"
+  if [[ -z "$term_cols" ]]; then
+    return 0
+  fi
+
+  stat_cols="$term_cols"
+  if (( stat_cols > 5 )); then
+    stat_cols=$((stat_cols - 5))
+  fi
+
+  stat_width_args=("--stat-width=$stat_cols" "--stat-name-width=$stat_cols")
+}
+
 # an override of gfa from omz, --tags sometimes causes conflicts
 alias gfa='git fetch --all --prune --jobs=10'
-alias gds="git diff --stat"
+gds() {
+  local -a stat_width_args
+  __git_set_stat_width_args --stat "$@"
+  git diff "${stat_width_args[@]}" --stat "$@"
+}
 alias di="git diff-with-ignored"
 alias gc!="git commit --amend"
 
@@ -263,8 +316,10 @@ alias ds="dirs -v | head -10"
 # d: git diff (paged through delta), and stash the list of files appearing in
 # the diff into ~/.vim/.search-found so `os a` can open them all.
 d() {
+	local -a stat_width_args
+	__git_set_stat_width_args "$@"
 	git diff --no-ext-diff --name-only "$@" > "$HOME/.vim/.search-found" 2>/dev/null
-	git diff --no-ext-diff "$@"
+	git diff --no-ext-diff "${stat_width_args[@]}" "$@"
 }
 
 alias nri="rm -rf ./node_modules/ && npm i"
