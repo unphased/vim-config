@@ -829,16 +829,16 @@ return {
   --   -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
   -- },
 
-  -- {
-  --   'brianhuster/live-preview.nvim',
-  --   dir = '~/live-preview.nvim', -- Or the full path to your local clone
-  --   dependencies = {
-  --       -- You can choose one of the following pickers
-  --       'nvim-telescope/telescope.nvim',
-  --       'ibhagwan/fzf-lua',
-  --       'echasnovski/mini.pick',
-  --   },
-  -- },
+  {
+    'brianhuster/live-preview.nvim',
+    dir = '~/live-preview.nvim', -- Or the full path to your local clone
+    dependencies = {
+        -- You can choose one of the following pickers
+        'nvim-telescope/telescope.nvim',
+        'ibhagwan/fzf-lua',
+        'echasnovski/mini.pick',
+    },
+  },
 
   -- {
   --   "jake-stewart/multicursor.nvim",
