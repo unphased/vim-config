@@ -831,7 +831,6 @@ return {
 
   {
     'brianhuster/live-preview.nvim',
-    dir = '~/live-preview.nvim', -- Or the full path to your local clone
     dependencies = {
         -- You can choose one of the following pickers
         'nvim-telescope/telescope.nvim',
