@@ -3164,13 +3164,13 @@ vim.keymap.set('x', 'gC', ':normal gcc<CR>', { desc = 'Invert comments per line'
 --   }
 -- }
 
--- disable treesitter for tmux conf filetype, as it is particularly incapable of parsing my current conf file state.
-vim.api.nvim_create_autocmd("FileType", {
-  pattern = {"tmux"}, -- Replace with the problematic filetypes
-  callback = function()
-    vim.cmd("TSBufDisable highlight")
-  end,
-})
+-- -- disable treesitter for tmux conf filetype, as it is particularly incapable of parsing my current conf file state.
+-- vim.api.nvim_create_autocmd("FileType", {
+--   pattern = {"tmux"}, -- Replace with the problematic filetypes
+--   callback = function()
+--     vim.cmd("TSBufDisable highlight")
+--   end,
+-- })
 
 -- nvim term really needs tlc for pasting
 vim.keymap.set('t', '<M-v>', '<C-\\><C-n>"+pi')
