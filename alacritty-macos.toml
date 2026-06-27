@@ -302,7 +302,7 @@ action = "PasteSelection"
 mouse = "Middle"
 
 [scrolling]
-history = 100000
+history = 30000
 multiplier = 3
 
 [selection]
