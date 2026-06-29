@@ -303,30 +303,29 @@ fi
 #
 # This script pipes `git log` into awk (and then usually into less). When git
 # isn't writing directly to a TTY, it falls back to an 80-column assumption for
-# `--stat` and truncates paths aggressively. Detect the tmux pane / terminal
-# width and pass it explicitly to git.
+# `--stat` and truncates paths aggressively. Detect the width directly from the
+# controlling terminal and pass it explicitly to git.
 
 stat_width_args=()
 stat_cols="${GIT_STAT_WIDTH:-}"
 if [[ -z "$stat_cols" ]]; then
+  term_size=""
   term_cols=""
 
-  if [[ -n "${TMUX:-}" ]] && command -v tmux >/dev/null 2>&1; then
-    term_cols="$(tmux display-message -p '#{pane_width}' 2>/dev/null || true)"
+  if command -v stty >/dev/null 2>&1 && [[ -r /dev/tty ]]; then
+    term_size="$(stty size </dev/tty 2>/dev/null || true)"
+    term_cols="${term_size##* }"
   fi
 
-  if [[ -z "$term_cols" ]] && command -v tput >/dev/null 2>&1 && [[ -r /dev/tty ]]; then
-    term_cols="$(tput cols 2>/dev/null </dev/tty || true)"
-  fi
-
-  if [[ -z "$term_cols" ]]; then
+  if [[ ! "$term_cols" =~ ^[0-9]+$ ]] || [[ "$term_cols" -le 0 ]]; then
     term_cols="${COLUMNS:-}"
   fi
 
   if [[ "$term_cols" =~ ^[0-9]+$ ]] && [[ "$term_cols" -gt 0 ]]; then
     stat_cols="$term_cols"
-    if (( stat_cols > 5 )); then
-      stat_cols=$((stat_cols - 5))
+    # Leave room for the variable-width subway graph prefix.
+    if (( stat_cols > 7 )); then
+      stat_cols=$((stat_cols - 7))
     fi
   fi
 fi

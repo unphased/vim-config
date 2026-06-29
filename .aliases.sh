@@ -149,17 +149,14 @@ alias gd="git --no-pager diff --color=always | less"
 alias gf='git fetch'
 
 __git_terminal_cols() {
-  local term_cols
+  local term_size term_cols
 
-  if [[ -n "${TMUX:-}" ]] && command -v tmux >/dev/null 2>&1; then
-    term_cols="$(tmux display-message -p '#{pane_width}' 2>/dev/null || true)"
+  if command -v stty >/dev/null 2>&1 && [[ -r /dev/tty ]]; then
+    term_size="$(stty size </dev/tty 2>/dev/null || true)"
+    term_cols="${term_size##* }"
   fi
 
-  if [[ -z "$term_cols" ]] && command -v tput >/dev/null 2>&1 && [[ -r /dev/tty ]]; then
-    term_cols="$(tput cols 2>/dev/null </dev/tty || true)"
-  fi
-
-  if [[ -z "$term_cols" ]]; then
+  if [[ ! "$term_cols" =~ ^[0-9]+$ || "$term_cols" -le 0 ]]; then
     term_cols="${COLUMNS:-}"
   fi
 
