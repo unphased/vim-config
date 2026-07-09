@@ -1,0 +1,16 @@
+[preview]
+max_width = 2000
+max_height = 2000
+
+[mgr]
+linemode = "btime"
+show_hidden = true
+ratio = [1,2,5]
+
+[plugin]
+prepend_preloaders = [
+    { name = "*.{ARW,arw}", run = "raw-thumb" },
+]
+prepend_previewers = [
+    { name = "*.{ARW,arw}", run = "raw-thumb" },
+]
