@@ -9,8 +9,8 @@ ratio = [1,2,5]
 
 [plugin]
 prepend_preloaders = [
-    { name = "*.{ARW,arw}", run = "raw-thumb" },
+    { url = "*.{ARW,arw}", run = "raw-thumb" },
 ]
 prepend_previewers = [
-    { name = "*.{ARW,arw}", run = "raw-thumb" },
+    { url = "*.{ARW,arw}", run = "raw-thumb" },
 ]
