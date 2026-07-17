@@ -26,3 +26,7 @@ export PATH="$HOME/go/bin:$PATH"
 if [[ -n "${GHOSTTY_QUICK_TERMINAL:-}" && -z "${TMUX:-}" ]]; then
   exec "$HOME/.vim/ghostty-quickdash.sh"
 fi
+
+
+# Added by Antigravity CLI installer
+export PATH="/Users/slu/.local/bin:$PATH"
