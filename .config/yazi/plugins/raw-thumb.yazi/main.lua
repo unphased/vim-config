@@ -116,11 +116,20 @@ function M:preload(job)
 	local src = tostring(job.file.path)
 	local jpg = tostring(cache) .. ".jpg"
 
-	if extract_sony_preview(src, jpg) or extract_preview(src, jpg) or render_with_sips(src, jpg) then
+	if extract_sony_preview(src, jpg) or extract_preview(src, jpg) then
 		return ya.image_precache(Url(jpg), cache)
 	end
 
-	return require("magick"):preload(job)
+	local complete, err = require("magick"):preload(job)
+	if complete and not err then
+		return complete, err
+	end
+
+	if render_with_sips(src, jpg) then
+		return ya.image_precache(Url(jpg), cache)
+	end
+
+	return complete, err
 end
 
 function M:spot(job)
