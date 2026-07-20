@@ -1,6 +1,5 @@
 #!/bin/bash
 
-echo Hello from aliases.sh
 # todo: make me a function
 # idempotent alias check (or prints existing alias -- might wanna suppress that 
 # too)
@@ -468,12 +467,10 @@ AIDER_PROGRAM2=~/.local/bin/aider
 AIDER_CMD=aider
 
 if [[ -x "$AIDER_PROGRAM2" ]]; then
-  echo "Note: aider has been found at (secondary location) $AIDER_PROGRAM2."
   AIDER_CMD="$AIDER_PROGRAM2"
 fi
 
 if [[ -x "$AIDER_PROGRAM" ]]; then
-  echo "Note: aider has been found at $AIDER_PROGRAM."
   AIDER_CMD="$AIDER_PROGRAM"
 fi
 
