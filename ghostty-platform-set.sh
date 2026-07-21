@@ -1,10 +1,10 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/sh
+set -eu
 
 platform="${1:-auto}"
 out_file="${HOME}/.vim/ghostty.platform.conf"
 
-if [[ "$platform" == "auto" ]]; then
+if [ "$platform" = "auto" ]; then
   case "$(uname -s)" in
     Darwin) platform="macos" ;;
     Linux) platform="linux" ;;

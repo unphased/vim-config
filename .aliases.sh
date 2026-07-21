@@ -527,20 +527,12 @@ nv() {
     start_cmd=()
   fi
 
-  if [[ -n "${ZSH_VERSION:-}" ]]; then
-    (
-      cd "$cwd" && \
-      exec </dev/null >/dev/null && \
-      env "${env_args[@]}" "${start_cmd[@]}" "$launcher" "$@"
-    ) &!
-  else
-    (
-      cd "$cwd" && \
-      exec </dev/null >/dev/null && \
-      env "${env_args[@]}" "${start_cmd[@]}" "$launcher" "$@"
-    ) &
-    disown 2>/dev/null || true
-  fi
+  (
+    cd "$cwd" && \
+    exec </dev/null >/dev/null && \
+    env "${env_args[@]}" "${start_cmd[@]}" "$launcher" "$@"
+  ) &
+  disown 2>/dev/null || true
 }
 
 # just sets the N prefix to a sane and safe location in home dir. Although the default is reasonable and works almost

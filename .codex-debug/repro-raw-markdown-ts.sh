@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/bin/zsh
 set -euo pipefail
 
 ROOT="/Users/slu/.vim/.codex-debug/vendor/tree-sitter-markdown-split_parser"

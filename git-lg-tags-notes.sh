@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
 # git-lg-tags-notes.sh
 #
@@ -170,9 +170,14 @@ expand_notes_ref() {
 
 notes_map_file=""
 if [[ "$SHOW_NOTES" == "true" ]]; then
-  mapfile -t notes_refs < <(git config --get-all lgtn.notesRef 2>/dev/null || true)
+  notes_refs=()
+  while IFS= read -r ref; do
+    notes_refs+=("$ref")
+  done < <(git config --get-all lgtn.notesRef 2>/dev/null || true)
   if [[ ${#notes_refs[@]} -eq 0 ]]; then
-    mapfile -t notes_refs < <(git for-each-ref refs/notes --format='%(refname)' 2>/dev/null || true)
+    while IFS= read -r ref; do
+      notes_refs+=("$ref")
+    done < <(git for-each-ref refs/notes --format='%(refname)' 2>/dev/null || true)
     if [[ ${#notes_refs[@]} -eq 0 ]]; then
       notes_refs=(refs/notes/commits)
     fi
@@ -313,7 +318,7 @@ if [[ -z "$stat_cols" ]]; then
   term_cols=""
 
   if command -v stty >/dev/null 2>&1 && [[ -r /dev/tty ]]; then
-    term_size="$(stty size </dev/tty 2>/dev/null || true)"
+    term_size="$(stty size 2>/dev/null </dev/tty || true)"
     term_cols="${term_size##* }"
   fi
 
@@ -348,7 +353,7 @@ git -c color.ui=always log \
   --decorate \
   --decorate-refs-exclude=refs/tags \
   --pretty=format:"%C(bold magenta)%h%Creset -${SEP}%C(auto)${SEP}%d${SEP}%Creset${SEP}%s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset${SEP}%H" \
-  "${stat_width_args[@]}" \
+  ${stat_width_args[@]+"${stat_width_args[@]}"} \
   "${log_args[@]}" \
 | awk -v FS="$SEP" -v TAG_COLOR="$TAG_COLOR" -v ANNO_COLOR="$ANNO_COLOR" -v NOTE_COLOR="$NOTE_COLOR" -v NOTE_META_COLOR="$NOTE_META_COLOR" -v NOTE_META_LINES_COLOR="$NOTE_META_LINES_COLOR" -v NOTE_META_LINES_WARN_COLOR="$NOTE_META_LINES_WARN_COLOR" -v NOTE_META_LINES_HOT_COLOR="$NOTE_META_LINES_HOT_COLOR" -v NOTE_META_BYTES_COLOR="$NOTE_META_BYTES_COLOR" -v NOTE_META_BYTES_WARN_COLOR="$NOTE_META_BYTES_WARN_COLOR" -v NOTE_META_BYTES_HOT_COLOR="$NOTE_META_BYTES_HOT_COLOR" -v NOTES_COMMIT_COLOR="$NOTES_COMMIT_COLOR" -v UNPUSHED_COLOR="$UNPUSHED_COLOR" -v UNPUSHED_LABEL="$UNPUSHED_LABEL" -v REMOTE_TAG_STATUS="$REMOTE_TAG_STATUS" -v LGTN_REMOTE="$LGTN_REMOTE" -v NOTES_MAP_FILE="$notes_map_file" '
   BEGIN {
