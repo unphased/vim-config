@@ -95,10 +95,11 @@ export VI_MODE_SET_CURSOR=true
 source $ZSH/oh-my-zsh.sh
 
 # Defensive vi-mode bindings for stray terminal input. A leaked Escape can enter
-# command mode, where a later p/P pastes text; a leaked Kitty Ctrl-C release is
-# otherwise parsed as vi commands and opens ZLE's "execute:" minibuffer.
+# command mode, where p/P pastes text and : opens ZLE's rarely useful
+# "execute-named-cmd" minibuffer. Kitty release reports have triggered both.
 bindkey -M vicmd 'p' undefined-key
 bindkey -M vicmd 'P' undefined-key
+bindkey -M vicmd ':' undefined-key
 bindkey -M viins $'\e[99;5:3u' undefined-key
 bindkey -M vicmd $'\e[99;5:3u' undefined-key
 
