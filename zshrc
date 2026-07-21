@@ -96,12 +96,10 @@ source $ZSH/oh-my-zsh.sh
 
 # Defensive vi-mode bindings for stray terminal input. A leaked Escape can enter
 # command mode, where p/P pastes text and : opens ZLE's rarely useful
-# "execute-named-cmd" minibuffer. Kitty release reports have triggered both.
+# "execute-named-cmd" minibuffer.
 bindkey -M vicmd 'p' undefined-key
 bindkey -M vicmd 'P' undefined-key
 bindkey -M vicmd ':' undefined-key
-bindkey -M viins $'\e[99;5:3u' undefined-key
-bindkey -M vicmd $'\e[99;5:3u' undefined-key
 
 ## These are for zsh-autocomplete to remove its weird bad history menu
 # bindkey '\e[A' up-line-or-history
