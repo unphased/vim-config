@@ -5,22 +5,25 @@
 # Sync git notes refs with a remote.
 #
 # Usage:
-#   git gnp [<remote>]        # push refs/notes/* to remote
-#   git gnl [<remote>]        # ff-fetch refs/notes/* from remote into local refs
-#   git gnm [<remote>]        # reconcile remote notes into local refs (default: union)
+#   git notes-push [<remote>]    # push refs/notes/* to remote
+#   git notes-fetch [<remote>]   # ff-fetch remote notes into local refs
+#   git notes-merge [<remote>]   # reconcile remote notes (default: union)
+#   git notes-status [<remote>]  # dry-run the notes push
 #
 # Workflow:
-#   - After adding/editing notes locally, run `git gnp [remote]` to publish
-#     them. Normal branch push/pull does not move notes refs.
-#   - Before editing notes in another clone, run `git gnl [remote]` so that
-#     clone fast-forwards its local `refs/notes/*` first.
-#   - `git gnl` is safe against clobbering local notes: it rejects
+#   - After adding/editing notes locally, run `git notes-push [remote]` to
+#     publish them. Normal branch push/pull does not move notes refs.
+#   - Before editing notes in another clone, run `git notes-fetch [remote]` so
+#     that clone fast-forwards its local `refs/notes/*` first.
+#   - `git notes-fetch` is safe against clobbering local notes: it rejects
 #     non-fast-forward updates instead of overwriting your local notes refs.
-#   - If `git gnl` or `git gnp` rejects, run `git gnm [remote]` to fetch the
-#     remote notes into `refs/notes-sync/<remote>/*` and merge them into your
-#     local `refs/notes/*`, then push again with `git gnp [remote]`.
-#   - `git gnm` defaults to the `union` merge strategy so both sides are kept.
-#     Pass `--strategy manual|ours|theirs|union|cat_sort_uniq` to override.
+#   - If `git notes-fetch` or `git notes-push` rejects, run
+#     `git notes-merge [remote]` to fetch the remote notes into
+#     `refs/notes-sync/<remote>/*` and merge them into your local
+#     `refs/notes/*`, then push again with `git notes-push [remote]`.
+#   - `git notes-merge` defaults to the `union` merge strategy so both sides
+#     are kept. Pass `--strategy manual|ours|theirs|union|cat_sort_uniq` to
+#     override.
 #   - Only force-push notes refs when you intentionally want local notes
 #     history to replace remote history.
 #
@@ -40,7 +43,7 @@ cmd="${1:-}"
 shift || true
 
 case "$cmd" in
-  push|pull|merge)
+  push|fetch|merge|status)
     ;;
   -h|--help|"")
     usage
@@ -121,7 +124,7 @@ fi
 
 if [[ -z "$remote" ]]; then
   echo "error: missing remote" >&2
-  echo "usage: git gnp <remote> | git gnl <remote>" >&2
+  echo "usage: git notes-{push,fetch,merge,status} <remote>" >&2
   echo "hint: set an upstream (git branch -u <remote>/<branch>) to omit <remote>" >&2
   echo "remotes:" >&2
   git remote -v >&2 || true
@@ -140,17 +143,24 @@ notes_sync_prefix="refs/notes-sync/$remote"
 
 if [[ "$cmd" == "push" ]]; then
   if [[ -z "$(git for-each-ref refs/notes --count=1 --format='%(refname)' 2>/dev/null || true)" ]]; then
-    echo "gnp: no local refs/notes/* to push"
+    echo "notes-push: no local refs/notes/* to push"
     exit 0
   fi
-  echo "gnp: pushing refs/notes/* -> $remote"
+  echo "notes-push: pushing refs/notes/* -> $remote"
   git push "$remote" "$notes_refspec"
-elif [[ "$cmd" == "pull" ]]; then
-  echo "gnl: fetching refs/notes/* <- $remote"
+elif [[ "$cmd" == "fetch" ]]; then
+  echo "notes-fetch: fetching refs/notes/* <- $remote"
   git fetch "$remote" "$notes_refspec"
+elif [[ "$cmd" == "status" ]]; then
+  if [[ -z "$(git for-each-ref refs/notes --count=1 --format='%(refname)' 2>/dev/null || true)" ]]; then
+    echo "notes-status: no local refs/notes/* to check"
+    exit 0
+  fi
+  echo "notes-status: checking refs/notes/* -> $remote"
+  git push --dry-run "$remote" "$notes_refspec"
 else
   remote_notes_refspec="refs/notes/*:${notes_sync_prefix}/*"
-  echo "gnm: fetching refs/notes/* <- $remote into ${notes_sync_prefix}/*"
+  echo "notes-merge: fetching refs/notes/* <- $remote into ${notes_sync_prefix}/*"
   git fetch "$remote" "$remote_notes_refspec"
 
   remote_refs=()
@@ -160,7 +170,7 @@ else
   done < <(git for-each-ref "$notes_sync_prefix" --format='%(refname)' 2>/dev/null || true)
 
   if [[ ${#remote_refs[@]} -eq 0 ]]; then
-    echo "gnm: no remote refs/notes/* found on $remote"
+    echo "notes-merge: no remote refs/notes/* found on $remote"
     exit 0
   fi
 
@@ -176,21 +186,21 @@ else
 
     if [[ -z "$local_sha" ]]; then
       git update-ref "$local_ref" "$remote_sha"
-      printf 'gnm: created %s from %s\n' "${local_ref#refs/notes/}" "$remote"
+      printf 'notes-merge: created %s from %s\n' "${local_ref#refs/notes/}" "$remote"
       created=$((created + 1))
       continue
     fi
 
     if [[ "$local_sha" == "$remote_sha" ]]; then
-      printf 'gnm: already up to date %s\n' "${local_ref#refs/notes/}"
+      printf 'notes-merge: already up to date %s\n' "${local_ref#refs/notes/}"
       unchanged=$((unchanged + 1))
       continue
     fi
 
-    printf 'gnm: merging %s using %s\n' "${local_ref#refs/notes/}" "$merge_strategy"
+    printf 'notes-merge: merging %s using %s\n' "${local_ref#refs/notes/}" "$merge_strategy"
     git notes --ref "$local_ref" merge -s "$merge_strategy" "$remote_ref"
     merged=$((merged + 1))
   done
 
-  printf 'gnm: done (%d merged, %d created, %d unchanged)\n' "$merged" "$created" "$unchanged"
+  printf 'notes-merge: done (%d merged, %d created, %d unchanged)\n' "$merged" "$created" "$unchanged"
 fi

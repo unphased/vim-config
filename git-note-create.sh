@@ -25,13 +25,14 @@
 #   - You can add a note before or after pushing the target commit; the commit
 #     itself is unchanged either way.
 #   - Notes do not travel with normal branch `git push` / `git pull`. After
-#     changing notes, publish them separately with `git gnp [remote]`.
+#     changing notes, publish them separately with `git notes-push [remote]`.
 #   - Before adding notes in another clone, or after time away, run
-#     `git gnl [remote]` first. That fetch is ff-only for `refs/notes/*`, so it
-#     rejects on divergence instead of overwriting your local notes.
-#   - If `git gnl` or `git gnp` rejects, run `git gnm [remote]` to reconcile
-#     remote notes into your local notes refs, then push again with
-#     `git gnp [remote]`.
+#     `git notes-fetch [remote]` first. That fetch is ff-only for
+#     `refs/notes/*`, so it rejects on divergence instead of overwriting your
+#     local notes.
+#   - If `git notes-fetch` or `git notes-push` rejects, run
+#     `git notes-merge [remote]` to reconcile remote notes into your local notes
+#     refs, then push again with `git notes-push [remote]`.
 #   - Force-push notes only when you intentionally want local notes history to
 #     replace the remote notes history.
 #
