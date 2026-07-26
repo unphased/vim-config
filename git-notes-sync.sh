@@ -46,7 +46,7 @@ cmd="${1:-}"
 shift || true
 
 case "$cmd" in
-  push|fetch|merge|status)
+  push|fetch|merge|status|check)
     ;;
   -h|--help|"")
     usage
@@ -126,6 +126,9 @@ if [[ -z "$remote" ]]; then
 fi
 
 if [[ -z "$remote" ]]; then
+  if [[ "$cmd" == "check" ]]; then
+    exit 0
+  fi
   echo "error: missing remote" >&2
   echo "usage: git notes-{push,fetch,merge,status} <remote>" >&2
   echo "hint: set an upstream (git branch -u <remote>/<branch>) to omit <remote>" >&2
@@ -155,9 +158,28 @@ if [[ "$cmd" == "push" ]]; then
 elif [[ "$cmd" == "fetch" ]]; then
   echo "notes-fetch: fetching refs/notes/* <- $remote"
   git fetch "$remote" "$notes_refspec"
-elif [[ "$cmd" == "status" ]]; then
-  echo "notes-status: refreshing refs/notes/* <- $remote"
-  git fetch --quiet --prune "$remote" "$remote_notes_refspec"
+elif [[ "$cmd" == "status" || "$cmd" == "check" ]]; then
+  report_notes_status() {
+    if [[ "$cmd" == "check" ]]; then
+      if [[ -t 2 ]]; then
+        printf '\033[1;33mNOTES WARNING:\033[0m %s\n' "$1" >&2
+      else
+        printf 'NOTES WARNING: %s\n' "$1" >&2
+      fi
+    else
+      printf 'notes-status: %s\n' "$1"
+    fi
+  }
+
+  if [[ "$cmd" == "check" ]]; then
+    if ! git fetch --quiet --prune "$remote" "$remote_notes_refspec" >/dev/null 2>&1; then
+      report_notes_status "could not refresh from $remote; run gns for details"
+      exit 0
+    fi
+  else
+    echo "notes-status: refreshing refs/notes/* <- $remote"
+    git fetch --quiet --prune "$remote" "$remote_notes_refspec"
+  fi
 
   notes_names="$(
     {
@@ -169,7 +191,9 @@ elif [[ "$cmd" == "status" ]]; then
   )"
 
   if [[ -z "$notes_names" ]]; then
-    echo "notes-status: no local or remote refs/notes/* found"
+    if [[ "$cmd" == "status" ]]; then
+      echo "notes-status: no local or remote refs/notes/* found"
+    fi
     exit 0
   fi
 
@@ -182,22 +206,22 @@ elif [[ "$cmd" == "status" ]]; then
     if [[ -z "$remote_sha" ]]; then
       local_commits="$(git rev-list --count "$local_ref")"
       local_objects="$(git ls-tree -r --name-only "$local_ref" | wc -l | tr -d ' ')"
-      printf 'notes-status: %s: not on remote (local-only commits: %s; attached objects: %s)\n' \
-        "$name" "$local_commits" "$local_objects"
+      report_notes_status "$name: not on remote (local-only commits: $local_commits; attached objects: $local_objects); run gnp"
       continue
     fi
 
     if [[ -z "$local_sha" ]]; then
       remote_commits="$(git rev-list --count "$remote_ref")"
       remote_objects="$(git ls-tree -r --name-only "$remote_ref" | wc -l | tr -d ' ')"
-      printf 'notes-status: %s: missing locally (remote-only commits: %s; attached objects: %s)\n' \
-        "$name" "$remote_commits" "$remote_objects"
+      report_notes_status "$name: missing locally (remote-only commits: $remote_commits; attached objects: $remote_objects); run gnf"
       continue
     fi
 
     if [[ "$local_sha" == "$remote_sha" ]]; then
-      attached_objects="$(git ls-tree -r --name-only "$local_ref" | wc -l | tr -d ' ')"
-      printf 'notes-status: %s: up to date (attached objects: %s)\n' "$name" "$attached_objects"
+      if [[ "$cmd" == "status" ]]; then
+        attached_objects="$(git ls-tree -r --name-only "$local_ref" | wc -l | tr -d ' ')"
+        report_notes_status "$name: up to date (attached objects: $attached_objects)"
+      fi
       continue
     fi
 
@@ -209,14 +233,11 @@ elif [[ "$cmd" == "status" ]]; then
     )"
 
     if [[ "$remote_only" -eq 0 ]]; then
-      printf 'notes-status: %s: remote behind (local-only commits: %s; differing attached objects: %s)\n' \
-        "$name" "$local_only" "$changed_objects"
+      report_notes_status "$name: remote behind (local-only commits: $local_only; differing attached objects: $changed_objects); run gnp"
     elif [[ "$local_only" -eq 0 ]]; then
-      printf 'notes-status: %s: local behind (remote-only commits: %s; differing attached objects: %s)\n' \
-        "$name" "$remote_only" "$changed_objects"
+      report_notes_status "$name: local behind (remote-only commits: $remote_only; differing attached objects: $changed_objects); run gnf"
     else
-      printf 'notes-status: %s: diverged (local-only commits: %s; remote-only commits: %s; differing attached objects: %s)\n' \
-        "$name" "$local_only" "$remote_only" "$changed_objects"
+      report_notes_status "$name: diverged (local-only commits: $local_only; remote-only commits: $remote_only; differing attached objects: $changed_objects); run gnm, then gnp"
     fi
   done <<<"$notes_names"
 else
