@@ -8,7 +8,7 @@
 #   git notes-push [<remote>]    # push refs/notes/* to remote
 #   git notes-fetch [<remote>]   # ff-fetch remote notes into local refs
 #   git notes-merge [<remote>]   # reconcile remote notes (default: union)
-#   git notes-status [<remote>]  # dry-run the notes push
+#   git notes-status [<remote>]  # compare local and remote notes history
 #
 # Workflow:
 #   - After adding/editing notes locally, run `git notes-push [remote]` to
@@ -24,6 +24,9 @@
 #   - `git notes-merge` defaults to the `union` merge strategy so both sides
 #     are kept. Pass `--strategy manual|ours|theirs|union|cat_sort_uniq` to
 #     override.
+#   - `git notes-status` refreshes `refs/notes-sync/<remote>/*`, then reports
+#     local-only and remote-only history plus the number of attached objects
+#     whose notes differ. It does not change local `refs/notes/*` or the remote.
 #   - Only force-push notes refs when you intentionally want local notes
 #     history to replace remote history.
 #
@@ -140,6 +143,7 @@ git remote get-url "$remote" >/dev/null 2>&1 || {
 
 notes_refspec="refs/notes/*:refs/notes/*"
 notes_sync_prefix="refs/notes-sync/$remote"
+remote_notes_refspec="+refs/notes/*:${notes_sync_prefix}/*"
 
 if [[ "$cmd" == "push" ]]; then
   if [[ -z "$(git for-each-ref refs/notes --count=1 --format='%(refname)' 2>/dev/null || true)" ]]; then
@@ -152,16 +156,72 @@ elif [[ "$cmd" == "fetch" ]]; then
   echo "notes-fetch: fetching refs/notes/* <- $remote"
   git fetch "$remote" "$notes_refspec"
 elif [[ "$cmd" == "status" ]]; then
-  if [[ -z "$(git for-each-ref refs/notes --count=1 --format='%(refname)' 2>/dev/null || true)" ]]; then
-    echo "notes-status: no local refs/notes/* to check"
+  echo "notes-status: refreshing refs/notes/* <- $remote"
+  git fetch --quiet --prune "$remote" "$remote_notes_refspec"
+
+  notes_names="$(
+    {
+      git for-each-ref refs/notes --format='%(refname)' \
+        | sed 's#^refs/notes/##'
+      git for-each-ref "$notes_sync_prefix" --format='%(refname)' \
+        | sed "s#^${notes_sync_prefix}/##"
+    } | sort -u
+  )"
+
+  if [[ -z "$notes_names" ]]; then
+    echo "notes-status: no local or remote refs/notes/* found"
     exit 0
   fi
-  echo "notes-status: checking refs/notes/* -> $remote"
-  git push --dry-run "$remote" "$notes_refspec"
+
+  while IFS= read -r name; do
+    local_ref="refs/notes/$name"
+    remote_ref="${notes_sync_prefix}/$name"
+    local_sha="$(git rev-parse -q --verify "$local_ref" 2>/dev/null || true)"
+    remote_sha="$(git rev-parse -q --verify "$remote_ref" 2>/dev/null || true)"
+
+    if [[ -z "$remote_sha" ]]; then
+      local_commits="$(git rev-list --count "$local_ref")"
+      local_objects="$(git ls-tree -r --name-only "$local_ref" | wc -l | tr -d ' ')"
+      printf 'notes-status: %s: not on remote (local-only commits: %s; attached objects: %s)\n' \
+        "$name" "$local_commits" "$local_objects"
+      continue
+    fi
+
+    if [[ -z "$local_sha" ]]; then
+      remote_commits="$(git rev-list --count "$remote_ref")"
+      remote_objects="$(git ls-tree -r --name-only "$remote_ref" | wc -l | tr -d ' ')"
+      printf 'notes-status: %s: missing locally (remote-only commits: %s; attached objects: %s)\n' \
+        "$name" "$remote_commits" "$remote_objects"
+      continue
+    fi
+
+    if [[ "$local_sha" == "$remote_sha" ]]; then
+      attached_objects="$(git ls-tree -r --name-only "$local_ref" | wc -l | tr -d ' ')"
+      printf 'notes-status: %s: up to date (attached objects: %s)\n' "$name" "$attached_objects"
+      continue
+    fi
+
+    read -r local_only remote_only < <(
+      git rev-list --left-right --count "$local_ref...$remote_ref"
+    )
+    changed_objects="$(
+      git diff --name-only "$remote_ref" "$local_ref" | wc -l | tr -d ' '
+    )"
+
+    if [[ "$remote_only" -eq 0 ]]; then
+      printf 'notes-status: %s: remote behind (local-only commits: %s; differing attached objects: %s)\n' \
+        "$name" "$local_only" "$changed_objects"
+    elif [[ "$local_only" -eq 0 ]]; then
+      printf 'notes-status: %s: local behind (remote-only commits: %s; differing attached objects: %s)\n' \
+        "$name" "$remote_only" "$changed_objects"
+    else
+      printf 'notes-status: %s: diverged (local-only commits: %s; remote-only commits: %s; differing attached objects: %s)\n' \
+        "$name" "$local_only" "$remote_only" "$changed_objects"
+    fi
+  done <<<"$notes_names"
 else
-  remote_notes_refspec="refs/notes/*:${notes_sync_prefix}/*"
   echo "notes-merge: fetching refs/notes/* <- $remote into ${notes_sync_prefix}/*"
-  git fetch "$remote" "$remote_notes_refspec"
+  git fetch --prune "$remote" "$remote_notes_refspec"
 
   remote_refs=()
   while IFS= read -r ref; do

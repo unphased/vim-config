@@ -26,6 +26,7 @@
 #     itself is unchanged either way.
 #   - Notes do not travel with normal branch `git push` / `git pull`. After
 #     changing notes, publish them separately with `git notes-push [remote]`.
+#     Use `git notes-status [remote]` to compare local and remote notes history.
 #   - Before adding notes in another clone, or after time away, run
 #     `git notes-fetch [remote]` first. That fetch is ff-only for
 #     `refs/notes/*`, so it rejects on divergence instead of overwriting your

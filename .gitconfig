@@ -86,7 +86,7 @@
   ; use to revert note commits (need to use special note commits, rare)
   nr = "!$HOME/.vim/git-notes-revert.sh"
 
-  ; push/fetch/merge all notes namespaces (refs/notes/*)
+  ; sync and inspect all notes namespaces (refs/notes/*)
   notes-push = "!$HOME/.vim/git-notes-sync.sh push"
   notes-fetch = "!$HOME/.vim/git-notes-sync.sh fetch"
   notes-merge = "!$HOME/.vim/git-notes-sync.sh merge"
