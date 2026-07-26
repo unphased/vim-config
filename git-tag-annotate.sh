@@ -194,7 +194,7 @@ else
 fi
 
 heading="${heading_parts[*]}"
-body="${body_parts[*]}"
+body="${body_parts[*]-}"
 message="$heading"
 if [[ -n "$body" ]]; then
   message+=$'\n\n'"$body"

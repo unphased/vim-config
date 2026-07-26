@@ -176,7 +176,7 @@ if [[ ${#heading_parts[@]} -eq 0 ]]; then
 fi
 
 heading="${heading_parts[*]}"
-body="${body_parts[*]}"
+body="${body_parts[*]-}"
 message="$heading"
 if [[ -n "$body" ]]; then
   message+=$'\n\n'"$body"
