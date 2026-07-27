@@ -12,19 +12,19 @@ local function is_real_buffer(buf)
      and name ~= ""  -- Ensure the buffer has a name (file path)
 end
 
--- Filters out windows:
--- - made by nvim-treesitter-context
--- - made by Neotree
--- - made by Trouble
--- - terminal windows
--- Does so by filtering out not focusable, then filtering out non-real buffers
+-- Include terminal buffers alongside real file buffers in the cyclable set.
+local function is_cyclable_buf(buf)
+  local buftype = vim.api.nvim_get_option_value("buftype", { buf = buf })
+  return is_real_buffer(buf) or buftype == "terminal"
+end
+
 local function filter_to_real_wins(window_list)
   local real_wins = {}
   for _, win in ipairs(window_list) do
     local buf = vim.api.nvim_win_get_buf(win)
     local win_config = vim.api.nvim_win_get_config(win)
 
-    if win_config.focusable and is_real_buffer(buf) then
+    if win_config.focusable and is_cyclable_buf(buf) then
       table.insert(real_wins, win)
     end
   end
