@@ -127,17 +127,31 @@ M.CycleWindowsOrBuffers = function (forward, fallback_tmux)
     end
     -- log('targeting win index ' .. targetWinIdx)
     local targetWin = wins[targetWinIdx]
-    vim.api.nvim_set_current_win(targetWin)
+    local ok, _ = pcall(vim.api.nvim_set_current_win, targetWin)
+    if not ok then
+      -- nvim-tree's BufEnter autocmd can choke on terminal buffers;
+      -- fall back to noautocmd wincmd to still make the switch.
+      vim.cmd("noautocmd wincmd " .. (forward and "w" or "W"))
+    end
   -- boundary
   elseif forward and wins_in_curtab[#wins_in_curtab] == curwin then
     -- log("CycleWindowsOrBuffers in last window in tab so going forward to next tab")
-    vim.cmd("tabnext")
+    local ok, _ = pcall(vim.cmd, "tabnext")
+    if not ok then
+      vim.cmd("noautocmd tabnext")
+    end
   elseif not forward and curwin == wins_in_curtab[1] then
     -- log("CycleWindowsOrBuffers in first window in tab so going back to prev tab")
-    vim.cmd("tabprevious")
+    local ok, _ = pcall(vim.cmd, "tabprevious")
+    if not ok then
+      vim.cmd("noautocmd tabprevious")
+    end
   else
     -- log("CycleWindowsOrBuffers in the last case (multiple tabs, not at end), cycling window " .. (forward and "forward" or "backward"))
-    vim.cmd("wincmd " .. (forward and "w" or "W"))
+    local ok, _ = pcall(vim.cmd, "wincmd " .. (forward and "w" or "W"))
+    if not ok then
+      vim.cmd("noautocmd wincmd " .. (forward and "w" or "W"))
+    end
   end
 end
 
