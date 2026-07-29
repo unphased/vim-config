@@ -319,3 +319,11 @@ cmd zip ${{
     zip -r $1.zip $1
     rm -rf $1
 }}
+
+# yank current file path to system clipboard via OSC52
+cmd yank-path ${{
+    set -f
+    encoded=$(printf '%s' "$f" | base64 | tr -d '\n')
+    printf '\033]52;c;%s\007' "$encoded" > /dev/tty
+}}
+map <c-y> yank-path
