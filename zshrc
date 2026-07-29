@@ -443,5 +443,3 @@ if command -v fzf >/dev/null 2>&1; then
   source <(fzf --zsh)
 fi
 
-# pi coding agent config (tracked in ~/util/pi/)
-export PI_CODING_AGENT_DIR="$HOME/util/pi"
