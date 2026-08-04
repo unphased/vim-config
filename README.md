@@ -3,15 +3,24 @@ vim-config
 
 My personal vim configuration.
 
-Note that in favor of not having my home folder be itself a git repository 
-(which is probably fine but kind of too much git for comfort), I placed the 
-.vimrc in here (i.e. so when cloned it will become `~/.vim/.vimrc`) and a good 
-way to set it up is 
+Rather than making the home directory a Git repository, clone the configuration
+into `~/.vim` and link its entry points from home:
 
-2. (if you do not already have a `~/.vim` dir) `git clone 
-   git@github.com:unphased/vim-config ~/.vim`  
-3. back `~/.vimrc` up if it exists. Then delete it.
-4. `cd ~ && ln -s .vim/.vimrc .vimrc`  
+1. If `~/.vim` does not already exist, run
+   `git clone git@github.com:unphased/vim-config ~/.vim`.
+2. Back up and remove any existing `~/.vimrc`, `~/.zprofile`, and `~/.zshrc`.
+3. Create the links:
+
+   ```sh
+   cd ~
+   ln -s .vim/.vimrc .vimrc
+   ln -s .vim/zprofile .zprofile
+   ln -s .vim/zshrc .zshrc
+   ```
+
+The tracked `zprofile` is the shell bootstrap anchor. On interactive login it
+warns if `~/.zshrc` no longer resolves to `~/.vim/zshrc`, which catches tools
+such as shell-framework installers replacing that link.
 
 Linux virtual terminal setup is tracked here too:
 

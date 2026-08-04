@@ -1,5 +1,11 @@
 # echo Hi from ~/.zprofile
 
+# This login-shell file is the bootstrap anchor: warn if an installer or dotfiles
+# update has redirected zshrc before the tracked configuration gets a chance to run.
+if [[ -o interactive && ! "$HOME/.zshrc" -ef "$HOME/.vim/zshrc" ]]; then
+  print -u2 -- "warning: ~/.zshrc is not linked to ~/.vim/zshrc; this shell may be using stale configuration"
+fi
+
 # Homebrew supplies login-shell tools used before zshrc is fully initialized,
 # including quickdash dependencies such as htop and watch.
 if [[ -x /opt/homebrew/bin/brew ]]; then
