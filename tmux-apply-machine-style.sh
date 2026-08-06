@@ -98,14 +98,19 @@ machine_palette() {
 }
 
 normalize_candidates() {
+    machine_id=
+    if [ -r /opt/machine-id ]; then
+        machine_id=$(sed -n '1p' /opt/machine-id 2>/dev/null)
+    fi
+
     {
-        printf '%s\n' "${MACHINE_ID:-}"
-        if [ -r /opt/machine-id ]; then
-            sed -n '1p' /opt/machine-id 2>/dev/null
+        if [ -n "$machine_id" ]; then
+            printf '%s\n' "$machine_id"
+        else
+            hostname -s 2>/dev/null
+            hostname 2>/dev/null
+            uname -n 2>/dev/null
         fi
-        hostname -s 2>/dev/null
-        hostname 2>/dev/null
-        uname -n 2>/dev/null
     } | awk '
     function normalize(value) {
         value = tolower(value)
