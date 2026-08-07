@@ -6,3 +6,4 @@ test:
 	zsh -n zprofile
 	zsh -n zshrc
 	sh -n ssh-server-security-check.sh
+	sh -n sshsec-install-sudoers.sh
