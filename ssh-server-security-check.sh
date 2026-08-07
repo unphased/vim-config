@@ -240,20 +240,11 @@ _hint_one_liner() {
         *) return 0 ;;
     esac
 
+    # The inline one-liner is intentionally Darwin-only: on Linux the sudoers
+    # rule is provisioned by ansible, so a per-shell hint there is just noise.
+    [ "$(uname -s 2>/dev/null)" = Darwin ] || return 0
+
     _grp=admin
-    case "$(uname -s 2>/dev/null)" in
-        Darwin) _grp=admin ;;
-        *)
-            if command -v getent >/dev/null 2>&1; then
-                if getent group sudo >/dev/null 2>&1; then _grp=sudo
-                elif getent group wheel >/dev/null 2>&1; then _grp=wheel
-                else _grp=sudo
-                fi
-            else
-                _grp=sudo
-            fi
-            ;;
-    esac
 
     _hintBin="${_sshd_bin:-/usr/sbin/sshd}"
     [ -n "$_hintBin" ] || _hintBin=/usr/sbin/sshd
