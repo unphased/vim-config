@@ -285,6 +285,7 @@ Build() {
         if [ -n "$sshsec_lines" ]; then
             _actual="$(printf '%s\n' "$sshsec_lines" | awk -v k="$_ek" '$1==k{print $2; exit}')"
         fi
+        _from_default=0
         if [ -z "$_actual" ]; then
             if [ "$sshsec_source" = "live sshd -T" ]; then
                 # sshd -T always prints every directive; absence here means we
@@ -292,10 +293,14 @@ Build() {
                 _actual="??"
             else
                 _actual="$(DefaultFor "$_ek")"
-                _actual="${_actual}(default)"
+                _from_default=1
             fi
         fi
 
+        # Evaluate against the BARE value (no annotation), then attach a
+        # '(default)' marker for display only. Without this split, a correct
+        # default value like 'yes(default)' would fail the '== yes' check and
+        # produce a false failure.
         Evaluate "$_ek" "$_actual"
         _exp=""
         case "$_ek" in
@@ -305,12 +310,15 @@ Build() {
             pubkeyauthentication)        _exp="yes" ;;
         esac
 
+        _disp="$_actual"
+        [ "$_from_default" = 1 ] && _disp="${_actual}(default)"
+
         if [ "$_res" = pass ]; then
             _mark="\033[1;32m✓\033[0m"
-            _valcol="\033[32m$_actual\033[0m"
+            _valcol="\033[32m$_disp\033[0m"
         else
             _mark="\033[1;31m✗\033[0m"
-            _valcol="\033[1;31m$_actual\033[0m"
+            _valcol="\033[1;31m$_disp\033[0m"
             sshsec_fail_count=$((sshsec_fail_count + 1))
             sshsec_allpass=0
         fi
