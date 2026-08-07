@@ -346,20 +346,11 @@ if [ "$_must_rerun" = 1 ]; then
     } > "$_tmp" 2>/dev/null
     mv "$_tmp" "$_cache_file" 2>/dev/null || rm -f "$_tmp" 2>/dev/null
 
-    if [ "$sshsec_fail_count" -gt 0 ]; then
-        # Loud banner: always show on a fresh check that found problems.
-        :
-    elif [ "$sshsec_source" = "unavailable" ]; then
-        : # say nothing; nothing to check on this host
-    else
-        # All-pass: announce once after this fresh check, then go quiet.
-        printf '\033[1;32mSSH server security OK\033[0m on %s (%s)\n' \
-            "$_host" "$sshsec_source"
-    fi
+    # Fresh-check results write-through complete; emission is handled below.
 fi
 
-# If we hit the cache, only re-announce failures (success stays quiet).
-if [ "$_must_rerun" = 0 ] && [ "$_cached_fail_count" -gt 0 ]; then
+# If we hit the cache, restore the cached results for emission.
+if [ "$_must_rerun" = 0 ]; then
     sshsec_report="$_cached_report"
     sshsec_source="$_cached_source"
     sshsec_fail_count="$_cached_fail_count"
@@ -375,6 +366,13 @@ if [ "${sshsec_fail_count:-0}" -gt 0 ]; then
     printf '\033[2m Silence: export SSHSEC_CHECK=0   or   touch ~/.sshsec-skip\n'
     printf '\033[2m Live values need root: add a sudoers NOPASSWD rule for `\033[0;2msshd -T\033[2m`\033[0m\n'
     printf '\n'
+elif [ "${sshsec_source:-}" = "unavailable" ]; then
+    : # no sshd / no config on this host -- nothing to report
+else
+    # All checks passed: emit a green confirmation on every interactive
+    # startup so the security posture is visible even when nothing is wrong.
+    printf '\033[1;32mSSH server security OK\033[0m on %s (%s)\n' \
+        "$_host" "$sshsec_source"
 fi
 
 exit 0
