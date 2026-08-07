@@ -229,6 +229,47 @@ Evaluate() {
     esac
 }
 
+# ---------------------------------------------------------------------------
+# Print a copy-pasteable one-liner to enable the LIVE (sshd -T) path, shown
+# only when we fell back to parsing. Tails off with a cache-clear reminder so
+# the fix takes effect immediately instead of after the TTL/mtime window.
+# ---------------------------------------------------------------------------
+_hint_one_liner() {
+    case "$1" in
+        parsed*) : ;;   # only hint when we are NOT already live
+        *) return 0 ;;
+    esac
+
+    _grp=admin
+    case "$(uname -s 2>/dev/null)" in
+        Darwin) _grp=admin ;;
+        *)
+            if command -v getent >/dev/null 2>&1; then
+                if getent group sudo >/dev/null 2>&1; then _grp=sudo
+                elif getent group wheel >/dev/null 2>&1; then _grp=wheel
+                else _grp=sudo
+                fi
+            else
+                _grp=sudo
+            fi
+            ;;
+    esac
+
+    _hintBin="${_sshd_bin:-/usr/sbin/sshd}"
+    [ -n "$_hintBin" ] || _hintBin=/usr/sbin/sshd
+
+    # Build the one-liner as a display string. The outer arg to `sh -c` is
+    # double-quoted so `>`, `()` and `&&` are passed literally to the inner
+    # shell; we interpolate the group and sshd path via single-quote-close/
+    #reopen so no single quote ever appears inside a single-quoted region.
+    _cmd='sudo sh -c "echo %'"$_grp"' ALL=(root) NOPASSWD: '"$_hintBin"' -T > /etc/sudoers.d/sshsec-t-check && chmod 0440 /etc/sudoers.d/sshsec-t-check && visudo -c"'
+
+    printf '\033[2m Enable live (sshd -T) with one-time sudoers (run as root):\033[0m\n'
+    printf '\033[0;36m %s\033[0m\n' "$_cmd"
+    printf '\033[2m then clear cache: rm -rf ~/.cache/sshsec\033[0m\n'
+    printf '\n'
+}
+
 # Compiled-in OpenSSH defaults used when a directive is absent from the parsed
 # config (fallback path only).  These match `man sshd_config`.
 DefaultFor() {
@@ -241,10 +282,6 @@ DefaultFor() {
     esac
 }
 
-# ---------------------------------------------------------------------------
-# Build the display.  Sets: sshsec_fail_count, sshsec_report, sshsec_ok.
-# sshsec_report is the multi-line body (without header) for a failure display.
-# ---------------------------------------------------------------------------
 Build() {
     sshsec_fail_count=0
     sshsec_report=""
@@ -363,9 +400,7 @@ if [ "${sshsec_fail_count:-0}" -gt 0 ]; then
     printf '\n'
     printf '%b\n' "$sshsec_report"
     printf '\n'
-    printf '\033[2m Silence: export SSHSEC_CHECK=0   or   touch ~/.sshsec-skip\n'
-    printf '\033[2m Live values need root: add a sudoers NOPASSWD rule for `\033[0;2msshd -T\033[2m`\033[0m\n'
-    printf '\n'
+    printf '\033[2m Silence: export SSHSEC_CHECK=0   or   touch ~/.sshsec-skip\033[0m\n'
 elif [ "${sshsec_source:-}" = "unavailable" ]; then
     : # no sshd / no config on this host -- nothing to report
 else
@@ -374,5 +409,10 @@ else
     printf '\033[1;32mSSH server security OK\033[0m on %s (%s)\n' \
         "$_host" "$sshsec_source"
 fi
+
+# Whenever we are NOT live (fell back to parsing), surface a dim, copy-pasteable
+# one-liner to enable the live `sshd -T` path -- in both the failure and
+# all-pass cases, since "parsed" means we could not query the running server.
+_hint_one_liner "$sshsec_source"
 
 exit 0
