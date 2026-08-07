@@ -249,11 +249,12 @@ _hint_one_liner() {
     _hintBin="${_sshd_bin:-/usr/sbin/sshd}"
     [ -n "$_hintBin" ] || _hintBin=/usr/sbin/sshd
 
-    # Build the one-liner as a display string. The outer arg to `sh -c` is
-    # double-quoted so `>`, `()` and `&&` are passed literally to the inner
-    # shell; we interpolate the group and sshd path via single-quote-close/
-    #reopen so no single quote ever appears inside a single-quoted region.
-    _cmd='sudo sh -c "echo %'"$_grp"' ALL=(root) NOPASSWD: '"$_hintBin"' -T > /etc/sudoers.d/sshsec-t-check && chmod 0440 /etc/sudoers.d/sshsec-t-check && visudo -c"'
+    # Build a flat, paste-safe one-liner (no nested sh -c, so it parses the
+    # same whether pasted into zsh, bash, or sh). The rule text is
+    # single-quoted so the `(root)` parentheses are never seen as shell
+    # operators. `sudo tee` writes as root; chmod and visudo-c run via sudo
+    # too (sudo credential caching means one prompt for the whole chain).
+    _cmd="echo '%${_grp} ALL=(root) NOPASSWD: ${_hintBin} -T' | sudo tee /etc/sudoers.d/sshsec-t-check >/dev/null && sudo chmod 0440 /etc/sudoers.d/sshsec-t-check && sudo visudo -c"
 
     printf '\033[2m Enable live (sshd -T) with one-time sudoers (run as root):\033[0m\n'
     printf '\033[0;36m %s\033[0m\n' "$_cmd"
