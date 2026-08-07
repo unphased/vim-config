@@ -761,9 +761,29 @@ local function tmux_window(dir)
     -- so, back to the typical way to switch buffers.
     vim.cmd('silent! wincmd ' .. dir)
 
-  elseif (not vim.g.neovide) then -- at some edge, fallback to tmux; just not when in neovide
+  elseif vim.env.TMUX and (not vim.g.neovide) then -- at some edge, fallback to tmux (panes and splits share spatial plane); just not when in neovide
     vim.system({ 'tmux', 'select-pane', '-' .. string.gsub(dir, '[hjkl]', {h='L', j='D', k='U', l='R'}) }):wait()
     -- this has a race condition. TODO TODO TODO DO THIS: https://github.com/neovim/neovim/discussions/29905#discussioncomment-10182547
+
+  elseif dir == 'h' or dir == 'l' then
+    -- Not in tmux, horizontal edge: try switching tabs
+    local tabs = vim.api.nvim_list_tabpages()
+    local curtab = vim.api.nvim_get_current_tabpage()
+    local curtab_idx = nil
+    for i, tab in ipairs(tabs) do
+      if tab == curtab then
+        curtab_idx = i
+        break
+      end
+    end
+
+    if dir == 'h' and curtab_idx > 1 then
+      vim.cmd('tabprevious')
+    elseif dir == 'l' and curtab_idx < #tabs then
+      vim.cmd('tabnext')
+    end
+    -- else: at boundary, no-op (spatial hard stop)
+
   end
 end
 
