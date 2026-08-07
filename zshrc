@@ -443,3 +443,11 @@ if command -v fzf >/dev/null 2>&1; then
   source <(fzf --zsh)
 fi
 
+# Live local sshd security-stance check. Runs on every interactive startup;
+# loud red banner on any of: passwordauthentication, kbdinteractiveauthentication,
+# permitrootlogin, pubkeyauthentication being off-policy. Dismissable via
+# SSHSEC_CHECK=0 or ~/.sshsec-skip. See ~/.vim/ssh-server-security-check.sh.
+if [[ -o interactive && -r "$HOME/.vim/ssh-server-security-check.sh" ]]; then
+  "$HOME/.vim/ssh-server-security-check.sh"
+fi
+

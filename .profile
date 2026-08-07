@@ -169,3 +169,11 @@ set_prompt () {
 export PATH="$HOME/.cargo/bin:$PATH"
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
+
+# Live local sshd security-stance check. Loud red banner when any of
+# passwordauthentication / kbdinteractiveauthentication / permitrootlogin /
+# pubkeyauthentication are off-policy. Dismissable via SSHSEC_CHECK=0 or
+# ~/.sshsec-skip. See ~/.vim/ssh-server-security-check.sh.
+if [[ $- == *i* ]] && [ -r "$HOME/.vim/ssh-server-security-check.sh" ]; then
+    "$HOME/.vim/ssh-server-security-check.sh"
+fi
