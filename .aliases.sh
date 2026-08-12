@@ -313,6 +313,17 @@ alias gr="git remote"
 which colormake > /dev/null 2>&1 && alias make="colormake"
 
 alias mk="make"
+
+# Pi upgrades replace local core patches. Intercept only Pi's exact update
+# suggestion; all other Pi commands pass through unchanged.
+pi() {
+	if [ "$#" -eq 1 ] && [ "$1" = "update" ]; then
+		printf '%s\n' 'Pi updates are managed locally. Run: make -C "$HOME/util/pi" pi-upgrade' >&2
+		return 2
+	fi
+	command pi "$@"
+}
+
 alias gcp="git commit-push"
 
 alias gcb='git checkout -b'
