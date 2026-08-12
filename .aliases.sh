@@ -314,12 +314,25 @@ which colormake > /dev/null 2>&1 && alias make="colormake"
 
 alias mk="make"
 
-# Pi upgrades replace local core patches. Intercept only Pi's exact update
-# suggestion; all other Pi commands pass through unchanged.
+# Pi self-updates replace local core patches. Pause every update command rather
+# than duplicating Pi's evolving flag parser; package-only updates may continue.
 pi() {
-	if [ "$#" -eq 1 ] && [ "$1" = "update" ]; then
-		printf '%s\n' 'Pi updates are managed locally. Run: make -C "$HOME/util/pi" pi-upgrade' >&2
-		return 2
+	if [ "${1-}" = "update" ]; then
+		printf '%s\n' \
+			'Pi updates that include Pi itself replace local core patches.' \
+			'For a Pi self-update, cancel and run: make -C "$HOME/util/pi" pi-upgrade' \
+			'Package/model-only updates can safely continue.' >&2
+		if [ ! -t 0 ]; then
+			printf '%s\n' 'Canceled: no interactive terminal available.' >&2
+			return 2
+		fi
+		printf '%s' 'Run the original pi update command anyway? [y/N] ' >&2
+		local reply
+		IFS= read -r reply
+		case "$reply" in
+			y|Y|yes|YES|Yes) ;;
+			*) printf '%s\n' 'Canceled.' >&2; return 2 ;;
+		esac
 	fi
 	command pi "$@"
 }
