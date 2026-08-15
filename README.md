@@ -22,14 +22,16 @@ The tracked `zprofile` is the shell bootstrap anchor. On interactive login it
 warns if `~/.zshrc` no longer resolves to `~/.vim/zshrc`, which catches tools
 such as shell-framework installers replacing that link.
 
-Linux virtual terminal setup is tracked here too:
+Linux virtual terminal customization is tracked here too:
 
 ```
 ~/.vim/linux-vt-install.sh
 ```
 
-That script links the VT palette/setup files into `~/.config` and adds guarded
-Bash/Zsh hooks so the root-level setup script only runs when `TERM=linux`.
+The installer links the VT palette, adds guarded Bash/Zsh hooks, and installs
+the boot service. `linux-vt-startup.sh` is the separate runtime entry point: it
+applies the selected font, pastel palette, keymap, cursor, and blank/powerdown
+timing only when `TERM=linux` or when the boot service names a console.
 
 The installer also sets up the boot-time VT setup service by default. It
 applies the user files first, then asks sudo only for the systemd unit:

@@ -437,7 +437,7 @@ esac
 # pnpm end
 
 # Linux virtual terminal colors and OLED blanking.
-[ -r "$HOME/.vim/linux-vt-setup.sh" ] && . "$HOME/.vim/linux-vt-setup.sh"
+[ -r "$HOME/.vim/linux-vt-startup.sh" ] && . "$HOME/.vim/linux-vt-startup.sh"
 
 if command -v fzf >/dev/null 2>&1; then
   source <(fzf --zsh)
@@ -450,4 +450,3 @@ fi
 if [[ -o interactive && -r "$HOME/.vim/ssh-server-security-check.sh" ]]; then
   "$HOME/.vim/ssh-server-security-check.sh"
 fi
-

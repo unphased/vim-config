@@ -5,12 +5,16 @@ repo_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
 tmp_dir=$(mktemp -d "${TMPDIR:-/tmp}/linux-vt-test.XXXXXX")
 trap 'rm -rf -- "$tmp_dir"' EXIT HUP INT TERM
 
+awk -F, 'NR <= 3 && $1 != 0 { exit 1 } END { if (NR != 3) exit 1 }' \
+  "$repo_dir/.config/tty-pastel"
+
 home=$tmp_dir/home
 bin=$tmp_dir/bin
 payload=$tmp_dir/etc/linux-vt
 unit=$tmp_dir/etc/systemd/system/linux-vt-setup.service
 font_dir=$home/custom-consolefonts
 mkdir -p "$font_dir" "$bin" "$(dirname -- "$unit")"
+printf '%s\n' '[ -r "$HOME/.vim/linux-vt-setup.sh" ] && . "$HOME/.vim/linux-vt-setup.sh"' > "$home/.zshrc"
 
 cat > "$bin/id" <<'EOF'
 #!/bin/sh
@@ -58,6 +62,18 @@ installed=$payload/linux-vt-selected-font
 cmp "$font_one_content" "$selected"
 cmp "$font_one_content" "$installed"
 grep -F "Environment=LINUX_VT_FONT=$installed" "$unit" >/dev/null
+grep -F "ExecStart=/usr/bin/sh $payload/linux-vt-startup.sh --console /dev/tty1" "$unit" >/dev/null
+
+PATH="$bin:$PATH" \
+HOME="$home" \
+LINUX_VT_HOME="$home" \
+  "$repo_dir/linux-vt-install.sh" --no-systemd
+
+grep -F '[ -r "$HOME/.vim/linux-vt-startup.sh" ] && . "$HOME/.vim/linux-vt-startup.sh"' "$home/.zshrc" >/dev/null
+if grep -F 'linux-vt-setup.sh' "$home/.zshrc" >/dev/null; then
+  printf 'installer left obsolete Linux VT setup hook\n' >&2
+  exit 1
+fi
 
 PATH="$bin:$PATH" \
 HOME="$home" \
@@ -73,8 +89,9 @@ cmp "$font_one_content" "$installed"
 legacy_home=$tmp_dir/legacy-home
 legacy_payload=$tmp_dir/legacy-etc/linux-vt
 legacy_unit=$tmp_dir/legacy-etc/systemd/system/linux-vt-setup.service
-mkdir -p "$legacy_home/.local/share/consolefonts" "$(dirname -- "$legacy_unit")"
+mkdir -p "$legacy_home/.local/share/consolefonts" "$legacy_payload" "$(dirname -- "$legacy_unit")"
 gzip -c "$font_one_content" > "$legacy_home/.local/share/consolefonts/Ttyp0-18b-437.psf.gz"
+printf 'obsolete payload\n' > "$legacy_payload/linux-vt-setup.sh"
 
 PATH="$bin:$PATH" \
 FAKE_ROOT=1 \
@@ -85,6 +102,8 @@ LINUX_VT_SYSTEMD_UNIT="$legacy_unit" \
 
 cmp "$font_one_content" "$legacy_payload/linux-vt-selected-font"
 grep -F "Environment=LINUX_VT_FONT=$legacy_payload/linux-vt-selected-font" "$legacy_unit" >/dev/null
+test -x "$legacy_payload/linux-vt-startup.sh"
+test ! -e "$legacy_payload/linux-vt-setup.sh"
 
 failure_payload=$tmp_dir/failure-etc/linux-vt
 failure_unit=$tmp_dir/failure-etc/systemd/system/linux-vt-setup.service
@@ -119,14 +138,14 @@ cat > "$bin/setfont" <<'EOF'
 exit 1
 EOF
 console=$tmp_dir/tty1
-setup_err=$tmp_dir/setup.err
+startup_err=$tmp_dir/startup.err
 : > "$console"
 if PATH="$bin:$PATH" \
   LINUX_VT_FONT="$font_one_content" \
-    "$repo_dir/linux-vt-setup.sh" --console "$console" 2> "$setup_err"; then
-  printf 'boot setup ignored setfont failure\n' >&2
+    "$repo_dir/linux-vt-startup.sh" --console "$console" 2> "$startup_err"; then
+  printf 'boot startup ignored setfont failure\n' >&2
   exit 1
 fi
-grep -F "failed to load Linux VT font: $font_one_content" "$setup_err" >/dev/null
+grep -F "failed to load Linux VT font: $font_one_content" "$startup_err" >/dev/null
 
 printf 'Linux VT persistence tests passed\n'

@@ -96,16 +96,23 @@ ensure_shell_hook() {
   rc_file=$1
   [ -e "$rc_file" ] || return 0
 
-  old_hook='[ -r "$HOME/.config/linux-vt-setup.sh" ] && . "$HOME/.config/linux-vt-setup.sh"'
-  new_hook='[ -r "$HOME/.vim/linux-vt-setup.sh" ] && . "$HOME/.vim/linux-vt-setup.sh"'
+  old_config_hook='[ -r "$HOME/.config/linux-vt-setup.sh" ] && . "$HOME/.config/linux-vt-setup.sh"'
+  old_repo_hook='[ -r "$HOME/.vim/linux-vt-setup.sh" ] && . "$HOME/.vim/linux-vt-setup.sh"'
+  new_hook='[ -r "$HOME/.vim/linux-vt-startup.sh" ] && . "$HOME/.vim/linux-vt-startup.sh"'
 
   if grep -F "$new_hook" "$rc_file" >/dev/null 2>&1; then
     return 0
   fi
 
-  if grep -F "$old_hook" "$rc_file" >/dev/null 2>&1; then
-    replace_line "$rc_file" "$old_hook" "$new_hook" || return 1
-    mark_changed "updated Linux VT setup hook in $rc_file"
+  if grep -F "$old_repo_hook" "$rc_file" >/dev/null 2>&1; then
+    replace_line "$rc_file" "$old_repo_hook" "$new_hook" || return 1
+    mark_changed "updated Linux VT startup hook in $rc_file"
+    return 0
+  fi
+
+  if grep -F "$old_config_hook" "$rc_file" >/dev/null 2>&1; then
+    replace_line "$rc_file" "$old_config_hook" "$new_hook" || return 1
+    mark_changed "updated Linux VT startup hook in $rc_file"
     return 0
   fi
 
@@ -114,10 +121,10 @@ ensure_shell_hook() {
     printf '# Linux virtual terminal colors, font, and OLED blanking.\n'
     printf '%s\n' "$new_hook"
   } >> "$rc_file"
-  mark_changed "added Linux VT setup hook to $rc_file"
+  mark_changed "added Linux VT startup hook to $rc_file"
 }
 
-cleanup_old_setup_link() {
+cleanup_old_startup_link() {
   dest=$target_home/.config/linux-vt-setup.sh
   old_src=$repo_dir/.config/linux-vt-setup.sh
 
@@ -155,7 +162,7 @@ write_systemd_unit() {
     fi
     printf 'Environment=LINUX_VT_KEYMAP=%s/linux-vt-keymap.map\n' "$payload_dir"
     printf 'Environment=LINUX_VT_PALETTE=%s/tty-pastel\n' "$payload_dir"
-    printf 'ExecStart=/usr/bin/sh %s/linux-vt-setup.sh --console /dev/tty1\n' "$payload_dir"
+    printf 'ExecStart=/usr/bin/sh %s/linux-vt-startup.sh --console /dev/tty1\n' "$payload_dir"
     printf '%s\n' ''
     printf '%s\n' '[Install]'
     printf '%s\n' 'WantedBy=multi-user.target'
@@ -238,7 +245,11 @@ install_systemd_payload() {
   payload_dir=$1
 
   mkdir -p -- "$payload_dir" || return 1
-  install_file "$repo_dir/linux-vt-setup.sh" "$payload_dir/linux-vt-setup.sh" 0755 || return 1
+  install_file "$repo_dir/linux-vt-startup.sh" "$payload_dir/linux-vt-startup.sh" 0755 || return 1
+  if [ -e "$payload_dir/linux-vt-setup.sh" ]; then
+    rm -f -- "$payload_dir/linux-vt-setup.sh" || return 1
+    mark_changed "removed obsolete $payload_dir/linux-vt-setup.sh"
+  fi
   install_file "$repo_dir/linux-vt-keymap.map" "$payload_dir/linux-vt-keymap.map" 0644 || return 1
   install_file "$repo_dir/.config/tty-pastel" "$payload_dir/tty-pastel" 0644 || return 1
   install_selected_font "$payload_dir" || return 1
@@ -291,7 +302,7 @@ ensure_systemd_unit() {
 
 if [ "$systemd_only" -eq 0 ]; then
   ensure_symlink "$repo_dir/.config/tty-pastel" "$target_home/.config/tty-pastel"
-  cleanup_old_setup_link
+  cleanup_old_startup_link
 
   ensure_shell_hook "$target_home/.bashrc"
   ensure_shell_hook "$target_home/.zshrc"

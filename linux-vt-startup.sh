@@ -1,12 +1,12 @@
 #!/bin/sh
-# Linux virtual terminal setup. Safe to source from interactive shells.
+# Linux virtual terminal startup. Safe to source from interactive shells.
 linux_vt_console=
 
 case "${1:-}" in
   --console)
     linux_vt_console=${2:-}
     if [ -z "$linux_vt_console" ]; then
-      printf 'usage: %s [--console /dev/ttyN]\n' "${0:-linux-vt-setup.sh}" >&2
+      printf 'usage: %s [--console /dev/ttyN]\n' "${0:-linux-vt-startup.sh}" >&2
       return 2 2>/dev/null || exit 2
     fi
     TERM=linux
@@ -19,7 +19,7 @@ case "${1:-}" in
     esac
     ;;
   *)
-    printf 'usage: %s [--console /dev/ttyN]\n' "${0:-linux-vt-setup.sh}" >&2
+    printf 'usage: %s [--console /dev/ttyN]\n' "${0:-linux-vt-startup.sh}" >&2
     return 2 2>/dev/null || exit 2
     ;;
 esac
