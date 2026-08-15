@@ -133,7 +133,8 @@ cleanup_old_setup_link() {
 write_systemd_unit() {
   unit_dest=$1
   payload_dir=$2
-  tmp=$unit_dest.$$
+  installed_font=$payload_dir/linux-vt-selected-font
+  tmp=$(mktemp "$unit_dest.XXXXXX") || return 1
 
   {
     printf '%s\n' '[Unit]'
@@ -149,7 +150,9 @@ write_systemd_unit() {
     printf '%s\n' 'RemainAfterExit=yes'
     printf '%s\n' 'Environment=TERM=linux'
     printf 'Environment=LINUX_VT_HOME=%s\n' "$target_home"
-    printf 'Environment=LINUX_VT_FONT=%s/.local/share/consolefonts/Ttyp0-18b-437.psf.gz\n' "$target_home"
+    if [ -r "$installed_font" ]; then
+      printf 'Environment=LINUX_VT_FONT=%s\n' "$installed_font"
+    fi
     printf 'Environment=LINUX_VT_KEYMAP=%s/linux-vt-keymap.map\n' "$payload_dir"
     printf 'Environment=LINUX_VT_PALETTE=%s/tty-pastel\n' "$payload_dir"
     printf 'ExecStart=/usr/bin/sh %s/linux-vt-setup.sh --console /dev/tty1\n' "$payload_dir"
@@ -166,7 +169,10 @@ write_systemd_unit() {
     return 0
   fi
 
-  mv -f -- "$tmp" "$unit_dest"
+  mv -f -- "$tmp" "$unit_dest" || {
+    rm -f -- "$tmp"
+    return 1
+  }
   mark_changed "installed $unit_dest"
 }
 
@@ -174,15 +180,56 @@ install_file() {
   src=$1
   dest=$2
   mode=$3
+  tmp=$(mktemp "$dest.XXXXXX") || return 1
 
-  if [ ! -e "$dest" ] || ! cmp -s -- "$src" "$dest"; then
-    cp -- "$src" "$dest" || return 1
-    chmod "$mode" "$dest" || return 1
-    mark_changed "installed $dest"
-    return 0
+  cp -- "$src" "$tmp" || {
+    rm -f -- "$tmp"
+    return 1
+  }
+  chmod "$mode" "$tmp" || {
+    rm -f -- "$tmp"
+    return 1
+  }
+
+  if [ -e "$dest" ] && cmp -s -- "$tmp" "$dest"; then
+    rm -f -- "$tmp"
+    chmod "$mode" "$dest"
+    return $?
   fi
 
-  chmod "$mode" "$dest" || return 1
+  mv -f -- "$tmp" "$dest" || return 1
+  mark_changed "installed $dest"
+}
+
+install_selected_font() {
+  payload_dir=$1
+  selected_font=$target_home/.local/share/consolefonts/linux-vt-selected-font
+  legacy_font=$target_home/.local/share/consolefonts/Ttyp0-18b-437.psf.gz
+  installed_font=$payload_dir/linux-vt-selected-font
+
+  if [ -r "$selected_font" ]; then
+    install_file "$selected_font" "$installed_font" 0644
+    return $?
+  fi
+
+  [ -r "$legacy_font" ] || return 0
+
+  tmp_font=$(mktemp "$installed_font.XXXXXX") || return 1
+  gzip -cd -- "$legacy_font" > "$tmp_font" || {
+    rm -f -- "$tmp_font"
+    return 1
+  }
+  if [ -e "$installed_font" ] && cmp -s -- "$tmp_font" "$installed_font"; then
+    rm -f -- "$tmp_font"
+    chmod 0644 "$installed_font"
+    return $?
+  fi
+  chmod 0644 "$tmp_font" || {
+    rm -f -- "$tmp_font"
+    return 1
+  }
+  mv -f -- "$tmp_font" "$installed_font" || return 1
+  mark_changed "installed $installed_font"
 }
 
 # System-owned runtime files are always converged by content. --force only
@@ -194,36 +241,50 @@ install_systemd_payload() {
   install_file "$repo_dir/linux-vt-setup.sh" "$payload_dir/linux-vt-setup.sh" 0755 || return 1
   install_file "$repo_dir/linux-vt-keymap.map" "$payload_dir/linux-vt-keymap.map" 0644 || return 1
   install_file "$repo_dir/.config/tty-pastel" "$payload_dir/tty-pastel" 0644 || return 1
+  install_selected_font "$payload_dir" || return 1
 }
 
 ensure_systemd_unit() {
-  unit_dest=/etc/systemd/system/linux-vt-setup.service
-  payload_dir=/etc/linux-vt
+  unit_dest=${LINUX_VT_SYSTEMD_UNIT:-/etc/systemd/system/linux-vt-setup.service}
+  payload_dir=${LINUX_VT_PAYLOAD_DIR:-/etc/linux-vt}
+  unit_name=$(basename -- "$unit_dest")
+
+  case "$target_home:$payload_dir:$unit_dest" in
+    *[!A-Za-z0-9_./:-]*)
+      log "unsupported character in Linux VT system path"
+      return 1
+      ;;
+  esac
 
   if [ "$(id -u)" -ne 0 ]; then
     if ! command -v sudo >/dev/null 2>&1; then
       log "skipped systemd setup; sudo is not available to install $unit_dest"
-      return 0
+      [ "$systemd_only" -eq 0 ]
+      return $?
     fi
 
     if [ "$force" -eq 1 ]; then
-      sudo LINUX_VT_HOME="$target_home" "$repo_dir/linux-vt-install.sh" --force --systemd-only || return $?
+      sudo \
+        LINUX_VT_HOME="$target_home" \
+        "$repo_dir/linux-vt-install.sh" --force --systemd-only || return $?
     else
-      sudo LINUX_VT_HOME="$target_home" "$repo_dir/linux-vt-install.sh" --systemd-only || return $?
+      sudo \
+        LINUX_VT_HOME="$target_home" \
+        "$repo_dir/linux-vt-install.sh" --systemd-only || return $?
     fi
     return 0
   fi
 
-  install_systemd_payload "$payload_dir"
-  write_systemd_unit "$unit_dest" "$payload_dir"
+  install_systemd_payload "$payload_dir" || return $?
+  write_systemd_unit "$unit_dest" "$payload_dir" || return $?
 
   if command -v systemctl >/dev/null 2>&1; then
-    systemctl daemon-reload
-    if systemctl is-enabled linux-vt-setup.service >/dev/null 2>&1; then
+    systemctl daemon-reload || return 1
+    if systemctl is-enabled "$unit_name" >/dev/null 2>&1; then
       :
     else
-      systemctl enable linux-vt-setup.service
-      mark_changed "enabled linux-vt-setup.service"
+      systemctl enable "$unit_name" || return 1
+      mark_changed "enabled $unit_name"
     fi
   fi
 }
@@ -237,7 +298,7 @@ if [ "$systemd_only" -eq 0 ]; then
 fi
 
 if [ "$systemd" -eq 1 ]; then
-  ensure_systemd_unit
+  ensure_systemd_unit || exit $?
 fi
 
 printf '[%s] changed=%s\n' "$context" "$changed"

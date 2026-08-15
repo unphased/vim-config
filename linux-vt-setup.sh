@@ -25,7 +25,15 @@ case "${1:-}" in
 esac
 
 linux_vt_home="${LINUX_VT_HOME:-$HOME}"
-linux_vt_font="${LINUX_VT_FONT:-$linux_vt_home/.local/share/consolefonts/Ttyp0-18b-437.psf.gz}"
+if [ "${LINUX_VT_FONT+x}" = x ]; then
+  linux_vt_font=$LINUX_VT_FONT
+elif [ -r "$linux_vt_home/.local/share/consolefonts/linux-vt-selected-font" ]; then
+  linux_vt_font=$linux_vt_home/.local/share/consolefonts/linux-vt-selected-font
+elif [ -r "$linux_vt_home/.local/share/consolefonts/Ttyp0-18b-437.psf.gz" ]; then
+  linux_vt_font=$linux_vt_home/.local/share/consolefonts/Ttyp0-18b-437.psf.gz
+else
+  linux_vt_font=
+fi
 linux_vt_blank_minutes="${LINUX_VT_BLANK_MINUTES:-1}"
 linux_vt_powerdown_minutes="${LINUX_VT_POWERDOWN_MINUTES:-1}"
 linux_vt_keymap="${LINUX_VT_KEYMAP:-$linux_vt_home/.vim/linux-vt-keymap.map}"
@@ -45,7 +53,10 @@ esac
 
 if [ -n "$linux_vt_font" ] && command -v setfont >/dev/null 2>&1; then
   if [ -n "$linux_vt_console" ]; then
-    setfont -C "$linux_vt_console" "$linux_vt_font" >/dev/null 2>&1 || true
+    setfont -C "$linux_vt_console" "$linux_vt_font" || {
+      printf 'failed to load Linux VT font: %s\n' "$linux_vt_font" >&2
+      return 1 2>/dev/null || exit 1
+    }
   else
     setfont "$linux_vt_font" >/dev/null 2>&1 || true
   fi

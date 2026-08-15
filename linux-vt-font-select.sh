@@ -1,24 +1,28 @@
 #!/bin/sh
 set -u
 
+repo_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P) || exit 1
 local_font_dir=${LINUX_VT_LOCAL_FONT_DIR:-"$HOME/.local/share/consolefonts"}
+selected_font=$HOME/.local/share/consolefonts/linux-vt-selected-font
 state_dir=${XDG_STATE_HOME:-"$HOME/.local/state"}
 position_file=${LINUX_VT_FONT_POSITION_FILE:-"$state_dir/linux-vt-font-select.position"}
 console=
 list_only=0
 once=0
+apply_only=0
 
 usage() {
   cat <<'EOF'
-usage: linux-vt-font-select.sh [--console /dev/ttyN] [--list] [--once] [--reset] [FONT]
+usage: linux-vt-font-select.sh [--console /dev/ttyN] [--list] [--once] [--apply-only] [--reset] [FONT]
 
-Interactively select a Linux virtual terminal font from system console font
-directories and ~/.local/share/consolefonts, then apply it with setfont.
+Interactively select a Linux virtual terminal font, apply it with setfont, and
+save successful selections for the installed boot service.
 
 Options:
   --console DEV  Apply to a specific console, e.g. /dev/tty2.
   --list         List discovered fonts and exit.
   --once         Exit immediately after applying one selected font.
+  --apply-only   Apply temporarily without changing the saved boot font.
   --reset        Reset console font with setfont -R and exit.
   FONT           Apply a font by path or by discovered basename.
 EOF
@@ -73,6 +77,43 @@ run_setfont() {
   return "$status"
 }
 
+persist_font() {
+  font=$1
+  mkdir -p -- "$local_font_dir" "$(dirname -- "$selected_font")" || return 1
+  tmp_font=$(mktemp "$selected_font.XXXXXX") || return 1
+
+  case "$font" in
+    *.gz)
+      gzip -cd -- "$font" > "$tmp_font" || {
+        rm -f -- "$tmp_font"
+        return 1
+      }
+      ;;
+    *)
+      cp -- "$font" "$tmp_font" || {
+        rm -f -- "$tmp_font"
+        return 1
+      }
+      ;;
+  esac
+
+  chmod 0644 "$tmp_font" || {
+    rm -f -- "$tmp_font"
+    return 1
+  }
+  mv -f -- "$tmp_font" "$selected_font" || return 1
+  printf 'Saved selected font: %s\n' "$selected_font"
+
+  if LINUX_VT_HOME="$HOME" \
+    "$repo_dir/linux-vt-install.sh" --systemd-only; then
+    printf 'Installed font for the next boot\n'
+    return 0
+  fi
+
+  printf 'saved selection, but failed to install the boot font\n' >&2
+  return 1
+}
+
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --console|-C)
@@ -85,6 +126,9 @@ while [ "$#" -gt 0 ]; do
       ;;
     --once)
       once=1
+      ;;
+    --apply-only)
+      apply_only=1
       ;;
     --reset)
       run_setfont -R
@@ -168,7 +212,8 @@ build_font_list() {
 
 apply_font() {
   font=$1
-  run_setfont "$font"
+  run_setfont "$font" || return $?
+  [ "$apply_only" -eq 1 ] || persist_font "$font"
 }
 
 find_font_by_name() {
@@ -343,10 +388,12 @@ while :; do
   save_position "$font_position"
   selected=$(printf '%s\n' "$selection" | sed -n '4p')
   if apply_font "$selected"; then
+    apply_status=0
     printf 'Applied: %s\n' "$selected"
   else
+    apply_status=$?
     printf 'Failed: %s\n' "$selected" >&2
   fi
 
-  [ "$once" -eq 1 ] && exit 0
+  [ "$once" -eq 1 ] && exit "$apply_status"
 done
