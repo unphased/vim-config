@@ -7,6 +7,10 @@ trap 'rm -rf -- "$tmp_dir"' EXIT HUP INT TERM
 
 awk -F, 'NR <= 3 && $1 != 0 { exit 1 } END { if (NR != 3) exit 1 }' \
   "$repo_dir/.config/tty-pastel"
+grep -F 'linux_vt_blank_minutes="${LINUX_VT_BLANK_MINUTES:-5}"' \
+  "$repo_dir/linux-vt-startup.sh" >/dev/null
+grep -F 'linux_vt_powerdown_minutes="${LINUX_VT_POWERDOWN_MINUTES:-5}"' \
+  "$repo_dir/linux-vt-startup.sh" >/dev/null
 
 home=$tmp_dir/home
 bin=$tmp_dir/bin

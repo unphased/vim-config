@@ -31,7 +31,9 @@ Linux virtual terminal customization is tracked here too:
 The installer links the VT palette, adds guarded Bash/Zsh hooks, and installs
 the boot service. `linux-vt-startup.sh` is the separate runtime entry point: it
 applies the selected font, pastel palette, keymap, cursor, and blank/powerdown
-timing only when `TERM=linux` or when the boot service names a console.
+timing only when `TERM=linux` or when the boot service names a console. Both
+blanking and display powerdown default to five minutes and remain overridable
+through `LINUX_VT_BLANK_MINUTES` and `LINUX_VT_POWERDOWN_MINUTES`.
 
 The installer also sets up the boot-time VT setup service by default. It
 applies the user files first, then asks sudo only for the systemd unit:
