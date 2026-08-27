@@ -57,8 +57,9 @@ fi
 render() {
   now=$(date +%s)
   state_file=$(mktemp "${TMPDIR:-/tmp}/quickdash-ssh-active.XXXXXX")
-  trap 'rm -f "$state_file"; exit 0' HUP INT TERM
-  trap 'rm -f "$state_file"' EXIT
+  visible_file=$(mktemp "${TMPDIR:-/tmp}/quickdash-ssh-visible.XXXXXX")
+  trap 'rm -f "$state_file" "$visible_file"; exit 0' HUP INT TERM
+  trap 'rm -f "$state_file" "$visible_file"' EXIT
 
   columns=$(tput cols 2>/dev/null || printf '80')
   case "$columns" in
@@ -174,7 +175,23 @@ render() {
   }
   ' "$ssh_log" >"$state_file"
 
-  count=$(awk 'END { print NR + 0 }' "$state_file")
+  # An unmatched process can mean the logger missed its disconnect event.
+  # Retain only the recent window; the history pane remains the source of
+  # truth for older activity.
+  : >"$visible_file"
+  while IFS="$(printf '\t')" read -r started destination alias pid origin; do
+    [ -n "$started" ] || continue
+    if epoch=$(timestamp_epoch "$started"); then
+      age=$((now - epoch))
+    else
+      age=900
+    fi
+    [ "$age" -lt 0 ] && age=0
+    [ "$age" -le 900 ] || continue
+    printf '%s\t%s\t%s\t%s\t%s\n' "$age" "$destination" "$alias" "$pid" "$origin" >>"$visible_file"
+  done <"$state_file"
+
+  count=$(awk 'END { print NR + 0 }' "$visible_file")
   if [ "$count" -eq 0 ]; then
     printf '%sSSH attempts  -  clear%s\n' "$dim" "$reset"
   else
@@ -189,15 +206,9 @@ render() {
     overflow=1
   fi
   shown=0
-  while IFS="$(printf '\t')" read -r started destination alias pid origin; do
-    [ -n "$started" ] || continue
+  while IFS="$(printf '\t')" read -r age destination alias pid origin; do
+    [ -n "$age" ] || continue
     [ "$shown" -ge "$rows" ] && break
-    if epoch=$(timestamp_epoch "$started"); then
-      age=$((now - epoch))
-    else
-      age=20
-    fi
-    [ "$age" -lt 0 ] && age=0
 
     if [ "$age" -lt 10 ]; then
       colour=$bright
@@ -209,12 +220,12 @@ render() {
     printf '%s%3ss  %-18s %-8s %-5s %s%s\n' "$colour" "$age" \
       "$destination" "$alias" "$pid" "$origin" "$reset"
     shown=$((shown + 1))
-  done <"$state_file"
+  done <"$visible_file"
   if [ "$overflow" -eq 1 ]; then
     printf '%s... %s more active%s\n' "$dim" "$((count - rows))" "$reset"
   fi
 
-  rm -f "$state_file"
+  rm -f "$state_file" "$visible_file"
   trap - EXIT HUP INT TERM
 }
 
