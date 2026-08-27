@@ -333,8 +333,41 @@ pi() {
 			y|Y|yes|YES|Yes) ;;
 			*) printf '%s\n' 'Canceled.' >&2; return 2 ;;
 		esac
+		# Do not make a Pi package/model update depend on the NAS being online.
+		command pi "$@"
+		return $?
 	fi
-	command pi "$@"
+
+	if [ "${PI_CRW_DISABLED:-0}" = "1" ]; then
+		command pi "$@"
+		return $?
+	fi
+
+	# CRW is a remote, authenticated service. Fetch its key just for this Pi
+	# process; do not write it into shell config, Pi settings, or the command
+	# line. The child Pi process and its local subagents inherit this environment.
+	local crw_key crw_api_url
+	crw_api_url="${CRW_API_URL:-http://slu-nas-eos:3000}"
+	# The bootstrap leaves .env mode 0600 but assigns it to the operator who
+	# invoked sudo, so ordinary SSH access is sufficient. Keep the sudo fallback
+	# for older/root-owned deployments when a narrow NOPASSWD rule exists.
+	if ! crw_key="$(ssh -o BatchMode=yes -o RequestTTY=no -o ConnectTimeout=10 \
+		nas "awk -F= '\$1 == \"CRW_API_KEY\" { print \$2 }' /opt/crw-stack/.env" \
+		2>/dev/null)"; then
+		if ! crw_key="$(ssh -o BatchMode=yes -o RequestTTY=no -o ConnectTimeout=10 \
+			nas "sudo -n awk -F= '\$1 == \"CRW_API_KEY\" { print \$2 }' /opt/crw-stack/.env" \
+			2>/dev/null)"; then
+			printf '%s\n' 'Unable to retrieve the CRW API key from nas; Pi was not started.' >&2
+			printf '%s\n' 'Run CRW bootstrap once with sudo, or set PI_CRW_DISABLED=1.' >&2
+			return 1
+		fi
+	fi
+	if [ -z "$crw_key" ]; then
+		printf '%s\n' 'The CRW API key retrieved from nas was empty; Pi was not started.' >&2
+		return 1
+	fi
+
+	CRW_API_URL="$crw_api_url" CRW_API_KEY="$crw_key" command pi "$@"
 }
 
 alias gcp="git commit-push"
