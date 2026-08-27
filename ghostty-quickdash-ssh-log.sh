@@ -11,12 +11,23 @@ if [ ! -e "$ssh_log" ]; then
 fi
 
 # Keep this as a stream: the terminal scrollback is the history view.
-columns=$(tput cols 2>/dev/null || printf '100')
-case "$columns" in
-  ''|*[!0-9]*) columns=100 ;;
-esac
-origin_width=$((columns - 72))
-[ "$origin_width" -lt 3 ] && origin_width=3
+terminal_columns() {
+  columns=
+  if [ -n "${TMUX_PANE:-}" ] && command -v tmux >/dev/null 2>&1; then
+    columns=$(tmux display-message -p -t "$TMUX_PANE" '#{pane_width}' 2>/dev/null || true)
+  fi
+  case "$columns" in
+    ''|*[!0-9]*) columns=$(tput cols 2>/dev/null || printf '100') ;;
+  esac
+  case "$columns" in
+    ''|*[!0-9]*) columns=100 ;;
+  esac
+  printf '%s\n' "$columns"
+}
+columns=$(terminal_columns)
+# The fixed fields use 101 columns; the process chain gets the remainder.
+origin_width=$((columns - 101))
+[ "$origin_width" -lt 0 ] && origin_width=0
 tail -n 20 -F "$ssh_log" | awk -v origin_width="$origin_width" -v screen_width="$columns" '
 BEGIN {
   FS = "\t"
@@ -25,8 +36,8 @@ BEGIN {
   esc = sprintf("%c", 27)
   dim = esc "[2m"
   normal = esc "[22m"
-  printf "%s\n", clip_terminal(sprintf("%-14s %-9s %-25s %-7s %-12s %s", "WHEN", "EVENT", "PEER", "PID", "ALIAS", "ORIGIN"), screen_width)
-  printf "%s\n", clip_terminal(sprintf("%-14s %-9s %-25s %-7s %-12s %s", "--------------", "---------", "-------------------------", "-------", "------------", "------"), screen_width)
+  printf "%s\n", clip_terminal(sprintf("%-14s %-9s %-25s %-7s %-12s %-28s %s", "WHEN", "EVENT", "PEER", "PID", "ALIAS", "CWD", "ORIGIN"), screen_width)
+  printf "%s\n", clip_terminal(sprintf("%-14s %-9s %-25s %-7s %-12s %-28s %s", "--------------", "---------", "-------------------------", "-------", "------------", "----------------------------", "------"), screen_width)
 }
 function value(key, i) {
   for (i = 1; i <= NF; i++)
@@ -111,6 +122,7 @@ function render_chain(chain, count, i, node, rendered) {
   host = value("host")
   port = value("port")
   alias = value("alias")
+  cwd = value("cwd")
   if (endpoint != "")
     peer = endpoint
   else if (host != "")
@@ -124,7 +136,7 @@ function render_chain(chain, count, i, node, rendered) {
     peer = user "@" peer
 
   pid = clip((pid == "" ? "-" : pid), 7)
-  row = sprintf("%-14s %-9s %-25s %-7s %-12s %s", timestamp, event, clip(peer, 25), pid, clip((alias == "" ? "-" : alias), 12), render_chain(value("process_chain")))
+  row = sprintf("%-14s %-9s %-25s %-7s %-12s %-28s %s", timestamp, event, clip(peer, 25), pid, clip((alias == "" ? "-" : alias), 12), clip((cwd == "" ? "-" : cwd), 28), render_chain(value("process_chain")))
   printf "%s\n", clip_terminal(row, screen_width)
   fflush()
 }

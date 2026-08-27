@@ -61,11 +61,22 @@ render() {
   trap 'rm -f "$state_file" "$visible_file"; exit 0' HUP INT TERM
   trap 'rm -f "$state_file" "$visible_file"' EXIT
 
-  columns=$(tput cols 2>/dev/null || printf '80')
-  case "$columns" in
-    ''|*[!0-9]*) columns=80 ;;
-  esac
-  origin_width=$((columns - 40))
+  terminal_columns() {
+    columns=
+    if [ -n "${TMUX_PANE:-}" ] && command -v tmux >/dev/null 2>&1; then
+      columns=$(tmux display-message -p -t "$TMUX_PANE" '#{pane_width}' 2>/dev/null || true)
+    fi
+    case "$columns" in
+      ''|*[!0-9]*) columns=$(tput cols 2>/dev/null || printf '80') ;;
+    esac
+    case "$columns" in
+      ''|*[!0-9]*) columns=80 ;;
+    esac
+    printf '%s\n' "$columns"
+  }
+  columns=$(terminal_columns)
+  # The fixed fields use 69 columns; the process chain gets the remainder.
+  origin_width=$((columns - 69))
   [ "$origin_width" -lt 0 ] && origin_width=0
 
   # Rebuild state from the log each frame.  The log is small enough for this
@@ -143,6 +154,8 @@ render() {
       destination[id] = value("host")
     if (value("alias") != "")
       alias[id] = value("alias")
+    if (value("cwd") != "")
+      cwd[id] = value("cwd")
     if (value("ssh_pid") != "")
       pid[id] = value("ssh_pid")
     else
@@ -172,6 +185,7 @@ render() {
       print started[id], clip(peer, 18),
         clip((alias[id] == "" ? "-" : alias[id]), 8),
         clip((pid[id] == "" ? "-" : pid[id]), 5),
+        clip((cwd[id] == "" ? "-" : cwd[id]), 28),
         (origin[id] == "" ? "-" : clip(origin[id], origin_width))
     }
   }
@@ -181,7 +195,7 @@ render() {
   # Retain only the recent window; the history pane remains the source of
   # truth for older activity.
   : >"$visible_file"
-  while IFS="$(printf '\t')" read -r started destination alias pid origin; do
+  while IFS="$(printf '\t')" read -r started destination alias pid cwd origin; do
     [ -n "$started" ] || continue
     if epoch=$(timestamp_epoch "$started"); then
       age=$((now - epoch))
@@ -190,7 +204,7 @@ render() {
     fi
     [ "$age" -lt 0 ] && age=0
     [ "$age" -le 900 ] || continue
-    printf '%s\t%s\t%s\t%s\t%s\n' "$age" "$destination" "$alias" "$pid" "$origin" >>"$visible_file"
+    printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$age" "$destination" "$alias" "$pid" "$cwd" "$origin" >>"$visible_file"
   done <"$state_file"
 
   count=$(awk 'END { print NR + 0 }' "$visible_file")
@@ -198,7 +212,7 @@ render() {
     printf '%sSSH attempts  -  clear%s\n' "$dim" "$reset"
   else
     printf '%sSSH attempts  -  %s active%s\n' "$bright" "$count" "$reset"
-    printf '%sAGE  %-18s %-8s %-5s %s%s\n' "$dim" "DESTINATION" "ALIAS" "PID" "ORIGIN" "$reset"
+    printf '%sAGE  %-18s %-8s %-5s %-28s %s%s\n' "$dim" "DESTINATION" "ALIAS" "PID" "CWD" "ORIGIN" "$reset"
   fi
 
   rows=$count
@@ -208,7 +222,7 @@ render() {
     overflow=1
   fi
   shown=0
-  while IFS="$(printf '\t')" read -r age destination alias pid origin; do
+  while IFS="$(printf '\t')" read -r age destination alias pid cwd origin; do
     [ -n "$age" ] || continue
     [ "$shown" -ge "$rows" ] && break
 
@@ -219,8 +233,8 @@ render() {
     else
       colour=$dim
     fi
-    printf '%s%3ss  %-18s %-8s %-5s %s%s\n' "$colour" "$age" \
-      "$destination" "$alias" "$pid" "$origin" "$reset"
+    printf '%s%3ss  %-18s %-8s %-5s %-28s %s%s\n' "$colour" "$age" \
+      "$destination" "$alias" "$pid" "$cwd" "$origin" "$reset"
     shown=$((shown + 1))
   done <"$visible_file"
   if [ "$overflow" -eq 1 ]; then
