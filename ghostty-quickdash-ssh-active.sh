@@ -66,7 +66,7 @@ render() {
     ''|*[!0-9]*) columns=80 ;;
   esac
   origin_width=$((columns - 40))
-  [ "$origin_width" -lt 1 ] && origin_width=1
+  [ "$origin_width" -lt 0 ] && origin_width=0
 
   # Rebuild state from the log each frame.  The log is small enough for this
   # polling loop, and this also handles long-lived sessions and log rotation.
@@ -93,8 +93,10 @@ render() {
     return substr(rest, 1, pid_end - 1)
   }
   function clip(text, width) {
+    if (width <= 0)
+      return ""
     if (length(text) > width)
-      return substr(text, 1, width - 2) ".."
+      return substr(text, 1, width < 3 ? width : width - 2) (width < 3 ? "" : "..")
     return text
   }
   {
