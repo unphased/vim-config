@@ -75,13 +75,13 @@ render() {
     printf '%s\n' "$columns"
   }
   columns=$(terminal_columns)
-  # The fixed fields use 69 columns; the process chain gets the remainder.
-  origin_width=$((columns - 69))
+  # The fixed fields use 68 columns; the process chain gets the remainder.
+  origin_width=$((columns - 68))
   [ "$origin_width" -lt 0 ] && origin_width=0
 
   # Rebuild state from the log each frame.  The log is small enough for this
   # polling loop, and this also handles long-lived sessions and log rotation.
-  awk -v origin_width="$origin_width" '
+  awk -v origin_width="$origin_width" -v home_dir="${HOME:-/home/slu}" '
   BEGIN {
     FS = "\t"
     OFS = "\t"
@@ -102,6 +102,53 @@ render() {
     if (!pid_end)
       return ""
     return substr(rest, 1, pid_end - 1)
+  }
+  function shorten_home(path, suffix) {
+    if (home_dir == "" || index(path, home_dir) != 1)
+      return path
+    suffix = substr(path, length(home_dir) + 1)
+    if (suffix == "" || substr(suffix, 1, 1) == "/")
+      return "~" suffix
+    return path
+  }
+  function describe_node(node, kind, pid, query, command, args, arg_count, i, candidate, base) {
+    if (node !~ /^(bash|sh|zsh)\[[0-9]+\]$/)
+      return node
+    kind = node
+    sub(/\[.*/, "", kind)
+    pid = node
+    sub(/^[^[]+\[/, "", pid)
+    sub(/\].*$/, "", pid)
+    query = "ps -ww -o command= -p " pid " 2>/dev/null"
+    command = ""
+    if ((query | getline command) <= 0) {
+      close(query)
+      return node
+    }
+    close(query)
+    gsub(/[[:space:]]+/, " ", command)
+    arg_count = split(command, args, / /)
+    for (i = 2; i <= arg_count; i++) {
+      candidate = args[i]
+      gsub(/\"/, "", candidate)
+      if (candidate ~ /\.(sh|bash|zsh)$/ || candidate ~ /^\//) {
+        base = candidate
+        sub(/^.*\//, "", base)
+        return kind "[" pid ":" base "]"
+      }
+    }
+    return node
+  }
+  function render_origin(chain, count, i, node, rendered) {
+    if (chain == "")
+      return "-"
+    count = split(chain, nodes, / <- /)
+    rendered = ""
+    for (i = 1; i <= count; i++) {
+      node = describe_node(nodes[i])
+      rendered = rendered (i == 1 ? "" : " <- ") node
+    }
+    return clip(rendered, origin_width)
   }
   function clip(text, width) {
     if (width <= 0)
@@ -155,7 +202,7 @@ render() {
     if (value("alias") != "")
       alias[id] = value("alias")
     if (value("cwd") != "")
-      cwd[id] = value("cwd")
+      cwd[id] = shorten_home(value("cwd"))
     if (value("ssh_pid") != "")
       pid[id] = value("ssh_pid")
     else
@@ -177,16 +224,17 @@ render() {
       id = order[i]
       if (!live[id])
         continue
-      peer = destination[id]
+      peer = alias[id]
+      if (peer == "")
+        peer = destination[id]
       if (peer == "")
         peer = "-"
       if (user[id] != "")
         peer = user[id] "@" peer
-      print started[id], clip(peer, 18),
-        clip((alias[id] == "" ? "-" : alias[id]), 8),
+      print started[id], clip(peer, 22),
         clip((pid[id] == "" ? "-" : pid[id]), 5),
-        clip((cwd[id] == "" ? "-" : cwd[id]), 28),
-        (origin[id] == "" ? "-" : clip(origin[id], origin_width))
+        clip((cwd[id] == "" ? "-" : cwd[id]), 32),
+        render_origin(origin[id])
     }
   }
   ' "$ssh_log" >"$state_file"
@@ -195,7 +243,7 @@ render() {
   # Retain only the recent window; the history pane remains the source of
   # truth for older activity.
   : >"$visible_file"
-  while IFS="$(printf '\t')" read -r started destination alias pid cwd origin; do
+  while IFS="$(printf '\t')" read -r started destination pid cwd origin; do
     [ -n "$started" ] || continue
     if epoch=$(timestamp_epoch "$started"); then
       age=$((now - epoch))
@@ -204,7 +252,7 @@ render() {
     fi
     [ "$age" -lt 0 ] && age=0
     [ "$age" -le 900 ] || continue
-    printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$age" "$destination" "$alias" "$pid" "$cwd" "$origin" >>"$visible_file"
+    printf '%s\t%s\t%s\t%s\t%s\n' "$age" "$destination" "$pid" "$cwd" "$origin" >>"$visible_file"
   done <"$state_file"
 
   count=$(awk 'END { print NR + 0 }' "$visible_file")
@@ -212,7 +260,7 @@ render() {
     printf '%sSSH attempts  -  clear%s\n' "$dim" "$reset"
   else
     printf '%sSSH attempts  -  %s active%s\n' "$bright" "$count" "$reset"
-    printf '%sAGE  %-18s %-8s %-5s %-28s %s%s\n' "$dim" "DESTINATION" "ALIAS" "PID" "CWD" "ORIGIN" "$reset"
+    printf '%sAGE  %-22s %-5s %-32s %s%s\n' "$dim" "PEER" "PID" "CWD" "ORIGIN" "$reset"
   fi
 
   rows=$count
@@ -222,7 +270,7 @@ render() {
     overflow=1
   fi
   shown=0
-  while IFS="$(printf '\t')" read -r age destination alias pid cwd origin; do
+  while IFS="$(printf '\t')" read -r age destination pid cwd origin; do
     [ -n "$age" ] || continue
     [ "$shown" -ge "$rows" ] && break
 
@@ -233,8 +281,8 @@ render() {
     else
       colour=$dim
     fi
-    printf '%s%3ss  %-18s %-8s %-5s %-28s %s%s\n' "$colour" "$age" \
-      "$destination" "$alias" "$pid" "$cwd" "$origin" "$reset"
+    printf '%s%3ss  %-22s %-5s %-32s %s%s\n' "$colour" "$age" \
+      "$destination" "$pid" "$cwd" "$origin" "$reset"
     shown=$((shown + 1))
   done <"$visible_file"
   if [ "$overflow" -eq 1 ]; then

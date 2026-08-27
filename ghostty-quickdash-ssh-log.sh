@@ -25,10 +25,10 @@ terminal_columns() {
   printf '%s\n' "$columns"
 }
 columns=$(terminal_columns)
-# The fixed fields use 101 columns; the process chain gets the remainder.
-origin_width=$((columns - 101))
+# The fixed fields use 92 columns; the process chain gets the remainder.
+origin_width=$((columns - 92))
 [ "$origin_width" -lt 0 ] && origin_width=0
-tail -n 20 -F "$ssh_log" | awk -v origin_width="$origin_width" -v screen_width="$columns" '
+tail -n 20 -F "$ssh_log" | awk -v origin_width="$origin_width" -v screen_width="$columns" -v home_dir="${HOME:-/home/slu}" '
 BEGIN {
   FS = "\t"
   OFS = " "
@@ -36,8 +36,8 @@ BEGIN {
   esc = sprintf("%c", 27)
   dim = esc "[2m"
   normal = esc "[22m"
-  printf "%s\n", clip_terminal(sprintf("%-14s %-9s %-25s %-7s %-12s %-28s %s", "WHEN", "EVENT", "PEER", "PID", "ALIAS", "CWD", "ORIGIN"), screen_width)
-  printf "%s\n", clip_terminal(sprintf("%-14s %-9s %-25s %-7s %-12s %-28s %s", "--------------", "---------", "-------------------------", "-------", "------------", "----------------------------", "------"), screen_width)
+  printf "%s\n", clip_terminal(sprintf("%-14s %-9s %-25s %-7s %-32s %s", "WHEN", "EVENT", "PEER", "PID", "CWD", "ORIGIN"), screen_width)
+  printf "%s\n", clip_terminal(sprintf("%-14s %-9s %-25s %-7s %-32s %s", "--------------", "---------", "-------------------------", "-------", "--------------------------------", "------"), screen_width)
 }
 function value(key, i) {
   for (i = 1; i <= NF; i++)
@@ -82,17 +82,59 @@ function pid_from_chain(chain, start, rest, end) {
   end = index(rest, "]")
   return end ? substr(rest, 1, end - 1) : "-"
 }
+function shorten_home(path, suffix) {
+  if (home_dir == "" || index(path, home_dir) != 1)
+    return path
+  suffix = substr(path, length(home_dir) + 1)
+  if (suffix == "" || substr(suffix, 1, 1) == "/")
+    return "~" suffix
+  return path
+}
+function describe_node(node, kind, pid, query, command, args, arg_count, i, candidate, base) {
+  if (node !~ /^(bash|sh|zsh)\[[0-9]+\]$/)
+    return node
+  kind = node
+  sub(/\[.*/, "", kind)
+  pid = node
+  sub(/^[^[]+\[/, "", pid)
+  sub(/\].*$/, "", pid)
+  query = "ps -ww -o command= -p " pid " 2>/dev/null"
+  command = ""
+  if ((query | getline command) <= 0) {
+    close(query)
+    return node
+  }
+  close(query)
+  gsub(/[[:space:]]+/, " ", command)
+  arg_count = split(command, args, / /)
+  for (i = 2; i <= arg_count; i++) {
+    candidate = args[i]
+    gsub(/\"/, "", candidate)
+    if (candidate ~ /\.(sh|bash|zsh)$/ || candidate ~ /^\//) {
+      base = candidate
+      sub(/^.*\//, "", base)
+      return kind "[" pid ":" base "]"
+    }
+  }
+  return node
+}
 function render_chain(chain, count, i, node, rendered) {
   if (chain == "")
     return "-"
   gsub(/[[:space:]]*<-[[:space:]]*/, " <- ", chain)
   sub(/^ssh\[[0-9]+\][[:space:]]*<-[[:space:]]*/, "", chain)
-  chain = clip(chain, origin_width)
   count = split(chain, nodes, / <- /)
   rendered = ""
   for (i = 1; i <= count; i++) {
+    node = describe_node(nodes[i])
+    rendered = rendered (i == 1 ? "" : " <- ") node
+  }
+  rendered = clip(rendered, origin_width)
+  count = split(rendered, nodes, / <- /)
+  rendered = ""
+  for (i = 1; i <= count; i++) {
     node = nodes[i]
-    if (node ~ /^(bash|zsh|sh|tmux)\[[0-9]+\]$/)
+    if (node ~ /^(bash|zsh|sh|tmux)\[[0-9]+([:]|\])/)
       node = dim node normal
     rendered = rendered (i == 1 ? "" : " <- ") node
   }
@@ -122,13 +164,13 @@ function render_chain(chain, count, i, node, rendered) {
   host = value("host")
   port = value("port")
   alias = value("alias")
-  cwd = value("cwd")
-  if (endpoint != "")
+  cwd = shorten_home(value("cwd"))
+  if (alias != "")
+    peer = alias
+  else if (endpoint != "")
     peer = endpoint
   else if (host != "")
     peer = host (port == "" ? "" : ":" port)
-  else if (alias != "")
-    peer = alias
   else
     peer = "-"
   user = value("user")
@@ -136,7 +178,7 @@ function render_chain(chain, count, i, node, rendered) {
     peer = user "@" peer
 
   pid = clip((pid == "" ? "-" : pid), 7)
-  row = sprintf("%-14s %-9s %-25s %-7s %-12s %-28s %s", timestamp, event, clip(peer, 25), pid, clip((alias == "" ? "-" : alias), 12), clip((cwd == "" ? "-" : cwd), 28), render_chain(value("process_chain")))
+  row = sprintf("%-14s %-9s %-25s %-7s %-32s %s", timestamp, event, clip(peer, 25), pid, clip((cwd == "" ? "-" : cwd), 32), render_chain(value("process_chain")))
   printf "%s\n", clip_terminal(row, screen_width)
   fflush()
 }
