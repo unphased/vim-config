@@ -450,3 +450,28 @@ fi
 if [[ -o interactive && -r "$HOME/.vim/ssh-server-security-check.sh" ]]; then
   "$HOME/.vim/ssh-server-security-check.sh"
 fi
+
+# Dogfood term-capture around our interactive shells. The child shell and all
+# descendants that retain this PTY become one aggregate capture. Set
+# TERMPLEX_CAPTURE=0 to bypass temporarily; descendants inherit the guard.
+__termplex_maybe_start_capture() {
+  local capture_bin="${TERMPLEX_CAPTURE_BIN:-$HOME/termplex/release/term-capture}"
+  local capture_dir="${TERMPLEX_CAPTURE_DIR:-$HOME/.termplex/captures}"
+
+  if [[ ! -x "$capture_bin" ]]; then
+    capture_bin="${commands[term-capture]:-}"
+  fi
+  [[ -x "$capture_bin" ]] || return 0
+  export TERMPLEX_CAPTURE_ACTIVE=1
+  if [[ -o login ]]; then
+    exec "$capture_bin" --pid-prefix-dir "$capture_dir" -- /bin/zsh -il
+  else
+    exec "$capture_bin" --pid-prefix-dir "$capture_dir" -- /bin/zsh -i
+  fi
+}
+
+if [[ -o interactive && ${TERMPLEX_CAPTURE:-1} == 1 &&
+      -z ${TERMPLEX_CAPTURE_ACTIVE:-} ]] &&
+   test -t 0 && test -t 1 && test -t 2; then
+  __termplex_maybe_start_capture
+fi
