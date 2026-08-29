@@ -83,6 +83,8 @@ alias ssht="TERM=xterm-256color ssh"
 alias v="nvim"
 alias vd='v $(git diff --name-only | while read file; do printf "$(git rev-parse --show-toplevel)/$file "; done) -O'
 alias g="git"
+alias lgf="git lgf"
+alias lgfs="git lgfs"
 alias gs="git s" # short status 
 alias gco="git checkout"
 alias gta="git ta"

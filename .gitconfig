@@ -71,6 +71,10 @@
   ; Old `lg` oneliner subway graph preserved for safety reasons
   lgo = log --graph --date-order --pretty=format:'%C(bold magenta)%h%Creset -%C(auto)%d%Creset %s %Cgreen%ci %C(yellow)(%cr) %C(bold blue)<%an>%Creset %C(bold cyan)%N%Creset' --abbrev-commit
 
+  ; Full multiline commit messages in the subway graph, with and without stats.
+  lgf = "!$HOME/.vim/git-lg-full.sh"
+  lgfs = "!$HOME/.vim/git-lg-full.sh --stat"
+
   ; Does shenanigans to render tags and notes right. The main "lg" entrypoint nowadays.
   lgtn = "!$HOME/.vim/git-lg-tags-notes.sh"
 
