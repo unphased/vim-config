@@ -317,10 +317,48 @@ which colormake > /dev/null 2>&1 && alias make="colormake"
 
 alias mk="make"
 
-# Pi self-updates replace local core patches. Pause every update command rather
-# than duplicating Pi's evolving flag parser; package-only updates may continue.
+# Pi self-updates replace local core patches. Package/model-only updates can
+# pass through without the self-update warning.
 pi() {
 	if [ "${1-}" = "update" ]; then
+		# Keep this small parser aligned with Pi's package-update targets so that
+		# extension and model updates do not look like self-updates. Be
+		# conservative whenever --self, --all, or a self positional target is
+		# present, since those requests may replace Pi itself.
+		local update_arg update_source="" update_has_self=0 update_has_all=0
+		local update_has_extensions=0 update_has_models=0 update_has_extension=0
+		local update_first_arg=1 update_skip_arg=0
+		for update_arg in "$@"; do
+			if [ "$update_first_arg" -eq 1 ]; then
+				update_first_arg=0
+				continue
+			fi
+			if [ "$update_skip_arg" -eq 1 ]; then
+				update_skip_arg=0
+				case "$update_arg" in
+					-*) ;;
+					*) continue ;;
+				esac
+			fi
+			case "$update_arg" in
+				--self) update_has_self=1 ;;
+				--all) update_has_all=1 ;;
+				--extensions) update_has_extensions=1 ;;
+				--models) update_has_models=1 ;;
+				--extension) update_has_extension=1; update_skip_arg=1 ;;
+				--*) ;;
+				*) [ -n "$update_source" ] || update_source="$update_arg" ;;
+			esac
+		done
+		if [ "$update_has_self" -eq 0 ] && [ "$update_has_all" -eq 0 ] \
+			&& [ "$update_source" != "self" ] && [ "$update_source" != "pi" ] \
+			&& { [ "$update_has_extensions" -eq 1 ] || [ "$update_has_models" -eq 1 ] \
+				|| [ "$update_has_extension" -eq 1 ] || [ -n "$update_source" ]; }; then
+			# Do not make a Pi package/model update depend on the NAS being online.
+			command pi "$@"
+			return $?
+		fi
+
 		printf '%s\n' \
 			'Pi updates that include Pi itself replace local core patches.' \
 			'For a Pi self-update, cancel and run: make -C "$HOME/util/pi" pi-upgrade' \
@@ -336,7 +374,6 @@ pi() {
 			y|Y|yes|YES|Yes) ;;
 			*) printf '%s\n' 'Canceled.' >&2; return 2 ;;
 		esac
-		# Do not make a Pi package/model update depend on the NAS being online.
 		command pi "$@"
 		return $?
 	fi
