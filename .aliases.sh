@@ -244,6 +244,15 @@ __git_lgtn_view() {
       --include-notes-dag)
         include_notes_dag=true
         ;;
+      -n)
+        # A standalone -n opts into the notes DAG; retain `git log -n <count>`.
+        if [[ $# -gt 0 && "$1" =~ ^[0-9]+$ ]]; then
+          log_opts+=("$arg" "$1")
+          shift
+        else
+          include_notes_dag=true
+        fi
+        ;;
       --stat)
         log_opts+=("$arg")
         ;;
@@ -282,8 +291,23 @@ __git_lgtn_view() {
   "${cmd[@]}"
 }
 
+__git_lgtn_hint() {
+  printf '%s\n' 'gg tip: -n alone/--include-notes-dag shows the notes DAG; -n N limits commits; --stat adds stats.' >&2
+}
+
+__git_lgtn_view_with_hint() {
+  local view_status
+  if __git_lgtn_view "$@"; then
+    view_status=0
+  else
+    view_status=$?
+  fi
+  __git_lgtn_hint
+  return "$view_status"
+}
+
 gg() {
-  __git_lgtn_view "$@"
+  __git_lgtn_view_with_hint "$@"
 }
 
 ggn() {
@@ -292,7 +316,7 @@ ggn() {
 
 alias gfp="git push --force-with-lease" # for force push when e.g. amending
 ggs() {
-  __git_lgtn_view --stat "$@"
+  __git_lgtn_view_with_hint --stat "$@"
 }
 
 ggsn() {

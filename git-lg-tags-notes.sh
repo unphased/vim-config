@@ -22,9 +22,12 @@
 #   - Lightweight tags have no annotation message. We ignore them.
 #   - If you quit `less` early, awk can get SIGPIPE and complain; we
 #     silence awk stderr because that’s expected for an interactive viewer.
-#   - When you pass `--all`, git will normally include `refs/notes/*` histories
-#     (git’s internal notes DAG commits) which is often too noisy; this script
-#     hides those by default unless you pass `--include-notes-dag`.
+#   - `-n` is the memorable short opt-in; `--include-notes-dag` remains the
+#     explicit spelling. The `ggn` and `ggsn` aliases are convenience shorthands.
+#   - When you pass `--all`, git will normally include notes histories under
+#     `refs/notes/*` and local remote-note snapshots under `refs/notes-sync/*`;
+#     both are often too noisy, so this script hides them by default unless
+#     you pass `--include-notes-dag`.
 
 # A rarely-used ASCII control character used to separate fields safely.
 # We want to split the output line into multiple fields without risking
@@ -43,33 +46,64 @@ SEP=$'\x1f'
 
 include_notes_dag=false
 log_args=()
+parsing_options=true
+args=("$@")
+i=0
 
-for arg in "$@"; do
-  case "$arg" in
-    --include-notes-dag)
-      include_notes_dag=true
-      ;;
-    *)
-      log_args+=("$arg")
-      ;;
-  esac
+while (( i < ${#args[@]} )); do
+  arg="${args[i]}"
+  if [[ "$parsing_options" == true ]]; then
+    case "$arg" in
+      --include-notes-dag)
+        include_notes_dag=true
+        i=$((i + 1))
+        continue
+        ;;
+      -n)
+        # Preserve the usual `git log -n <count>` spelling when -n has a
+        # numeric argument; a standalone -n is our notes-DAG opt-in.
+        if (( i + 1 < ${#args[@]} )) && [[ "${args[i + 1]}" =~ ^[0-9]+$ ]]; then
+          log_args+=("$arg" "${args[i + 1]}")
+          i=$((i + 2))
+        else
+          include_notes_dag=true
+          i=$((i + 1))
+        fi
+        continue
+        ;;
+      --)
+        parsing_options=false
+        ;;
+    esac
+  fi
+  log_args+=("$arg")
+  i=$((i + 1))
 done
 
 has_all=false
+parsing_options=true
 for arg in "${log_args[@]}"; do
-  [[ "$arg" == "--all" ]] && { has_all=true; break; }
+  if [[ "$arg" == "--" ]]; then
+    parsing_options=false
+  elif [[ "$parsing_options" == true && "$arg" == "--all" ]]; then
+    has_all=true
+    break
+  fi
 done
 
 if [[ "$has_all" == true && "$include_notes_dag" == false ]]; then
-  # `--all` includes every ref under `refs/` (including `refs/notes/*`), which
-  # makes the output very noisy. Exclude note refs from each `--all` traversal
-  # without appending pseudo-ref options after user pathspecs.
+  # `--all` includes every ref under `refs/` (including the notes DAG and its
+  # remote snapshots), which makes the output very noisy. Exclude both note
+  # namespaces from each `--all` traversal without appending pseudo-ref
+  # options after user pathspecs.
   filtered=()
+  parsing_options=true
   for arg in "${log_args[@]}"; do
-    if [[ "$arg" == "--all" ]]; then
-      filtered+=("--exclude=refs/notes/*" --all)
+    if [[ "$parsing_options" == true && "$arg" == "--all" ]]; then
+      filtered+=("--exclude=refs/notes/*" "--exclude=refs/notes-sync/*" --all)
     else
       filtered+=("$arg")
+      [[ "$arg" == "--" ]] && parsing_options=false
     fi
   done
   log_args=("${filtered[@]}")
