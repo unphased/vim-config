@@ -1,7 +1,5 @@
 bundle/
-.config/*
-!.config/herdr/
-!.config/herdr/config.toml
+.config/
 .search
 .netrwhist
 spell
