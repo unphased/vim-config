@@ -10,8 +10,8 @@ enabled = true
 [keys]
 prefix = "ctrl+s"
 focus_pane_left = "prefix+h"
-focus_pane_down = ["prefix+j", "ctrl+j"]
-focus_pane_up = ["prefix+k", "ctrl+k"]
+focus_pane_down = "prefix+j"
+focus_pane_up = "prefix+k"
 focus_pane_right = "prefix+l"
 resize_pane_left = "alt+h"
 resize_pane_down = "alt+j"
@@ -50,6 +50,40 @@ if [ "$(printf '%s' "$edges" | jq -r '.result.edges.right')" = true ]; then
   fi
 else
   herdr pane focus --pane "$HERDR_PANE_ID" --direction right
+fi
+"""
+
+[[keys.command]]
+key = "ctrl+k"
+type = "shell"
+command = """
+edges=$(herdr pane edges --pane "$HERDR_PANE_ID") || exit
+if [ "$(printf '%s' "$edges" | jq -r '.result.edges.up')" = true ]; then
+  workspaces=$(herdr workspace list) || exit
+  current=$(printf '%s' "$workspaces" | jq -r --arg id "$HERDR_WORKSPACE_ID" '.result.workspaces[] | select(.workspace_id == $id) | .number')
+  target=$(printf '%s' "$workspaces" | jq -r --argjson n "$((current - 1))" '.result.workspaces[] | select(.number == $n) | .workspace_id')
+  if [ -n "$target" ]; then
+    herdr workspace focus "$target"
+  fi
+else
+  herdr pane focus --pane "$HERDR_PANE_ID" --direction up
+fi
+"""
+
+[[keys.command]]
+key = "ctrl+j"
+type = "shell"
+command = """
+edges=$(herdr pane edges --pane "$HERDR_PANE_ID") || exit
+if [ "$(printf '%s' "$edges" | jq -r '.result.edges.down')" = true ]; then
+  workspaces=$(herdr workspace list) || exit
+  current=$(printf '%s' "$workspaces" | jq -r --arg id "$HERDR_WORKSPACE_ID" '.result.workspaces[] | select(.workspace_id == $id) | .number')
+  target=$(printf '%s' "$workspaces" | jq -r --argjson n "$((current + 1))" '.result.workspaces[] | select(.number == $n) | .workspace_id')
+  if [ -n "$target" ]; then
+    herdr workspace focus "$target"
+  fi
+else
+  herdr pane focus --pane "$HERDR_PANE_ID" --direction down
 fi
 """
 
