@@ -1,3 +1,6 @@
+# Capture non-login interactive shells too (for example, fresh tmux panes).
+source "$HOME/.vim/zsh/termplex-capture.zsh"
+
 # Path to your oh-my-zsh configuration.
 ZSH=$HOME/.oh-my-zsh
 
