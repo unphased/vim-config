@@ -9,15 +9,45 @@ enabled = true
 
 [keys]
 prefix = "ctrl+s"
-focus_pane_left = ["prefix+h", "ctrl+h"]
+focus_pane_left = "prefix+h"
 focus_pane_down = ["prefix+j", "ctrl+j"]
 focus_pane_up = ["prefix+k", "ctrl+k"]
-focus_pane_right = ["prefix+l", "ctrl+l"]
+focus_pane_right = "prefix+l"
 resize_pane_left = "alt+h"
 resize_pane_down = "alt+j"
 resize_pane_up = "alt+k"
 resize_pane_right = "alt+l"
 zoom = ["prefix+z", "alt+m"]
+
+[[keys.command]]
+key = "ctrl+h"
+type = "shell"
+command = """
+edges=$(herdr pane edges --pane "$HERDR_PANE_ID") || exit
+if [ "$(printf '%s' "$edges" | jq -r '.result.edges.left')" = true ]; then
+  tabs=$(herdr tab list --workspace "$HERDR_WORKSPACE_ID") || exit
+  current=$(printf '%s' "$tabs" | jq -r --arg id "$HERDR_TAB_ID" '.result.tabs[] | select(.tab_id == $id) | .number')
+  target=$(printf '%s' "$tabs" | jq -r --argjson n "$((current - 1))" '.result.tabs[] | select(.number == $n) | .tab_id')
+  [ -n "$target" ] && herdr tab focus "$target"
+else
+  herdr pane focus --pane "$HERDR_PANE_ID" --direction left
+fi
+"""
+
+[[keys.command]]
+key = "ctrl+l"
+type = "shell"
+command = """
+edges=$(herdr pane edges --pane "$HERDR_PANE_ID") || exit
+if [ "$(printf '%s' "$edges" | jq -r '.result.edges.right')" = true ]; then
+  tabs=$(herdr tab list --workspace "$HERDR_WORKSPACE_ID") || exit
+  current=$(printf '%s' "$tabs" | jq -r --arg id "$HERDR_TAB_ID" '.result.tabs[] | select(.tab_id == $id) | .number')
+  target=$(printf '%s' "$tabs" | jq -r --argjson n "$((current + 1))" '.result.tabs[] | select(.number == $n) | .tab_id')
+  [ -n "$target" ] && herdr tab focus "$target"
+else
+  herdr pane focus --pane "$HERDR_PANE_ID" --direction right
+fi
+"""
 
 [ui.toast]
 delivery = "system"
