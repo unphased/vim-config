@@ -17,3 +17,6 @@ zoom = ["prefix+z", "alt+m"]
 
 [ui.toast]
 delivery = "system"
+
+[experimental]
+pane_history = true
