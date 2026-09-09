@@ -28,7 +28,9 @@ if [ "$(printf '%s' "$edges" | jq -r '.result.edges.left')" = true ]; then
   tabs=$(herdr tab list --workspace "$HERDR_WORKSPACE_ID") || exit
   current=$(printf '%s' "$tabs" | jq -r --arg id "$HERDR_TAB_ID" '.result.tabs[] | select(.tab_id == $id) | .number')
   target=$(printf '%s' "$tabs" | jq -r --argjson n "$((current - 1))" '.result.tabs[] | select(.number == $n) | .tab_id')
-  [ -n "$target" ] && herdr tab focus "$target"
+  if [ -n "$target" ]; then
+    herdr tab focus "$target"
+  fi
 else
   herdr pane focus --pane "$HERDR_PANE_ID" --direction left
 fi
@@ -43,7 +45,9 @@ if [ "$(printf '%s' "$edges" | jq -r '.result.edges.right')" = true ]; then
   tabs=$(herdr tab list --workspace "$HERDR_WORKSPACE_ID") || exit
   current=$(printf '%s' "$tabs" | jq -r --arg id "$HERDR_TAB_ID" '.result.tabs[] | select(.tab_id == $id) | .number')
   target=$(printf '%s' "$tabs" | jq -r --argjson n "$((current + 1))" '.result.tabs[] | select(.number == $n) | .tab_id')
-  [ -n "$target" ] && herdr tab focus "$target"
+  if [ -n "$target" ]; then
+    herdr tab focus "$target"
+  fi
 else
   herdr pane focus --pane "$HERDR_PANE_ID" --direction right
 fi
