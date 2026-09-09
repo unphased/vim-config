@@ -9,7 +9,8 @@ fi
 # Start capture before zshrc performs expensive interactive initialization.
 # The shared helper is also sourced by zshrc so non-login interactive shells
 # (such as fresh tmux panes) are captured too.
-source "$HOME/.vim/zsh/termplex-capture.zsh"
+# TEMP: disabled while testing Herdr cwd and agent detection through a direct PTY.
+# source "$HOME/.vim/zsh/termplex-capture.zsh"
 
 # Homebrew supplies login-shell tools used before zshrc is fully initialized,
 # including quickdash dependencies such as htop and watch.
