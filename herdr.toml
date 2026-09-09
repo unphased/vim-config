@@ -13,6 +13,10 @@ focus_pane_left = ["prefix+h", "ctrl+h"]
 focus_pane_down = ["prefix+j", "ctrl+j"]
 focus_pane_up = ["prefix+k", "ctrl+k"]
 focus_pane_right = ["prefix+l", "ctrl+l"]
+resize_pane_left = "alt+h"
+resize_pane_down = "alt+j"
+resize_pane_up = "alt+k"
+resize_pane_right = "alt+l"
 zoom = ["prefix+z", "alt+m"]
 
 [ui.toast]
@@ -20,3 +24,7 @@ delivery = "system"
 
 [experimental]
 pane_history = true
+
+[theme]
+name = "catppuccin"
+auto_switch = false
