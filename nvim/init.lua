@@ -71,7 +71,7 @@ if not vim.loop.fs_stat(lazypath) then
     "git",
     "clone",
     "--filter=blob:none",
-    "git@github.com:folke/lazy.nvim.git",
+    "https://github.com/folke/lazy.nvim.git",
     "--branch=stable", -- latest stable release
     lazypath,
   })
@@ -88,9 +88,17 @@ end
 
 -- plugins
 require("lazy").setup("plugins", {
-  checker = { enabled = true, notify = false, },
+  -- Plugin installation and updates are handled explicitly by Ansible; do
+  -- not fetch every plugin on interactive startup.
+  checker = { enabled = false, notify = false, },
+  -- Lazy installs missing plugins during startup; Ansible only bootstraps
+  -- Lazy itself, so normal startup remains the plugin installation path.
+  install = { missing = true, },
   git = {
-    url_format = "git@github.com:%s.git",
+    -- Plugin repositories are public; do not require a hardware-key touch
+    -- for every clone/update. Use an explicit SSH URL only for a private
+    -- plugin that actually needs GitHub authentication.
+    url_format = "https://github.com/%s.git",
   },
   dev = {
     path = "~/.vim/nvim/lua/projects",
