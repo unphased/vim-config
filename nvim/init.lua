@@ -1000,11 +1000,16 @@ local function update_terminal_title()
   local mode = vim.fn.mode(1)
   local mode_label = mode:sub(1, 1) == "i" and "INSERT" or "NORMAL"
   local cwd = vim.fn.fnamemodify(vim.fn.getcwd(), ":~")
-  local title = string.format("NVIM [%s] %s", mode_label, cwd)
+  local buffer_name = vim.fn.expand("%:t"):gsub("[%c]", "")
+  if buffer_name == "" then
+    buffer_name = "[No Name]"
+  end
+  local title = string.format("NVIM [%s] %s %s", mode_label, cwd, buffer_name)
 
   vim.opt.titlestring = string.format(
-    "NVIM [%s] %%{fnamemodify(getcwd(), ':~')} %%h%%m%%r%%w",
-    mode_label
+    "NVIM [%s] %%{fnamemodify(getcwd(), ':~')} %s %%h%%m%%r%%w",
+    mode_label,
+    buffer_name:gsub("%%", "%%%%")
   )
   report_herdr_pane_title(title)
 end
@@ -1012,18 +1017,24 @@ end
 local terminal_title_group = vim.api.nvim_create_augroup("TerminalTitle", { clear = true })
 
 update_terminal_title()
-vim.api.nvim_create_autocmd({ "ModeChanged", "DirChanged" }, {
+vim.api.nvim_create_autocmd({
+  "ModeChanged",
+  "DirChanged",
+  "BufEnter",
+  "BufFilePost",
+  "WinEnter",
+}, {
   group = terminal_title_group,
   callback = update_terminal_title,
-  desc = "Report the current insert-mode state in the terminal title",
+  desc = "Report the current mode and buffer in the terminal title",
 })
 vim.api.nvim_create_autocmd("VimLeavePre", {
   group = terminal_title_group,
   callback = function() report_herdr_pane_title(nil) end,
   desc = "Clear the Neovim title from Herdr pane metadata",
 })
--- note in the titlestring i am excluding the %f just so it does not pollute the window name lookup used by the
--- mechanism i'm using for choosing between neovides -- it's suboptimal and it should come back later
+-- Keep the full path out of the titlestring so it does not pollute the window name lookup used by the mechanism
+-- i'm using for choosing between Neovides; the focused buffer's basename is included instead.
 
 -- plugin settings
 require("gitsigns").setup({
