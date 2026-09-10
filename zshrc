@@ -329,6 +329,8 @@ color_tmux_pane() {
   ~/util/bgcolor.sh
 }
 
+source ~/.vim/zsh/herdr-machine-background.zsh
+
 # Add it to the precmd hooks, which is a robust way to handle this.
 autoload -U add-zsh-hook
 add-zsh-hook precmd handle_execution_duration

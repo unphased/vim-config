@@ -22,86 +22,22 @@ zoom = ["prefix+z", "alt+m"]
 [[keys.command]]
 key = "ctrl+h"
 type = "shell"
-command = """
-context=$(herdr pane current --current) || exit
-pane=$(printf '%s' "$context" | jq -r '.result.pane.pane_id')
-tab=$(printf '%s' "$context" | jq -r '.result.pane.tab_id')
-workspace=$(printf '%s' "$context" | jq -r '.result.pane.workspace_id')
-edges=$(herdr pane edges --pane "$pane") || exit
-if [ "$(printf '%s' "$edges" | jq -r '.result.edges.left')" = true ]; then
-  tabs=$(herdr tab list --workspace "$workspace") || exit
-  current=$(printf '%s' "$tabs" | jq -r --arg id "$tab" '.result.tabs[] | select(.tab_id == $id) | .number')
-  target=$(printf '%s' "$tabs" | jq -r --argjson n "$((current - 1))" '.result.tabs[] | select(.number == $n) | .tab_id')
-  if [ -n "$target" ]; then
-    herdr tab focus "$target"
-  fi
-else
-  herdr pane focus --pane "$pane" --direction left
-fi
-"""
+command = "~/.vim/herdr-focus.sh left"
 
 [[keys.command]]
 key = "ctrl+l"
 type = "shell"
-command = """
-context=$(herdr pane current --current) || exit
-pane=$(printf '%s' "$context" | jq -r '.result.pane.pane_id')
-tab=$(printf '%s' "$context" | jq -r '.result.pane.tab_id')
-workspace=$(printf '%s' "$context" | jq -r '.result.pane.workspace_id')
-edges=$(herdr pane edges --pane "$pane") || exit
-if [ "$(printf '%s' "$edges" | jq -r '.result.edges.right')" = true ]; then
-  tabs=$(herdr tab list --workspace "$workspace") || exit
-  current=$(printf '%s' "$tabs" | jq -r --arg id "$tab" '.result.tabs[] | select(.tab_id == $id) | .number')
-  target=$(printf '%s' "$tabs" | jq -r --argjson n "$((current + 1))" '.result.tabs[] | select(.number == $n) | .tab_id')
-  if [ -n "$target" ]; then
-    herdr tab focus "$target"
-  fi
-else
-  herdr pane focus --pane "$pane" --direction right
-fi
-"""
+command = "~/.vim/herdr-focus.sh right"
 
 [[keys.command]]
 key = "ctrl+k"
 type = "shell"
-command = """
-context=$(herdr pane current --current) || exit
-pane=$(printf '%s' "$context" | jq -r '.result.pane.pane_id')
-tab=$(printf '%s' "$context" | jq -r '.result.pane.tab_id')
-workspace=$(printf '%s' "$context" | jq -r '.result.pane.workspace_id')
-edges=$(herdr pane edges --pane "$pane") || exit
-if [ "$(printf '%s' "$edges" | jq -r '.result.edges.up')" = true ]; then
-  workspaces=$(herdr workspace list) || exit
-  current=$(printf '%s' "$workspaces" | jq -r --arg id "$workspace" '.result.workspaces[] | select(.workspace_id == $id) | .number')
-  target=$(printf '%s' "$workspaces" | jq -r --argjson n "$((current - 1))" '.result.workspaces[] | select(.number == $n) | .workspace_id')
-  if [ -n "$target" ]; then
-    herdr workspace focus "$target"
-  fi
-else
-  herdr pane focus --pane "$pane" --direction up
-fi
-"""
+command = "~/.vim/herdr-focus.sh up"
 
 [[keys.command]]
 key = "ctrl+j"
 type = "shell"
-command = """
-context=$(herdr pane current --current) || exit
-pane=$(printf '%s' "$context" | jq -r '.result.pane.pane_id')
-tab=$(printf '%s' "$context" | jq -r '.result.pane.tab_id')
-workspace=$(printf '%s' "$context" | jq -r '.result.pane.workspace_id')
-edges=$(herdr pane edges --pane "$pane") || exit
-if [ "$(printf '%s' "$edges" | jq -r '.result.edges.down')" = true ]; then
-  workspaces=$(herdr workspace list) || exit
-  current=$(printf '%s' "$workspaces" | jq -r --arg id "$workspace" '.result.workspaces[] | select(.workspace_id == $id) | .number')
-  target=$(printf '%s' "$workspaces" | jq -r --argjson n "$((current + 1))" '.result.workspaces[] | select(.number == $n) | .workspace_id')
-  if [ -n "$target" ]; then
-    herdr workspace focus "$target"
-  fi
-else
-  herdr pane focus --pane "$pane" --direction down
-fi
-"""
+command = "~/.vim/herdr-focus.sh down"
 
 [ui.toast]
 delivery = "system"
@@ -112,3 +48,7 @@ pane_history = true
 [theme]
 name = "catppuccin"
 auto_switch = false
+
+[theme.custom]
+panel_bg = "reset"
+sidebar_bg = "reset"

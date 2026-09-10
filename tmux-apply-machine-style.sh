@@ -23,7 +23,10 @@ find_tmux() {
     return 1
 }
 
-tmux_bin=$(find_tmux) || exit 0
+mode=${1:-}
+if [ "$mode" != "--print-background" ]; then
+    tmux_bin=$(find_tmux) || exit 0
+fi
 
 default_status_bg=#303030
 default_status_fg=#cfcfcf
@@ -225,6 +228,15 @@ apply_status_left() {
 }
 
 machine_style=$(lookup_machine_style)
+if [ "$mode" = "--print-background" ]; then
+    if [ -n "$machine_style" ]; then
+        accent=${machine_style#*	}
+        scale_color "$accent" 30
+        exit 0
+    fi
+    exit 1
+fi
+
 if [ -n "$machine_style" ]; then
     label=${machine_style%%	*}
     accent=${machine_style#*	}
