@@ -980,69 +980,9 @@ vim.g.matchup_matchparen_deferred = 1
 vim.g.matchup_matchparen_hi_surround_always = 1
 vim.g.matchup_transmute_enabled = 1
 
-local herdr_pane_id = vim.env.HERDR_ENV == "1" and vim.env.HERDR_PANE_ID or nil
-local herdr_metadata_seq = 0
-
-local function report_herdr_pane_title(title)
-  if not herdr_pane_id or herdr_pane_id == "" or vim.fn.executable("herdr") ~= 1 then
-    return
-  end
-
-  local seconds, microseconds = vim.uv.gettimeofday()
-  local seq = seconds * 1000000 + microseconds
-  herdr_metadata_seq = math.max(seq, herdr_metadata_seq + 1)
-
-  local command = {
-    "herdr", "pane", "report-metadata", herdr_pane_id,
-    "--source", "nvim", "--seq", string.format("%.0f", herdr_metadata_seq),
-  }
-  if title then
-    vim.list_extend(command, { "--title", title })
-  else
-    table.insert(command, "--clear-title")
-  end
-  vim.fn.jobstart(command, { detach = true })
-end
-
-local function update_terminal_title()
-  local mode = vim.fn.mode(1)
-  local mode_label = mode:sub(1, 1) == "i" and "INSERT" or "NORMAL"
-  local cwd = vim.fn.fnamemodify(vim.fn.getcwd(), ":~")
-  local buffer_name = vim.fn.expand("%:t"):gsub("[%c]", "")
-  if buffer_name == "" then
-    buffer_name = "[No Name]"
-  end
-  local title = string.format("NVIM [%s] %s %s", mode_label, cwd, buffer_name)
-
-  vim.opt.titlestring = string.format(
-    "NVIM [%s] %%{fnamemodify(getcwd(), ':~')} %s %%h%%m%%r%%w",
-    mode_label,
-    buffer_name:gsub("%%", "%%%%")
-  )
-  report_herdr_pane_title(title)
-end
-
-local terminal_title_group = vim.api.nvim_create_augroup("TerminalTitle", { clear = true })
-
-update_terminal_title()
-vim.api.nvim_create_autocmd({
-  "ModeChanged",
-  "DirChanged",
-  "BufEnter",
-  "BufFilePost",
-  "WinEnter",
-}, {
-  group = terminal_title_group,
-  callback = update_terminal_title,
-  desc = "Report the current mode and buffer in the terminal title",
-})
-vim.api.nvim_create_autocmd("VimLeavePre", {
-  group = terminal_title_group,
-  callback = function() report_herdr_pane_title(nil) end,
-  desc = "Clear the Neovim title from Herdr pane metadata",
-})
--- Keep the full path out of the titlestring so it does not pollute the window name lookup used by the mechanism
--- i'm using for choosing between Neovides; the focused buffer's basename is included instead.
+vim.opt.titlestring = [[NVIM %{fnamemodify(getcwd(), ':~')} %h%m%r%w]]
+-- note in the titlestring i am excluding the %f just so it does not pollute the window name lookup used by the
+-- mechanism i'm using for choosing between neovides -- it's suboptimal and it should come back later
 
 -- plugin settings
 require("gitsigns").setup({
