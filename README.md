@@ -22,6 +22,33 @@ The tracked `zprofile` is the shell bootstrap anchor. On interactive login it
 warns if `~/.zshrc` no longer resolves to `~/.vim/zshrc`, which catches tools
 such as shell-framework installers replacing that link.
 
+Herdr
+-----
+
+Herdr configuration and local plugin sources are tracked here:
+
+```mermaid
+flowchart LR
+    Config[~/.vim/herdr.toml] -->|symlink| Runtime[~/.config/herdr/config.toml]
+    Plugins[~/.vim/herdr-plugins/] -->|make install-herdr-plugins| Registry[~/.config/herdr/plugins.json]
+```
+
+`plugins.json` is Herdr-generated registry state containing machine-specific
+absolute paths; do not track it. On a fresh machine, create the runtime config
+link only when that path does not already exist, preserving any existing config:
+
+```sh
+mkdir -p ~/.config/herdr
+if [ ! -e ~/.config/herdr/config.toml ] && [ ! -L ~/.config/herdr/config.toml ]; then
+    ln -s ../../.vim/herdr.toml ~/.config/herdr/config.toml
+fi
+make -C ~/.vim install-herdr-plugins
+```
+
+Herdr does not watch plugin manifests, so rerun that command after changing a
+`herdr-plugin.toml`. Changes to linked implementation scripts apply on their
+next invocation.
+
 Linux virtual terminal customization is tracked here too:
 
 ```

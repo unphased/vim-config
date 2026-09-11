@@ -1,0 +1,36 @@
+id = "local.copy-pane-id"
+name = "Copy pane ID"
+version = "0.1.0"
+min_herdr_version = "0.9.0"
+description = "Copy a pane's public Herdr ID from its context menu"
+platforms = ["linux", "macos", "windows"]
+
+[[actions]]
+id = "copy-pane-id"
+title = "Copy pane ID"
+description = "Copy this pane's public Herdr ID to the attached client's clipboard"
+contexts = ["pane"]
+platforms = ["linux", "macos"]
+command = ["sh", "copy-pane-id.sh"]
+
+[[actions]]
+id = "copy-pane-id-windows"
+title = "Copy pane ID"
+description = "Copy this pane's public Herdr ID to the attached client's clipboard"
+contexts = ["pane"]
+platforms = ["windows"]
+command = ["powershell.exe", "-NoLogo", "-NoProfile", "-File", "copy-pane-id.ps1"]
+
+[[panes]]
+id = "osc52"
+title = "Copy pane ID"
+placement = "tab"
+platforms = ["linux", "macos"]
+command = ["sh", "copy-pane-id.sh"]
+
+[[panes]]
+id = "osc52-windows"
+title = "Copy pane ID"
+placement = "tab"
+platforms = ["windows"]
+command = ["powershell.exe", "-NoLogo", "-NoProfile", "-File", "copy-pane-id.ps1"]
