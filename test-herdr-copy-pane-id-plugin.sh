@@ -4,8 +4,6 @@ set -euo pipefail
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 plugin_dir="$root/herdr-plugins/copy-pane-id"
 script="$plugin_dir/copy-pane-id.sh"
-move_tab_script="$plugin_dir/move-pane-new-tab.sh"
-move_tab_windows_script="$plugin_dir/move-pane-new-tab.ps1"
 move_script="$plugin_dir/move-pane-new-workspace.sh"
 move_windows_script="$plugin_dir/move-pane-new-workspace.ps1"
 windows_script="$plugin_dir/copy-pane-id.ps1"
@@ -25,15 +23,9 @@ grep -A6 -Fq 'id = "move-pane-new-workspace"' "$manifest" || fail 'move pane act
 grep -Fq 'title = "Move pane to new workspace"' "$manifest" || fail 'move pane action title is missing from the manifest'
 grep -Fq 'command = ["sh", "move-pane-new-workspace.sh"]' "$manifest" || fail 'move pane shell command is missing from the manifest'
 grep -Fq 'command = ["powershell.exe", "-NoLogo", "-NoProfile", "-File", "move-pane-new-workspace.ps1"]' "$manifest" || fail 'move pane Windows command is missing from the manifest'
-grep -Fq 'id = "move-pane-new-tab"' "$manifest" || fail 'move pane to tab action is missing from the manifest'
-grep -Fq 'title = "Move pane to new tab"' "$manifest" || fail 'move pane to tab action title is missing from the manifest'
-grep -Fq 'command = ["sh", "move-pane-new-tab.sh"]' "$manifest" || fail 'move pane to tab shell command is missing from the manifest'
-grep -Fq 'command = ["powershell.exe", "-NoLogo", "-NoProfile", "-File", "move-pane-new-tab.ps1"]' "$manifest" || fail 'move pane to tab Windows command is missing from the manifest'
 [[ -x "$move_script" ]] || fail 'move-pane-new-workspace.sh is missing or not executable'
-[[ -x "$move_tab_script" ]] || fail 'move-pane-new-tab.sh is missing or not executable'
 [[ -f "$windows_script" ]] || fail 'copy-pane-id.ps1 is missing'
 [[ -f "$move_windows_script" ]] || fail 'move-pane-new-workspace.ps1 is missing'
-[[ -f "$move_tab_windows_script" ]] || fail 'move-pane-new-tab.ps1 is missing'
 
 # The pane entrypoint must emit only an OSC 52 clipboard assignment for its payload.
 HERDR_PLUGIN_ENTRYPOINT_ID=osc52 COPY_TEXT='w7:p4' "$script" >"$tmp/osc52"
@@ -80,23 +72,6 @@ COPY_TEXT=w7:p4
 ARGS
 cmp -s "$tmp/expected-args" "$tmp/args" || fail 'plugin pane invocation arguments differ'
 
-HERDR_TEST_ARGS="$tmp/move-tab-args" \
-HERDR_BIN_PATH="$tmp/herdr" \
-HERDR_PANE_ID='w7:p4' \
-HERDR_WORKSPACE_ID='w7' \
-  "$move_tab_script"
-
-cat >"$tmp/expected-move-tab-args" <<'ARGS'
-pane
-move
-w7:p4
---new-tab
---workspace
-w7
---focus
-ARGS
-cmp -s "$tmp/expected-move-tab-args" "$tmp/move-tab-args" || fail 'move pane to tab invocation arguments differ'
-
 HERDR_TEST_ARGS="$tmp/move-args" \
 HERDR_BIN_PATH="$tmp/herdr" \
 HERDR_PANE_ID='w7:p4' \
@@ -137,13 +112,6 @@ POWERSHELL_MOCK
     "$powershell" -NoLogo -NoProfile -File "$windows_script"
   sed 's/osc52-windows/osc52/' "$tmp/windows-args" >"$tmp/windows-args-normalized"
   cmp -s "$tmp/expected-args" "$tmp/windows-args-normalized" || fail 'Windows plugin pane invocation arguments differ'
-
-  HERDR_TEST_ARGS="$tmp/move-tab-windows-args" \
-  HERDR_BIN_PATH="$tmp/herdr.ps1" \
-  HERDR_PANE_ID='w7:p4' \
-  HERDR_WORKSPACE_ID='w7' \
-    "$powershell" -NoLogo -NoProfile -File "$move_tab_windows_script"
-  cmp -s "$tmp/expected-move-tab-args" "$tmp/move-tab-windows-args" || fail 'Windows move pane to tab invocation arguments differ'
 
   HERDR_TEST_ARGS="$tmp/move-windows-args" \
   HERDR_BIN_PATH="$tmp/herdr.ps1" \

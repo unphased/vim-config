@@ -1,0 +1,22 @@
+id = "local.move-pane-new-tab"
+name = "Move Pane to New Tab"
+version = "0.1.0"
+min_herdr_version = "0.9.0"
+description = "Move a pane out of its current tab into a new tab"
+platforms = ["linux", "macos", "windows"]
+
+[[actions]]
+id = "move-pane-new-tab"
+title = "Move pane to new tab"
+description = "Move this pane out of its current tab into a new tab"
+contexts = ["pane"]
+platforms = ["linux", "macos"]
+command = ["sh", "move-pane-new-tab.sh"]
+
+[[actions]]
+id = "move-pane-new-tab-windows"
+title = "Move pane to new tab"
+description = "Move this pane out of its current tab into a new tab"
+contexts = ["pane"]
+platforms = ["windows"]
+command = ["powershell.exe", "-NoLogo", "-NoProfile", "-File", "move-pane-new-tab.ps1"]

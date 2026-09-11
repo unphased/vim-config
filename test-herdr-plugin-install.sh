@@ -17,7 +17,10 @@ MOCK
 chmod +x "$tmp/herdr"
 
 HERDR="$tmp/herdr" HERDR_TEST_LOG="$tmp/calls" "$root/herdr-plugins/install.sh"
-printf 'plugin link %s\n' "$root/herdr-plugins/copy-pane-id" >"$tmp/expected"
+{
+  printf 'plugin link %s\n' "$root/herdr-plugins/copy-pane-id"
+  printf 'plugin link %s\n' "$root/herdr-plugins/move-pane-new-tab"
+} >"$tmp/expected"
 cmp -s "$tmp/expected" "$tmp/calls" || {
   printf 'unexpected Herdr registration calls:\n' >&2
   cat "$tmp/calls" >&2
