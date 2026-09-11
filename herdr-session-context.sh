@@ -39,7 +39,30 @@ elif pane_json=$("$herdr_bin" pane get "$pane_id" 2>&1); then
       "Press q to close."
     end
   ' >"$output" 2>/dev/null; then
-    :
+    {
+      printf '\nRaw pane metadata\n'
+      printf '%s\n' '-----------------'
+      printf '%s\n' "$pane_json" | jq .
+
+      printf '\nForeground processes\n'
+      printf '%s\n' '--------------------'
+    } >>"$output"
+
+    if process_json=$("$herdr_bin" pane process-info --pane "$pane_id" 2>&1); then
+      if ! printf '%s\n' "$process_json" | jq . >>"$output" 2>/dev/null; then
+        printf '%s\n' "$process_json" >>"$output"
+      fi
+    else
+      printf 'Could not inspect foreground processes:\n%s\n' "$process_json" >>"$output"
+    fi
+
+    {
+      printf '\nRecent terminal output (up to 120 lines)\n'
+      printf '%s\n' '----------------------------------------'
+    } >>"$output"
+    if ! "$herdr_bin" pane read "$pane_id" --source recent-unwrapped --lines 120 >>"$output" 2>&1; then
+      printf '\nCould not read recent terminal output.\n' >>"$output"
+    fi
   else
     {
       printf 'Herdr pane information\n\n'
