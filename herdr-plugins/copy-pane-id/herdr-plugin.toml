@@ -37,6 +37,22 @@ contexts = ["pane"]
 platforms = ["windows"]
 command = ["powershell.exe", "-NoLogo", "-NoProfile", "-File", "move-pane-new-workspace.ps1"]
 
+[[actions]]
+id = "move-pane-new-tab"
+title = "Move pane to new tab"
+description = "Move this pane out of its current tab into a new tab"
+contexts = ["pane"]
+platforms = ["linux", "macos"]
+command = ["sh", "move-pane-new-tab.sh"]
+
+[[actions]]
+id = "move-pane-new-tab-windows"
+title = "Move pane to new tab"
+description = "Move this pane out of its current tab into a new tab"
+contexts = ["pane"]
+platforms = ["windows"]
+command = ["powershell.exe", "-NoLogo", "-NoProfile", "-File", "move-pane-new-tab.ps1"]
+
 [[panes]]
 id = "osc52"
 title = "Copy pane ID"
