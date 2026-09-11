@@ -4,6 +4,8 @@ set -euo pipefail
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 plugin_dir="$root/herdr-plugins/copy-pane-id"
 script="$plugin_dir/copy-pane-id.sh"
+move_script="$plugin_dir/move-pane-new-workspace.sh"
+move_windows_script="$plugin_dir/move-pane-new-workspace.ps1"
 windows_script="$plugin_dir/copy-pane-id.ps1"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
@@ -13,9 +15,17 @@ fail() {
   exit 1
 }
 
-[[ -f "$plugin_dir/herdr-plugin.toml" ]] || fail 'plugin manifest is missing'
+manifest="$plugin_dir/herdr-plugin.toml"
+[[ -f "$manifest" ]] || fail 'plugin manifest is missing'
 [[ -x "$script" ]] || fail 'copy-pane-id.sh is missing or not executable'
+grep -Fq 'id = "move-pane-new-workspace"' "$manifest" || fail 'move pane action is missing from the manifest'
+grep -A6 -Fq 'id = "move-pane-new-workspace"' "$manifest" || fail 'move pane action block is incomplete'
+grep -Fq 'title = "Move pane to new workspace"' "$manifest" || fail 'move pane action title is missing from the manifest'
+grep -Fq 'command = ["sh", "move-pane-new-workspace.sh"]' "$manifest" || fail 'move pane shell command is missing from the manifest'
+grep -Fq 'command = ["powershell.exe", "-NoLogo", "-NoProfile", "-File", "move-pane-new-workspace.ps1"]' "$manifest" || fail 'move pane Windows command is missing from the manifest'
+[[ -x "$move_script" ]] || fail 'move-pane-new-workspace.sh is missing or not executable'
 [[ -f "$windows_script" ]] || fail 'copy-pane-id.ps1 is missing'
+[[ -f "$move_windows_script" ]] || fail 'move-pane-new-workspace.ps1 is missing'
 
 # The pane entrypoint must emit only an OSC 52 clipboard assignment for its payload.
 HERDR_PLUGIN_ENTRYPOINT_ID=osc52 COPY_TEXT='w7:p4' "$script" >"$tmp/osc52"
@@ -62,6 +72,20 @@ COPY_TEXT=w7:p4
 ARGS
 cmp -s "$tmp/expected-args" "$tmp/args" || fail 'plugin pane invocation arguments differ'
 
+HERDR_TEST_ARGS="$tmp/move-args" \
+HERDR_BIN_PATH="$tmp/herdr" \
+HERDR_PANE_ID='w7:p4' \
+  "$move_script"
+
+cat >"$tmp/expected-move-args" <<'ARGS'
+pane
+move
+w7:p4
+--new-workspace
+--focus
+ARGS
+cmp -s "$tmp/expected-move-args" "$tmp/move-args" || fail 'move pane invocation arguments differ'
+
 # Exercise the Windows implementation when PowerShell is available (for example,
 # on Windows CI or a developer machine with PowerShell Core installed).
 powershell=''
@@ -88,6 +112,13 @@ POWERSHELL_MOCK
     "$powershell" -NoLogo -NoProfile -File "$windows_script"
   sed 's/osc52-windows/osc52/' "$tmp/windows-args" >"$tmp/windows-args-normalized"
   cmp -s "$tmp/expected-args" "$tmp/windows-args-normalized" || fail 'Windows plugin pane invocation arguments differ'
+
+  HERDR_TEST_ARGS="$tmp/move-windows-args" \
+  HERDR_BIN_PATH="$tmp/herdr.ps1" \
+  HERDR_PANE_ID='w7:p4' \
+    "$powershell" -NoLogo -NoProfile -File "$move_windows_script"
+  cmp -s "$tmp/expected-move-args" "$tmp/move-windows-args" || fail 'Windows move pane invocation arguments differ'
+
 fi
 
 printf 'PASS: Herdr copy-pane-id plugin\n'

@@ -1,8 +1,8 @@
 id = "local.copy-pane-id"
-name = "Copy pane ID"
-version = "0.1.0"
+name = "Local Pane Actions"
+version = "0.2.0"
 min_herdr_version = "0.9.0"
-description = "Copy a pane's public Herdr ID from its context menu"
+description = "Local actions for Herdr's pane context menu"
 platforms = ["linux", "macos", "windows"]
 
 [[actions]]
@@ -20,6 +20,22 @@ description = "Copy this pane's public Herdr ID to the attached client's clipboa
 contexts = ["pane"]
 platforms = ["windows"]
 command = ["powershell.exe", "-NoLogo", "-NoProfile", "-File", "copy-pane-id.ps1"]
+
+[[actions]]
+id = "move-pane-new-workspace"
+title = "Move pane to new workspace"
+description = "Move this pane into a new focused workspace"
+contexts = ["pane"]
+platforms = ["linux", "macos"]
+command = ["sh", "move-pane-new-workspace.sh"]
+
+[[actions]]
+id = "move-pane-new-workspace-windows"
+title = "Move pane to new workspace"
+description = "Move this pane into a new focused workspace"
+contexts = ["pane"]
+platforms = ["windows"]
+command = ["powershell.exe", "-NoLogo", "-NoProfile", "-File", "move-pane-new-workspace.ps1"]
 
 [[panes]]
 id = "osc52"
