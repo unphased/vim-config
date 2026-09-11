@@ -10,6 +10,8 @@ enabled = true
 
 [keys]
 prefix = "ctrl+s"
+previous_tab = ["alt+shift+[", "prefix+p"]
+next_tab = ["alt+shift+]", "prefix+n"]
 focus_pane_left = "prefix+h"
 focus_pane_down = "prefix+j"
 focus_pane_up = "prefix+k"
