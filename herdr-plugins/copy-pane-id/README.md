@@ -14,15 +14,15 @@ The background tab is necessary because Herdr captures ordinary plugin-action st
 
 ## Install
 
-Link the plugin on each machine running a Herdr server:
+Bootstrap the tracked Herdr config and all local plugins on each machine running a Herdr server:
 
 ```bash
-herdr plugin link ~/.vim/herdr-plugins/copy-pane-id
+make -C ~/.vim bootstrap-herdr
 ```
 
 Then right-click a pane and select **Copy pane ID**.
 
-Herdr does not watch plugin manifests. Run `make install-herdr-plugins` from `~/.vim` when registering a new local plugin and rerun it after changing `herdr-plugin.toml`. Changes to linked script files apply on the next invocation because the registry still points at the checkout. `herdr server reload-config` reloads `config.toml`, not plugins.
+Herdr does not watch plugin manifests. Rerun the bootstrap after adding or changing a tracked `herdr-plugin.toml`; it discovers every tracked plugin manifest. Changes to linked script files apply on the next invocation because the registry still points at the checkout. `herdr server reload-config` reloads `config.toml`, not plugins.
 
 The plugin uses POSIX `sh` and `base64` on macOS/Linux and Windows PowerShell on Windows. Because Herdr carries terminal clipboard events to the attached client, copying also works when viewing a server over SSH. Link the plugin separately on every machine whose Herdr server should expose the action.
 
