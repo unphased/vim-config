@@ -638,7 +638,8 @@ nv() {
   [[ "$(uname -s)" == "Darwin" ]] && frame="transparent"
 
   local -a env_args
-  env_args=(NEOVIDE_FRAME="$frame")
+  # Neovide is a separate GUI window; do not bind its nvim instance to the launching Herdr pane.
+  env_args=(NEOVIDE_FRAME="$frame" HERDR_ENV=0)
   [[ -n "$neovide_config" ]] && env_args+=(NEOVIDE_CONFIG="$neovide_config")
   [[ -n "$neovim_bin" ]] && env_args+=(NEOVIM_BIN="$neovim_bin")
 
