@@ -46,6 +46,14 @@ key = "ctrl+shift+w"
 type = "shell"
 command = "herdr pane move \"$(herdr pane current --current | jq -r '.result.pane.pane_id')\" --new-workspace --focus"
 
+[[keys.command]]
+key = "prefix+i"
+type = "popup"
+command = "~/.vim/herdr-session-context.sh"
+width = "80%"
+height = "60%"
+description = "Show active pane and agent session information"
+
 [ui.toast]
 delivery = "system"
 
