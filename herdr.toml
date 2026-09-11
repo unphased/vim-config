@@ -40,6 +40,12 @@ key = "ctrl+j"
 type = "shell"
 command = "~/.vim/herdr-focus.sh down"
 
+# Move the focused pane into a new, focused workspace.
+[[keys.command]]
+key = "ctrl+shift+w"
+type = "shell"
+command = "herdr pane move \"$(herdr pane current --current | jq -r '.result.pane.pane_id')\" --new-workspace --focus"
+
 [ui.toast]
 delivery = "system"
 
