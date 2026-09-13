@@ -1,13 +1,27 @@
 onboarding = false
 [ui]
 agent_panel_sort = "priority"
-sidebar_width = 20
+sidebar_width = 36
 pane_borders = "always"
 # Show detected/reported agent labels and their status in pane borders.
 show_agent_labels_on_pane_borders = true
 window_title = "{workspace} — {tab} — {pane} — {terminal_title}"
 
 status_indicators = "symbols"
+
+[ui.sidebar.agents]
+row_gap = 0
+
+# Pi publishes these $tokens from the session-topic extension. Other agents
+# keep Herdr's default two-row presentation.
+[ui.sidebar.agents.rows_by_agent]
+pi = [
+  ["state_icon", { token = "$pi", fg = "#89b4fa", bold = true }, { token = "workspace", bold = true }, { token = "tab", dim = true }],
+  [{ token = "$topic", bold = true }],
+  [{ token = "$model", fg = "#89b4fa", dim = true }],
+  [{ token = "$context", fg = "#a6e3a1", dim = true }],
+]
+
 [ui.sound]
 enabled = true
 
