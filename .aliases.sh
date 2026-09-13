@@ -341,33 +341,9 @@ which colormake > /dev/null 2>&1 && alias make="colormake"
 
 alias mk="make"
 
-_sync_agent_skills() {
-	local manager="$HOME/util/manage-skill-symlinks.sh"
-	if [ -x "$manager" ] && ! "$manager" install --quiet "$@"; then
-		printf '%s\n' 'warning: shared agent skills could not be fully reconciled' >&2
-	fi
-}
-
-# All three harnesses share the flat ~/.agents/skills hub. Reconcile at launch
-# so a newly added source skill needs no separate install command.
-codex() {
-	_sync_agent_skills
-	command codex "$@"
-}
-
-claude() {
-	if [ -n "${CLAUDE_CONFIG_DIR:-}" ]; then
-		_sync_agent_skills --claude-dir "$CLAUDE_CONFIG_DIR"
-	else
-		_sync_agent_skills
-	fi
-	command claude "$@"
-}
-
 # Pi self-updates replace local core patches. Package/model-only updates can
 # pass through without the self-update warning.
 pi() {
-	_sync_agent_skills
 	if [ "${1-}" = "update" ]; then
 		# Keep this small parser aligned with Pi's package-update targets so that
 		# extension and model updates do not look like self-updates. Be
