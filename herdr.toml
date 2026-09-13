@@ -1,6 +1,7 @@
 onboarding = false
 [ui]
 agent_panel_sort = "priority"
+sidebar_width = 26
 pane_borders = "always"
 window_title = "{workspace} — {tab} — {pane} — {terminal_title}"
 
@@ -10,13 +11,13 @@ enabled = true
 
 [keys]
 prefix = "ctrl+s"
-previous_tab = ["alt+shift+[", "prefix+p"]
-next_tab = ["alt+shift+]", "prefix+n"]
+previous_tab = ["alt+{", "prefix+p"]
+next_tab = ["alt+}", "prefix+n"]
 focus_pane_left = "prefix+h"
 focus_pane_down = "prefix+j"
 focus_pane_up = "prefix+k"
 focus_pane_right = "prefix+l"
-resize_pane_left = "alt+h"
+resize_pane_left = ["alt+h"]
 resize_pane_down = "alt+j"
 resize_pane_up = "alt+k"
 resize_pane_right = "alt+l"
@@ -76,3 +77,6 @@ auto_switch = false
 [theme.custom]
 panel_bg = "reset"
 sidebar_bg = "reset"
+# Keep inactive pane borders subdued while giving unfocused tabs more contrast.
+overlay0 = "#888888"
+surface0 = "#45475a"
