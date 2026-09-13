@@ -2,7 +2,7 @@ id = "local.copy-pane-id"
 name = "Local Pane Actions"
 version = "0.2.0"
 min_herdr_version = "0.9.0"
-description = "Local actions for Herdr's pane context menu"
+description = "Local actions for Herdr panes"
 platforms = ["linux", "macos", "windows"]
 
 [[actions]]

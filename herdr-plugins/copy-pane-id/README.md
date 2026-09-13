@@ -1,14 +1,16 @@
 # Herdr Local Pane Actions
 
-Adds **Copy pane ID** and **Move pane to new workspace** to Herdr's pane right-click menu. The selected pane's public ID, such as `w7:p4`, is copied through OSC 52, while the move action pulls the pane out of its current tab into a new focused workspace.
+Provides **Copy pane ID** and **Move pane to new workspace** plugin actions. The focused pane's public ID, such as `w7:p4`, is copied through OSC 52, while the move action pulls the focused pane out of its current tab into a new focused workspace.
+
+Herdr 0.9.0 does not add plugin actions to its pane right-click menu. The manifest's `contexts = ["pane"]` field describes the action's context; it does not add a menu item.
 
 ```mermaid
 flowchart LR
-    Menu[Pane right-click] --> Copy[Copy pane ID]
+    Action[Plugin action] --> Copy[Copy pane ID]
     Copy --> Background[Short-lived background tab]
     Background -->|OSC 52| Herdr[Herdr client]
     Herdr --> Clipboard[Attached client's clipboard]
-    Menu --> Move[Move pane to new workspace]
+    Action --> Move[Move pane to new workspace]
     Move --> NewWorkspace[Focused new workspace]
 ```
 
@@ -22,7 +24,12 @@ Bootstrap the tracked Herdr config and all local plugins on each machine running
 make -C ~/.vim bootstrap-herdr
 ```
 
-Then right-click a pane and select **Copy pane ID** or **Move pane to new workspace**.
+Focus the target pane, then invoke an action from the Herdr CLI:
+
+```bash
+herdr plugin action invoke local.copy-pane-id.copy-pane-id
+herdr plugin action invoke local.copy-pane-id.move-pane-new-workspace
+```
 
 Herdr does not watch plugin manifests. Rerun the bootstrap after adding or changing a tracked `herdr-plugin.toml`; it discovers every tracked plugin manifest. Changes to linked script files apply on the next invocation because the registry still points at the checkout. `herdr server reload-config` reloads `config.toml`, not plugins.
 
