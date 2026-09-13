@@ -2,6 +2,7 @@ onboarding = false
 [ui]
 agent_panel_sort = "priority"
 sidebar_width = 36
+sidebar_max_width = 60
 pane_borders = "always"
 # Show Herdr's native agent label when no higher-priority pane title is set.
 show_agent_labels_on_pane_borders = true
