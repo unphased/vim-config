@@ -286,8 +286,8 @@ bindings = [
 { key = "Slash",    mods = "Command",             chars = "\u001b/"  },
   # The tab switch binds for BTT for macOS = bind to my (new!) contextual tab switch (I used to use F2/F3, but decided
   # to free those up for more app specific use!)
-{ key = "{",    mods = "Command|Shift",             chars = "\u001b[Y"  },
-{ key = "}",    mods = "Command|Shift",             chars = "\u001b[2Y"  },
+{ key = "{",    mods = "Command|Shift",             chars = "\u001b{"  },
+{ key = "}",    mods = "Command|Shift",             chars = "\u001b}"  },
 { key = "[",    mods = "Command",             chars = "\u001b]"  },
 { key = "]",    mods = "Command",             chars = "\u001b["  },
 { key = "Return",  mods = "Command",           action = "ToggleSimpleFullscreen" }
