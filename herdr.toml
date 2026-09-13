@@ -18,7 +18,7 @@ row_gap = 0
 [ui.sidebar.agents.rows_by_agent]
 pi = [
   ["state_icon", { token = "$pi", fg = "#89b4fa", bold = true }, { token = "workspace", bold = true }, { token = "tab", dim = true }],
-  [{ token = "$topic", bold = true, dim = false }],
+  [{ token = "$topic", fg = "#aaaaaa", bold = true, dim = false }],
   [{ token = "$model", fg = "#89b4fa", dim = true }],
   [{ token = "$context", fg = "#a6e3a1", dim = true }],
 ]
