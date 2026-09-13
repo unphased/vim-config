@@ -47,6 +47,13 @@ key = "ctrl+shift+w"
 type = "shell"
 command = "herdr pane move \"$(herdr pane current --current | jq -r '.result.pane.pane_id')\" --new-workspace --focus"
 
+# Separate the focused pane: use a new tab when its tab has siblings, otherwise a new workspace.
+[[keys.command]]
+key = "prefix+space"
+type = "plugin_action"
+command = "local.move-pane-new-tab.move-pane-new-tab"
+description = "Separate pane"
+
 [[keys.command]]
 key = "prefix+i"
 type = "popup"
