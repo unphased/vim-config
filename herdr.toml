@@ -1,6 +1,7 @@
 onboarding = false
 [ui]
 agent_panel_sort = "priority"
+pane_borders = "always"
 window_title = "{workspace} — {tab} — {pane} — {terminal_title}"
 
 status_indicators = "symbols"
