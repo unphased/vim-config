@@ -3,6 +3,8 @@ onboarding = false
 agent_panel_sort = "priority"
 sidebar_width = 20
 pane_borders = "always"
+# Show detected/reported agent labels and their status in pane borders.
+show_agent_labels_on_pane_borders = true
 window_title = "{workspace} — {tab} — {pane} — {terminal_title}"
 
 status_indicators = "symbols"
@@ -75,8 +77,13 @@ name = "catppuccin"
 auto_switch = false
 
 [theme.custom]
+# Let the machine-specific terminal background show through Herdr's chrome.
 panel_bg = "reset"
 sidebar_bg = "reset"
+active_row_bg = "reset"
+selection_bg = "reset"
+
 # Keep inactive pane borders subdued while giving unfocused tabs more contrast.
 overlay0 = "#888888"
+overlay1 = "#b8b8b8"
 surface0 = "#45475a"
