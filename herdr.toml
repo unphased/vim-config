@@ -24,7 +24,7 @@ pi = [
     { token = "$context_ok", fg = "#a6e3a1", dim = false },
     { token = "$context_warn", fg = "#f9e2af", bold = true, dim = false },
     { token = "$context_error", fg = "#f38ba8", bold = true, dim = false },
-    { token = "$session_tokens", fg = "#cba6f7", dim = false },
+    { token = "$session_tokens", fg = "#cba6f7", bold = true, dim = false },
   ],
 ]
 
