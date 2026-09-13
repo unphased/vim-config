@@ -18,6 +18,7 @@ fail() {
 [[ -f "$manifest" ]] || fail 'move pane manifest is missing'
 [[ -x "$script" ]] || fail 'move-pane-new-tab.sh is missing or not executable'
 [[ -x "$wrapper" ]] || fail 'move-pane-new-tab.cmd is missing or not executable'
+[[ "$(head -n 1 "$wrapper")" == '#!/bin/sh' ]] || fail 'move-pane-new-tab.cmd needs a Unix shebang'
 [[ -f "$windows_script" ]] || fail 'move-pane-new-tab.ps1 is missing'
 grep -Fq 'id = "move-pane-new-tab"' "$manifest" || fail 'separate pane action is missing from the manifest'
 grep -Fq 'title = "Separate pane"' "$manifest" || fail 'separate pane action title is missing from the manifest'

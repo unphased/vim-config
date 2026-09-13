@@ -12,7 +12,7 @@ make -C ~/.vim bootstrap-herdr
 
 Then right-click a pane and select **Separate pane**. The same behavior is available with `prefix+space`.
 
-Herdr does not watch plugin manifests. Rerun the bootstrap after adding or changing a tracked `herdr-plugin.toml`.
+Herdr does not watch plugin manifests. Rerun the bootstrap after adding or changing a tracked `herdr-plugin.toml`. The Unix implementation uses `jq` to read the active tab's pane count; install it on macOS/Linux if it is not already available.
 
 ## Test
 
