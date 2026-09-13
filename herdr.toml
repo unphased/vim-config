@@ -3,7 +3,7 @@ onboarding = false
 agent_panel_sort = "priority"
 sidebar_width = 36
 pane_borders = "always"
-# Show detected/reported agent labels and their status in pane borders.
+# Show Herdr's native agent label when no higher-priority pane title is set.
 show_agent_labels_on_pane_borders = true
 window_title = "{workspace} — {tab} — {pane} — {terminal_title}"
 
