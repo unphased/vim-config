@@ -1,6 +1,5 @@
 # Capture non-login interactive shells too (for example, fresh tmux panes).
-# TEMP: disabled while testing Herdr cwd and agent detection through a direct PTY.
-# source "$HOME/.vim/zsh/termplex-capture.zsh"
+source "$HOME/.vim/zsh/termplex-capture.zsh"
 
 # Path to your oh-my-zsh configuration.
 ZSH=$HOME/.oh-my-zsh
