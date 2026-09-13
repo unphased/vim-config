@@ -25,9 +25,9 @@ When updating background, pick an anchor path based on the currently focused win
 
 - Terminals that need live-cwd background must be launched via a Neovim wrapper that injects:
   - `NVIM` (servername) and `NVIM_TERM_BUF` (terminal buffer number)
-- zsh hook (e.g. `chpwd`/`precmd`) computes:
-  - `hex=$(bgcolor.sh --format=hex "$PWD")`
-  - emits OSC11 locally
+- zsh hook (e.g. `chpwd`/`precmd`):
+  - emits paired OSC10/OSC11 colors from `bgcolor.sh --format=osc "$PWD"`
+  - uses the fixed neutral foreground `#e0e0e0` so Herdr can render the project background reliably
   - calls `nvim --headless --server "$NVIM" --remote-expr ...` to notify Neovim with `(bufnr, cwd, hex)`
 
-Recommended: use a single hook function that always emits OSC11 and conditionally pushes to Neovim when `NVIM`/`NVIM_TERM_BUF` are set (see `nvim/shell/nvim-bgcolor.zsh`).
+Recommended: use a single hook function that always emits paired terminal colors and conditionally pushes the background to Neovim when `NVIM`/`NVIM_TERM_BUF` are set (see `nvim/shell/nvim-bgcolor.zsh`).

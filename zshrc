@@ -325,7 +325,7 @@ handle_execution_duration() {
 }
 
 color_tmux_pane() {
-  # Emit OSC 11 background color for the current path; let tmux propagate it.
+  # Emit paired terminal colors for the current path; let tmux propagate them.
   ~/util/bgcolor.sh
 }
 

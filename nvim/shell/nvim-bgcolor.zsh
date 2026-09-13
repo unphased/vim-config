@@ -21,8 +21,8 @@ nvim_bgcolor_hook() {
   local debug="${NVIM_BGCOLOR_DEBUG:-}"
 
   local cwd="${PWD}"
-  local osc11
-  osc11="$("$bgcolor_script" "$cwd" 2>/dev/null)" || return 0
+  local terminal_colors
+  terminal_colors="$("$bgcolor_script" --format=osc "$cwd" 2>/dev/null)" || return 0
 
   if [[ -n "$debug" && "$debug" != "0" ]]; then
     {
@@ -30,23 +30,22 @@ nvim_bgcolor_hook() {
     } >>/tmp/nvim-bgcolor-hook.log 2>/dev/null || true
   fi
 
-  # Emit OSC 11 for terminals that honor it.
-  # In Neovim terminal buffers this may be consumed/rendered oddly by libvterm,
-  # so `:BgTerm` exports NVIM_BGCOLOR_NO_OSC11=1 to suppress it there.
+  # Emit paired OSC 10/11 defaults. Herdr requires an explicit foreground before
+  # it can render a pane's dynamic default background reliably.
+  # In Neovim terminal buffers these may be consumed/rendered oddly by libvterm,
+  # so `:BgTerm` exports NVIM_BGCOLOR_NO_OSC11=1 to suppress them there.
   if [[ -z "${NVIM_BGCOLOR_NO_OSC11:-}" ]]; then
-    printf '%s' "$osc11" 2>/dev/null || true
+    printf '%s' "$terminal_colors" 2>/dev/null || true
   elif [[ -n "$debug" && "$debug" != "0" ]]; then
     {
-      printf '%s [nvim-bgcolor] osc11 suppressed (NVIM_BGCOLOR_NO_OSC11=1)\n' "$(date '+%Y-%m-%dT%H:%M:%S')"
+      printf '%s [nvim-bgcolor] terminal colors suppressed (NVIM_BGCOLOR_NO_OSC11=1)\n' "$(date '+%Y-%m-%dT%H:%M:%S')"
     } >>/tmp/nvim-bgcolor-hook.log 2>/dev/null || true
   fi
 
-  # Parse hex out of OSC11 output. Format:
-  #   ESC ] 11 ; <color> ESC \
-  # Our `bgcolor.sh` always emits this exact prefix, so slice by position instead
-  # of pattern-matching control characters (which is fragile in zsh `[[ ... == ... ]]`).
+  # Extract the background from the paired output for the Neovim notification.
   local hex=""
-  local rest="${osc11[6,-1]}" # drop leading ESC]11;
+  local marker=$'\033]11;'
+  local rest="${terminal_colors#*${marker}}"
   local cand9="${rest[1,9]}"
   local cand7="${rest[1,7]}"
   if [[ "$cand9" =~ '^#[0-9A-Fa-f]{8}$' ]]; then
@@ -58,7 +57,7 @@ nvim_bgcolor_hook() {
   if [[ ! "$hex" =~ '^#[0-9A-Fa-f]{6}$' ]]; then
     if [[ -n "$debug" && "$debug" != "0" ]]; then
       {
-        printf '%s [nvim-bgcolor] failed to parse hex from osc11 (len=%q osc11=%q rest=%q cand7=%q cand9=%q)\n' "$(date '+%Y-%m-%dT%H:%M:%S')" "${#osc11}" "$osc11" "$rest" "$cand7" "$cand9"
+        printf '%s [nvim-bgcolor] failed to parse background (len=%q colors=%q rest=%q cand7=%q cand9=%q)\n' "$(date '+%Y-%m-%dT%H:%M:%S')" "${#terminal_colors}" "$terminal_colors" "$rest" "$cand7" "$cand9"
       } >>/tmp/nvim-bgcolor-hook.log 2>/dev/null || true
     fi
     return 0
