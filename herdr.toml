@@ -17,9 +17,9 @@ row_gap = 0
 # keep Herdr's default two-row presentation.
 [ui.sidebar.agents.rows_by_agent]
 pi = [
-  ["state_icon", { token = "$pi", fg = "#89b4fa", bold = true }, { token = "workspace", bold = true }, { token = "tab", dim = true }],
+  ["state_icon", { token = "$pi", fg = "#89b4fa", bold = true }, { token = "workspace", bold = true }, { token = "tab", dim = false }],
   [{ token = "$topic", fg = "#aaaaaa", bold = true, dim = false }],
-  [{ token = "$model", fg = "#89b4fa", dim = true }],
+  [{ token = "$model", fg = "#89b4fa", dim = false }],
   [
     { token = "$context_ok", fg = "#a6e3a1", dim = false },
     { token = "$context_warn", fg = "#f9e2af", bold = true, dim = false },
@@ -98,12 +98,14 @@ auto_switch = false
 
 [theme.custom]
 # Let the machine-specific terminal background show through Herdr's chrome.
-panel_bg = "reset"
+# panel_bg = "reset"
 sidebar_bg = "reset"
-active_row_bg = "reset"
-selection_bg = "reset"
+# Keep focused rows and Navigate-mode selection visibly distinct from the machine bg.
+active_row_bg = "#303030"
+selection_bg = "#45475a"
 
 # Keep inactive pane borders subdued while giving unfocused tabs more contrast.
-overlay0 = "#888888"
-overlay1 = "#b8b8b8"
-surface0 = "#45475a"
+overlay0 = "#686868"
+overlay1 = "#f8b8a8"
+surface0 = "#aaaaaa"
+accent = "#88b830"
