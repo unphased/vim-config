@@ -25,6 +25,7 @@ pi = [
   [{ token = "$topic", fg = "#aaaaaa", bold = true, dim = false }],
   [{ token = "$model", fg = "#89b4fa", dim = false }],
   [
+    { token = "$project-different", fg = "#bababa", bold = true},
     { token = "$context_ok", fg = "#a6e3a1", dim = false },
     { token = "$context_warn", fg = "#f9e2af", bold = true, dim = false },
     { token = "$context_error", fg = "#f38ba8", bold = true, dim = false },
@@ -102,10 +103,10 @@ auto_switch = false
 
 [theme.custom]
 # Let the machine-specific terminal background show through Herdr's chrome.
-# panel_bg = "reset"
+panel_bg = "reset"
 sidebar_bg = "reset"
 # Keep focused rows and Navigate-mode selection visibly distinct from the machine bg.
-active_row_bg = "#303030"
+active_row_bg = "#403040"
 selection_bg = "#45475a"
 
 # Keep inactive pane borders subdued while giving unfocused tabs more contrast.
