@@ -97,12 +97,8 @@ arg4:<--source>
 arg5:<zsh:process-title>
 arg6:<--title>
 arg7:<zsh pid=$$ ppid=$PPID>"
-for attempt in {1..100}; do
-  [[ -s "$HERDR_TEST_LOG" ]] && break
-  sleep 0.01
-done
 [[ -s "$HERDR_TEST_LOG" ]] || {
-  print -u2 'timed out waiting for asynchronous Herdr title report'
+  print -u2 'Herdr title report was not written'
   exit 1
 }
 [[ "$(<"$HERDR_TEST_LOG")" == "$expected" ]] || {
@@ -121,11 +117,7 @@ HOME="$home" PATH="$bin:$PATH" HERDR_ENV=1 HERDR_PANE_ID=w1:p2 \
   HERDR_TEST_LOG="$title_log" HERDR_HELPER="$repo/zsh/herdr-machine-background.zsh" \
   zsh -f <<'EOF' || exit 1
 source "$HERDR_HELPER"
-__herdr_clear_shell_process_title_for_pi 'pi --session example'
-for attempt in {1..100}; do
-  [[ -s "$HERDR_TEST_LOG" ]] && break
-  sleep 0.01
-done
+__herdr_clear_shell_process_title_for_pi $'pi\t--session example'
 expected="herdr:pane report-metadata w1:p2 --source zsh:process-title --clear-title
 argc:6
 arg1:<pane>
