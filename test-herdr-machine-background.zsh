@@ -29,6 +29,9 @@ mkdir -p "$home/.vim" "$home/util" "$bin" || exit 1
 
 cat >"$bin/herdr" <<'EOF'
 #!/bin/sh
+if [ -n "${HERDR_TEST_LOG:-}" ]; then
+  printf 'herdr:%s\n' "$*" >>"$HERDR_TEST_LOG"
+fi
 printf 'herdr:%s\n' "$*"
 printf 'argc:%s\n' "$#"
 index=1
@@ -70,6 +73,26 @@ run_herdr() {
   HOME="$home" PATH="$bin:$PATH" HERDR_HELPER="$repo/zsh/herdr-machine-background.zsh" \
     zsh -f -c 'source "$HERDR_HELPER"; herdr "$@"' test-herdr "$@"
 }
+
+title_log="$tmp/title-calls"
+HOME="$home" PATH="$bin:$PATH" HERDR_ENV=1 HERDR_PANE_ID=w1:p2 \
+  HERDR_TEST_LOG="$title_log" HERDR_HELPER="$repo/zsh/herdr-machine-background.zsh" \
+  zsh -f <<'EOF' || exit 1
+source "$HERDR_HELPER"
+__herdr_report_shell_process_title
+expected="herdr:pane report-metadata w1:p2 --source zsh:process-title --title zsh pid=$$ ppid=$PPID"
+for attempt in {1..100}; do
+  [[ -s "$HERDR_TEST_LOG" ]] && break
+  sleep 0.01
+done
+[[ "$(<"$HERDR_TEST_LOG")" == "$expected" ]]
+EOF
+
+: >"$title_log"
+HOME="$home" PATH="$bin:$PATH" HERDR_ENV=0 HERDR_PANE_ID=w1:p2 \
+  HERDR_TEST_LOG="$title_log" HERDR_HELPER="$repo/zsh/herdr-machine-background.zsh" \
+  zsh -f -c 'source "$HERDR_HELPER"; __herdr_report_shell_process_title' || exit 1
+[[ ! -s "$title_log" ]] || fail "shell title was reported outside Herdr"
 
 for output in \
   "$(run_herdr --session demo)" \
