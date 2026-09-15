@@ -39,6 +39,49 @@ adjacent_target() {
       end'
 }
 
+# Herdr's workspace numbers reflect creation/sidebar positions, so linked
+# worktrees can be separated from their parent by unrelated workspaces. Keep
+# each repository's parent followed immediately by its linked workspaces.
+workspace_adjacent_target() {
+  jq -r \
+    --arg current "$1" \
+    --arg direction "$2" '
+      .result.workspaces as $workspaces |
+      $workspaces
+      | map(
+          . as $workspace
+          | . + {
+              sort_key: (
+                if ($workspace.worktree != null and $workspace.worktree.is_linked_worktree == true) then
+                  ([$workspaces[]
+                    | select(
+                        .worktree != null
+                        and .worktree.repo_key == $workspace.worktree.repo_key
+                        and (.worktree.is_linked_worktree // false) == false
+                      )
+                    | .number
+                  ] | .[0]) // $workspace.number
+                else
+                  $workspace.number
+                end
+              )
+            }
+        )
+      | sort_by([
+          .sort_key,
+          (if (.worktree != null and .worktree.is_linked_worktree == true) then 1 else 0 end),
+          .number
+        ])
+      | map(.workspace_id) as $ordered
+      | ($ordered | index($current)) as $index
+      | if $index == null then empty
+        elif ($direction == "up" and $index == 0) then empty
+        elif ($direction == "down" and ($index + 1) >= ($ordered | length)) then empty
+        elif ($direction == "up") then $ordered[$index - 1]
+        else $ordered[$index + 1]
+        end // empty'
+}
+
 context=$(herdr pane current --current) || exit
 pane=$(printf '%s' "$context" | jq -r '.result.pane.pane_id')
 tab=$(printf '%s' "$context" | jq -r '.result.pane.tab_id')
@@ -61,8 +104,7 @@ case "$direction" in
   up|down)
     if [ "$(printf '%s' "$edges" | jq -r --arg key "$direction" '.result.edges | .[$key]')" = true ]; then
       workspaces=$(herdr workspace list) || exit
-      current=$(printf '%s' "$workspaces" | jq -r --arg id "$workspace" '.result.workspaces[] | select(.workspace_id == $id) | .number')
-      target=$(printf '%s' "$workspaces" | adjacent_target workspaces "$current" "$direction" workspace_id)
+      target=$(printf '%s' "$workspaces" | workspace_adjacent_target "$workspace" "$direction")
       if [ -n "$target" ]; then
         herdr workspace focus "$target"
       fi
