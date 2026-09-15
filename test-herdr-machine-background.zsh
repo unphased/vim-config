@@ -30,7 +30,15 @@ mkdir -p "$home/.vim" "$home/util" "$bin" || exit 1
 cat >"$bin/herdr" <<'EOF'
 #!/bin/sh
 if [ -n "${HERDR_TEST_LOG:-}" ]; then
-  printf 'herdr:%s\n' "$*" >>"$HERDR_TEST_LOG"
+  {
+    printf 'herdr:%s\n' "$*"
+    printf 'argc:%s\n' "$#"
+    index=1
+    for arg do
+      printf 'arg%s:<%s>\n' "$index" "$arg"
+      index=$((index + 1))
+    done
+  } >>"$HERDR_TEST_LOG"
 fi
 printf 'herdr:%s\n' "$*"
 printf 'argc:%s\n' "$#"
@@ -80,13 +88,31 @@ HOME="$home" PATH="$bin:$PATH" HERDR_ENV=1 HERDR_PANE_ID=w1:p2 \
   zsh -f <<'EOF' || exit 1
 source "$HERDR_HELPER"
 __herdr_report_shell_process_title
-expected="herdr:pane report-metadata w1:p2 --source zsh:process-title --title zsh pid=$$ ppid=$PPID"
+expected="herdr:pane report-metadata w1:p2 --source zsh:process-title --title zsh pid=$$ ppid=$PPID
+argc:7
+arg1:<pane>
+arg2:<report-metadata>
+arg3:<w1:p2>
+arg4:<--source>
+arg5:<zsh:process-title>
+arg6:<--title>
+arg7:<zsh pid=$$ ppid=$PPID>"
 for attempt in {1..100}; do
   [[ -s "$HERDR_TEST_LOG" ]] && break
   sleep 0.01
 done
-[[ "$(<"$HERDR_TEST_LOG")" == "$expected" ]]
+[[ -s "$HERDR_TEST_LOG" ]] || {
+  print -u2 'timed out waiting for asynchronous Herdr title report'
+  exit 1
+}
+[[ "$(<"$HERDR_TEST_LOG")" == "$expected" ]] || {
+  print -u2 "unexpected Herdr title report: $(<"$HERDR_TEST_LOG")"
+  exit 1
+}
 EOF
+
+assert_contains "$(<"$repo/zshrc")" \
+  "add-zsh-hook precmd __herdr_report_shell_process_title"
 
 : >"$title_log"
 HOME="$home" PATH="$bin:$PATH" HERDR_ENV=0 HERDR_PANE_ID=w1:p2 \
