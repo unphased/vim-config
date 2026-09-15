@@ -113,6 +113,36 @@ EOF
 
 assert_contains "$(<"$repo/zshrc")" \
   "add-zsh-hook precmd __herdr_report_shell_process_title"
+assert_contains "$(<"$repo/zshrc")" \
+  "add-zsh-hook preexec __herdr_clear_shell_process_title_for_pi"
+
+: >"$title_log"
+HOME="$home" PATH="$bin:$PATH" HERDR_ENV=1 HERDR_PANE_ID=w1:p2 \
+  HERDR_TEST_LOG="$title_log" HERDR_HELPER="$repo/zsh/herdr-machine-background.zsh" \
+  zsh -f <<'EOF' || exit 1
+source "$HERDR_HELPER"
+__herdr_clear_shell_process_title_for_pi 'pi --session example'
+for attempt in {1..100}; do
+  [[ -s "$HERDR_TEST_LOG" ]] && break
+  sleep 0.01
+done
+expected="herdr:pane report-metadata w1:p2 --source zsh:process-title --clear-title
+argc:6
+arg1:<pane>
+arg2:<report-metadata>
+arg3:<w1:p2>
+arg4:<--source>
+arg5:<zsh:process-title>
+arg6:<--clear-title>"
+[[ "$(<"$HERDR_TEST_LOG")" == "$expected" ]]
+EOF
+
+: >"$title_log"
+HOME="$home" PATH="$bin:$PATH" HERDR_ENV=1 HERDR_PANE_ID=w1:p2 \
+  HERDR_TEST_LOG="$title_log" HERDR_HELPER="$repo/zsh/herdr-machine-background.zsh" \
+  zsh -f -c 'source "$HERDR_HELPER"; __herdr_clear_shell_process_title_for_pi "git status"' \
+  || exit 1
+[[ ! -s "$title_log" ]] || fail "shell title was cleared for a non-Pi command"
 
 : >"$title_log"
 HOME="$home" PATH="$bin:$PATH" HERDR_ENV=0 HERDR_PANE_ID=w1:p2 \
