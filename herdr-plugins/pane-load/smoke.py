@@ -7,7 +7,7 @@ import subprocess
 import sys
 import time
 
-from pane_load import cpu_meter
+from pane_load import pane_title
 
 
 def herdr(*args):
@@ -25,8 +25,8 @@ def wait_workspace_cpu(workspace, predicate, description):
     while time.monotonic() < deadline:
         tokens = herdr('workspace', 'get', workspace)['workspace'].get('tokens', {})
         last = tokens.get('cpu')
-        if last is not None and predicate(meter_value(last)):
-            print('workspace CPU:', last, flush=True)
+        if last is not None and tokens.get('memory') and predicate(meter_value(last)):
+            print('workspace CPU/memory:', last, tokens['memory'], flush=True)
             return last
         time.sleep(.5)
     raise AssertionError(f'timed out waiting for workspace CPU {description}: {last}')
@@ -41,9 +41,8 @@ def wait_tokens(pane, predicate):
         if tokens != last:
             print('sample:', tokens, flush=True)
         last = tokens
-        expected = f"{cpu_meter(float(tokens.get('cpu', 0)))} {tokens.get('cpu_tree')}"
-        if len(expected) > 80:
-            expected = expected[:79] + '…'
+        expected = pane_title(float(tokens.get('cpu', 0)), tokens.get('memory'),
+                              tokens.get('cpu_tree'))
         if predicate(last) and info.get('title') == expected:
             print('pane title:', info['title'], flush=True)
             return last

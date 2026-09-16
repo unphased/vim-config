@@ -1,10 +1,10 @@
 # Herdr Pane Load
 
 `local.pane-load` is a macOS-only, resident Herdr plugin. One worker is shared per
-Herdr server socket. It samples process CPU through macOS `libproc`, then reports
-a short-lived pane title plus `$cpu` and `$cpu_tree` pane tokens. The same sample
-is summed across every pane in each workspace and published as a workspace
-`$cpu` meter for the sidebar.
+Herdr server socket. It samples process CPU and resident memory through macOS
+`libproc`, then reports a short-lived pane title plus `$cpu`, `$cpu_tree`, and
+`$memory` pane tokens. The same sample is summed across every pane in each
+workspace and published in the workspace sidebar.
 
 ```mermaid
 flowchart LR
@@ -15,10 +15,10 @@ flowchart LR
   API --> Snapshot[Snapshot + pane.process_info]
   Worker --> Libproc[libproc: one process enumeration]
   Libproc --> PaneMetadata[pane.report_metadata TTL 15s]
-  Libproc --> Aggregate[Sum pane CPU by workspace]
+  Libproc --> Aggregate[Sum pane CPU + RSS by workspace]
   Aggregate --> WorkspaceMetadata[workspace.report_metadata TTL 15s]
-  PaneMetadata --> Chrome[Pane title: high-resolution CPU meter]
-  WorkspaceMetadata --> Sidebar[Workspace sidebar CPU meter]
+  PaneMetadata --> Chrome[Pane title: CPU meter + memory + process tree]
+  WorkspaceMetadata --> Sidebar[Workspace sidebar CPU + memory]
 ```
 
 ## Install, link, and start
@@ -50,20 +50,23 @@ subsequent server startup launches a new worker. Hooks do not supervise crashes.
 ## Pane and workspace chrome
 
 The sampler **owns the metadata pane title** for every pane, including ordinary
-shells. It contains the numeric CPU percentage, an unbounded bar, and the compact
-process topology separated by whitespace rather than a divider. Pane meters use
+shells. It contains the numeric CPU percentage, an unbounded bar, aggregate RSS,
+and the compact process topology separated by whitespace rather than a divider.
+Each process entry also includes its RSS. Pane CPU meters use
 24 cells per 100% (about 0.52% per fractional eighth), with six-cell
 25% sections separated by thin `▉` internal ticks and salient `▋` internal
-hundred ticks. Exact endpoints remain full blocks. The percentage comes first so
-Herdr's 80-character title limit only truncates the bar tail.
+hundred ticks. Exact endpoints remain full blocks. The numeric CPU, memory, and
+process tree precede the bar so Herdr's 80-character title limit discards the bar
+tail first under high multi-core load.
 
-The aggregate workspace meter uses a compact six cells per 100% (about 2.08%
+The aggregate workspace CPU meter uses a compact four cells per 100% (3.125%
 per fractional eighth), omits quarter ticks, and uses a thin `▉` internal hundred
 tick. The dotfiles config renders it in each expanded workspace sidebar row and
 colors the complete meter as a heat scale: idle gray, 1–24% blue, 25–99% green,
 100–199% yellow, 200–399% peach, and 400%+ red. Mutually exclusive metadata
 tokens implement the styles while the unstyled workspace `$cpu` token remains
-available to API consumers. Herdr 0.9 does not expose metadata-title styling, so
+available to API consumers. Aggregate workspace RSS appears beside it in purple.
+Herdr 0.9 does not expose metadata-title styling, so
 pane meters retain the normal pane-border title color rather than embedding ANSI
 control sequences.
 
@@ -78,10 +81,13 @@ independent and unchanged; semantic agent state is also untouched.
 After updating, run `/reload` in each existing Pi session once it is idle so
 its old title-writing extension is replaced. Other third-party metadata-title
 writers must likewise be disabled; this plugin does not arbitrate with them.
-The `$cpu` and `$cpu_tree` tokens remain available through `herdr pane get <id>`.
+The `$cpu`, `$cpu_tree`, and `$memory` tokens remain available through
+`herdr pane get <id>`.
 
 The pane `$cpu` token remains numeric for machine use; the workspace `$cpu` token
-contains the bar and percentage for direct sidebar rendering. Process labels prefer
+contains the bar and percentage for direct sidebar rendering. Memory uses binary
+MiB/GiB units displayed as `M`/`G` with one decimal. Pane and workspace totals sum
+per-process RSS, so shared pages can be counted more than once. Process labels prefer
 the basename of native macOS `argv[0]` when available (for example `pi` instead of
 its `node` executable name), then fall back to the libproc process name. The
 `term-capture` wrapper is always shown as `tcap` because its spoofed `argv[0]` is
@@ -98,11 +104,13 @@ or detach/reparent away from the pane are not accounted for.
 
 `$cpu_tree` uses stable small per-pane process IDs, keeps an idle main chain,
 and includes hot branches at 5% or more where the 80-character token permits.
-Entries use `id:name[:cpu]` (zero per-process CPU is omitted), with parentheses
-and commas for edges. The tree is intentionally lossy under that bound: it
+Entries use `id:name[:cpu]/memory` (zero per-process CPU and zero RSS are
+omitted), with parentheses and commas for edges. The tree is intentionally lossy under that bound: it
 omits complete branches/edges with `...` rather than ambiguous partial entries.
-Metadata uses a 15-second TTL, samples at 1Hz, and suppresses unchanged reports
-except for a 5-second heartbeat. This first version uses macOS `libproc` only;
+Metadata uses a 15-second TTL and suppresses unchanged reports except for a
+5-second heartbeat. Sampling is based on whole-machine CPU observed in the same
+native enumeration: 3 seconds at 50% or less, 0.5 seconds above 50% through 800%,
+and 3 seconds above 800%. This first version uses macOS `libproc` only;
 it does not use tmux, `ps`, or another CLI sampler.
 
 Verified against Herdr 0.9.0's [plugin contract](https://raw.githubusercontent.com/herdrdev/herdr/v0.9.0/docs/next/website/src/content/docs/plugins.mdx),

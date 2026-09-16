@@ -115,7 +115,10 @@ class PaneLoadTests(unittest.TestCase):
             worker.dirty = True
             worker.next_plugin_check = float('inf')
             worker.snapshot = mock.Mock(side_effect=lambda: clock.__setitem__(0, 20.0))
-            worker.sample = mock.Mock(side_effect=lambda *_: setattr(worker, 'stop_requested', True))
+            def stop_after_sample(*_):
+                worker.stop_requested = True
+                return 0.0
+            worker.sample = mock.Mock(side_effect=stop_after_sample)
             with mock.patch.object(pl.time, 'monotonic', side_effect=lambda: clock[0]), \
                  mock.patch.object(pl.select, 'select', return_value=([], [], [])):
                 worker.run()
@@ -256,7 +259,8 @@ class PaneLoadTests(unittest.TestCase):
             {self.processes[0].identity: 2.4}, self.ids)
         self.assertEqual(cpu, "2")
         self.assertIn("p1:zsh:2", tree)
-        many = [pl.Process(i, i - 1, (1, i), 0, 0, "very-long-process-name") for i in range(1, 60)]
+        many = [pl.Process(i, i - 1, (1, i), 0, 0, "very-long-process-name",
+                           resident_bytes=1536 * 1024 * 1024) for i in range(1, 60)]
         ids = {p.identity: f"p{i}" for i, p in enumerate(many, 1)}
         _, tree = pl.token_payload(1, many, {p.identity: 5 for p in many}, ids)
         self.assertLessEqual(len(tree), 80)
@@ -321,17 +325,20 @@ class PaneLoadTests(unittest.TestCase):
     def test_sample_aggregates_cpu_and_memory_into_their_workspaces(self):
         first = pl.Process(20, 1, (2, 1), 0, 0, "first", resident_bytes=512 * 1024 * 1024)
         second = pl.Process(30, 1, (3, 1), 0, 0, "second", resident_bytes=1024 * 1024 * 1024)
+        unrelated = pl.Process(40, 1, (4, 1), 0, 0, "unrelated", resident_bytes=2048 * 1024 * 1024)
         with tempfile.TemporaryDirectory() as directory:
-            worker, _, _, _ = self.worker_with_sampler(directory, [first, second])
+            worker, _, _, _ = self.worker_with_sampler(directory, [first, second, unrelated])
             worker.roots = {"pane-1": first.pid, "pane-2": second.pid}
             worker.pane_workspaces = {"pane-1": "workspace-1", "pane-2": "workspace-1"}
             worker.workspaces = {"workspace-1", "workspace-2"}
             worker.last_workspace_sent = {}
             worker.tracker = mock.Mock()
-            worker.tracker.values.return_value = {first.identity: 25.4, second.identity: 75.2}
+            worker.tracker.values.return_value = {
+                first.identity: 25.4, second.identity: 75.2, unrelated.identity: 900.0,
+            }
             worker.report_workspace = mock.Mock(return_value=True)
             global_cpu = worker.sample(100.0, 99.0)
-            self.assertEqual(global_cpu, 100.6)
+            self.assertEqual(global_cpu, 1000.6)
             self.assertEqual(worker.report_workspace.call_args_list,
                              [mock.call("workspace-1", "101", "1.5G"),
                               mock.call("workspace-2", "0", "0.0M")])
@@ -405,7 +412,7 @@ class PaneLoadTests(unittest.TestCase):
         self.assertEqual(params["tokens"], {
             "cpu": "25", "cpu_tree": "p1:zsh", "memory": "640.0M",
         })
-        self.assertEqual(params["title"], "25% ██████ 640.0M p1:zsh")
+        self.assertEqual(params["title"], "25% 640.0M p1:zsh ██████")
         self.assertNotIn("display_agent", params)
         self.assertNotIn("agent", params)
         self.assertNotIn("state", params)
@@ -413,7 +420,8 @@ class PaneLoadTests(unittest.TestCase):
         worker.report("w1:p1", "1000", "x" * 80, "1.5G")
         title = worker.rpc.request[1]["title"]
         self.assertEqual(len(title), 80)
-        self.assertTrue(title.startswith("1000% "))
+        self.assertTrue(title.startswith("1000% 1.5G "))
+        self.assertIn("1.5G", title)
         self.assertNotIn("|", title)
         self.assertTrue(title.endswith("…"))
         worker.report("w1:p1", "0", "1:zsh(2:node)", "12.0M")

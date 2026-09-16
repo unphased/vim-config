@@ -22,7 +22,8 @@ from typing import Iterable
 PLUGIN_ID = "local.pane-load"
 SOURCE = "plugin:local.pane-load"
 TTL_MS = 15_000
-SAMPLE_SECONDS = 1.0
+FAST_SAMPLE_SECONDS = 0.5
+SLOW_SAMPLE_SECONDS = 3.0
 HEARTBEAT_SECONDS = 5.0
 PLUGIN_REFRESH_SECONDS = 15.0
 MAX_RECONNECTS = 8
@@ -175,6 +176,7 @@ class Process:
     user_ns: int
     system_ns: int
     name: str
+    resident_bytes: int = 0
 
     @property
     def identity(self) -> tuple[int, int, int]:
@@ -298,7 +300,8 @@ class MacProcessSampler:
             name = raw.decode("utf-8", "replace") or "?"
             result.append(Process(pid, int(bsd.ppid), (int(bsd.start_sec), int(bsd.start_usec)),
                                   int(task.total_user) * self.timebase.numer // self.timebase.denom,
-                                  int(task.total_system) * self.timebase.numer // self.timebase.denom, name))
+                                  int(task.total_system) * self.timebase.numer // self.timebase.denom,
+                                  name, int(task.resident_size)))
         return result
 
 
@@ -325,6 +328,17 @@ class CpuTracker:
 
 def quantize_cpu(percent: float) -> int:
     return max(0, int(percent + 0.5))
+
+
+def sample_interval(global_cpu: float) -> float:
+    return FAST_SAMPLE_SECONDS if 50.0 < global_cpu <= 800.0 else SLOW_SAMPLE_SECONDS
+
+
+def format_memory(byte_count: int) -> str:
+    mib = max(0, byte_count) / (1024 * 1024)
+    if mib >= 1024:
+        return f"{mib / 1024:.1f}G"
+    return f"{mib:.1f}M"
 
 
 FRACTIONAL_BLOCKS = ("", "▏", "▎", "▍", "▌", "▋", "▊", "▉")
@@ -375,9 +389,18 @@ def cpu_meter(percent: float) -> str:
     return format_cpu_meter(percent, 24, quarter_ticks=True, hundred_tick_eighths=5)
 
 
+def pane_title(percent: float, memory: str, tree: str) -> str:
+    cpu = quantize_cpu(percent)
+    bar = scaled_cpu_bar(cpu, 24, quarter_ticks=True, hundred_tick_eighths=5)
+    title = f"{cpu}% {memory} {tree}" + (f" {bar}" if bar else "")
+    if len(title) > 80:
+        title = title[:79] + "…"
+    return title
+
+
 def workspace_cpu_meter(percent: float) -> str:
     """Render the compact workspace CPU meter."""
-    return format_cpu_meter(percent, 6, hundred_tick_eighths=7)
+    return format_cpu_meter(percent, 4, hundred_tick_eighths=7)
 
 
 def workspace_cpu_tokens(percent: float) -> dict[str, str | None]:
@@ -547,6 +570,8 @@ def _tree_payload(root_pid: int, processes: Iterable[Process], cpus: dict[Identi
             here = f"{ids.get(process.identity, '?')}:{_name(name, width)}"
             if suffix != "0":
                 here += ":" + suffix
+            if process.resident_bytes > 0:
+                here += "/" + format_memory(process.resident_bytes)
             children_text = [rendered[c.identity] for c in child_map[process.identity]
                              if c.identity in rendered]
             if process.identity in omitted:
@@ -573,6 +598,8 @@ def _tree_payload(root_pid: int, processes: Iterable[Process], cpus: dict[Identi
     if len(text) > 80:
         base = len(f"{ids.get(root.identity, '?')}:") + (len(str(quantize_cpu(cpus.get(root.identity, 0.0)))) + 1
               if quantize_cpu(cpus.get(root.identity, 0.0)) else 0)
+        if root.resident_bytes > 0:
+            base += len(format_memory(root.resident_bytes)) + 1
         text = render(selected, width=max(1, 80 - base))
     return total, text[:80], selected
 
@@ -599,8 +626,8 @@ class Worker:
         self.tracker = CpuTracker()
         self.ids: dict[str, dict[Identity, str]] = {}
         self.root_identities: dict[str, Identity] = {}
-        self.last_sent: dict[str, tuple[str, str, float]] = {}
-        self.last_workspace_sent: dict[str, tuple[str, float]] = {}
+        self.last_sent: dict[str, tuple[str, str, str, float]] = {}
+        self.last_workspace_sent: dict[str, tuple[str, str, float]] = {}
         self.roots: dict[str, int] = {}
         self.pane_workspaces: dict[str, str] = {}
         self.workspaces: set[str] = set()
@@ -662,14 +689,13 @@ class Worker:
         self.workspaces = workspace_ids
         self.dirty = False
 
-    def report(self, pane_id: str, cpu: str, tree: str) -> bool:
-        title = f"{cpu_meter(float(cpu))} {tree}"
-        if len(title) > 80:
-            title = title[:79] + "…"
+    def report(self, pane_id: str, cpu: str, tree: str, memory: str) -> bool:
+        title = pane_title(float(cpu), memory, tree)
         try:
             self.rpc.call("pane.report_metadata", {"pane_id": pane_id, "source": SOURCE,
                          "title": title,
-                         "tokens": {"cpu": cpu, "cpu_tree": tree}, "ttl_ms": TTL_MS})
+                         "tokens": {"cpu": cpu, "cpu_tree": tree, "memory": memory},
+                         "ttl_ms": TTL_MS})
         except ServerUnavailable:
             raise
         except HerdrError as exc:
@@ -677,11 +703,13 @@ class Worker:
             return False
         return True
 
-    def report_workspace(self, workspace_id: str, cpu: str) -> bool:
+    def report_workspace(self, workspace_id: str, cpu: str, memory: str) -> bool:
         try:
+            tokens = workspace_cpu_tokens(float(cpu))
+            tokens["memory"] = memory
             self.rpc.call("workspace.report_metadata", {
                 "workspace_id": workspace_id, "source": SOURCE,
-                "tokens": workspace_cpu_tokens(float(cpu)), "ttl_ms": TTL_MS,
+                "tokens": tokens, "ttl_ms": TTL_MS,
             })
         except ServerUnavailable:
             raise
@@ -744,10 +772,11 @@ class Worker:
                 time.sleep(min(5.0, 0.25 * (attempt + 1)))
         return False
 
-    def sample(self, now: float, previous: float | None) -> None:
+    def sample(self, now: float, previous: float | None) -> float:
         processes = self.sampler.enumerate()
         index = build_process_index(processes)
         cpus = self.tracker.values(processes, now, previous)
+        global_cpu = sum(cpus.values())
         valid_roots: dict[str, int] = {}
         for pane_id, pid in self.roots.items():
             process = index.by_pid.get(pid)
@@ -757,6 +786,7 @@ class Worker:
                 valid_roots[pane_id] = pid
         _, owned = assign_process_owners(index, valid_roots)
         workspace_totals = {workspace_id: 0.0 for workspace_id in self.workspaces}
+        workspace_memory = {workspace_id: 0 for workspace_id in self.workspaces}
         for pane_id in self.roots:
             relevant = owned.get(pane_id, [])
             mapping = self.ids.setdefault(pane_id, {})
@@ -778,24 +808,29 @@ class Worker:
             total, tree, _ = _tree_payload(
                 valid_roots[pane_id], relevant, cpus, pane_ids, index=index,
                 display_names=display_names)
+            memory_bytes = sum(process.resident_bytes for process in relevant)
+            memory = format_memory(memory_bytes)
             workspace_id = self.pane_workspaces.get(pane_id)
             if workspace_id is not None:
                 workspace_totals[workspace_id] = workspace_totals.get(workspace_id, 0.0) + total
+                workspace_memory[workspace_id] = workspace_memory.get(workspace_id, 0) + memory_bytes
             if not tree:
                 continue
             cpu = str(quantize_cpu(total))
             old = self.last_sent.get(pane_id)
-            if old and old[:2] == (cpu, tree) and now - old[2] < HEARTBEAT_SECONDS:
+            if old and old[:3] == (cpu, tree, memory) and now - old[3] < HEARTBEAT_SECONDS:
                 continue
-            if self.report(pane_id, cpu, tree):
-                self.last_sent[pane_id] = (cpu, tree, now)
+            if self.report(pane_id, cpu, tree, memory):
+                self.last_sent[pane_id] = (cpu, tree, memory, now)
         for workspace_id in sorted(self.workspaces):
             cpu = str(quantize_cpu(workspace_totals.get(workspace_id, 0.0)))
+            memory = format_memory(workspace_memory.get(workspace_id, 0))
             old = self.last_workspace_sent.get(workspace_id)
-            if old and old[0] == cpu and now - old[1] < HEARTBEAT_SECONDS:
+            if old and old[:2] == (cpu, memory) and now - old[2] < HEARTBEAT_SECONDS:
                 continue
-            if self.report_workspace(workspace_id, cpu):
-                self.last_workspace_sent[workspace_id] = (cpu, now)
+            if self.report_workspace(workspace_id, cpu, memory):
+                self.last_workspace_sent[workspace_id] = (cpu, memory, now)
+        return global_cpu
 
     def close(self) -> None:
         self.events.close()
@@ -857,14 +892,15 @@ class Worker:
                 now = time.monotonic()
                 if now >= next_sample:
                     try:
-                        self.sample(now, previous)
+                        global_cpu = self.sample(now, previous)
                     except ServerUnavailable as exc:
                         log(f"Herdr unavailable while reporting: {exc}")
                         if not self.reconnect_snapshot(): break
                         previous = None
-                        next_sample = time.monotonic() + SAMPLE_SECONDS
+                        next_sample = time.monotonic() + SLOW_SAMPLE_SECONDS
                     else:
-                        previous, next_sample = now, now + SAMPLE_SECONDS
+                        previous = now
+                        next_sample = now + sample_interval(global_cpu)
                 if now >= self.next_plugin_check:
                     try:
                         if not self.plugin_enabled(): break

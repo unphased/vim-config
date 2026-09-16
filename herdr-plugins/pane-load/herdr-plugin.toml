@@ -2,7 +2,7 @@ id = "local.pane-load"
 name = "Pane Load"
 version = "0.1.0"
 min_herdr_version = "0.9.0"
-description = "macOS pane CPU load and process-chain metadata"
+description = "macOS pane CPU, memory, and process-chain metadata"
 platforms = ["macos"]
 
 [[startup]]
