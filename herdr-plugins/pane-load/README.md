@@ -50,8 +50,9 @@ subsequent server startup launches a new worker. Hooks do not supervise crashes.
 ## Pane and workspace chrome
 
 The sampler **owns the metadata pane title** for every pane, including ordinary
-shells. It contains only the numeric CPU percentage and an unbounded bar. Pane
-meters use 24 cells per 100% (about 0.52% per fractional eighth), with six-cell
+shells. It contains the numeric CPU percentage, an unbounded bar, and the compact
+process topology separated by whitespace rather than a divider. Pane meters use
+24 cells per 100% (about 0.52% per fractional eighth), with six-cell
 25% sections separated by thin `▉` internal ticks and salient `▋` internal
 hundred ticks. Exact endpoints remain full blocks. The percentage comes first so
 Herdr's 80-character title limit only truncates the bar tail.
@@ -59,8 +60,8 @@ Herdr's 80-character title limit only truncates the bar tail.
 The aggregate workspace meter uses a compact six cells per 100% (about 2.08%
 per fractional eighth), omits quarter ticks, and uses a thin `▉` internal hundred
 tick. The dotfiles config renders it in each expanded workspace sidebar row.
-Process topology remains available in the pane `$cpu_tree` token but is no longer
-part of pane chrome; CPU/tree rows remain absent from the Agent sidebar.
+Process topology also remains independently available in the pane `$cpu_tree`
+token; CPU/tree rows remain absent from the Agent sidebar.
 
 Pi's `session-topic` extension publishes its `$topic` and other sidebar tokens
 but never sets or clears the Herdr pane title. There is no shared title composer

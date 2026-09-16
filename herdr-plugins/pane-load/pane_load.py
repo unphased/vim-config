@@ -593,7 +593,7 @@ class Worker:
         self.dirty = False
 
     def report(self, pane_id: str, cpu: str, tree: str) -> bool:
-        title = cpu_meter(float(cpu))
+        title = f"{cpu_meter(float(cpu))} {tree}"
         if len(title) > 80:
             title = title[:79] + "…"
         try:
