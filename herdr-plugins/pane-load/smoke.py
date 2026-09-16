@@ -41,7 +41,7 @@ def wait_tokens(pane, predicate):
         if tokens != last:
             print('sample:', tokens, flush=True)
         last = tokens
-        expected = f"{cpu_meter(float(tokens.get('cpu', 0)))} | {tokens.get('cpu_tree')}"
+        expected = cpu_meter(float(tokens.get('cpu', 0)))
         if len(expected) > 80:
             expected = expected[:79] + '…'
         if predicate(last) and info.get('title') == expected:

@@ -17,7 +17,7 @@ flowchart LR
   Libproc --> PaneMetadata[pane.report_metadata TTL 15s]
   Libproc --> Aggregate[Sum pane CPU by workspace]
   Aggregate --> WorkspaceMetadata[workspace.report_metadata TTL 15s]
-  PaneMetadata --> Chrome[Pane title: CPU meter + process tree]
+  PaneMetadata --> Chrome[Pane title: high-resolution CPU meter]
   WorkspaceMetadata --> Sidebar[Workspace sidebar CPU meter]
 ```
 
@@ -50,14 +50,17 @@ subsequent server startup launches a new worker. Hooks do not supervise crashes.
 ## Pane and workspace chrome
 
 The sampler **owns the metadata pane title** for every pane, including ordinary
-shells. Example: `100% ██████▎ | 1:zsh(2:Python:100)`. The shared meter is
-unbounded: each full block represents 16% CPU and its eight fractional levels
-represent 2% each, so 238% renders as `238% ██████████████▉`. It has no empty
-right side. The percentage comes first so tail truncation only shortens the bar.
-Titles have Herdr's 80-character limit; longer titles end in `…`. The dotfiles
-config enables pane borders and renders the aggregate
-workspace `$cpu` meter in each expanded workspace sidebar row. CPU/tree rows
-remain absent from the Agent sidebar.
+shells. It contains only the numeric CPU percentage and an unbounded bar. Pane
+meters use 24 cells per 100% (about 0.52% per fractional eighth), with six-cell
+25% sections separated by thin `▉` internal ticks and salient `▋` internal
+hundred ticks. Exact endpoints remain full blocks. The percentage comes first so
+Herdr's 80-character title limit only truncates the bar tail.
+
+The aggregate workspace meter uses a compact six cells per 100% (about 2.08%
+per fractional eighth), omits quarter ticks, and uses a thin `▉` internal hundred
+tick. The dotfiles config renders it in each expanded workspace sidebar row.
+Process topology remains available in the pane `$cpu_tree` token but is no longer
+part of pane chrome; CPU/tree rows remain absent from the Agent sidebar.
 
 Pi's `session-topic` extension publishes its `$topic` and other sidebar tokens
 but never sets or clears the Herdr pane title. There is no shared title composer
@@ -100,7 +103,7 @@ stays open. The API and plugin source are local to the running Herdr server.
 
 ```bash
 make -C ~/.vim/herdr-plugins/pane-load test
-# With the plugin running inside Herdr: creates/closes only its own test pane.
+# With the plugin running inside Herdr: creates/closes only its own test workspace.
 make -C ~/.vim/herdr-plugins/pane-load smoke
 ```
 

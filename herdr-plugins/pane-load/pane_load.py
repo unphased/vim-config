@@ -286,13 +286,18 @@ FRACTIONAL_BLOCKS = ("", "▏", "▎", "▍", "▌", "▋", "▊", "▉")
 
 
 def scaled_cpu_bar(percent: float, cells_per_hundred: int,
-                   quarter_ticks: bool = False) -> str:
+                   quarter_ticks: bool = False,
+                   hundred_tick_eighths: int = 5) -> str:
     """Render an unbounded fractional bar with marked internal boundaries."""
     if (isinstance(cells_per_hundred, bool) or
             not isinstance(cells_per_hundred, int) or cells_per_hundred <= 0):
         raise ValueError("cells_per_hundred must be a positive integer")
     if quarter_ticks and cells_per_hundred % 4:
         raise ValueError("quarter ticks require cells_per_hundred divisible by four")
+    if (isinstance(hundred_tick_eighths, bool) or
+            not isinstance(hundred_tick_eighths, int) or
+            not 1 <= hundred_tick_eighths <= 7):
+        raise ValueError("hundred_tick_eighths must be an integer from one through seven")
 
     cpu = quantize_cpu(percent)
     units = (cpu * cells_per_hundred * 8 + 50) // 100
@@ -303,7 +308,7 @@ def scaled_cpu_bar(percent: float, cells_per_hundred: int,
     bar = list("█" * full + FRACTIONAL_BLOCKS[partial])
     for boundary in range(25, cpu, 25):
         if boundary % 100 == 0:
-            marker = "▋"
+            marker = FRACTIONAL_BLOCKS[hundred_tick_eighths]
         elif quarter_ticks:
             marker = "▉"
         else:
@@ -312,12 +317,22 @@ def scaled_cpu_bar(percent: float, cells_per_hundred: int,
     return "".join(bar)
 
 
-def cpu_meter(percent: float) -> str:
-    """Render the currently deployed unbounded 16%-per-cell CPU meter."""
+def format_cpu_meter(percent: float, cells_per_hundred: int,
+                     quarter_ticks: bool = False,
+                     hundred_tick_eighths: int = 5) -> str:
     cpu = quantize_cpu(percent)
-    full, partial = divmod((cpu + 1) // 2, 8)
-    bar = "█" * full + FRACTIONAL_BLOCKS[partial]
+    bar = scaled_cpu_bar(cpu, cells_per_hundred, quarter_ticks, hundred_tick_eighths)
     return f"{cpu}%" + (f" {bar}" if bar else "")
+
+
+def cpu_meter(percent: float) -> str:
+    """Render the high-resolution pane CPU meter."""
+    return format_cpu_meter(percent, 24, quarter_ticks=True, hundred_tick_eighths=5)
+
+
+def workspace_cpu_meter(percent: float) -> str:
+    """Render the compact workspace CPU meter."""
+    return format_cpu_meter(percent, 6, hundred_tick_eighths=7)
 
 
 Identity = tuple[int, int, int]
@@ -578,7 +593,7 @@ class Worker:
         self.dirty = False
 
     def report(self, pane_id: str, cpu: str, tree: str) -> bool:
-        title = f"{cpu_meter(float(cpu))} | {tree}"
+        title = cpu_meter(float(cpu))
         if len(title) > 80:
             title = title[:79] + "…"
         try:
@@ -596,7 +611,7 @@ class Worker:
         try:
             self.rpc.call("workspace.report_metadata", {
                 "workspace_id": workspace_id, "source": SOURCE,
-                "tokens": {"cpu": cpu_meter(float(cpu))}, "ttl_ms": TTL_MS,
+                "tokens": {"cpu": workspace_cpu_meter(float(cpu))}, "ttl_ms": TTL_MS,
             })
         except ServerUnavailable:
             raise
