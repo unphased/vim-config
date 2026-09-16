@@ -282,6 +282,18 @@ def quantize_cpu(percent: float) -> int:
     return max(0, int(percent + 0.5))
 
 
+def cpu_meter(percent: float, width: int = 5) -> str:
+    """Render one-core saturation as a bounded bar while retaining total CPU."""
+    partials = ("", "▏", "▎", "▍", "▌", "▋", "▊", "▉")
+    eighths = int(min(100.0, max(0.0, percent)) * width * 8 / 100 + 0.5)
+    full, partial = divmod(eighths, 8)
+    bar = "█" * full
+    if partial:
+        bar += partials[partial]
+    bar += "░" * (width - full - bool(partial))
+    return f"{bar} {quantize_cpu(percent)}%"
+
+
 Identity = tuple[int, int, int]
 
 
@@ -477,7 +489,10 @@ class Worker:
         self.ids: dict[str, dict[Identity, str]] = {}
         self.root_identities: dict[str, Identity] = {}
         self.last_sent: dict[str, tuple[str, str, float]] = {}
+        self.last_workspace_sent: dict[str, tuple[str, float]] = {}
         self.roots: dict[str, int] = {}
+        self.pane_workspaces: dict[str, str] = {}
+        self.workspaces: set[str] = set()
         self.stop_requested = False
         self.dirty = False
         self.next_snapshot = 0.0
@@ -498,11 +513,21 @@ class Worker:
         result = self.rpc.call("session.snapshot", {})
         snapshot = result.get("snapshot", result)
         panes = snapshot.get("panes", []) if isinstance(snapshot, dict) else []
+        workspaces = snapshot.get("workspaces", []) if isinstance(snapshot, dict) else []
+        workspace_ids = {
+            item["workspace_id"] for item in workspaces
+            if isinstance(item, dict) and isinstance(item.get("workspace_id"), str)
+        }
         roots: dict[str, int] = {}
+        pane_workspaces: dict[str, str] = {}
         for pane in panes:
             pane_id = pane.get("pane_id") if isinstance(pane, dict) else None
             if not pane_id:
                 continue
+            workspace_id = pane.get("workspace_id")
+            if isinstance(workspace_id, str):
+                pane_workspaces[pane_id] = workspace_id
+                workspace_ids.add(workspace_id)
             try:
                 info = self.rpc.call("pane.process_info", {"pane_id": pane_id})
             except HerdrError:
@@ -516,14 +541,18 @@ class Worker:
             self.ids.pop(pane_id, None)
             self.root_identities.pop(pane_id, None)
             self.last_sent.pop(pane_id, None)
+        for workspace_id in self.workspaces - workspace_ids:
+            self.last_workspace_sent.pop(workspace_id, None)
         for pane_id, pid in roots.items():
             if self.roots.get(pane_id) != pid:
                 self.root_identities.pop(pane_id, None)
         self.roots = roots
+        self.pane_workspaces = pane_workspaces
+        self.workspaces = workspace_ids
         self.dirty = False
 
     def report(self, pane_id: str, cpu: str, tree: str) -> bool:
-        title = f"{cpu}% | {tree}"
+        title = f"{cpu_meter(float(cpu))} | {tree}"
         if len(title) > 80:
             title = title[:79] + "…"
         try:
@@ -534,6 +563,19 @@ class Worker:
             raise
         except HerdrError as exc:
             log(f"metadata report failed for {pane_id}: {exc}")
+            return False
+        return True
+
+    def report_workspace(self, workspace_id: str, cpu: str) -> bool:
+        try:
+            self.rpc.call("workspace.report_metadata", {
+                "workspace_id": workspace_id, "source": SOURCE,
+                "tokens": {"cpu": cpu_meter(float(cpu))}, "ttl_ms": TTL_MS,
+            })
+        except ServerUnavailable:
+            raise
+        except HerdrError as exc:
+            log(f"workspace metadata report failed for {workspace_id}: {exc}")
             return False
         return True
 
@@ -578,6 +620,7 @@ class Worker:
                 # Subscription is deliberately opened before this snapshot.
                 self.events.connect()
                 self.last_sent.clear()
+                self.last_workspace_sent.clear()
                 self.root_identities.clear()
                 self.snapshot()
                 # Drain the bootstrap gap and coalesce all lifecycle changes.
@@ -602,6 +645,7 @@ class Worker:
                 self.root_identities.setdefault(pane_id, process.identity)
                 valid_roots[pane_id] = pid
         _, owned = assign_process_owners(index, valid_roots)
+        workspace_totals = {workspace_id: 0.0 for workspace_id in self.workspaces}
         for pane_id in self.roots:
             relevant = owned.get(pane_id, [])
             mapping = self.ids.setdefault(pane_id, {})
@@ -616,6 +660,9 @@ class Worker:
             pane_ids = {p.identity: self.local_id(pane_id, p.identity) for p in relevant}
             total, tree, _ = _tree_payload(
                 valid_roots[pane_id], relevant, cpus, pane_ids, index=index)
+            workspace_id = self.pane_workspaces.get(pane_id)
+            if workspace_id is not None:
+                workspace_totals[workspace_id] = workspace_totals.get(workspace_id, 0.0) + total
             if not tree:
                 continue
             cpu = str(quantize_cpu(total))
@@ -624,6 +671,13 @@ class Worker:
                 continue
             if self.report(pane_id, cpu, tree):
                 self.last_sent[pane_id] = (cpu, tree, now)
+        for workspace_id in sorted(self.workspaces):
+            cpu = str(quantize_cpu(workspace_totals.get(workspace_id, 0.0)))
+            old = self.last_workspace_sent.get(workspace_id)
+            if old and old[0] == cpu and now - old[1] < HEARTBEAT_SECONDS:
+                continue
+            if self.report_workspace(workspace_id, cpu):
+                self.last_workspace_sent[workspace_id] = (cpu, now)
 
     def close(self) -> None:
         self.events.close()
@@ -637,6 +691,9 @@ class Worker:
         self.ids.clear()
         self.root_identities.clear()
         self.last_sent.clear()
+        self.last_workspace_sent.clear()
+        self.pane_workspaces.clear()
+        self.workspaces.clear()
 
     def run(self) -> int:
         self.setup_control()

@@ -2,7 +2,9 @@
 
 `local.pane-load` is a macOS-only, resident Herdr plugin. One worker is shared per
 Herdr server socket. It samples process CPU through macOS `libproc`, then reports
-a short-lived pane title plus `$cpu` and `$cpu_tree` pane tokens.
+a short-lived pane title plus `$cpu` and `$cpu_tree` pane tokens. The same sample
+is summed across every pane in each workspace and published as a workspace
+`$cpu` meter for the sidebar.
 
 ```mermaid
 flowchart LR
@@ -12,8 +14,11 @@ flowchart LR
   Worker -->|one new socket per request| API[Herdr socket API]
   API --> Snapshot[Snapshot + pane.process_info]
   Worker --> Libproc[libproc: one process enumeration]
-  Libproc --> Metadata[pane.report_metadata TTL 15s]
-  Metadata --> Chrome[Pane title: CPU percent + process tree]
+  Libproc --> PaneMetadata[pane.report_metadata TTL 15s]
+  Libproc --> Aggregate[Sum pane CPU by workspace]
+  Aggregate --> WorkspaceMetadata[workspace.report_metadata TTL 15s]
+  PaneMetadata --> Chrome[Pane title: CPU meter + process tree]
+  WorkspaceMetadata --> Sidebar[Workspace sidebar CPU meter]
 ```
 
 ## Install, link, and start
@@ -42,12 +47,15 @@ to stay within Unix socket path limits. No runtime files live in this source tre
 A broken server connection triggers bounded reconnect attempts, then exit; a
 subsequent server startup launches a new worker. Hooks do not supervise crashes.
 
-## Pane chrome
+## Pane and workspace chrome
 
 The sampler **owns the metadata pane title** for every pane, including ordinary
-shells. Example: `100% | 1:zsh(2:Python:100)`. Titles have Herdr's 80-character
-limit; longer titles end in `…`. The dotfiles config enables pane borders and
-deliberately does not add CPU/tree rows to the Agent sidebar.
+shells. Example: `█████ 100% | 1:zsh(2:Python:100)`. The shared five-cell meter
+fills at one occupied core while its number remains exact, so `█████ 238%` is a
+valid multi-core reading. Titles have Herdr's 80-character limit; longer titles
+end in `…`. The dotfiles config enables pane borders and renders the aggregate
+workspace `$cpu` meter in each expanded workspace sidebar row. CPU/tree rows
+remain absent from the Agent sidebar.
 
 Pi's `session-topic` extension publishes its `$topic` and other sidebar tokens
 but never sets or clears the Herdr pane title. There is no shared title composer
@@ -59,7 +67,9 @@ its old title-writing extension is replaced. Other third-party metadata-title
 writers must likewise be disabled; this plugin does not arbitrate with them.
 The `$cpu` and `$cpu_tree` tokens remain available through `herdr pane get <id>`.
 
-No config edit is required for the plugin itself. `$cpu` is the numeric sum of live
+The pane `$cpu` token remains numeric for machine use; the workspace `$cpu` token
+contains the bar and percentage for direct sidebar rendering. Workspace totals
+include panes in every tab, not only the active tab. `$cpu` is the numeric sum of live
 processes below each pane's shell root. CPU is the delta of each process's own
 user+system counters divided by wall time: 100 means one core, so multi-core
 work can exceed 100%. Counters from waited-for children are not aggregated.
