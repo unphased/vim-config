@@ -320,6 +320,19 @@ class PaneLoadTests(unittest.TestCase):
         self.assertRegex(cpu, r"^[0-9]+$")
         self.assertNotIn("%", cpu)
         self.assertIn("zsh:", tree)
+        cpu, tree = pl.token_payload(10, [self.processes[0]],
+                                     {self.processes[0].identity: 0.4})
+        self.assertEqual((cpu, tree), ("0", "zsh:█▉█▉█▉██/"))
+
+    def test_sub_one_percent_total_still_selects_by_normalized_cpu_share(self):
+        root = pl.Process(20, 1, (2, 1), 0, 0, "root")
+        idle = pl.Process(21, 20, (2, 2), 0, 0, "idle")
+        busy = pl.Process(22, 20, (2, 3), 0, 0, "busy")
+        cpu, tree = pl.token_payload(root.pid, [root, idle, busy], {
+            root.identity: 0, idle.identity: 0, busy.identity: 0.4,
+        })
+        self.assertEqual(cpu, "0")
+        self.assertEqual(tree, "root(busy:█▉█▉█▉██/)")
 
     def test_failed_report_is_not_cached(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -392,20 +405,23 @@ class PaneLoadTests(unittest.TestCase):
             self.assertEqual(worker.report.call_count, 1)
             self.assertNotIn("pane", worker.last_sent)
 
-    def test_process_tree_cycle_terminates_and_counts_each_process_once(self):
+    def test_process_tree_cycle_does_not_inflate_branch_shares(self):
         first = pl.Process(1, 2, (1, 1), 0, 0, "first")
-        second = pl.Process(2, 1, (1, 2), 0, 0, "second")
+        second = pl.Process(2, 1, (1, 2), 0, 0, "cycle-back")
+        sibling = pl.Process(3, 1, (1, 3), 0, 0, "sibling")
         result = []
         def build():
-            result.append(pl.process_tree(
-                1, [first, second], {first.identity: 7, second.identity: 11}))
+            result.append(pl.process_tree(1, [first, second, sibling], {
+                first.identity: 10, second.identity: 0.4, sibling.identity: 2.6,
+            }))
         thread = threading.Thread(target=build, daemon=True)
         thread.start(); thread.join(1)
         self.assertFalse(thread.is_alive(), "cycle traversal did not terminate")
         total, tree = result[0]
-        self.assertEqual(total, 18)
+        self.assertEqual(total, 13)
         self.assertEqual(tree.count("first"), 1)
-        self.assertEqual(tree.count("second"), 1)
+        self.assertIn("sibling", tree)
+        self.assertNotIn("cycle-back", tree)
 
     def test_metadata_owns_pane_title_without_touching_agent_state(self):
         class RPC:

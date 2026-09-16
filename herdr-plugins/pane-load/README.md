@@ -52,12 +52,15 @@ subsequent server startup launches a new worker. Hooks do not supervise crashes.
 The sampler **owns the metadata pane title** for every pane, including ordinary
 shells. It contains the numeric CPU percentage, an unbounded bar, aggregate RSS,
 and the compact process topology separated by whitespace rather than a divider.
-Each process entry also includes its RSS. Pane CPU meters use
+Each process entry shows CPU and RSS bars relative to the pane totals. Pane CPU meters use
 24 cells per 100% (about 0.52% per fractional eighth), with six-cell
 25% sections separated by thin `▉` internal ticks and salient `▋` internal
 hundred ticks. Exact endpoints remain full blocks. The CPU percentage and
-unbounded bar come first, followed by memory and the process tree; Herdr's
-80-character title limit truncates the tail under extreme multi-core load.
+unbounded bar come first, followed by memory and the process tree. The plugin
+no longer pre-truncates the title. Herdr's renderer clips it to the live pane
+width minus four cells and adds an ellipsis, but Herdr 0.9 first normalizes
+metadata titles to 80 characters. That server-side ceiling cannot be removed by
+the plugin; lifting it requires changing Herdr's `normalize_presentation_text`.
 
 The aggregate workspace CPU meter uses a compact four cells per 100% (3.125%
 per fractional eighth), omits quarter ticks, and uses a thin `▉` internal hundred
@@ -65,7 +68,7 @@ tick. The dotfiles config renders it in each expanded workspace sidebar row and
 colors the complete meter as a heat scale: idle gray, 1–24% blue, 25–99% green,
 100–199% yellow, 200–399% peach, and 400%+ red. Mutually exclusive metadata
 tokens implement the styles while the unstyled workspace `$cpu` token remains
-available to API consumers. Aggregate workspace RSS appears beside it in purple.
+available to API consumers. Aggregate workspace RSS appears beside it in teal.
 Herdr 0.9 does not expose metadata-title styling, so
 pane meters retain the normal pane-border title color rather than embedding ANSI
 control sequences.
@@ -97,17 +100,21 @@ totals include panes in every tab, not only the active tab. `$cpu` is the numeri
 processes below each pane's shell root. CPU is the delta of each process's own
 user+system counters divided by wall time: 100 means one core, so multi-core
 work can exceed 100%. Counters from waited-for children are not aggregated.
-The first sample is 0; totals and per-process values are rounded to 1%, with no
-hysteresis. Main-branch selection follows the current sample. Names and commands
+The first sample is 0; totals and per-process shares are rounded to 1%, with no
+hysteresis. Main-branch selection follows the strongest descendant CPU or RSS
+share in the current sample. Names and commands
 are refreshed on every native enumeration. Mach ticks are converted using the machine's timebase
 (essential on Apple Silicon). Processes that exit between polls, cannot be read,
 or detach/reparent away from the pane are not accounted for.
 
-`$cpu_tree` uses stable small per-pane process IDs, keeps an idle main chain,
-and includes hot branches at 5% or more where the 80-character token permits.
-Entries use `id:name[:cpu]/memory` (zero per-process CPU and zero RSS are
-omitted), with parentheses and commas for edges. The tree is intentionally lossy under that bound: it
-omits complete branches/edges with `...` rather than ambiguous partial entries.
+`$cpu_tree` keeps an idle main chain and includes side branches whose descendant
+CPU or RSS accounts for at least 5% of the pane total. Entries use
+`name[:cpu-bar/memory-bar]`, with parentheses and commas reserved for tree edges;
+the bar pair is omitted when both shares are zero. Each share bar uses eight
+cells per 100% (two per 25%) with thin `▉` internal quarter ticks. The plugin
+builds the complete selected tree before reporting it. Herdr 0.9 separately
+limits each metadata token value to 80 characters, so both `$cpu_tree` and the
+combined title can still be cut at that boundary on the server.
 Metadata uses a 15-second TTL and suppresses unchanged reports except for a
 5-second heartbeat. Sampling is based on whole-machine CPU observed in the same
 native enumeration: 3 seconds at 50% or less, 0.5 seconds above 50% through 800%,

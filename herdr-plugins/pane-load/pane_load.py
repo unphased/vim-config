@@ -390,6 +390,11 @@ def scaled_cpu_bar(percent: float, cells_per_hundred: int,
     return "".join(bar)
 
 
+def process_share_bar(value: float, total: float) -> str:
+    percent = value / total * 100.0 if total > 0 else 0.0
+    return scaled_cpu_bar(percent, 8, quarter_ticks=True)
+
+
 def format_cpu_meter(percent: float, cells_per_hundred: int,
                      quarter_ticks: bool = False,
                      hundred_tick_eighths: int = 5) -> str:
@@ -404,8 +409,7 @@ def cpu_meter(percent: float) -> str:
 
 
 def pane_title(percent: float, memory: str, tree: str) -> str:
-    title = f"{cpu_meter(percent)} {memory} {tree}"
-    return title if len(title) <= 80 else title[:79] + "…"
+    return f"{cpu_meter(percent)} {memory} {tree}"
 
 
 def workspace_cpu_meter(percent: float) -> str:
@@ -489,31 +493,13 @@ def assign_process_owners(index: ProcessIndex, roots: dict[str, int]) -> tuple[d
     return owners, owned
 
 
-def _name(name: str, width: int | None = None) -> str:
+def _name(name: str) -> str:
     # Delimiters are structural, so make process names safe without dropping them.
-    name = "".join(ch if ch.isalnum() or ch in "._-" else "_" for ch in name) or "?"
-    if width is not None and len(name) > width:
-        if width <= 3:
-            return name[:max(1, width)]
-        return name[:width - 3] + "..."
-    return name
-
-
-def reachable(root: Process, children: dict[int, list[Process]]) -> list[Process]:
-    output, seen = [], set()
-    stack = [root]
-    while stack:
-        process = stack.pop()
-        if process.identity in seen:
-            continue
-        seen.add(process.identity)
-        output.append(process)
-        stack.extend(reversed(children.get(process.pid, [])))
-    return output
+    return "".join(ch if ch.isalnum() or ch in "._-" else "_" for ch in name) or "?"
 
 
 def _tree_payload(root_pid: int, processes: Iterable[Process], cpus: dict[Identity, float],
-                  ids: dict[Identity, str], index: ProcessIndex | None = None,
+                  index: ProcessIndex | None = None,
                   display_names: dict[Identity, str] | None = None) -> tuple[float, str, set[Identity]]:
     values = list(processes)
     display_names = display_names or {}
@@ -522,19 +508,41 @@ def _tree_payload(root_pid: int, processes: Iterable[Process], cpus: dict[Identi
     root = index.by_pid.get(root_pid)
     if root is None or root.identity not in allowed:
         return 0.0, "", set()
-    nodes = reachable(root, {p.pid: [c for c in index.children.get(p.pid, [])
-                                    if c.identity in allowed] for p in values})
-    node_ids = {p.identity for p in nodes}
-    child_map = {p.identity: [c for c in index.children.get(p.pid, [])
-                              if c.identity in node_ids] for p in nodes}
-    # Reverse preorder is sufficient for the ordinary parent tree; cycles are
-    # still safe and the reported total always counts each own counter once.
-    totals: dict[Identity, float] = {}
+    # Build one deterministic spanning tree so malformed parent cycles cannot
+    # inflate descendant totals or render a process more than once.
+    nodes: list[Process] = []
+    child_map: dict[Identity, list[Process]] = {}
+    seen = {root.identity}
+    queue = deque([root])
+    while queue:
+        process = queue.popleft()
+        nodes.append(process)
+        children = child_map.setdefault(process.identity, [])
+        for child in index.children.get(process.pid, []):
+            if child.identity not in allowed or child.identity in seen:
+                continue
+            seen.add(child.identity)
+            children.append(child)
+            queue.append(child)
+    # Reverse breadth-first order visits descendants before their parents.
+    cpu_totals: dict[Identity, float] = {}
+    memory_totals: dict[Identity, int] = {}
     for process in reversed(nodes):
-        totals[process.identity] = cpus.get(process.identity, 0.0) + sum(
-            totals.get(child.identity, cpus.get(child.identity, 0.0))
+        cpu_totals[process.identity] = cpus.get(process.identity, 0.0) + sum(
+            cpu_totals.get(child.identity, cpus.get(child.identity, 0.0))
             for child in child_map[process.identity])
-    total = sum(cpus.get(process.identity, 0.0) for process in nodes)
+        memory_totals[process.identity] = process.resident_bytes + sum(
+            memory_totals.get(child.identity, child.resident_bytes)
+            for child in child_map[process.identity])
+    total_cpu = sum(cpus.get(process.identity, 0.0) for process in nodes)
+    total_memory = sum(process.resident_bytes for process in nodes)
+
+    def branch_share(process: Process) -> float:
+        cpu_share = (cpu_totals.get(process.identity, 0.0) / total_cpu * 100.0
+                     if total_cpu > 0 else 0.0)
+        memory_share = (memory_totals.get(process.identity, 0) / total_memory * 100.0
+                        if total_memory > 0 else 0.0)
+        return max(cpu_share, memory_share)
 
     main: list[Process] = []
     current = root
@@ -543,13 +551,13 @@ def _tree_payload(root_pid: int, processes: Iterable[Process], cpus: dict[Identi
         choices = child_map[current.identity]
         if not choices:
             break
-        current = max(choices, key=lambda p: (totals.get(p.identity, 0.0), -p.pid))
+        current = max(choices, key=lambda p: (branch_share(p), -p.pid))
     main_ids = {p.identity for p in main}
     selected = set(main_ids)
     optional_roots: list[tuple[Process, Process]] = []
     for parent in main:
         for child in child_map[parent.identity]:
-            if child.identity not in main_ids and totals.get(child.identity, 0.0) >= 5.0:
+            if child.identity not in main_ids and branch_share(child) >= 5.0:
                 optional_roots.append((parent, child))
 
     def branch_nodes(start: Process) -> set[Identity]:
@@ -562,67 +570,38 @@ def _tree_payload(root_pid: int, processes: Iterable[Process], cpus: dict[Identi
             stack.extend(child_map[process.identity])
         return result
 
-    for _, branch in sorted(optional_roots, key=lambda pair: (totals.get(pair[1].identity, 0.0), pair[1].pid)):
+    for _, branch in sorted(optional_roots, key=lambda pair: (branch_share(pair[1]), pair[1].pid)):
         selected.update(branch_nodes(branch))
 
-    def render(chosen: set[Identity], omitted: set[Identity] = set(), width: int | None = None) -> str:
-        order, seen, stack = [], set(), [root]
-        while stack:
-            process = stack.pop()
-            if process.identity in seen or process.identity not in chosen:
-                continue
-            seen.add(process.identity); order.append(process)
-            stack.extend(reversed([c for c in child_map[process.identity] if c.identity in chosen]))
-        rendered: dict[Identity, str] = {}
-        for process in reversed(order):
-            suffix = str(quantize_cpu(cpus.get(process.identity, 0.0)))
-            name = display_names.get(process.identity, process.name)
-            here = f"{ids.get(process.identity, '?')}:{_name(name, width)}"
-            if suffix != "0":
-                here += ":" + suffix
-            if process.resident_bytes > 0:
-                here += "/" + format_memory(process.resident_bytes)
-            children_text = [rendered[c.identity] for c in child_map[process.identity]
-                             if c.identity in rendered]
-            if process.identity in omitted:
-                children_text.append("...")
-            rendered[process.identity] = here + ("(" + ",".join(children_text) + ")" if children_text else "")
-        return rendered.get(root.identity, "")
-
-    text = render(selected)
-    if len(text) > 80:
-        # Omit optional branches as complete edges before shortening the main chain.
-        for parent, branch in sorted(optional_roots, key=lambda pair: (totals.get(pair[1].identity, 0.0), pair[1].pid)):
-            selected -= branch_nodes(branch)
-            candidate = render(selected, {parent.identity})
-            if len(candidate) <= 80:
-                return total, candidate, selected
-    if len(text) > 80:
-        for keep in range(len(main) - 1, 0, -1):
-            chosen = {p.identity for p in main[:keep]}
-            candidate = render(chosen, {main[keep - 1].identity})
-            if len(candidate) <= 80:
-                return total, candidate, chosen
-        selected = {root.identity}
-        text = render(selected)
-    if len(text) > 80:
-        base = len(f"{ids.get(root.identity, '?')}:") + (len(str(quantize_cpu(cpus.get(root.identity, 0.0)))) + 1
-              if quantize_cpu(cpus.get(root.identity, 0.0)) else 0)
-        if root.resident_bytes > 0:
-            base += len(format_memory(root.resident_bytes)) + 1
-        text = render(selected, width=max(1, 80 - base))
-    return total, text[:80], selected
+    order, seen, stack = [], set(), [root]
+    while stack:
+        process = stack.pop()
+        if process.identity in seen or process.identity not in selected:
+            continue
+        seen.add(process.identity)
+        order.append(process)
+        stack.extend(reversed([c for c in child_map[process.identity] if c.identity in selected]))
+    rendered: dict[Identity, str] = {}
+    for process in reversed(order):
+        name = _name(display_names.get(process.identity, process.name))
+        cpu_bar = process_share_bar(cpus.get(process.identity, 0.0), total_cpu)
+        memory_bar = process_share_bar(process.resident_bytes, total_memory)
+        here = name + (f":{cpu_bar}/{memory_bar}" if cpu_bar or memory_bar else "")
+        children_text = [rendered[c.identity] for c in child_map[process.identity]
+                         if c.identity in rendered]
+        rendered[process.identity] = here + ("(" + ",".join(children_text) + ")" if children_text else "")
+    return total_cpu, rendered.get(root.identity, ""), selected
 
 
 def process_tree(root_pid: int, processes: Iterable[Process], cpus: dict[Identity, float],
-                 ids: dict[Identity, str], **kwargs) -> tuple[float, str]:
-    total, text, _ = _tree_payload(root_pid, processes, cpus, ids, **kwargs)
+                 **kwargs) -> tuple[float, str]:
+    total, text, _ = _tree_payload(root_pid, processes, cpus, **kwargs)
     return total, text
 
 
 def token_payload(root_pid: int, processes: list[Process], cpus: dict[Identity, float],
-                  ids: dict[Identity, str], **kwargs) -> tuple[str, str]:
-    total, tree, _ = _tree_payload(root_pid, processes, cpus, ids, **kwargs)
+                  **kwargs) -> tuple[str, str]:
+    total, tree, _ = _tree_payload(root_pid, processes, cpus, **kwargs)
     return str(quantize_cpu(total)), tree
 
 
@@ -634,7 +613,6 @@ class Worker:
         self.events = EventStream(socket_path)
         self.sampler = MacProcessSampler()
         self.tracker = CpuTracker()
-        self.ids: dict[str, dict[Identity, str]] = {}
         self.root_identities: dict[str, Identity] = {}
         self.last_sent: dict[str, tuple[str, str, str, float]] = {}
         self.last_workspace_sent: dict[str, tuple[str, str, float]] = {}
@@ -646,16 +624,6 @@ class Worker:
         self.next_snapshot = 0.0
         self.next_plugin_check = 0.0
         self.control: socket.socket | None = None
-
-    def local_id(self, pane_id: str, identity: Identity) -> str:
-        mapping = self.ids.setdefault(pane_id, {})
-        if identity not in mapping:
-            used = {int(value) for value in mapping.values()}
-            number = 1
-            while number in used:
-                number += 1
-            mapping[identity] = str(number)
-        return mapping[identity]
 
     def snapshot(self) -> None:
         result = self.rpc.call("session.snapshot", {})
@@ -686,7 +654,6 @@ class Worker:
                 roots[pane_id] = pid
         removed = set(self.roots) - set(roots)
         for pane_id in removed:
-            self.ids.pop(pane_id, None)
             self.root_identities.pop(pane_id, None)
             self.last_sent.pop(pane_id, None)
         for workspace_id in self.workspaces - workspace_ids:
@@ -799,16 +766,9 @@ class Worker:
         workspace_memory = {workspace_id: 0 for workspace_id in self.workspaces}
         for pane_id in self.roots:
             relevant = owned.get(pane_id, [])
-            mapping = self.ids.setdefault(pane_id, {})
-            relevant_ids = {p.identity for p in relevant}
-            for identity in list(mapping):
-                if identity not in relevant_ids:
-                    del mapping[identity]
             if pane_id not in valid_roots or not relevant:
                 self.last_sent.pop(pane_id, None)
                 continue
-            self.local_id(pane_id, index.by_pid[valid_roots[pane_id]].identity)
-            pane_ids = {p.identity: self.local_id(pane_id, p.identity) for p in relevant}
             display_names = {}
             for process in relevant:
                 command = None if process.name == "term-capture" else self.sampler.command(process.pid)
@@ -816,7 +776,7 @@ class Worker:
                 if display_name != process.name:
                     display_names[process.identity] = display_name
             total, tree, _ = _tree_payload(
-                valid_roots[pane_id], relevant, cpus, pane_ids, index=index,
+                valid_roots[pane_id], relevant, cpus, index=index,
                 display_names=display_names)
             memory_bytes = sum(process.resident_bytes for process in relevant)
             memory = format_memory(memory_bytes)
@@ -851,7 +811,6 @@ class Worker:
             except FileNotFoundError: pass
         try: os.unlink(self.server_dir / "status.json")
         except FileNotFoundError: pass
-        self.ids.clear()
         self.root_identities.clear()
         self.last_sent.clear()
         self.last_workspace_sent.clear()
