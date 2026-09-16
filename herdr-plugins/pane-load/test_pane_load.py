@@ -153,12 +153,14 @@ class PaneLoadTests(unittest.TestCase):
         self.assertIn("p4", tree)
         self.assertIn("(", tree)  # topology is not flattened
 
-    def test_cpu_meter_is_bounded_but_keeps_the_exact_percentage(self):
-        self.assertEqual(pl.cpu_meter(0), "░░░░░ 0%")
-        self.assertEqual(pl.cpu_meter(25), "█▎░░░ 25%")
-        self.assertEqual(pl.cpu_meter(50), "██▌░░ 50%")
-        self.assertEqual(pl.cpu_meter(100), "█████ 100%")
-        self.assertEqual(pl.cpu_meter(238), "█████ 238%")
+    def test_cpu_meter_uses_unbounded_sixteen_percent_cells(self):
+        self.assertEqual(pl.cpu_meter(0), "0%")
+        self.assertEqual(pl.cpu_meter(1), "1% ▏")
+        self.assertEqual(pl.cpu_meter(16), "16% █")
+        self.assertEqual(pl.cpu_meter(25), "25% █▋")
+        self.assertEqual(pl.cpu_meter(50), "50% ███▏")
+        self.assertEqual(pl.cpu_meter(100), "100% ██████▎")
+        self.assertEqual(pl.cpu_meter(238), "238% ██████████████▉")
 
     def test_quantization_and_length_bound(self):
         self.assertEqual(pl.quantize_cpu(0.4), 0)
@@ -312,7 +314,7 @@ class PaneLoadTests(unittest.TestCase):
         self.assertEqual(method, "pane.report_metadata")
         self.assertEqual(params["ttl_ms"], 15_000)
         self.assertEqual(params["tokens"], {"cpu": "25", "cpu_tree": "p1:zsh"})
-        self.assertEqual(params["title"], "█▎░░░ 25% | p1:zsh")
+        self.assertEqual(params["title"], "25% █▋ | p1:zsh")
         self.assertNotIn("display_agent", params)
         self.assertNotIn("agent", params)
         self.assertNotIn("state", params)
@@ -320,7 +322,7 @@ class PaneLoadTests(unittest.TestCase):
         worker.report("w1:p1", "100", "x" * 80)
         title = worker.rpc.request[1]["title"]
         self.assertEqual(len(title), 80)
-        self.assertTrue(title.startswith("█████ 100% | "))
+        self.assertTrue(title.startswith("100% ██████▎ | "))
         self.assertTrue(title.endswith("…"))
 
     def test_workspace_metadata_uses_the_shared_cpu_meter(self):
@@ -334,7 +336,7 @@ class PaneLoadTests(unittest.TestCase):
         self.assertEqual(method, "workspace.report_metadata")
         self.assertEqual(params, {
             "workspace_id": "w1", "source": pl.SOURCE,
-            "tokens": {"cpu": "█████ 125%"}, "ttl_ms": 15_000,
+            "tokens": {"cpu": "125% ███████▉"}, "ttl_ms": 15_000,
         })
 
     def test_buffered_event_is_returned_without_ready_file_descriptor(self):
