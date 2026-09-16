@@ -223,7 +223,7 @@ class PaneLoadTests(unittest.TestCase):
         main_cpu = pl.Process(24, 20, (2, 5), 0, 0, "main-cpu", resident_bytes=90 * mib)
         cpus = {root.identity: 0, hot_memory.identity: 0, main_cpu.identity: 100}
         _, tree = pl.token_payload(root.pid, [root, hot_memory, main_cpu], cpus)
-        self.assertIn("hot-memory:⣿", tree)
+        self.assertIn("hot-memory:⣧", tree)
         self.assertIn("main-cpu:", tree)
 
     def test_memory_share_bars_use_bottom_up_braille_and_quarter_notches(self):

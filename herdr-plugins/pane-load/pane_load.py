@@ -356,6 +356,9 @@ def format_memory(byte_count: int) -> str:
 
 
 FRACTIONAL_BLOCKS = ("", "▏", "▎", "▍", "▌", "▋", "▊", "▉")
+BRAILLE_FRACTIONS = ("", "⡀", "⡄", "⡆", "⡇", "⣇", "⣧", "⣷")
+BRAILLE_FULL = "⣿"
+BRAILLE_QUARTER_TICK = "⡿"
 
 
 def scaled_cpu_bar(percent: float, cells_per_hundred: int,
@@ -393,6 +396,16 @@ def scaled_cpu_bar(percent: float, cells_per_hundred: int,
 def process_share_bar(value: float, total: float) -> str:
     percent = value / total * 100.0 if total > 0 else 0.0
     return scaled_cpu_bar(percent, 8, quarter_ticks=True)
+
+
+def memory_share_bar(value: float, total: float) -> str:
+    percent = quantize_cpu(value / total * 100.0 if total > 0 else 0.0)
+    units = (percent * 8 * 8 + 50) // 100
+    full, partial = divmod(units, 8)
+    bar = list(BRAILLE_FULL * full + BRAILLE_FRACTIONS[partial])
+    for boundary in range(25, percent, 25):
+        bar[boundary * 8 // 100 - 1] = BRAILLE_QUARTER_TICK
+    return "".join(bar)
 
 
 def format_cpu_meter(percent: float, cells_per_hundred: int,
@@ -585,8 +598,8 @@ def _tree_payload(root_pid: int, processes: Iterable[Process], cpus: dict[Identi
     for process in reversed(order):
         name = _name(display_names.get(process.identity, process.name))
         cpu_bar = process_share_bar(cpus.get(process.identity, 0.0), total_cpu)
-        memory_bar = process_share_bar(process.resident_bytes, total_memory)
-        here = name + (f":{cpu_bar}/{memory_bar}" if cpu_bar or memory_bar else "")
+        memory_bar = memory_share_bar(process.resident_bytes, total_memory)
+        here = name + (f":{cpu_bar}{memory_bar}" if cpu_bar or memory_bar else "")
         children_text = [rendered[c.identity] for c in child_map[process.identity]
                          if c.identity in rendered]
         rendered[process.identity] = here + ("(" + ",".join(children_text) + ")" if children_text else "")

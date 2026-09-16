@@ -110,11 +110,14 @@ are refreshed on every native enumeration. Mach ticks are converted using the ma
 or detach/reparent away from the pane are not accounted for.
 
 `$cpu_tree` keeps an idle main chain and includes side branches whose descendant
-CPU or RSS accounts for at least 5% of the pane total. Entries use
-`name[:cpu-bar/memory-bar]`, with parentheses and commas reserved for tree edges;
-the bar pair is omitted when both shares are zero. Each share bar uses eight
-cells per 100% (two per 25%) with thin `▉` internal quarter ticks. The plugin
-builds the complete selected tree before reporting it. Herdr 0.9 separately
+CPU or RSS accounts for at least 5% of the pane total. Entries append adjacent
+bars as `name[:<cpu><rss>]`: solid block glyphs identify CPU and Braille glyphs
+identify RSS, so no separator or empty placeholder is needed. Parentheses and
+commas remain reserved for tree edges, and metrics are omitted when both shares
+are zero. Both bars use eight cells per 100% (two per 25%). CPU keeps thin `▉`
+quarter ticks; RSS grows bottom-up through `⡀⡄⡆⡇⣇⣧⣷⣿` and uses `⡿`,
+whose bottom-right dot is absent, for internal quarter ticks. The plugin builds
+the complete selected tree before reporting it. Herdr 0.9 separately
 limits each metadata token value to 80 characters, so both `$cpu_tree` and the
 combined title can still be cut at that boundary on the server.
 Metadata uses a 15-second TTL and suppresses unchanged reports except for a
