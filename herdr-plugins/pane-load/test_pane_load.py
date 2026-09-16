@@ -151,6 +151,13 @@ class PaneLoadTests(unittest.TestCase):
         self.assertIn("p2:pi", tree)
         self.assertNotIn("python-long-name", tree)
 
+    def test_term_capture_uses_shorthand_instead_of_spoofed_command(self):
+        capture = pl.Process(20, 1, (2, 1), 0, 0, "term-capture")
+        node = pl.Process(21, 20, (2, 2), 0, 0, "node")
+        self.assertEqual(pl.process_display_name(capture, "pi"), "tcap")
+        self.assertEqual(pl.process_display_name(node, "pi"), "pi")
+        self.assertEqual(pl.process_display_name(node, None), "node")
+
     def test_procargs_command_uses_trimmed_argv_zero_basename(self):
         data = struct.pack("i", 3) + b"/Users/slu/.n/bin/node\0\0pi   \0--flag\0value\0"
         self.assertEqual(pl.command_from_procargs(data), "pi")
