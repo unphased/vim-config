@@ -89,7 +89,6 @@ class PaneLoadTests(unittest.TestCase):
             pl.Process(12, 10, (100, 3), 0, 0, "sleep"),
             pl.Process(13, 11, (100, 4), 0, 0, "nested"),
         ]
-        self.ids = {p.identity: f"p{i}" for i, p in enumerate(self.processes, 1)}
 
     def worker_with_sampler(self, directory, processes):
         sampler = mock.Mock(spec=pl.MacProcessSampler)
@@ -162,20 +161,26 @@ class PaneLoadTests(unittest.TestCase):
         self.assertEqual(pl.format_memory(round(10.49 * gib)), "10.5GB")
         self.assertEqual(pl.format_memory(-4), "0B")
 
-    def test_process_tree_includes_per_process_memory(self):
-        root = pl.Process(20, 1, (2, 1), 0, 0, "zsh", resident_bytes=10 * 1024 * 1024)
-        child = pl.Process(21, 20, (2, 2), 0, 0, "node", resident_bytes=1536 * 1024 * 1024)
-        ids = {root.identity: "p1", child.identity: "p2"}
-        _, tree = pl.token_payload(root.pid, [root, child],
-                                   {root.identity: 0, child.identity: 10}, ids,
-                                   display_names={child.identity: "pi"})
-        self.assertEqual(tree, "p1:zsh/10MB(p2:pi:10/1.5GB)")
+    def test_process_tree_uses_normalized_cpu_and_memory_share_bars(self):
+        kib, mib = 1024, 1024 * 1024
+        root = pl.Process(20, 1, (2, 1), 0, 0, "zsh", resident_bytes=704 * kib)
+        parent = pl.Process(21, 20, (2, 2), 0, 0, "node", resident_bytes=940 * mib)
+        child = pl.Process(22, 21, (2, 3), 0, 0, "node", resident_bytes=183 * mib)
+        _, tree = pl.token_payload(
+            root.pid, [root, parent, child],
+            {root.identity: 0, parent.identity: 11, child.identity: 0},
+            display_names={parent.identity: "pi", child.identity: "pi"})
+        self.assertEqual(tree, "zsh(pi:█▉█▉█▉██/█▉█▉█▉▊(pi:/█▎))")
+        self.assertNotRegex(tree, r"(^|[(,])\d+:")
+        self.assertNotIn("940MB", tree)
+        self.assertNotIn(":11", tree)
 
     def test_process_tree_prefers_command_over_process_name(self):
         cpus = {p.identity: 0 for p in self.processes}
-        _, tree = pl.token_payload(10, self.processes, cpus, self.ids,
-                                   display_names={self.processes[1].identity: "pi"})
-        self.assertIn("p2:pi", tree)
+        _, tree = pl.token_payload(
+            10, self.processes, cpus,
+            display_names={self.processes[1].identity: "pi"})
+        self.assertIn("pi", tree)
         self.assertNotIn("python-long-name", tree)
 
     def test_term_capture_uses_shorthand_instead_of_spoofed_command(self):
@@ -196,12 +201,29 @@ class PaneLoadTests(unittest.TestCase):
         cpus = {p.identity: 0 for p in self.processes}
         cpus[self.processes[1].identity] = 10
         cpus[self.processes[3].identity] = 10
-        cpu, tree = pl.token_payload(10, self.processes, cpus, self.ids)
+        cpu, tree = pl.token_payload(10, self.processes, cpus)
         self.assertEqual(cpu, "20")
-        self.assertIn("p1", tree)
-        self.assertIn("p2", tree)
-        self.assertIn("p4", tree)
+        self.assertIn("zsh(", tree)
+        self.assertIn("python-long-name", tree)
+        self.assertIn("nested", tree)
         self.assertIn("(", tree)  # topology is not flattened
+
+    def test_memory_share_selects_idle_main_branch_and_optional_branch(self):
+        mib = 1024 * 1024
+        root = pl.Process(20, 1, (2, 1), 0, 0, "root")
+        cpu_child = pl.Process(21, 20, (2, 2), 0, 0, "cpu", resident_bytes=4 * mib)
+        memory_child = pl.Process(22, 20, (2, 3), 0, 0, "memory", resident_bytes=96 * mib)
+        cpus = {root.identity: 96, cpu_child.identity: 4, memory_child.identity: 0}
+        _, tree = pl.token_payload(root.pid, [root, cpu_child, memory_child], cpus)
+        self.assertIn("memory:/", tree)
+        self.assertNotIn("cpu:", tree)
+
+        hot_memory = pl.Process(23, 20, (2, 4), 0, 0, "hot-memory", resident_bytes=10 * mib)
+        main_cpu = pl.Process(24, 20, (2, 5), 0, 0, "main-cpu", resident_bytes=90 * mib)
+        cpus = {root.identity: 0, hot_memory.identity: 0, main_cpu.identity: 100}
+        _, tree = pl.token_payload(root.pid, [root, hot_memory, main_cpu], cpus)
+        self.assertIn("hot-memory:/", tree)
+        self.assertIn("main-cpu:", tree)
 
     def test_cpu_meters_use_pane_and_workspace_scales(self):
         self.assertEqual(pl.cpu_meter(0), "0%")
@@ -258,23 +280,23 @@ class PaneLoadTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     pl.scaled_cpu_bar(150, 8, hundred_tick_eighths=eighths)
 
-    def test_quantization_and_length_bound(self):
+    def test_quantization_and_process_tree_is_not_pretruncated(self):
         self.assertEqual(pl.quantize_cpu(0.4), 0)
         self.assertEqual(pl.quantize_cpu(0.5), 1)
         self.assertEqual(pl.quantize_cpu(2.4), 2)
         self.assertEqual(pl.quantize_cpu(2.5), 3)
         self.assertEqual(pl.quantize_cpu(97.6), 98)
         self.assertEqual(pl.quantize_cpu(238.2), 238)
-        cpu, tree = pl.token_payload(10, self.processes,
-            {self.processes[0].identity: 2.4}, self.ids)
+        cpu, tree = pl.token_payload(
+            10, self.processes, {self.processes[0].identity: 2.4})
         self.assertEqual(cpu, "2")
-        self.assertIn("p1:zsh:2", tree)
+        self.assertIn("zsh:█▉█▉█▉██/", tree)
         many = [pl.Process(i, i - 1, (1, i), 0, 0, "very-long-process-name",
                            resident_bytes=1536 * 1024 * 1024) for i in range(1, 60)]
-        ids = {p.identity: f"p{i}" for i, p in enumerate(many, 1)}
-        _, tree = pl.token_payload(1, many, {p.identity: 5 for p in many}, ids)
-        self.assertLessEqual(len(tree), 80)
-        self.assertTrue(tree.startswith("p1"))
+        _, tree = pl.token_payload(1, many, {p.identity: 5 for p in many})
+        self.assertGreater(len(tree), 80)
+        self.assertNotIn("...", tree)
+        self.assertTrue(tree.startswith("very-long-process-name"))
 
     def test_sample_uses_mock_sampler_and_suppresses_unchanged_until_heartbeat(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -293,11 +315,11 @@ class PaneLoadTests(unittest.TestCase):
         self.assertEqual(pl.sample_interval(800), 0.5)
         self.assertEqual(pl.sample_interval(800.1), 3.0)
         cpu, tree = pl.token_payload(10, [self.processes[0]],
-                                     {self.processes[0].identity: 12.5}, self.ids)
+                                     {self.processes[0].identity: 12.5})
         self.assertEqual(cpu, "13")
         self.assertRegex(cpu, r"^[0-9]+$")
         self.assertNotIn("%", cpu)
-        self.assertIn("p1:zsh", tree)
+        self.assertIn("zsh:", tree)
 
     def test_failed_report_is_not_cached(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -309,28 +331,6 @@ class PaneLoadTests(unittest.TestCase):
             self.assertNotIn("pane", worker.last_sent)
             worker.sample(101.0, 100.0)
             self.assertEqual(worker.report.call_count, 2)
-
-    def test_child_exit_prunes_stable_ids(self):
-        with tempfile.TemporaryDirectory() as directory:
-            worker, sampler, _, _ = self.worker_with_sampler(directory, self.processes)
-            worker.roots = {"pane": self.processes[0].pid}
-            worker.sample(100.0, None)
-            child = self.processes[1]
-            self.assertIn(child.identity, worker.ids["pane"])
-            sampler.enumerate.return_value = [self.processes[0]]
-            worker.sample(101.0, 100.0)
-            self.assertNotIn(child.identity, worker.ids["pane"])
-
-    def test_unrelated_small_pid_does_not_consume_pane_ids(self):
-        unrelated = pl.Process(1, 0, (9, 1), 0, 0, "launchd")
-        with tempfile.TemporaryDirectory() as directory:
-            worker, _, _, _ = self.worker_with_sampler(directory, [unrelated, *self.processes])
-            worker.roots = {"pane": self.processes[0].pid}
-            worker.sample(100.0, None)
-            mapping = worker.ids["pane"]
-            self.assertNotIn(unrelated.identity, mapping)
-            self.assertEqual(mapping[self.processes[0].identity], "1")
-            self.assertEqual(mapping[self.processes[1].identity], "2")
 
     def test_sample_aggregates_cpu_and_memory_into_their_workspaces(self):
         first = pl.Process(20, 1, (2, 1), 0, 0, "first", resident_bytes=512 * 1024 * 1024)
@@ -390,7 +390,6 @@ class PaneLoadTests(unittest.TestCase):
             sampler.enumerate.return_value = [reused]
             worker.sample(101.0, 100.0)
             self.assertEqual(worker.report.call_count, 1)
-            self.assertNotIn(reused.identity, worker.ids.get("pane", {}))
             self.assertNotIn("pane", worker.last_sent)
 
     def test_process_tree_cycle_terminates_and_counts_each_process_once(self):
@@ -398,16 +397,15 @@ class PaneLoadTests(unittest.TestCase):
         second = pl.Process(2, 1, (1, 2), 0, 0, "second")
         result = []
         def build():
-            result.append(pl.process_tree(1, [first, second],
-                                          {first.identity: 7, second.identity: 11},
-                                          {first.identity: "p1", second.identity: "p2"}))
+            result.append(pl.process_tree(
+                1, [first, second], {first.identity: 7, second.identity: 11}))
         thread = threading.Thread(target=build, daemon=True)
         thread.start(); thread.join(1)
         self.assertFalse(thread.is_alive(), "cycle traversal did not terminate")
         total, tree = result[0]
         self.assertEqual(total, 18)
-        self.assertEqual(tree.count("p1"), 1)
-        self.assertEqual(tree.count("p2"), 1)
+        self.assertEqual(tree.count("first"), 1)
+        self.assertEqual(tree.count("second"), 1)
 
     def test_metadata_owns_pane_title_without_touching_agent_state(self):
         class RPC:
@@ -415,26 +413,27 @@ class PaneLoadTests(unittest.TestCase):
             def call(self, method, params): self.request = (method, params); return {}
         worker = object.__new__(pl.Worker)
         worker.rpc = RPC()
-        worker.report("w1:p1", "25", "p1:zsh", "640MB")
+        worker.report("w1:p1", "25", "zsh", "640MB")
         method, params = worker.rpc.request
         self.assertEqual(method, "pane.report_metadata")
         self.assertEqual(params["ttl_ms"], 15_000)
         self.assertEqual(params["tokens"], {
-            "cpu": "25", "cpu_tree": "p1:zsh", "memory": "640MB",
+            "cpu": "25", "cpu_tree": "zsh", "memory": "640MB",
         })
-        self.assertEqual(params["title"], "25% ██████ 640MB p1:zsh")
+        self.assertEqual(params["title"], "25% ██████ 640MB zsh")
         self.assertNotIn("display_agent", params)
         self.assertNotIn("agent", params)
         self.assertNotIn("state", params)
         self.assertNotIn("topic", params["tokens"])
-        worker.report("w1:p1", "1000", "x" * 80, "1.5GB")
+        worker.report("w1:p1", "1000", "x" * 120, "1.5GB")
         title = worker.rpc.request[1]["title"]
-        self.assertEqual(len(title), 80)
+        self.assertGreater(len(title), 80)
         self.assertTrue(title.startswith("1000% █"))
         self.assertNotIn("|", title)
-        self.assertTrue(title.endswith("…"))
-        worker.report("w1:p1", "0", "1:zsh(2:node)", "12MB")
-        self.assertEqual(worker.rpc.request[1]["title"], "0% 12MB 1:zsh(2:node)")
+        self.assertTrue(title.endswith("x" * 120))
+        self.assertNotIn("…", title)
+        worker.report("w1:p1", "0", "zsh(node)", "12MB")
+        self.assertEqual(worker.rpc.request[1]["title"], "0% 12MB zsh(node)")
 
     def test_workspace_cpu_color_tokens_cover_load_boundaries(self):
         levels = (
