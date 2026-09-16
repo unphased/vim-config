@@ -336,12 +336,23 @@ def sample_interval(global_cpu: float) -> float:
 
 def format_memory(byte_count: int) -> str:
     byte_count = max(0, byte_count)
-    if byte_count < 1024 * 1024:
+    if byte_count < 1024:
         return f"{byte_count}B"
-    mib = byte_count / (1024 * 1024)
-    if mib >= 1024:
-        return f"{mib / 1024:.1f}GB"
-    return f"{mib:.1f}MB"
+    if byte_count < 1024**2:
+        value, unit = byte_count / 1024, "KB"
+    elif byte_count < 1024**3:
+        value, unit = byte_count / 1024**2, "MB"
+    else:
+        value, unit = byte_count / 1024**3, "GB"
+
+    if value >= 1000:
+        number = f"{round(value, -1):.0f}"
+    else:
+        precision = 2 if value < 10 else 1 if value < 100 else 0
+        number = f"{value:.{precision}f}"
+    if "." in number:
+        number = number.rstrip("0").rstrip(".")
+    return number + unit
 
 
 FRACTIONAL_BLOCKS = ("", "▏", "▎", "▍", "▌", "▋", "▊", "▉")

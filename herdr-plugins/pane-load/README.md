@@ -85,8 +85,9 @@ The `$cpu`, `$cpu_tree`, and `$memory` tokens remain available through
 `herdr pane get <id>`.
 
 The pane `$cpu` token remains numeric for machine use; the workspace `$cpu` token
-contains the bar and percentage for direct sidebar rendering. Memory uses bytes
-below 1 MiB, then binary-scaled `MB`/`GB` with one decimal. Pane and workspace totals sum
+contains the bar and percentage for direct sidebar rendering. Memory uses
+binary-scaled `B`/`KB`/`MB`/`GB` with up to three significant figures and no
+insignificant decimal padding. Pane and workspace totals sum
 per-process RSS, so shared pages can be counted more than once. Process labels prefer
 the basename of native macOS `argv[0]` when available (for example `pi` instead of
 its `node` executable name), then fall back to the libproc process name. The
