@@ -157,6 +157,7 @@ class PaneLoadTests(unittest.TestCase):
         self.assertEqual(pl.format_memory(433 * kib), "433KB")
         self.assertEqual(pl.format_memory(round(1.1 * mib)), "1.1MB")
         self.assertEqual(pl.format_memory(12 * mib), "12MB")
+        self.assertEqual(pl.format_memory(round(1.14 * gib)), "1.14GB")
         self.assertEqual(pl.format_memory(10 * gib), "10GB")
         self.assertEqual(pl.format_memory(round(10.49 * gib)), "10.5GB")
         self.assertEqual(pl.format_memory(-4), "0B")

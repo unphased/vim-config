@@ -82,8 +82,9 @@ or controller coordination. Pi session names and terminal OSC titles are
 independent and unchanged; semantic agent state is also untouched.
 
 After updating, run `/reload` in each existing Pi session once it is idle so
-its old title-writing extension is replaced. Other third-party metadata-title
-writers must likewise be disabled; this plugin does not arbitrate with them.
+it loads the current `session-topic` extension, including the latest sidebar
+token formatting. Other third-party metadata-title writers must likewise be
+disabled; this plugin does not arbitrate with them.
 The `$cpu`, `$cpu_tree`, and `$memory` tokens remain available through
 `herdr pane get <id>`.
 
@@ -91,7 +92,8 @@ The pane `$cpu` token remains numeric for machine use; the workspace `$cpu` toke
 contains the bar and percentage for direct sidebar rendering. Memory uses
 binary-scaled `B`/`KB`/`MB`/`GB` with up to three significant figures and no
 insignificant decimal padding. Pane and workspace totals sum
-per-process RSS, so shared pages can be counted more than once. Process labels prefer
+per-process RSS, so shared pages can be counted more than once; for example,
+`1.14GB` retains all three significant figures. Process labels prefer
 the basename of native macOS `argv[0]` when available (for example `pi` instead of
 its `node` executable name), then fall back to the libproc process name. The
 `term-capture` wrapper is always shown as `tcap` because its spoofed `argv[0]` is
