@@ -171,7 +171,7 @@ class PaneLoadTests(unittest.TestCase):
             root.pid, [root, parent, child],
             {root.identity: 0, parent.identity: 11, child.identity: 0},
             display_names={parent.identity: "pi", child.identity: "pi"})
-        self.assertEqual(tree, "zsh(pi:█▉█▉█▉██/█▉█▉█▉▊(pi:/█▎))")
+        self.assertEqual(tree, "zsh(pi:█▉█▉█▉██⣿⡿⣿⡿⣿⡿⣧(pi:⣿⡄))")
         self.assertNotRegex(tree, r"(^|[(,])\d+:")
         self.assertNotIn("940MB", tree)
         self.assertNotIn(":11", tree)
@@ -216,15 +216,25 @@ class PaneLoadTests(unittest.TestCase):
         memory_child = pl.Process(22, 20, (2, 3), 0, 0, "memory", resident_bytes=96 * mib)
         cpus = {root.identity: 96, cpu_child.identity: 4, memory_child.identity: 0}
         _, tree = pl.token_payload(root.pid, [root, cpu_child, memory_child], cpus)
-        self.assertIn("memory:/", tree)
+        self.assertIn("memory:⣿", tree)
         self.assertNotIn("cpu:", tree)
 
         hot_memory = pl.Process(23, 20, (2, 4), 0, 0, "hot-memory", resident_bytes=10 * mib)
         main_cpu = pl.Process(24, 20, (2, 5), 0, 0, "main-cpu", resident_bytes=90 * mib)
         cpus = {root.identity: 0, hot_memory.identity: 0, main_cpu.identity: 100}
         _, tree = pl.token_payload(root.pid, [root, hot_memory, main_cpu], cpus)
-        self.assertIn("hot-memory:/", tree)
+        self.assertIn("hot-memory:⣿", tree)
         self.assertIn("main-cpu:", tree)
+
+    def test_memory_share_bars_use_bottom_up_braille_and_quarter_notches(self):
+        fractions = ((1, "⡀"), (3, "⡄"), (4, "⡆"), (6, "⡇"),
+                     (8, "⣇"), (9, "⣧"), (11, "⣷"), (12, "⣿"))
+        for percent, expected in fractions:
+            with self.subTest(percent=percent):
+                self.assertEqual(pl.memory_share_bar(percent, 100), expected)
+        self.assertEqual(pl.memory_share_bar(26, 100), "⣿⡿⡀")
+        self.assertEqual(pl.memory_share_bar(84, 100), "⣿⡿⣿⡿⣿⡿⣧")
+        self.assertEqual(pl.memory_share_bar(100, 100), "⣿⡿⣿⡿⣿⡿⣿⣿")
 
     def test_cpu_meters_use_pane_and_workspace_scales(self):
         self.assertEqual(pl.cpu_meter(0), "0%")
@@ -291,7 +301,7 @@ class PaneLoadTests(unittest.TestCase):
         cpu, tree = pl.token_payload(
             10, self.processes, {self.processes[0].identity: 2.4})
         self.assertEqual(cpu, "2")
-        self.assertIn("zsh:█▉█▉█▉██/", tree)
+        self.assertIn("zsh:█▉█▉█▉██", tree)
         many = [pl.Process(i, i - 1, (1, i), 0, 0, "very-long-process-name",
                            resident_bytes=1536 * 1024 * 1024) for i in range(1, 60)]
         _, tree = pl.token_payload(1, many, {p.identity: 5 for p in many})
@@ -323,7 +333,7 @@ class PaneLoadTests(unittest.TestCase):
         self.assertIn("zsh:", tree)
         cpu, tree = pl.token_payload(10, [self.processes[0]],
                                      {self.processes[0].identity: 0.4})
-        self.assertEqual((cpu, tree), ("0", "zsh:█▉█▉█▉██/"))
+        self.assertEqual((cpu, tree), ("0", "zsh:█▉█▉█▉██"))
 
     def test_sub_one_percent_total_still_selects_by_normalized_cpu_share(self):
         root = pl.Process(20, 1, (2, 1), 0, 0, "root")
@@ -333,7 +343,7 @@ class PaneLoadTests(unittest.TestCase):
             root.identity: 0, idle.identity: 0, busy.identity: 0.4,
         })
         self.assertEqual(cpu, "0")
-        self.assertEqual(tree, "root(busy:█▉█▉█▉██/)")
+        self.assertEqual(tree, "root(busy:█▉█▉█▉██)")
 
     def test_failed_report_is_not_cached(self):
         with tempfile.TemporaryDirectory() as directory:
