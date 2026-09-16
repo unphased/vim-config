@@ -147,11 +147,19 @@ class PaneLoadTests(unittest.TestCase):
         self.assertNotIn(self.processes[2].identity, values)
         self.assertEqual(current[0].name, "new-shell")
 
-    def test_memory_uses_bytes_and_compact_binary_megabytes_or_gigabytes(self):
+    def test_memory_uses_up_to_three_significant_figures_without_padding(self):
+        kib = 1024
+        mib = 1024 * kib
+        gib = 1024 * mib
         self.assertEqual(pl.format_memory(0), "0B")
-        self.assertEqual(pl.format_memory(512), "512B")
-        self.assertEqual(pl.format_memory(128 * 1024 * 1024), "128.0MB")
-        self.assertEqual(pl.format_memory(1536 * 1024 * 1024), "1.5GB")
+        self.assertEqual(pl.format_memory(round(5.3 * kib)), "5.3KB")
+        self.assertEqual(pl.format_memory(24 * kib), "24KB")
+        self.assertEqual(pl.format_memory(round(24.4 * kib)), "24.4KB")
+        self.assertEqual(pl.format_memory(433 * kib), "433KB")
+        self.assertEqual(pl.format_memory(round(1.1 * mib)), "1.1MB")
+        self.assertEqual(pl.format_memory(12 * mib), "12MB")
+        self.assertEqual(pl.format_memory(10 * gib), "10GB")
+        self.assertEqual(pl.format_memory(round(10.49 * gib)), "10.5GB")
         self.assertEqual(pl.format_memory(-4), "0B")
 
     def test_process_tree_includes_per_process_memory(self):
@@ -161,7 +169,7 @@ class PaneLoadTests(unittest.TestCase):
         _, tree = pl.token_payload(root.pid, [root, child],
                                    {root.identity: 0, child.identity: 10}, ids,
                                    display_names={child.identity: "pi"})
-        self.assertEqual(tree, "p1:zsh/10.0MB(p2:pi:10/1.5GB)")
+        self.assertEqual(tree, "p1:zsh/10MB(p2:pi:10/1.5GB)")
 
     def test_process_tree_prefers_command_over_process_name(self):
         cpus = {p.identity: 0 for p in self.processes}
@@ -407,14 +415,14 @@ class PaneLoadTests(unittest.TestCase):
             def call(self, method, params): self.request = (method, params); return {}
         worker = object.__new__(pl.Worker)
         worker.rpc = RPC()
-        worker.report("w1:p1", "25", "p1:zsh", "640.0MB")
+        worker.report("w1:p1", "25", "p1:zsh", "640MB")
         method, params = worker.rpc.request
         self.assertEqual(method, "pane.report_metadata")
         self.assertEqual(params["ttl_ms"], 15_000)
         self.assertEqual(params["tokens"], {
-            "cpu": "25", "cpu_tree": "p1:zsh", "memory": "640.0MB",
+            "cpu": "25", "cpu_tree": "p1:zsh", "memory": "640MB",
         })
-        self.assertEqual(params["title"], "25% ██████ 640.0MB p1:zsh")
+        self.assertEqual(params["title"], "25% ██████ 640MB p1:zsh")
         self.assertNotIn("display_agent", params)
         self.assertNotIn("agent", params)
         self.assertNotIn("state", params)
@@ -425,8 +433,8 @@ class PaneLoadTests(unittest.TestCase):
         self.assertTrue(title.startswith("1000% █"))
         self.assertNotIn("|", title)
         self.assertTrue(title.endswith("…"))
-        worker.report("w1:p1", "0", "1:zsh(2:node)", "12.0MB")
-        self.assertEqual(worker.rpc.request[1]["title"], "0% 12.0MB 1:zsh(2:node)")
+        worker.report("w1:p1", "0", "1:zsh(2:node)", "12MB")
+        self.assertEqual(worker.rpc.request[1]["title"], "0% 12MB 1:zsh(2:node)")
 
     def test_workspace_cpu_color_tokens_cover_load_boundaries(self):
         levels = (
