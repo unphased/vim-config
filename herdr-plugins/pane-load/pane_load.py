@@ -211,6 +211,12 @@ class MachTimebase(ctypes.Structure):
     _fields_ = [("numer", ctypes.c_uint32), ("denom", ctypes.c_uint32)]
 
 
+def process_display_name(process: Process, command: str | None) -> str:
+    if process.name == "term-capture":
+        return "tcap"
+    return command or process.name
+
+
 def command_from_procargs(data: bytes) -> str | None:
     """Extract a display command from macOS KERN_PROCARGS2 data."""
     if len(data) < ctypes.sizeof(ctypes.c_int):
@@ -743,9 +749,10 @@ class Worker:
             pane_ids = {p.identity: self.local_id(pane_id, p.identity) for p in relevant}
             display_names = {}
             for process in relevant:
-                command = self.sampler.command(process.pid)
-                if command:
-                    display_names[process.identity] = command
+                command = None if process.name == "term-capture" else self.sampler.command(process.pid)
+                display_name = process_display_name(process, command)
+                if display_name != process.name:
+                    display_names[process.identity] = display_name
             total, tree, _ = _tree_payload(
                 valid_roots[pane_id], relevant, cpus, pane_ids, index=index,
                 display_names=display_names)

@@ -76,7 +76,9 @@ The `$cpu` and `$cpu_tree` tokens remain available through `herdr pane get <id>`
 The pane `$cpu` token remains numeric for machine use; the workspace `$cpu` token
 contains the bar and percentage for direct sidebar rendering. Process labels prefer
 the basename of native macOS `argv[0]` when available (for example `pi` instead of
-its `node` executable name), then fall back to the libproc process name. Workspace
+its `node` executable name), then fall back to the libproc process name. The
+`term-capture` wrapper is always shown as `tcap` because its spoofed `argv[0]` is
+reserved for Herdr agent binding rather than process identification. Workspace
 totals include panes in every tab, not only the active tab. `$cpu` is the numeric sum of live
 processes below each pane's shell root. CPU is the delta of each process's own
 user+system counters divided by wall time: 100 means one core, so multi-core
