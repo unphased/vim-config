@@ -74,14 +74,16 @@ writers must likewise be disabled; this plugin does not arbitrate with them.
 The `$cpu` and `$cpu_tree` tokens remain available through `herdr pane get <id>`.
 
 The pane `$cpu` token remains numeric for machine use; the workspace `$cpu` token
-contains the bar and percentage for direct sidebar rendering. Workspace totals
-include panes in every tab, not only the active tab. `$cpu` is the numeric sum of live
+contains the bar and percentage for direct sidebar rendering. Process labels prefer
+the basename of native macOS `argv[0]` when available (for example `pi` instead of
+its `node` executable name), then fall back to the libproc process name. Workspace
+totals include panes in every tab, not only the active tab. `$cpu` is the numeric sum of live
 processes below each pane's shell root. CPU is the delta of each process's own
 user+system counters divided by wall time: 100 means one core, so multi-core
 work can exceed 100%. Counters from waited-for children are not aggregated.
 The first sample is 0; totals and per-process values are rounded to 1%, with no
-hysteresis. Main-branch selection follows the current sample. Names are refreshed on every
-native enumeration. Mach ticks are converted using the machine's timebase
+hysteresis. Main-branch selection follows the current sample. Names and commands
+are refreshed on every native enumeration. Mach ticks are converted using the machine's timebase
 (essential on Apple Silicon). Processes that exit between polls, cannot be read,
 or detach/reparent away from the pane are not accounted for.
 

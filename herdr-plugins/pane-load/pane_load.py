@@ -211,17 +211,43 @@ class MachTimebase(ctypes.Structure):
     _fields_ = [("numer", ctypes.c_uint32), ("denom", ctypes.c_uint32)]
 
 
+def command_from_procargs(data: bytes) -> str | None:
+    """Extract a display command from macOS KERN_PROCARGS2 data."""
+    if len(data) < ctypes.sizeof(ctypes.c_int):
+        return None
+    argc = int.from_bytes(data[:ctypes.sizeof(ctypes.c_int)], sys.byteorder, signed=True)
+    if argc < 1:
+        return None
+    offset = ctypes.sizeof(ctypes.c_int)
+    executable_end = data.find(b"\0", offset)
+    if executable_end < 0:
+        return None
+    offset = executable_end + 1
+    while offset < len(data) and data[offset] == 0:
+        offset += 1
+    argv_end = data.find(b"\0", offset)
+    if argv_end < 0:
+        return None
+    argv0 = data[offset:argv_end].decode("utf-8", "replace").strip()
+    command = os.path.basename(argv0).lstrip("-").strip()
+    return command or None
+
+
 class MacProcessSampler:
     """The only process enumeration in the sampler: libproc, never ps/top/CLI."""
     def __init__(self):
         if sys.platform != "darwin":
             raise RuntimeError("local.pane-load supports macOS only")
         self.lib = ctypes.CDLL("/usr/lib/libproc.dylib")
-        system = ctypes.CDLL("/usr/lib/libSystem.B.dylib")
-        system.mach_timebase_info.argtypes = [ctypes.POINTER(MachTimebase)]
-        system.mach_timebase_info.restype = ctypes.c_int
+        self.system = ctypes.CDLL("/usr/lib/libSystem.B.dylib")
+        self.system.mach_timebase_info.argtypes = [ctypes.POINTER(MachTimebase)]
+        self.system.mach_timebase_info.restype = ctypes.c_int
+        self.system.sysctl.argtypes = [ctypes.POINTER(ctypes.c_int), ctypes.c_uint,
+                                       ctypes.c_void_p, ctypes.POINTER(ctypes.c_size_t),
+                                       ctypes.c_void_p, ctypes.c_size_t]
+        self.system.sysctl.restype = ctypes.c_int
         timebase = MachTimebase()
-        if system.mach_timebase_info(ctypes.byref(timebase)) != 0 or not timebase.denom:
+        if self.system.mach_timebase_info(ctypes.byref(timebase)) != 0 or not timebase.denom:
             raise RuntimeError("cannot read Mach CPU timebase")
         self.timebase = timebase
         self.lib.proc_listpids.argtypes = [ctypes.c_uint32, ctypes.c_uint32, ctypes.c_void_p, ctypes.c_int]
@@ -240,6 +266,19 @@ class MacProcessSampler:
                 return [int(pid) for pid in buf[:count // 4] if pid]
             size *= 2
         return [int(pid) for pid in buf[:count // 4] if pid]
+
+    def command(self, pid: int) -> str | None:
+        mib = (ctypes.c_int * 3)(1, 49, pid)  # CTL_KERN, KERN_PROCARGS2, pid
+        size = ctypes.c_size_t()
+        if self.system.sysctl(mib, 3, None, ctypes.byref(size), None, 0) != 0:
+            return None
+        if size.value < ctypes.sizeof(ctypes.c_int) or size.value > 1 << 20:
+            return None
+        buffer = ctypes.create_string_buffer(size.value)
+        actual = ctypes.c_size_t(size.value)
+        if self.system.sysctl(mib, 3, buffer, ctypes.byref(actual), None, 0) != 0:
+            return None
+        return command_from_procargs(buffer.raw[:actual.value])
 
     def enumerate(self) -> list[Process]:
         result = []
@@ -413,8 +452,10 @@ def reachable(root: Process, children: dict[int, list[Process]]) -> list[Process
 
 
 def _tree_payload(root_pid: int, processes: Iterable[Process], cpus: dict[Identity, float],
-                  ids: dict[Identity, str], index: ProcessIndex | None = None) -> tuple[float, str, set[Identity]]:
+                  ids: dict[Identity, str], index: ProcessIndex | None = None,
+                  display_names: dict[Identity, str] | None = None) -> tuple[float, str, set[Identity]]:
     values = list(processes)
+    display_names = display_names or {}
     index = index or build_process_index(values)
     allowed = {p.identity for p in values}
     root = index.by_pid.get(root_pid)
@@ -474,7 +515,8 @@ def _tree_payload(root_pid: int, processes: Iterable[Process], cpus: dict[Identi
         rendered: dict[Identity, str] = {}
         for process in reversed(order):
             suffix = str(quantize_cpu(cpus.get(process.identity, 0.0)))
-            here = f"{ids.get(process.identity, '?')}:{_name(process.name, width)}"
+            name = display_names.get(process.identity, process.name)
+            here = f"{ids.get(process.identity, '?')}:{_name(name, width)}"
             if suffix != "0":
                 here += ":" + suffix
             children_text = [rendered[c.identity] for c in child_map[process.identity]
@@ -699,8 +741,14 @@ class Worker:
                 continue
             self.local_id(pane_id, index.by_pid[valid_roots[pane_id]].identity)
             pane_ids = {p.identity: self.local_id(pane_id, p.identity) for p in relevant}
+            display_names = {}
+            for process in relevant:
+                command = self.sampler.command(process.pid)
+                if command:
+                    display_names[process.identity] = command
             total, tree, _ = _tree_payload(
-                valid_roots[pane_id], relevant, cpus, pane_ids, index=index)
+                valid_roots[pane_id], relevant, cpus, pane_ids, index=index,
+                display_names=display_names)
             workspace_id = self.pane_workspaces.get(pane_id)
             if workspace_id is not None:
                 workspace_totals[workspace_id] = workspace_totals.get(workspace_id, 0.0) + total
