@@ -55,9 +55,9 @@ and the compact process topology separated by whitespace rather than a divider.
 Each process entry also includes its RSS. Pane CPU meters use
 24 cells per 100% (about 0.52% per fractional eighth), with six-cell
 25% sections separated by thin `▉` internal ticks and salient `▋` internal
-hundred ticks. Exact endpoints remain full blocks. The numeric CPU, memory, and
-process tree precede the bar so Herdr's 80-character title limit discards the bar
-tail first under high multi-core load.
+hundred ticks. Exact endpoints remain full blocks. The CPU percentage and
+unbounded bar come first, followed by memory and the process tree; Herdr's
+80-character title limit truncates the tail under extreme multi-core load.
 
 The aggregate workspace CPU meter uses a compact four cells per 100% (3.125%
 per fractional eighth), omits quarter ticks, and uses a thin `▉` internal hundred

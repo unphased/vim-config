@@ -390,12 +390,8 @@ def cpu_meter(percent: float) -> str:
 
 
 def pane_title(percent: float, memory: str, tree: str) -> str:
-    cpu = quantize_cpu(percent)
-    bar = scaled_cpu_bar(cpu, 24, quarter_ticks=True, hundred_tick_eighths=5)
-    title = f"{cpu}% {memory} {tree}" + (f" {bar}" if bar else "")
-    if len(title) > 80:
-        title = title[:79] + "…"
-    return title
+    title = f"{cpu_meter(percent)} {memory} {tree}"
+    return title if len(title) <= 80 else title[:79] + "…"
 
 
 def workspace_cpu_meter(percent: float) -> str:

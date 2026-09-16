@@ -412,7 +412,7 @@ class PaneLoadTests(unittest.TestCase):
         self.assertEqual(params["tokens"], {
             "cpu": "25", "cpu_tree": "p1:zsh", "memory": "640.0M",
         })
-        self.assertEqual(params["title"], "25% 640.0M p1:zsh ██████")
+        self.assertEqual(params["title"], "25% ██████ 640.0M p1:zsh")
         self.assertNotIn("display_agent", params)
         self.assertNotIn("agent", params)
         self.assertNotIn("state", params)
@@ -420,8 +420,7 @@ class PaneLoadTests(unittest.TestCase):
         worker.report("w1:p1", "1000", "x" * 80, "1.5G")
         title = worker.rpc.request[1]["title"]
         self.assertEqual(len(title), 80)
-        self.assertTrue(title.startswith("1000% 1.5G "))
-        self.assertIn("1.5G", title)
+        self.assertTrue(title.startswith("1000% █"))
         self.assertNotIn("|", title)
         self.assertTrue(title.endswith("…"))
         worker.report("w1:p1", "0", "1:zsh(2:node)", "12.0M")
