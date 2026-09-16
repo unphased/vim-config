@@ -360,7 +360,7 @@ class PaneLoadTests(unittest.TestCase):
         self.assertEqual(method, "pane.report_metadata")
         self.assertEqual(params["ttl_ms"], 15_000)
         self.assertEqual(params["tokens"], {"cpu": "25", "cpu_tree": "p1:zsh"})
-        self.assertEqual(params["title"], "25% ██████")
+        self.assertEqual(params["title"], "25% ██████ p1:zsh")
         self.assertNotIn("display_agent", params)
         self.assertNotIn("agent", params)
         self.assertNotIn("state", params)
@@ -371,6 +371,8 @@ class PaneLoadTests(unittest.TestCase):
         self.assertTrue(title.startswith("1000% "))
         self.assertNotIn("|", title)
         self.assertTrue(title.endswith("…"))
+        worker.report("w1:p1", "0", "1:zsh(2:node)")
+        self.assertEqual(worker.rpc.request[1]["title"], "0% 1:zsh(2:node)")
 
     def test_workspace_metadata_uses_the_shared_cpu_meter(self):
         class RPC:
