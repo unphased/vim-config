@@ -154,9 +154,16 @@ class PaneLoadTests(unittest.TestCase):
         self.assertIn("(", tree)  # topology is not flattened
 
     def test_quantization_and_length_bound(self):
-        self.assertEqual(pl.quantize_cpu(2.4), 0)
-        self.assertEqual(pl.quantize_cpu(2.5), 5)
-        self.assertEqual(pl.quantize_cpu(97.6), 100)
+        self.assertEqual(pl.quantize_cpu(0.4), 0)
+        self.assertEqual(pl.quantize_cpu(0.5), 1)
+        self.assertEqual(pl.quantize_cpu(2.4), 2)
+        self.assertEqual(pl.quantize_cpu(2.5), 3)
+        self.assertEqual(pl.quantize_cpu(97.6), 98)
+        self.assertEqual(pl.quantize_cpu(238.2), 238)
+        cpu, tree = pl.token_payload(10, self.processes,
+            {self.processes[0].identity: 2.4}, self.ids)
+        self.assertEqual(cpu, "2")
+        self.assertIn("p1:zsh:2", tree)
         many = [pl.Process(i, i - 1, (1, i), 0, 0, "very-long-process-name") for i in range(1, 60)]
         ids = {p.identity: f"p{i}" for i, p in enumerate(many, 1)}
         _, tree = pl.token_payload(1, many, {p.identity: 5 for p in many}, ids)
@@ -177,7 +184,7 @@ class PaneLoadTests(unittest.TestCase):
         self.assertEqual(pl.SAMPLE_SECONDS, 1.0)
         cpu, tree = pl.token_payload(10, [self.processes[0]],
                                      {self.processes[0].identity: 12.5}, self.ids)
-        self.assertEqual(cpu, "15")
+        self.assertEqual(cpu, "13")
         self.assertRegex(cpu, r"^[0-9]+$")
         self.assertNotIn("%", cpu)
         self.assertIn("p1:zsh", tree)

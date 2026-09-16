@@ -279,7 +279,7 @@ class CpuTracker:
 
 
 def quantize_cpu(percent: float) -> int:
-    return max(0, int(percent / 5.0 + 0.5) * 5)
+    return max(0, int(percent + 0.5))
 
 
 Identity = tuple[int, int, int]
@@ -360,8 +360,7 @@ def reachable(root: Process, children: dict[int, list[Process]]) -> list[Process
 
 
 def _tree_payload(root_pid: int, processes: Iterable[Process], cpus: dict[Identity, float],
-                  ids: dict[Identity, str], index: ProcessIndex | None = None,
-                  previous_selection: set[Identity] | None = None) -> tuple[float, str, set[Identity]]:
+                  ids: dict[Identity, str], index: ProcessIndex | None = None) -> tuple[float, str, set[Identity]]:
     values = list(processes)
     index = index or build_process_index(values)
     allowed = {p.identity for p in values}
@@ -389,11 +388,7 @@ def _tree_payload(root_pid: int, processes: Iterable[Process], cpus: dict[Identi
         choices = child_map[current.identity]
         if not choices:
             break
-        best_value = max(totals.get(child.identity, 0.0) for child in choices)
-        preferred = [child for child in choices
-                     if previous_selection and child.identity in previous_selection
-                     and totals.get(child.identity, 0.0) >= best_value * 0.75]
-        current = max(preferred or choices, key=lambda p: (totals.get(p.identity, 0.0), -p.pid))
+        current = max(choices, key=lambda p: (totals.get(p.identity, 0.0), -p.pid))
     main_ids = {p.identity for p in main}
     selected = set(main_ids)
     optional_roots: list[tuple[Process, Process]] = []
@@ -481,7 +476,6 @@ class Worker:
         self.tracker = CpuTracker()
         self.ids: dict[str, dict[Identity, str]] = {}
         self.root_identities: dict[str, Identity] = {}
-        self.selections: dict[str, set[Identity]] = {}
         self.last_sent: dict[str, tuple[str, str, float]] = {}
         self.roots: dict[str, int] = {}
         self.stop_requested = False
@@ -521,7 +515,6 @@ class Worker:
         for pane_id in removed:
             self.ids.pop(pane_id, None)
             self.root_identities.pop(pane_id, None)
-            self.selections.pop(pane_id, None)
             self.last_sent.pop(pane_id, None)
         for pane_id, pid in roots.items():
             if self.roots.get(pane_id) != pid:
@@ -617,15 +610,12 @@ class Worker:
                 if identity not in relevant_ids:
                     del mapping[identity]
             if pane_id not in valid_roots or not relevant:
-                self.selections.pop(pane_id, None)
                 self.last_sent.pop(pane_id, None)
                 continue
             self.local_id(pane_id, index.by_pid[valid_roots[pane_id]].identity)
             pane_ids = {p.identity: self.local_id(pane_id, p.identity) for p in relevant}
-            total, tree, selection = _tree_payload(
-                valid_roots[pane_id], relevant, cpus, pane_ids, index=index,
-                previous_selection=self.selections.get(pane_id))
-            self.selections[pane_id] = selection
+            total, tree, _ = _tree_payload(
+                valid_roots[pane_id], relevant, cpus, pane_ids, index=index)
             if not tree:
                 continue
             cpu = str(quantize_cpu(total))
@@ -646,7 +636,6 @@ class Worker:
         except FileNotFoundError: pass
         self.ids.clear()
         self.root_identities.clear()
-        self.selections.clear()
         self.last_sent.clear()
 
     def run(self) -> int:

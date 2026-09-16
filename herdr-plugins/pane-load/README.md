@@ -63,7 +63,8 @@ No config edit is required for the plugin itself. `$cpu` is the numeric sum of l
 processes below each pane's shell root. CPU is the delta of each process's own
 user+system counters divided by wall time: 100 means one core, so multi-core
 work can exceed 100%. Counters from waited-for children are not aggregated.
-The first sample is 0; values are rounded to 5%. Names are refreshed on every
+The first sample is 0; totals and per-process values are rounded to 1%, with no
+hysteresis. Main-branch selection follows the current sample. Names are refreshed on every
 native enumeration. Mach ticks are converted using the machine's timebase
 (essential on Apple Silicon). Processes that exit between polls, cannot be read,
 or detach/reparent away from the pane are not accounted for.
