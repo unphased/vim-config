@@ -3,6 +3,7 @@ import ctypes
 import json
 import os
 import socket
+import struct
 import sys
 import tempfile
 import threading
@@ -93,6 +94,7 @@ class PaneLoadTests(unittest.TestCase):
     def worker_with_sampler(self, directory, processes):
         sampler = mock.Mock(spec=pl.MacProcessSampler)
         sampler.enumerate.return_value = processes
+        sampler.command.return_value = None
         rpc = mock.Mock()
         events = mock.Mock()
         with mock.patch.object(pl, "MacProcessSampler", return_value=sampler), \
@@ -141,6 +143,20 @@ class PaneLoadTests(unittest.TestCase):
         self.assertIn(self.processes[0].identity, values)
         self.assertNotIn(self.processes[2].identity, values)
         self.assertEqual(current[0].name, "new-shell")
+
+    def test_process_tree_prefers_command_over_process_name(self):
+        cpus = {p.identity: 0 for p in self.processes}
+        _, tree = pl.token_payload(10, self.processes, cpus, self.ids,
+                                   display_names={self.processes[1].identity: "pi"})
+        self.assertIn("p2:pi", tree)
+        self.assertNotIn("python-long-name", tree)
+
+    def test_procargs_command_uses_trimmed_argv_zero_basename(self):
+        data = struct.pack("i", 3) + b"/Users/slu/.n/bin/node\0\0pi   \0--flag\0value\0"
+        self.assertEqual(pl.command_from_procargs(data), "pi")
+        login = struct.pack("i", 1) + b"/bin/zsh\0\0-zsh\0"
+        self.assertEqual(pl.command_from_procargs(login), "zsh")
+        self.assertIsNone(pl.command_from_procargs(b"bad"))
 
     def test_nested_tree_has_edges_and_hot_branch(self):
         cpus = {p.identity: 0 for p in self.processes}
@@ -470,6 +486,7 @@ class PaneLoadTests(unittest.TestCase):
         self.assertEqual(ctypes.sizeof(pl.ProcBsdInfo), 136)
         self.assertEqual(ctypes.sizeof(pl.ProcTaskInfo), 96)
         sampler = pl.MacProcessSampler()
+        self.assertTrue(sampler.command(os.getpid()))
         before = next(p for p in sampler.enumerate() if p.pid == os.getpid())
         # process_time uses OS-normalized seconds; catch Mach ticks being mistaken
         # for nanoseconds (Apple Silicon's timebase is not 1:1).
