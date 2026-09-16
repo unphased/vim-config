@@ -59,7 +59,14 @@ Herdr's 80-character title limit only truncates the bar tail.
 
 The aggregate workspace meter uses a compact six cells per 100% (about 2.08%
 per fractional eighth), omits quarter ticks, and uses a thin `▉` internal hundred
-tick. The dotfiles config renders it in each expanded workspace sidebar row.
+tick. The dotfiles config renders it in each expanded workspace sidebar row and
+colors the complete meter as a heat scale: idle gray, 1–24% blue, 25–99% green,
+100–199% yellow, 200–399% peach, and 400%+ red. Mutually exclusive metadata
+tokens implement the styles while the unstyled workspace `$cpu` token remains
+available to API consumers. Herdr 0.9 does not expose metadata-title styling, so
+pane meters retain the normal pane-border title color rather than embedding ANSI
+control sequences.
+
 Process topology also remains independently available in the pane `$cpu_tree`
 token; CPU/tree rows remain absent from the Agent sidebar.
 

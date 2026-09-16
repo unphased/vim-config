@@ -380,6 +380,28 @@ def workspace_cpu_meter(percent: float) -> str:
     return format_cpu_meter(percent, 6, hundred_tick_eighths=7)
 
 
+def workspace_cpu_tokens(percent: float) -> dict[str, str | None]:
+    cpu = quantize_cpu(percent)
+    meter = workspace_cpu_meter(cpu)
+    if cpu == 0:
+        active = "cpu_idle"
+    elif cpu < 25:
+        active = "cpu_cool"
+    elif cpu < 100:
+        active = "cpu_active"
+    elif cpu < 200:
+        active = "cpu_warm"
+    elif cpu < 400:
+        active = "cpu_hot"
+    else:
+        active = "cpu_very_hot"
+    tokens: dict[str, str | None] = {"cpu": meter}
+    for name in ("cpu_idle", "cpu_cool", "cpu_active", "cpu_warm",
+                 "cpu_hot", "cpu_very_hot"):
+        tokens[name] = meter if name == active else None
+    return tokens
+
+
 Identity = tuple[int, int, int]
 
 
@@ -659,7 +681,7 @@ class Worker:
         try:
             self.rpc.call("workspace.report_metadata", {
                 "workspace_id": workspace_id, "source": SOURCE,
-                "tokens": {"cpu": workspace_cpu_meter(float(cpu))}, "ttl_ms": TTL_MS,
+                "tokens": workspace_cpu_tokens(float(cpu)), "ttl_ms": TTL_MS,
             })
         except ServerUnavailable:
             raise

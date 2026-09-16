@@ -37,7 +37,16 @@ pi = [
 row_gap = 0
 rows = [
   ["state_icon", "workspace"],
-  [{ token = "$cpu", fg = "#89b4fa", dim = false }, "branch", "git_status"],
+  [
+    { token = "$cpu_idle", fg = "#686868", dim = false },
+    { token = "$cpu_cool", fg = "#89b4fa", dim = false },
+    { token = "$cpu_active", fg = "#a6e3a1", dim = false },
+    { token = "$cpu_warm", fg = "#f9e2af", bold = true, dim = false },
+    { token = "$cpu_hot", fg = "#fab387", bold = true, dim = false },
+    { token = "$cpu_very_hot", fg = "#f38ba8", bold = true, dim = false },
+    "branch",
+    "git_status",
+  ],
 ]
 
 [ui.sound]
