@@ -282,16 +282,13 @@ def quantize_cpu(percent: float) -> int:
     return max(0, int(percent + 0.5))
 
 
-def cpu_meter(percent: float, width: int = 5) -> str:
-    """Render one-core saturation as a bounded bar while retaining total CPU."""
+def cpu_meter(percent: float) -> str:
+    """Render unbounded CPU where each full block is 16% and each eighth is 2%."""
     partials = ("", "▏", "▎", "▍", "▌", "▋", "▊", "▉")
-    eighths = int(min(100.0, max(0.0, percent)) * width * 8 / 100 + 0.5)
-    full, partial = divmod(eighths, 8)
-    bar = "█" * full
-    if partial:
-        bar += partials[partial]
-    bar += "░" * (width - full - bool(partial))
-    return f"{bar} {quantize_cpu(percent)}%"
+    cpu = quantize_cpu(percent)
+    full, partial = divmod((cpu + 1) // 2, 8)
+    bar = "█" * full + partials[partial]
+    return f"{cpu}%" + (f" {bar}" if bar else "")
 
 
 Identity = tuple[int, int, int]

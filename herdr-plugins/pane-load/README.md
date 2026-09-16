@@ -50,10 +50,12 @@ subsequent server startup launches a new worker. Hooks do not supervise crashes.
 ## Pane and workspace chrome
 
 The sampler **owns the metadata pane title** for every pane, including ordinary
-shells. Example: `█████ 100% | 1:zsh(2:Python:100)`. The shared five-cell meter
-fills at one occupied core while its number remains exact, so `█████ 238%` is a
-valid multi-core reading. Titles have Herdr's 80-character limit; longer titles
-end in `…`. The dotfiles config enables pane borders and renders the aggregate
+shells. Example: `100% ██████▎ | 1:zsh(2:Python:100)`. The shared meter is
+unbounded: each full block represents 16% CPU and its eight fractional levels
+represent 2% each, so 238% renders as `238% ██████████████▉`. It has no empty
+right side. The percentage comes first so tail truncation only shortens the bar.
+Titles have Herdr's 80-character limit; longer titles end in `…`. The dotfiles
+config enables pane borders and renders the aggregate
 workspace `$cpu` meter in each expanded workspace sidebar row. CPU/tree rows
 remain absent from the Agent sidebar.
 

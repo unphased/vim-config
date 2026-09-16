@@ -16,7 +16,7 @@ def herdr(*args):
 
 
 def meter_value(value):
-    return int(value.rsplit(' ', 1)[-1].removesuffix('%'))
+    return int(value.split('%', 1)[0])
 
 
 def wait_workspace_cpu(workspace, predicate, description):
