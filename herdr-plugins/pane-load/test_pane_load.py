@@ -397,6 +397,24 @@ class PaneLoadTests(unittest.TestCase):
         worker.report("w1:p1", "0", "1:zsh(2:node)")
         self.assertEqual(worker.rpc.request[1]["title"], "0% 1:zsh(2:node)")
 
+    def test_workspace_cpu_color_tokens_cover_load_boundaries(self):
+        levels = (
+            (0, "cpu_idle"),
+            (1, "cpu_cool"), (24, "cpu_cool"),
+            (25, "cpu_active"), (99, "cpu_active"),
+            (100, "cpu_warm"), (199, "cpu_warm"),
+            (200, "cpu_hot"), (399, "cpu_hot"),
+            (400, "cpu_very_hot"),
+        )
+        variants = {level for _, level in levels}
+        for cpu, expected in levels:
+            with self.subTest(cpu=cpu):
+                tokens = pl.workspace_cpu_tokens(cpu)
+                self.assertEqual(tokens["cpu"], pl.workspace_cpu_meter(cpu))
+                self.assertEqual({key for key in variants if tokens[key] is not None},
+                                 {expected})
+                self.assertEqual(tokens[expected], tokens["cpu"])
+
     def test_workspace_metadata_uses_the_shared_cpu_meter(self):
         class RPC:
             def __init__(self): self.request = None
@@ -408,7 +426,16 @@ class PaneLoadTests(unittest.TestCase):
         self.assertEqual(method, "workspace.report_metadata")
         self.assertEqual(params, {
             "workspace_id": "w1", "source": pl.SOURCE,
-            "tokens": {"cpu": "125% █████▉█▌"}, "ttl_ms": 15_000,
+            "tokens": {
+                "cpu": "125% █████▉█▌",
+                "cpu_idle": None,
+                "cpu_cool": None,
+                "cpu_active": None,
+                "cpu_warm": "125% █████▉█▌",
+                "cpu_hot": None,
+                "cpu_very_hot": None,
+            },
+            "ttl_ms": 15_000,
         })
 
     def test_buffered_event_is_returned_without_ready_file_descriptor(self):
