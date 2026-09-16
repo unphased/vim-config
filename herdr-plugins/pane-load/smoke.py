@@ -17,11 +17,16 @@ def wait_tokens(pane, predicate):
     deadline = time.monotonic() + 25
     last = {}
     while time.monotonic() < deadline:
-        tokens = herdr('pane', 'get', pane)['pane'].get('tokens', {})
+        info = herdr('pane', 'get', pane)['pane']
+        tokens = info.get('tokens', {})
         if tokens != last:
             print('sample:', tokens, flush=True)
         last = tokens
-        if predicate(last):
+        expected = f"{tokens.get('cpu')}% | {tokens.get('cpu_tree')}"
+        if len(expected) > 80:
+            expected = expected[:79] + '…'
+        if predicate(last) and info.get('title') == expected:
+            print('pane title:', info['title'], flush=True)
             return last
         time.sleep(.5)
     raise AssertionError(f'timed out waiting for sampler: {last}')

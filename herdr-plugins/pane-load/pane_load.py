@@ -530,8 +530,12 @@ class Worker:
         self.dirty = False
 
     def report(self, pane_id: str, cpu: str, tree: str) -> bool:
+        title = f"{cpu}% | {tree}"
+        if len(title) > 80:
+            title = title[:79] + "…"
         try:
             self.rpc.call("pane.report_metadata", {"pane_id": pane_id, "source": SOURCE,
+                         "title": title,
                          "tokens": {"cpu": cpu, "cpu_tree": tree}, "ttl_ms": TTL_MS})
         except ServerUnavailable:
             raise

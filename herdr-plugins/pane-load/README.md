@@ -2,7 +2,7 @@
 
 `local.pane-load` is a macOS-only, resident Herdr plugin. One worker is shared per
 Herdr server socket. It samples process CPU through macOS `libproc`, then reports
-short-lived `$cpu` and `$cpu_tree` pane tokens.
+a short-lived pane title plus `$cpu` and `$cpu_tree` pane tokens.
 
 ```mermaid
 flowchart LR
@@ -13,7 +13,7 @@ flowchart LR
   API --> Snapshot[Snapshot + pane.process_info]
   Worker --> Libproc[libproc: one process enumeration]
   Libproc --> Metadata[pane.report_metadata TTL 15s]
-  Metadata -.-> Chrome[Pane chrome: needs Herdr token rendering]
+  Metadata --> Chrome[Pane title: CPU percent + process tree]
 ```
 
 ## Install, link, and start
@@ -42,18 +42,22 @@ to stay within Unix socket path limits. No runtime files live in this source tre
 A broken server connection triggers bounded reconnect attempts, then exit; a
 subsequent server startup launches a new worker. Hooks do not supervise crashes.
 
-## Pane chrome (pending Herdr support)
+## Pane chrome
 
-These tokens belong on **every pane's chrome**, not the Agent sidebar. The
-sampler already publishes them for all pane roots, including non-agent shells.
-The dotfiles config deliberately does not add them to Agent sidebar rows.
+The sampler **owns the metadata pane title** for every pane, including ordinary
+shells. Example: `100% | 1:zsh(2:Python:100)`. Titles have Herdr's 80-character
+limit; longer titles end in `…`. The dotfiles config enables pane borders and
+deliberately does not add CPU/tree rows to the Agent sidebar.
 
-Herdr 0.9.0 exposes custom metadata-token rendering in sidebar rows, but has no
-documented pane-border token template. A separate pane-border/footer metadata
-slot is needed to display `$cpu` and `$cpu_tree` without replacing pane titles.
-The sampler keeps publishing tokens, available through `herdr pane get <id>`,
-while that display integration is pending. It never overrides agent titles or
-lifecycle state.
+Pi's `session-topic` extension publishes its `$topic` and other sidebar tokens
+but never sets or clears the Herdr pane title. There is no shared title composer
+or controller coordination. Pi session names and terminal OSC titles are
+independent and unchanged; semantic agent state is also untouched.
+
+After updating, run `/reload` in each existing Pi session once it is idle so
+its old title-writing extension is replaced. Other third-party metadata-title
+writers must likewise be disabled; this plugin does not arbitrate with them.
+The `$cpu` and `$cpu_tree` tokens remain available through `herdr pane get <id>`.
 
 No config edit is required for the plugin itself. `$cpu` is the numeric sum of live
 processes below each pane's shell root. CPU is the delta of each process's own

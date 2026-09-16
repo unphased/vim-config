@@ -256,7 +256,7 @@ class PaneLoadTests(unittest.TestCase):
         self.assertEqual(tree.count("p1"), 1)
         self.assertEqual(tree.count("p2"), 1)
 
-    def test_metadata_is_ttl_heartbeat_and_never_presentation_state(self):
+    def test_metadata_owns_pane_title_without_touching_agent_state(self):
         class RPC:
             def __init__(self): self.request = None
             def call(self, method, params): self.request = (method, params); return {}
@@ -267,8 +267,16 @@ class PaneLoadTests(unittest.TestCase):
         self.assertEqual(method, "pane.report_metadata")
         self.assertEqual(params["ttl_ms"], 15_000)
         self.assertEqual(params["tokens"], {"cpu": "25", "cpu_tree": "p1:zsh"})
-        self.assertNotIn("title", params)
+        self.assertEqual(params["title"], "25% | p1:zsh")
         self.assertNotIn("display_agent", params)
+        self.assertNotIn("agent", params)
+        self.assertNotIn("state", params)
+        self.assertNotIn("topic", params["tokens"])
+        worker.report("w1:p1", "100", "x" * 80)
+        title = worker.rpc.request[1]["title"]
+        self.assertEqual(len(title), 80)
+        self.assertTrue(title.startswith("100% | "))
+        self.assertTrue(title.endswith("…"))
 
     def test_buffered_event_is_returned_without_ready_file_descriptor(self):
         events = pl.EventStream("unused")
