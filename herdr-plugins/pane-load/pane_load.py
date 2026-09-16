@@ -282,12 +282,41 @@ def quantize_cpu(percent: float) -> int:
     return max(0, int(percent + 0.5))
 
 
+FRACTIONAL_BLOCKS = ("", "▏", "▎", "▍", "▌", "▋", "▊", "▉")
+
+
+def scaled_cpu_bar(percent: float, cells_per_hundred: int,
+                   quarter_ticks: bool = False) -> str:
+    """Render an unbounded fractional bar with marked internal boundaries."""
+    if (isinstance(cells_per_hundred, bool) or
+            not isinstance(cells_per_hundred, int) or cells_per_hundred <= 0):
+        raise ValueError("cells_per_hundred must be a positive integer")
+    if quarter_ticks and cells_per_hundred % 4:
+        raise ValueError("quarter ticks require cells_per_hundred divisible by four")
+
+    cpu = quantize_cpu(percent)
+    units = (cpu * cells_per_hundred * 8 + 50) // 100
+    hundred_units = (cpu // 100) * cells_per_hundred * 8
+    if cpu % 100 and units == hundred_units:
+        units += 1
+    full, partial = divmod(units, 8)
+    bar = list("█" * full + FRACTIONAL_BLOCKS[partial])
+    for boundary in range(25, cpu, 25):
+        if boundary % 100 == 0:
+            marker = "▋"
+        elif quarter_ticks:
+            marker = "▉"
+        else:
+            continue
+        bar[boundary * cells_per_hundred // 100 - 1] = marker
+    return "".join(bar)
+
+
 def cpu_meter(percent: float) -> str:
-    """Render unbounded CPU where each full block is 16% and each eighth is 2%."""
-    partials = ("", "▏", "▎", "▍", "▌", "▋", "▊", "▉")
+    """Render the currently deployed unbounded 16%-per-cell CPU meter."""
     cpu = quantize_cpu(percent)
     full, partial = divmod((cpu + 1) // 2, 8)
-    bar = "█" * full + partials[partial]
+    bar = "█" * full + FRACTIONAL_BLOCKS[partial]
     return f"{cpu}%" + (f" {bar}" if bar else "")
 
 
