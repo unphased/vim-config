@@ -1,0 +1,1 @@
+{"hooks":{"MessageDisplay":[{"hooks":[{"type":"command","command":"python3 /tmp/link-spike-20260916/claude/hook.py","timeout":10}]}]},"autoMemoryEnabled":false}
