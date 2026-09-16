@@ -162,6 +162,45 @@ class PaneLoadTests(unittest.TestCase):
         self.assertEqual(pl.cpu_meter(100), "100% ██████▎")
         self.assertEqual(pl.cpu_meter(238), "238% ██████████████▉")
 
+    def test_scaled_cpu_bar_marks_only_internal_boundaries(self):
+        self.assertEqual(pl.scaled_cpu_bar(25, 8, quarter_ticks=True), "██")
+        self.assertEqual(pl.scaled_cpu_bar(26, 8, quarter_ticks=True), "█▉▏")
+        self.assertEqual(pl.scaled_cpu_bar(50, 8, quarter_ticks=True), "█▉██")
+        self.assertEqual(pl.scaled_cpu_bar(51, 8, quarter_ticks=True), "█▉█▉▏")
+        self.assertEqual(pl.scaled_cpu_bar(100, 8, quarter_ticks=True), "█▉█▉█▉██")
+        self.assertEqual(pl.scaled_cpu_bar(101, 8, quarter_ticks=True), "█▉█▉█▉█▋▏")
+        self.assertEqual(pl.scaled_cpu_bar(200, 8, quarter_ticks=True),
+                         "█▉█▉█▉█▋█▉█▉█▉██")
+
+    def test_scaled_cpu_bar_supports_arbitrary_tickless_widths(self):
+        self.assertEqual(pl.scaled_cpu_bar(0, 5), "")
+        self.assertEqual(pl.scaled_cpu_bar(100, 5), "█████")
+        self.assertEqual(pl.scaled_cpu_bar(101, 5), "████▋▏")
+        self.assertEqual(pl.scaled_cpu_bar(238, 5), "████▋████▋█▉")
+        self.assertEqual(pl.scaled_cpu_bar(238, 7), "██████▋██████▋██▋")
+
+    def test_scaled_cpu_bar_pane_precision_candidates(self):
+        for cells, remainder in ((16, "▏"), (20, "▎"), (24, "▎")):
+            with self.subTest(cells=cells):
+                at_100 = pl.scaled_cpu_bar(100, cells, quarter_ticks=True)
+                after_100 = pl.scaled_cpu_bar(101, cells, quarter_ticks=True)
+                after_50 = pl.scaled_cpu_bar(51, cells, quarter_ticks=True)
+                self.assertEqual(len(at_100), cells)
+                self.assertEqual(at_100.count("▉"), 3)
+                self.assertEqual(at_100[-1], "█")
+                self.assertEqual(after_100[cells - 1], "▋")
+                self.assertTrue(after_100.endswith(remainder))
+                self.assertEqual(after_50[cells // 2 - 1], "▉")
+                self.assertTrue(after_50.endswith(remainder))
+
+    def test_scaled_cpu_bar_rejects_invalid_tick_layouts(self):
+        for cells in (0, -1, True):
+            with self.subTest(cells=cells):
+                with self.assertRaises(ValueError):
+                    pl.scaled_cpu_bar(50, cells)
+        with self.assertRaises(ValueError):
+            pl.scaled_cpu_bar(50, 5, quarter_ticks=True)
+
     def test_quantization_and_length_bound(self):
         self.assertEqual(pl.quantize_cpu(0.4), 0)
         self.assertEqual(pl.quantize_cpu(0.5), 1)
