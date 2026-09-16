@@ -16,7 +16,6 @@ row_gap = 0
 rows = [
   ["state_icon", "machine", "workspace", "tab"],
   [{ token = "agent", fg = "#aaaaaa", dim = false }],
-  ["$cpu", "$cpu_tree"],
 ]
 
 # Pi publishes these $tokens from the session-topic extension.
@@ -25,7 +24,6 @@ pi = [
   ["state_icon", { token = "$pi", fg = "#89b4fa", bold = true }, { token = "workspace", bold = true }, { token = "tab", dim = false }],
   [{ token = "$topic", fg = "#aaaaaa", bold = true, dim = false }],
   [{ token = "$model", fg = "#89b4fa", dim = false }],
-  ["$cpu", "$cpu_tree"],
   [
     { token = "$project-different", fg = "#bababa", bold = true},
     { token = "$context_ok", fg = "#a6e3a1", dim = false },

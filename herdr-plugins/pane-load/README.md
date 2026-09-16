@@ -13,7 +13,7 @@ flowchart LR
   API --> Snapshot[Snapshot + pane.process_info]
   Worker --> Libproc[libproc: one process enumeration]
   Libproc --> Metadata[pane.report_metadata TTL 15s]
-  Metadata --> Sidebar[Sidebar rows: $cpu / $cpu_tree]
+  Metadata -.-> Chrome[Pane chrome: needs Herdr token rendering]
 ```
 
 ## Install, link, and start
@@ -42,16 +42,18 @@ to stay within Unix socket path limits. No runtime files live in this source tre
 A broken server connection triggers bounded reconnect attempts, then exit; a
 subsequent server startup launches a new worker. Hooks do not supervise crashes.
 
-## Sidebar rows
+## Pane chrome (pending Herdr support)
 
-The dotfiles config adds this row to both the default and Pi agent layouts:
+These tokens belong on **every pane's chrome**, not the Agent sidebar. The
+sampler already publishes them for all pane roots, including non-agent shells.
+The dotfiles config deliberately does not add them to Agent sidebar rows.
 
-```toml
-["$cpu", "$cpu_tree"],
-```
-
-Values are visible in the **Agent sidebar**, not arbitrary pane-border templates.
-The sampler never overrides agent titles or lifecycle state.
+Herdr 0.9.0 exposes custom metadata-token rendering in sidebar rows, but has no
+documented pane-border token template. A separate pane-border/footer metadata
+slot is needed to display `$cpu` and `$cpu_tree` without replacing pane titles.
+The sampler keeps publishing tokens, available through `herdr pane get <id>`,
+while that display integration is pending. It never overrides agent titles or
+lifecycle state.
 
 No config edit is required for the plugin itself. `$cpu` is the numeric sum of live
 processes below each pane's shell root. CPU is the delta of each process's own
