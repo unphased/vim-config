@@ -336,8 +336,6 @@ add-zsh-hook precmd handle_execution_duration
 
 source ~/.vim/nvim/shell/nvim-bgcolor.zsh
 add-zsh-hook precmd __nvim_bgcolor_update
-add-zsh-hook precmd __herdr_report_shell_process_title
-add-zsh-hook preexec __herdr_clear_shell_process_title_for_pi
 
 emscriptenv () {
   # load emsdk env if present

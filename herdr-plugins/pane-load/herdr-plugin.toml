@@ -1,0 +1,24 @@
+id = "local.pane-load"
+name = "Pane Load"
+version = "0.1.0"
+min_herdr_version = "0.9.0"
+description = "macOS pane CPU load and process-chain metadata"
+platforms = ["macos"]
+
+[[startup]]
+command = ["python3", "pane_load.py", "start"]
+platforms = ["macos"]
+
+[[actions]]
+id = "start"
+title = "Start pane load sampler"
+contexts = ["global"]
+platforms = ["macos"]
+command = ["python3", "pane_load.py", "start"]
+
+[[actions]]
+id = "stop"
+title = "Stop pane load sampler"
+contexts = ["global"]
+platforms = ["macos"]
+command = ["python3", "pane_load.py", "stop"]

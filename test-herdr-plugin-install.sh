@@ -20,6 +20,7 @@ HERDR="$tmp/herdr" HERDR_TEST_LOG="$tmp/calls" "$root/herdr-plugins/install.sh"
 {
   printf 'plugin link %s\n' "$root/herdr-plugins/copy-pane-id"
   printf 'plugin link %s\n' "$root/herdr-plugins/move-pane-new-tab"
+  printf 'plugin link %s\n' "$root/herdr-plugins/pane-load"
 } >"$tmp/expected"
 cmp -s "$tmp/expected" "$tmp/calls" || {
   printf 'unexpected Herdr registration calls:\n' >&2

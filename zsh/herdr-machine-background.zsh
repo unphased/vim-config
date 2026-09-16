@@ -1,22 +1,5 @@
 # Wrap Herdr's TUI attach commands with the machine background.
 
-__herdr_report_shell_process_title() {
-  [[ ${HERDR_ENV:-} == 1 && -n ${HERDR_PANE_ID:-} ]] || return 0
-
-  command herdr pane report-metadata "$HERDR_PANE_ID" \
-    --source zsh:process-title --title "zsh pid=$$ ppid=$PPID" \
-    >/dev/null 2>&1
-}
-
-__herdr_clear_shell_process_title_for_pi() {
-  [[ ${HERDR_ENV:-} == 1 && -n ${HERDR_PANE_ID:-} ]] || return 0
-  [[ ${1:-} == pi || ${1:-} == pi[[:space:]]* ]] || return 0
-
-  command herdr pane report-metadata "$HERDR_PANE_ID" \
-    --source zsh:process-title --clear-title \
-    >/dev/null 2>&1
-}
-
 _herdr_tui_attach() {
   (( $# == 0 )) && return 0
   if [[ "$1" == session ]]; then

@@ -82,65 +82,10 @@ run_herdr() {
     zsh -f -c 'source "$HERDR_HELPER"; herdr "$@"' test-herdr "$@"
 }
 
-title_log="$tmp/title-calls"
-HOME="$home" PATH="$bin:$PATH" HERDR_ENV=1 HERDR_PANE_ID=w1:p2 \
-  HERDR_TEST_LOG="$title_log" HERDR_HELPER="$repo/zsh/herdr-machine-background.zsh" \
-  zsh -f <<'EOF' || exit 1
-source "$HERDR_HELPER"
-__herdr_report_shell_process_title
-expected="herdr:pane report-metadata w1:p2 --source zsh:process-title --title zsh pid=$$ ppid=$PPID
-argc:7
-arg1:<pane>
-arg2:<report-metadata>
-arg3:<w1:p2>
-arg4:<--source>
-arg5:<zsh:process-title>
-arg6:<--title>
-arg7:<zsh pid=$$ ppid=$PPID>"
-[[ -s "$HERDR_TEST_LOG" ]] || {
-  print -u2 'Herdr title report was not written'
-  exit 1
-}
-[[ "$(<"$HERDR_TEST_LOG")" == "$expected" ]] || {
-  print -u2 "unexpected Herdr title report: $(<"$HERDR_TEST_LOG")"
-  exit 1
-}
-EOF
-
-assert_contains "$(<"$repo/zshrc")" \
-  "add-zsh-hook precmd __herdr_report_shell_process_title"
-assert_contains "$(<"$repo/zshrc")" \
-  "add-zsh-hook preexec __herdr_clear_shell_process_title_for_pi"
-
-: >"$title_log"
-HOME="$home" PATH="$bin:$PATH" HERDR_ENV=1 HERDR_PANE_ID=w1:p2 \
-  HERDR_TEST_LOG="$title_log" HERDR_HELPER="$repo/zsh/herdr-machine-background.zsh" \
-  zsh -f <<'EOF' || exit 1
-source "$HERDR_HELPER"
-__herdr_clear_shell_process_title_for_pi $'pi\t--session example'
-expected="herdr:pane report-metadata w1:p2 --source zsh:process-title --clear-title
-argc:6
-arg1:<pane>
-arg2:<report-metadata>
-arg3:<w1:p2>
-arg4:<--source>
-arg5:<zsh:process-title>
-arg6:<--clear-title>"
-[[ "$(<"$HERDR_TEST_LOG")" == "$expected" ]]
-EOF
-
-: >"$title_log"
-HOME="$home" PATH="$bin:$PATH" HERDR_ENV=1 HERDR_PANE_ID=w1:p2 \
-  HERDR_TEST_LOG="$title_log" HERDR_HELPER="$repo/zsh/herdr-machine-background.zsh" \
-  zsh -f -c 'source "$HERDR_HELPER"; __herdr_clear_shell_process_title_for_pi "git status"' \
-  || exit 1
-[[ ! -s "$title_log" ]] || fail "shell title was cleared for a non-Pi command"
-
-: >"$title_log"
-HOME="$home" PATH="$bin:$PATH" HERDR_ENV=0 HERDR_PANE_ID=w1:p2 \
-  HERDR_TEST_LOG="$title_log" HERDR_HELPER="$repo/zsh/herdr-machine-background.zsh" \
-  zsh -f -c 'source "$HERDR_HELPER"; __herdr_report_shell_process_title' || exit 1
-[[ ! -s "$title_log" ]] || fail "shell title was reported outside Herdr"
+# Process metadata belongs to the resident plugin, not per-prompt shell hooks.
+assert_not_contains "$(<"$repo/zshrc")" "__herdr_report_shell_process_title"
+assert_not_contains "$(<"$repo/zshrc")" "__herdr_clear_shell_process_title_for_pi"
+assert_not_contains "$(<"$repo/zsh/herdr-machine-background.zsh")" "report-metadata"
 
 for output in \
   "$(run_herdr --session demo)" \
