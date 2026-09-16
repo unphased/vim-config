@@ -153,14 +153,15 @@ class PaneLoadTests(unittest.TestCase):
         self.assertIn("p4", tree)
         self.assertIn("(", tree)  # topology is not flattened
 
-    def test_cpu_meter_uses_unbounded_sixteen_percent_cells(self):
+    def test_cpu_meters_use_pane_and_workspace_scales(self):
         self.assertEqual(pl.cpu_meter(0), "0%")
-        self.assertEqual(pl.cpu_meter(1), "1% ▏")
-        self.assertEqual(pl.cpu_meter(16), "16% █")
-        self.assertEqual(pl.cpu_meter(25), "25% █▋")
-        self.assertEqual(pl.cpu_meter(50), "50% ███▏")
-        self.assertEqual(pl.cpu_meter(100), "100% ██████▎")
-        self.assertEqual(pl.cpu_meter(238), "238% ██████████████▉")
+        self.assertEqual(pl.cpu_meter(25), "25% ██████")
+        self.assertEqual(pl.cpu_meter(51), "51% █████▉█████▉▎")
+        self.assertEqual(pl.cpu_meter(100), "100% █████▉█████▉█████▉██████")
+        self.assertEqual(pl.cpu_meter(101), "101% █████▉█████▉█████▉█████▋▎")
+        self.assertEqual(pl.workspace_cpu_meter(100), "100% ██████")
+        self.assertEqual(pl.workspace_cpu_meter(101), "101% █████▉▏")
+        self.assertEqual(pl.workspace_cpu_meter(238), "238% █████▉█████▉██▎")
 
     def test_scaled_cpu_bar_marks_only_internal_boundaries(self):
         self.assertEqual(pl.scaled_cpu_bar(25, 8, quarter_ticks=True), "██")
@@ -178,6 +179,8 @@ class PaneLoadTests(unittest.TestCase):
         self.assertEqual(pl.scaled_cpu_bar(101, 5), "████▋▏")
         self.assertEqual(pl.scaled_cpu_bar(238, 5), "████▋████▋█▉")
         self.assertEqual(pl.scaled_cpu_bar(238, 7), "██████▋██████▋██▋")
+        self.assertEqual(pl.scaled_cpu_bar(238, 6, hundred_tick_eighths=7),
+                         "█████▉█████▉██▎")
 
     def test_scaled_cpu_bar_pane_precision_candidates(self):
         for cells, remainder in ((16, "▏"), (20, "▎"), (24, "▎")):
@@ -200,6 +203,10 @@ class PaneLoadTests(unittest.TestCase):
                     pl.scaled_cpu_bar(50, cells)
         with self.assertRaises(ValueError):
             pl.scaled_cpu_bar(50, 5, quarter_ticks=True)
+        for eighths in (0, 8, True):
+            with self.subTest(eighths=eighths):
+                with self.assertRaises(ValueError):
+                    pl.scaled_cpu_bar(150, 8, hundred_tick_eighths=eighths)
 
     def test_quantization_and_length_bound(self):
         self.assertEqual(pl.quantize_cpu(0.4), 0)
@@ -353,15 +360,16 @@ class PaneLoadTests(unittest.TestCase):
         self.assertEqual(method, "pane.report_metadata")
         self.assertEqual(params["ttl_ms"], 15_000)
         self.assertEqual(params["tokens"], {"cpu": "25", "cpu_tree": "p1:zsh"})
-        self.assertEqual(params["title"], "25% █▋ | p1:zsh")
+        self.assertEqual(params["title"], "25% ██████")
         self.assertNotIn("display_agent", params)
         self.assertNotIn("agent", params)
         self.assertNotIn("state", params)
         self.assertNotIn("topic", params["tokens"])
-        worker.report("w1:p1", "100", "x" * 80)
+        worker.report("w1:p1", "1000", "x" * 80)
         title = worker.rpc.request[1]["title"]
         self.assertEqual(len(title), 80)
-        self.assertTrue(title.startswith("100% ██████▎ | "))
+        self.assertTrue(title.startswith("1000% "))
+        self.assertNotIn("|", title)
         self.assertTrue(title.endswith("…"))
 
     def test_workspace_metadata_uses_the_shared_cpu_meter(self):
@@ -375,7 +383,7 @@ class PaneLoadTests(unittest.TestCase):
         self.assertEqual(method, "workspace.report_metadata")
         self.assertEqual(params, {
             "workspace_id": "w1", "source": pl.SOURCE,
-            "tokens": {"cpu": "125% ███████▉"}, "ttl_ms": 15_000,
+            "tokens": {"cpu": "125% █████▉█▌"}, "ttl_ms": 15_000,
         })
 
     def test_buffered_event_is_returned_without_ready_file_descriptor(self):
