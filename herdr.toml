@@ -44,7 +44,7 @@ rows = [
     { token = "$cpu_warm", fg = "#f9e2af", bold = true, dim = false },
     { token = "$cpu_hot", fg = "#fab387", bold = true, dim = false },
     { token = "$cpu_very_hot", fg = "#f38ba8", bold = true, dim = false },
-    { token = "$memory", fg = "#cba6f7", dim = false },
+    { token = "$memory", fg = "#94e2d5", dim = false },
     "branch",
     "git_status",
   ],
