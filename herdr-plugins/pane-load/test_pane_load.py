@@ -153,6 +153,13 @@ class PaneLoadTests(unittest.TestCase):
         self.assertIn("p4", tree)
         self.assertIn("(", tree)  # topology is not flattened
 
+    def test_cpu_meter_is_bounded_but_keeps_the_exact_percentage(self):
+        self.assertEqual(pl.cpu_meter(0), "░░░░░ 0%")
+        self.assertEqual(pl.cpu_meter(25), "█▎░░░ 25%")
+        self.assertEqual(pl.cpu_meter(50), "██▌░░ 50%")
+        self.assertEqual(pl.cpu_meter(100), "█████ 100%")
+        self.assertEqual(pl.cpu_meter(238), "█████ 238%")
+
     def test_quantization_and_length_bound(self):
         self.assertEqual(pl.quantize_cpu(0.4), 0)
         self.assertEqual(pl.quantize_cpu(0.5), 1)
@@ -222,6 +229,37 @@ class PaneLoadTests(unittest.TestCase):
             self.assertEqual(mapping[self.processes[0].identity], "1")
             self.assertEqual(mapping[self.processes[1].identity], "2")
 
+    def test_sample_aggregates_all_panes_into_their_workspaces(self):
+        first = pl.Process(20, 1, (2, 1), 0, 0, "first")
+        second = pl.Process(30, 1, (3, 1), 0, 0, "second")
+        with tempfile.TemporaryDirectory() as directory:
+            worker, _, _, _ = self.worker_with_sampler(directory, [first, second])
+            worker.roots = {"pane-1": first.pid, "pane-2": second.pid}
+            worker.pane_workspaces = {"pane-1": "workspace-1", "pane-2": "workspace-1"}
+            worker.workspaces = {"workspace-1", "workspace-2"}
+            worker.last_workspace_sent = {}
+            worker.tracker = mock.Mock()
+            worker.tracker.values.return_value = {first.identity: 25.4, second.identity: 75.2}
+            worker.report_workspace = mock.Mock(return_value=True)
+            worker.sample(100.0, 99.0)
+            self.assertEqual(worker.report_workspace.call_args_list,
+                             [mock.call("workspace-1", "101"), mock.call("workspace-2", "0")])
+
+    def test_snapshot_tracks_pane_workspace_membership(self):
+        with tempfile.TemporaryDirectory() as directory:
+            worker, _, rpc, _ = self.worker_with_sampler(directory, [])
+            rpc.call.side_effect = [
+                {"snapshot": {
+                    "workspaces": [{"workspace_id": "workspace-1"}],
+                    "panes": [{"pane_id": "pane-1", "workspace_id": "workspace-1"}],
+                }},
+                {"process_info": {"shell_pid": 42}},
+            ]
+            worker.snapshot()
+            self.assertEqual(worker.workspaces, {"workspace-1"})
+            self.assertEqual(worker.pane_workspaces, {"pane-1": "workspace-1"})
+            self.assertEqual(worker.roots, {"pane-1": 42})
+
     def test_nested_roots_partition_cpu_ownership(self):
         outer = pl.Process(100, 1, (1, 1), 0, 0, "outer")
         inner = pl.Process(101, 100, (1, 2), 0, 0, "inner")
@@ -274,7 +312,7 @@ class PaneLoadTests(unittest.TestCase):
         self.assertEqual(method, "pane.report_metadata")
         self.assertEqual(params["ttl_ms"], 15_000)
         self.assertEqual(params["tokens"], {"cpu": "25", "cpu_tree": "p1:zsh"})
-        self.assertEqual(params["title"], "25% | p1:zsh")
+        self.assertEqual(params["title"], "█▎░░░ 25% | p1:zsh")
         self.assertNotIn("display_agent", params)
         self.assertNotIn("agent", params)
         self.assertNotIn("state", params)
@@ -282,8 +320,22 @@ class PaneLoadTests(unittest.TestCase):
         worker.report("w1:p1", "100", "x" * 80)
         title = worker.rpc.request[1]["title"]
         self.assertEqual(len(title), 80)
-        self.assertTrue(title.startswith("100% | "))
+        self.assertTrue(title.startswith("█████ 100% | "))
         self.assertTrue(title.endswith("…"))
+
+    def test_workspace_metadata_uses_the_shared_cpu_meter(self):
+        class RPC:
+            def __init__(self): self.request = None
+            def call(self, method, params): self.request = (method, params); return {}
+        worker = object.__new__(pl.Worker)
+        worker.rpc = RPC()
+        self.assertTrue(worker.report_workspace("w1", "125"))
+        method, params = worker.rpc.request
+        self.assertEqual(method, "workspace.report_metadata")
+        self.assertEqual(params, {
+            "workspace_id": "w1", "source": pl.SOURCE,
+            "tokens": {"cpu": "█████ 125%"}, "ttl_ms": 15_000,
+        })
 
     def test_buffered_event_is_returned_without_ready_file_descriptor(self):
         events = pl.EventStream("unused")
