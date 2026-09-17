@@ -427,7 +427,7 @@ def pane_title(percent: float, memory: str, tree: str) -> str:
 
 def workspace_cpu_meter(percent: float) -> str:
     """Render the compact workspace CPU meter."""
-    return format_cpu_meter(percent, 4, hundred_tick_eighths=7)
+    return format_cpu_meter(percent, 2, hundred_tick_eighths=7)
 
 
 def workspace_cpu_tokens(percent: float) -> dict[str, str | None]:

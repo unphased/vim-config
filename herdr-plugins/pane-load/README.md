@@ -63,7 +63,7 @@ width minus four cells and adds an ellipsis, but Herdr 0.9 first normalizes
 metadata titles to 80 characters. That server-side ceiling cannot be removed by
 the plugin; lifting it requires changing Herdr's `normalize_presentation_text`.
 
-The aggregate workspace CPU meter uses a compact four cells per 100% (3.125%
+The aggregate workspace CPU meter uses a compact two cells per 100% (6.25%
 per fractional eighth), omits quarter ticks, and uses a thin `▉` internal hundred
 tick. The dotfiles config renders it in each expanded workspace sidebar row and
 colors the complete meter as a heat scale: idle gray, 1–24% blue, 25–99% green,
