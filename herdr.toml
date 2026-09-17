@@ -65,7 +65,7 @@ resize_pane_left = ["alt+h"]
 resize_pane_down = "alt+j"
 resize_pane_up = "alt+k"
 resize_pane_right = "alt+l"
-zoom = ["prefix+z", "alt+m"]
+zoom = ["prefix+z", "alt+m", "ctrl+m"]
 
 [[keys.command]]
 key = "ctrl+h"
