@@ -242,9 +242,9 @@ class PaneLoadTests(unittest.TestCase):
         self.assertEqual(pl.cpu_meter(51), "51% █▉█▉▏")
         self.assertEqual(pl.cpu_meter(100), "100% █▉█▉█▉██")
         self.assertEqual(pl.cpu_meter(101), "101% █▉█▉█▉█▋▏")
-        self.assertEqual(pl.workspace_cpu_meter(100), "100% ████")
-        self.assertEqual(pl.workspace_cpu_meter(101), "101% ███▉▏")
-        self.assertEqual(pl.workspace_cpu_meter(238), "238% ███▉███▉█▌")
+        self.assertEqual(pl.workspace_cpu_meter(100), "100% ██")
+        self.assertEqual(pl.workspace_cpu_meter(101), "101% █▉▏")
+        self.assertEqual(pl.workspace_cpu_meter(238), "238% █▉█▉▊")
 
     def test_scaled_cpu_bar_marks_only_internal_boundaries(self):
         self.assertEqual(pl.scaled_cpu_bar(25, 8, quarter_ticks=True), "██")
@@ -492,11 +492,11 @@ class PaneLoadTests(unittest.TestCase):
         self.assertEqual(params, {
             "workspace_id": "w1", "source": pl.SOURCE,
             "tokens": {
-                "cpu": "125% ███▉█",
+                "cpu": "125% █▉▌",
                 "cpu_idle": None,
                 "cpu_cool": None,
                 "cpu_active": None,
-                "cpu_warm": "125% ███▉█",
+                "cpu_warm": "125% █▉▌",
                 "cpu_hot": None,
                 "cpu_very_hot": None,
                 "memory": "1.5GB",
