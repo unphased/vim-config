@@ -238,10 +238,10 @@ class PaneLoadTests(unittest.TestCase):
 
     def test_cpu_meters_use_pane_and_workspace_scales(self):
         self.assertEqual(pl.cpu_meter(0), "0%")
-        self.assertEqual(pl.cpu_meter(25), "25% ██████")
-        self.assertEqual(pl.cpu_meter(51), "51% █████▉█████▉▎")
-        self.assertEqual(pl.cpu_meter(100), "100% █████▉█████▉█████▉██████")
-        self.assertEqual(pl.cpu_meter(101), "101% █████▉█████▉█████▉█████▋▎")
+        self.assertEqual(pl.cpu_meter(25), "25% ██")
+        self.assertEqual(pl.cpu_meter(51), "51% █▉█▉▏")
+        self.assertEqual(pl.cpu_meter(100), "100% █▉█▉█▉██")
+        self.assertEqual(pl.cpu_meter(101), "101% █▉█▉█▉█▋▏")
         self.assertEqual(pl.workspace_cpu_meter(100), "100% ████")
         self.assertEqual(pl.workspace_cpu_meter(101), "101% ███▉▏")
         self.assertEqual(pl.workspace_cpu_meter(238), "238% ███▉███▉█▌")
@@ -447,7 +447,7 @@ class PaneLoadTests(unittest.TestCase):
         self.assertEqual(params["tokens"], {
             "cpu": "25", "cpu_tree": "zsh", "memory": "640MB",
         })
-        self.assertEqual(params["title"], "25% ██████ 640MB zsh")
+        self.assertEqual(params["title"], "25% ██ 640MB zsh")
         self.assertNotIn("display_agent", params)
         self.assertNotIn("agent", params)
         self.assertNotIn("state", params)
