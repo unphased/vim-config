@@ -418,7 +418,7 @@ def format_cpu_meter(percent: float, cells_per_hundred: int,
 
 def cpu_meter(percent: float) -> str:
     """Render the high-resolution pane CPU meter."""
-    return format_cpu_meter(percent, 24, quarter_ticks=True, hundred_tick_eighths=5)
+    return format_cpu_meter(percent, 8, quarter_ticks=True, hundred_tick_eighths=5)
 
 
 def pane_title(percent: float, memory: str, tree: str) -> str:

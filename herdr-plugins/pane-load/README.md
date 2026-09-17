@@ -52,10 +52,11 @@ subsequent server startup launches a new worker. Hooks do not supervise crashes.
 The sampler **owns the metadata pane title** for every pane, including ordinary
 shells. It contains the numeric CPU percentage, an unbounded bar, aggregate RSS,
 and the compact process topology separated by whitespace rather than a divider.
-Each process entry shows CPU and RSS bars relative to the pane totals. Pane CPU meters use
-24 cells per 100% (about 0.52% per fractional eighth), with six-cell
-25% sections separated by thin `▉` internal ticks and salient `▋` internal
-hundred ticks. Exact endpoints remain full blocks. The CPU percentage and
+Each process entry shows CPU and RSS bars relative to the pane totals. Pane CPU
+meters use the same eight cells per 100% as process CPU bars (about 1.56% per
+fractional eighth), with two-cell 25% sections separated by thin `▉` internal
+ticks and salient `▋` internal hundred ticks. Exact endpoints remain full
+blocks. The CPU percentage and
 unbounded bar come first, followed by memory and the process tree. The plugin
 no longer pre-truncates the title. Herdr's renderer clips it to the live pane
 width minus four cells and adds an ellipsis, but Herdr 0.9 first normalizes
