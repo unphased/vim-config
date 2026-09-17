@@ -12,3 +12,4 @@ mthesaur.txt
 .env
 .nvimlog
 ghostty.platform.conf
+herdr-plugins/pane-load/target/
