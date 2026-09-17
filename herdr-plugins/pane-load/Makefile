@@ -1,10 +1,12 @@
-PYTHON ?= python3
-
 .PHONY: all test smoke
+
 all: test
 
 test:
-	$(PYTHON) test_pane_load.py
+	cargo fmt -- --check
+	cargo clippy --all-targets -- -D warnings
+	cargo test
 
 smoke:
-	$(PYTHON) smoke.py
+	cargo build --quiet --release
+	python3 smoke.py

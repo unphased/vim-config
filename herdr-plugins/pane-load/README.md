@@ -1,10 +1,10 @@
 # Herdr Pane Load
 
-`local.pane-load` is a macOS-only, resident Herdr plugin. One worker is shared per
-Herdr server socket. It samples process CPU and resident memory through macOS
-`libproc`, then reports a short-lived pane title plus `$cpu`, `$cpu_tree`, and
-`$memory` pane tokens. The same sample is summed across every pane in each
-workspace and published in the workspace sidebar.
+`local.pane-load` is a macOS-only, resident Rust Herdr plugin. One detached
+Rust worker is shared per Herdr server socket. It samples process CPU and
+resident memory through macOS `libproc`, then reports a short-lived pane title
+plus `$cpu`, `$cpu_tree`, and `$memory` pane tokens. The same sample is summed
+across every pane in each workspace and published in the workspace sidebar.
 
 ```mermaid
 flowchart LR
@@ -30,6 +30,14 @@ links every tracked local plugin):
 herdr plugin link ~/.vim/herdr-plugins/pane-load
 # or: make -C ~/.vim bootstrap-herdr
 herdr plugin action invoke local.pane-load.start
+```
+
+The manifest invokes `cargo run --quiet --release`; the short-lived Cargo
+launcher starts the compiled binary, which then spawns the detached resident
+worker and exits. For a local build and unit tests:
+
+```bash
+make -C ~/.vim/herdr-plugins/pane-load test
 ```
 
 Linking and enabling do **not** start it. The manifest startup hook starts it on
@@ -149,4 +157,7 @@ add-zsh-hook -d precmd __herdr_report_shell_process_title
 add-zsh-hook -d preexec __herdr_clear_shell_process_title_for_pi
 ```
 
-No tmux integration, third-party Python dependencies, or Linux backend is included.
+Runtime has no Python dependency: the worker uses Rust `std`, direct Unix
+socket I/O, and native macOS FFI, with only `libc`, `serde_json`, and `sha2`
+dependencies. SHA-256 preserves the prior worker's lock and control paths for
+race-free upgrades. No tmux integration or Linux backend is included.

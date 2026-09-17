@@ -6,7 +6,7 @@ description = "macOS pane CPU, memory, and process-chain metadata"
 platforms = ["macos"]
 
 [[startup]]
-command = ["python3", "pane_load.py", "start"]
+command = ["cargo", "run", "--quiet", "--release", "--", "start"]
 platforms = ["macos"]
 
 [[actions]]
@@ -14,11 +14,11 @@ id = "start"
 title = "Start pane load sampler"
 contexts = ["global"]
 platforms = ["macos"]
-command = ["python3", "pane_load.py", "start"]
+command = ["cargo", "run", "--quiet", "--release", "--", "start"]
 
 [[actions]]
 id = "stop"
 title = "Stop pane load sampler"
 contexts = ["global"]
 platforms = ["macos"]
-command = ["python3", "pane_load.py", "stop"]
+command = ["cargo", "run", "--quiet", "--release", "--", "stop"]

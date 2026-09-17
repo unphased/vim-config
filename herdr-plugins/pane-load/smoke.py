@@ -6,8 +6,7 @@ import shlex
 import subprocess
 import sys
 import time
-
-from pane_load import pane_title
+from pathlib import Path
 
 
 def herdr(*args):
@@ -32,6 +31,22 @@ def wait_workspace_cpu(workspace, predicate, description):
     raise AssertionError(f'timed out waiting for workspace CPU {description}: {last}')
 
 
+def normalize_herdr_title(title):
+    """Match Herdr 0.9's metadata presentation limit (Unicode characters)."""
+    return title[:80]
+
+
+def rust_pane_title(tokens):
+    binary = os.environ.get(
+        'PANE_LOAD_BIN_PATH',
+        str(Path(__file__).resolve().parent / 'target' / 'release' / 'pane-load'),
+    )
+    return subprocess.check_output([
+        binary, 'format-title', str(tokens.get('cpu', 0)),
+        tokens.get('memory') or '', tokens.get('cpu_tree') or '',
+    ], timeout=5).decode().strip()
+
+
 def wait_tokens(pane, predicate):
     deadline = time.monotonic() + 25
     last = {}
@@ -41,8 +56,7 @@ def wait_tokens(pane, predicate):
         if tokens != last:
             print('sample:', tokens, flush=True)
         last = tokens
-        expected = pane_title(float(tokens.get('cpu', 0)), tokens.get('memory'),
-                              tokens.get('cpu_tree'))
+        expected = normalize_herdr_title(rust_pane_title(tokens))
         if predicate(last) and info.get('title') == expected:
             print('pane title:', info['title'], flush=True)
             return last
