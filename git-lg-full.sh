@@ -62,7 +62,7 @@ run_log() {
 
 if [[ -t 1 ]] && command -v less >/dev/null 2>&1; then
   set +e
-  run_log | LESS='-FRS' less -R
+  run_log "$@" | LESS='-FRS' less -R
   pipeline_status=("${PIPESTATUS[@]}")
   set -e
 
@@ -75,5 +75,5 @@ if [[ -t 1 ]] && command -v less >/dev/null 2>&1; then
     exit "${pipeline_status[0]}"
   fi
 else
-  run_log
+  run_log "$@"
 fi

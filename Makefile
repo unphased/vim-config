@@ -11,10 +11,11 @@ test:
 	sh -n herdr-focus.sh herdr-session-context.sh ssh-server-security-check.sh ghostty-quickdash.sh ghostty-quickdash-ssh-log.sh ghostty-quickdash-ssh-active.sh herdr-plugins/copy-pane-id/move-pane-new-workspace.sh herdr-plugins/move-pane-new-tab/move-pane-new-tab.sh
 	bash -n herdr-claude-statusline.sh test-herdr-claude-statusline.sh
 	sh -n linux-vt-install.sh linux-vt-startup.sh linux-vt-font-select.sh test-linux-vt.sh
-	bash -n git-lg-full.sh test-herdr-copy-pane-id-plugin.sh test-herdr-focus.sh test-herdr-move-pane-new-tab-plugin.sh test-herdr-plugin-install.sh test-herdr-session-context.sh herdr-plugins/install.sh
+	bash -n git-lg-full.sh test-git-lg-full.sh test-herdr-copy-pane-id-plugin.sh test-herdr-focus.sh test-herdr-move-pane-new-tab-plugin.sh test-herdr-plugin-install.sh test-herdr-session-context.sh herdr-plugins/install.sh
 	./test-linux-vt.sh
 	zsh test-herdr-machine-background.zsh
 	zsh test-nvim-bgcolor-hook.zsh
+	./test-git-lg-full.sh
 	./test-herdr-copy-pane-id-plugin.sh
 	./test-herdr-focus.sh
 	./test-herdr-move-pane-new-tab-plugin.sh
