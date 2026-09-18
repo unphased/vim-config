@@ -273,7 +273,7 @@ __git_lgtn_view() {
         log_opts+=("$arg")
         ;;
       *)
-        if [[ -e "$arg" || "$arg" == "." || "$arg" == ".." || "$arg" == ./* || "$arg" == ../* || "$arg" == */* ]]; then
+        if [[ -e "$arg" || "$arg" == "." || "$arg" == ".." || "$arg" == ./* || "$arg" == ../* ]]; then
           paths+=("$arg")
         else
           revs+=("$arg")
@@ -284,7 +284,12 @@ __git_lgtn_view() {
 
   cmd=(git lgtn)
   [[ "$include_notes_dag" == true ]] && cmd+=(--include-notes-dag)
-  cmd+=("${log_opts[@]}" --all "${revs[@]}")
+  cmd+=("${log_opts[@]}")
+  if [[ ${#revs[@]} -gt 0 ]]; then
+    cmd+=("${revs[@]}")
+  else
+    cmd+=(--all)
+  fi
   if [[ ${#paths[@]} -gt 0 ]]; then
     cmd+=(-- "${paths[@]}")
   fi
