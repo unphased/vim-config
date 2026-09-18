@@ -16,6 +16,9 @@ end
 
 function M.publish()
   if not record_path or vim.v.servername == '' then return end
+  -- Neovide sets up its GUI after Neovim starts. Headless helpers or failed
+  -- embed handshakes must not masquerade as editors in their inherited pane.
+  if #vim.api.nvim_list_uis() == 0 then M.remove(); return end
   local name = vim.bo.buftype == '' and vim.api.nvim_buf_get_name(0) or ''
   local data = {
     version = 1,
@@ -63,7 +66,7 @@ function M.setup()
   if vim.v.servername == '' then vim.fn.serverstart() end
   record_path = dir .. '/' .. vim.fn.getpid() .. '.json'
   local group = vim.api.nvim_create_augroup('RevealLocationRegistry', {clear = true})
-  vim.api.nvim_create_autocmd({'BufEnter', 'DirChanged', 'VimEnter'}, {
+  vim.api.nvim_create_autocmd({'BufEnter', 'DirChanged', 'VimEnter', 'UIEnter', 'UILeave'}, {
     group = group, callback = M.publish,
   })
   vim.api.nvim_create_autocmd('FocusGained', {

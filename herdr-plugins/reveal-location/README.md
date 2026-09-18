@@ -38,11 +38,11 @@ Use Pi `/reload` to load the file-links extension. It transforms assistant Markd
 - `file:///absolute/path#L42C7` or `#L42` opens a one-based line/byte-column. This fragment is our convention, not an OS standard. Out-of-range positions are clamped by Neovim.
 - Legacy local `file://HOST/path:42:7` and `path:42` arguments are supported by the helper. URI paths must be percent-encoded. Literal existing filenames win over ambiguous numeric suffixes.
 - Foreign hosts, missing files, unsupported fragments, control characters, and special files are rejected. No automatic SSH or project-wide searching.
-- Text/source files prefer a live editor already on the file, then the deepest matching CWD, then focus/update recency. PID and RPC identity are checked; stale candidates are skipped.
+- Text/source files prefer a live editor already on the file, then the deepest matching CWD, then focus/update recency. PID, attached UI, and RPC identity are checked. The best validated candidate stops the search; stale candidates are skipped. A higher-ranked live editor that times out aborts with an error instead of opening duplicates.
 - Modified buffers are preserved. Navigation uses structured data through Neovim RPC, never shell-evaluated paths.
 - Neovide uses `NeovideFocus`. Terminal editors use their registered Herdr socket/pane or tmux pane. With no suitable editor, Neovide is launched. Directories/nontext files are revealed in Finder on macOS; Linux opens the directory or the file's parent. The helper does not launch linked applications/executables via file associations.
 
-The registry is `${XDG_STATE_HOME:-~/.local/state}/reveal-location/editors/<pid>.json`, atomically maintained by each editor. Neovide ignores inherited Herdr/tmux variables. The old `nvim-in-tmux.state` is no longer consumed. An editor with both terminal environments is treated as Herdr-hosted; nested-tmux navigation is not yet modeled. Herdr pane focus does not promise to foreground another outer-terminal window/client.
+The registry is `${XDG_STATE_HOME:-~/.local/state}/reveal-location/editors/<pid>.json`, atomically maintained by each UI-attached editor. Headless helpers and incomplete GUI startup handshakes do not register. Neovide ignores inherited Herdr/tmux variables. The old `nvim-in-tmux.state` is no longer consumed. An editor with both terminal environments is treated as Herdr-hosted; nested-tmux navigation is not yet modeled. Herdr pane focus does not promise to foreground another outer-terminal window/client.
 
 Every helper request appends a private JSONL trace to `${XDG_STATE_HOME:-~/.local/state}/reveal-location/reveal.log`: incoming target, clicked-pane identity, editor selection, action, outcome, and duration. Dry runs are marked in every record. Logging is best-effort and does not affect navigation; the log is append-only and may be cleared when desired.
 
@@ -56,7 +56,7 @@ tail -f ~/.local/state/reveal-location/reveal.log
 
 `--dry-run` may perform read-only editor probes but does not navigate, focus, or launch anything.
 
-If Control-click produces no new helper entry and no Herdr plugin entry, dispatch never reached the helper. A URL printed in parentheses next to a styled label is Pi's **non-OSC8 fallback**, not a working OSC8 link. Reload the updated file-links extension and check again. If the log reports `launch-neovide` instead of `navigate`, no matching responsive registered editor was found; publish from the desired existing editor with the setup command above.
+If Control-click produces no new helper entry and no Herdr plugin entry, dispatch never reached the helper. A URL printed in parentheses next to a styled label is Pi's **non-OSC8 fallback**, not a working OSC8 link. Reload the updated file-links extension and check again. If the log reports `launch-neovide` instead of `navigate`, no suitable registered editor was found; publish from the desired existing editor with the setup command above. A hit-Enter or confirmation prompt can block normal RPC: dismiss it in that editor before setup or retrying. Probe timings/reasons are included in the `selection` log entry. `launch-neovide` success confirms process creation only, not GUI readiness.
 
 ## Validation
 
