@@ -44,14 +44,19 @@ Use Pi `/reload` to load the file-links extension. It transforms assistant Markd
 
 The registry is `${XDG_STATE_HOME:-~/.local/state}/reveal-location/editors/<pid>.json`, atomically maintained by each editor. Neovide ignores inherited Herdr/tmux variables. The old `nvim-in-tmux.state` is no longer consumed. An editor with both terminal environments is treated as Herdr-hosted; nested-tmux navigation is not yet modeled. Herdr pane focus does not promise to foreground another outer-terminal window/client.
 
-Failed reveals are written to the plugin log and request a Herdr notification. Inspect with:
+Every helper request appends a private JSONL trace to `${XDG_STATE_HOME:-~/.local/state}/reveal-location/reveal.log`: incoming target, clicked-pane identity, editor selection, action, outcome, and duration. Dry runs are marked in every record. Logging is best-effort and does not affect navigation; the log is append-only and may be cleared when desired.
+
+Failed reveals also appear in Herdr's plugin log and request a notification. Inspect with:
 
 ```sh
 herdr plugin log list --plugin local.reveal-location
+tail -f ~/.local/state/reveal-location/reveal.log
 ~/util/reveal-location --dry-run -- 'file:///absolute/path#L42'
 ```
 
 `--dry-run` may perform read-only editor probes but does not navigate, focus, or launch anything.
+
+If Control-click produces no new helper entry and no Herdr plugin entry, dispatch never reached the helper. A URL printed in parentheses next to a styled label is Pi's **non-OSC8 fallback**, not a working OSC8 link. Reload the updated file-links extension and check again. If the log reports `launch-neovide` instead of `navigate`, no matching responsive registered editor was found; publish from the desired existing editor with the setup command above.
 
 ## Validation
 
