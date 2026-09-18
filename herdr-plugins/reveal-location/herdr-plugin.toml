@@ -1,0 +1,19 @@
+id = "local.reveal-location"
+name = "Reveal file location"
+version = "0.1.0"
+min_herdr_version = "0.9.0"
+description = "Open local OSC8 file links in an existing editor"
+platforms = ["macos", "linux"]
+
+[[actions]]
+id = "reveal"
+title = "Reveal file location"
+# Link-only action: do not offer a pane-menu item without a clicked URL.
+contexts = []
+command = ["sh", "reveal-location.sh"]
+
+[[link_handlers]]
+id = "files"
+title = "Reveal local file"
+pattern = "(?i)^file://"
+action = "reveal"

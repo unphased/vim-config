@@ -19,6 +19,8 @@ test:
 	./test-herdr-move-pane-new-tab-plugin.sh
 	./test-herdr-plugin-install.sh
 	./test-herdr-session-context.sh
+	sh test-herdr-reveal-location.sh
+	sh test-nvim-reveal.sh
 	$(MAKE) -C herdr-plugins/pane-load test
 
 bootstrap-herdr: install-herdr-plugins

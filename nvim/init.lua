@@ -2703,21 +2703,9 @@ local function getAllBufferPaths()
     return paths
 end
 
-local function nvim_state_update(ev)
-  vim.schedule(function()
-    local cmd = {vim.env.HOME .. "/util/nvim-update-win.sh", tostring(vim.fn.getpid()), vim.v.servername, vim.fn.getcwd(), ev.file, ev.event, vim.g.neovide}
-    local ret = vim.fn.system(cmd)
-    -- log(ev, cmd, 'nvim-update-win.sh -->', ret)
-  end)
-end
-
--- add BufEnter again... track the current buffer file
-vim.api.nvim_create_autocmd({"VimResized"}, {
-  callback = debounce(nvim_state_update, 400)
-})
-vim.api.nvim_create_autocmd({"VimLeavePre", "BufEnter"}, {
-  callback = nvim_state_update
-})
+-- Publish neutral editor identity for file-link reveal; interaction logging below
+-- remains independent. Herdr, Alacritty, and Neovide use the same registry.
+require('config.reveal').setup()
 
 _G.last_known_saved_content = {}
 _G.insert_mode_start_content = {}
