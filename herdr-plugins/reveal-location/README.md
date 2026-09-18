@@ -1,6 +1,6 @@
 # Present-state file reveal
 
-Control-click an OSC8 `file://` link in Herdr to navigate a suitable Neovim/Neovide. The plugin accepts links from **any** producer; it does not detect raw `src/foo.ts:42` text. No Ghostty patch or OS URL registration is needed.
+Control-click an OSC8 `file://` link in Herdr to reuse a project Neovim in the **clicked workspace**, or open Neovim in a new side-by-side split from the clicked pane. The plugin accepts links from **any** producer; it does not detect raw `src/foo.ts:42` text. No Ghostty patch or OS URL registration is needed.
 
 ```mermaid
 flowchart LR
@@ -8,8 +8,9 @@ flowchart LR
   A[Other OSC8 producers] --> O
   O --> H[Herdr Control-click]
   H --> R[~/util/reveal-location]
-  N[Neovim JSON registry] --> R
-  R --> E[RPC open + reveal editor]
+  N[Workspace-scoped Neovim registry] --> R
+  R -->|matching editor, any tab| E[RPC open + focus pane]
+  R -->|no matching editor| S[Right-hand split + Neovim]
 ```
 
 ## Install and use
@@ -38,9 +39,11 @@ Use Pi `/reload` to load the file-links extension. It transforms assistant Markd
 - `file:///absolute/path#L42C7` or `#L42` opens a one-based line/byte-column. This fragment is our convention, not an OS standard. Out-of-range positions are clamped by Neovim.
 - Legacy local `file://HOST/path:42:7` and `path:42` arguments are supported by the helper. URI paths must be percent-encoded. Literal existing filenames win over ambiguous numeric suffixes.
 - Foreign hosts, missing files, unsupported fragments, control characters, and special files are rejected. No automatic SSH or project-wide searching.
-- Text/source files prefer a live editor already on the file, then the deepest matching CWD, then focus/update recency. PID, attached UI, and RPC identity are checked. The best validated candidate stops the search; stale candidates are skipped. A higher-ranked live editor that times out aborts with an error instead of opening duplicates.
+- Text/source files use only registered terminal Neovims on the clicked Herdr server **in that workspace**, across all its tabs. Neovide and other workspaces are excluded. Exact current file wins; otherwise match the same Git/worktree root (including sibling CWDs), then CWD depth and recency. Without Git, use ancestor-CWD matching. PID, attached UI, and RPC identity are checked. A higher-ranked live editor that times out aborts with an error instead of opening duplicates.
 - Modified buffers are preserved. Navigation uses structured data through Neovim RPC, never shell-evaluated paths.
-- Neovide uses `NeovideFocus`. Terminal editors use their registered Herdr socket/pane or tmux pane. With no suitable editor, Neovide is launched. Directories/nontext files are revealed in Finder on macOS; Linux opens the directory or the file's parent. The helper does not launch linked applications/executables via file associations.
+- No matching workspace editor: create a right-hand split relative to the **clicked** pane, set its CWD to the target's Git/worktree root (or parent directory), launch configured Neovim directly, and focus it. No shell input is injected into the source pane. The next link can reuse this editor.
+- Explicit `~/util/reveal-location --neovide -- 'file:///absolute/path#L42'` retains GUI selection and `NeovideFocus`. Outside Herdr, the helper retains global editor selection and Neovide fallback.
+- Directories/nontext files are revealed in Finder on macOS; Linux opens the directory or the file's parent. The helper does not launch linked applications/executables via file associations.
 
 The registry is `${XDG_STATE_HOME:-~/.local/state}/reveal-location/editors/<pid>.json`, atomically maintained by each UI-attached editor. Headless helpers and incomplete GUI startup handshakes do not register. Neovide ignores inherited Herdr/tmux variables. The old `nvim-in-tmux.state` is no longer consumed. An editor with both terminal environments is treated as Herdr-hosted; nested-tmux navigation is not yet modeled. Herdr pane focus does not promise to foreground another outer-terminal window/client.
 
@@ -56,10 +59,10 @@ tail -f ~/.local/state/reveal-location/reveal.log
 
 `--dry-run` may perform read-only editor probes but does not navigate, focus, or launch anything.
 
-If Control-click produces no new helper entry and no Herdr plugin entry, dispatch never reached the helper. A URL printed in parentheses next to a styled label is Pi's **non-OSC8 fallback**, not a working OSC8 link. Reload the updated file-links extension and check again. If the log reports `launch-neovide` instead of `navigate`, no suitable registered editor was found; publish from the desired existing editor with the setup command above. A hit-Enter or confirmation prompt can block normal RPC: dismiss it in that editor before setup or retrying. Probe timings/reasons are included in the `selection` log entry. `launch-neovide` success confirms process creation only, not GUI readiness.
+If Control-click produces no new helper entry and no Herdr plugin entry, dispatch never reached the helper. A URL printed in parentheses next to a styled label is Pi's **non-OSC8 fallback**, not a working OSC8 link. Reload the updated file-links extension and check again. Herdr clicks log `navigate` for reuse or `split-herdr` for creation, including source/workspace and created-pane identity. `launch-neovide` is reserved for outside-Herdr or explicit GUI mode. To make an already-running terminal editor eligible, publish from it with the setup command above. A hit-Enter or confirmation prompt can block normal RPC: dismiss it in that editor before setup or retrying. Probe timings/reasons are included in the `selection` log entry. `launch-neovide` success confirms process creation only, not GUI readiness.
 
 ## Validation
 
 `make -C ~/.vim test` tests publication, lifecycle/container precedence, adapter argv safety, and error notifications. `make -C ~/util test-reveal` includes disposable headless Neovim RPC tests. Pi's suite tests Markdown conversion and actual renderer OSC8 output.
 
-A separate disposable Herdr session was exercised with the real Pi extension and a minimal-config Neovim: observed OSC8 → `pane.link.activate` → production plugin/helper → exact line/column → editor-pane focus. A plain shell's OSC8 `file://...#L2` also passed. No existing editor buffers were changed during the smoke test. GUI Control-click transport was previously verified in `spikes/terminal-links/`; the production smoke uses that same Herdr activation API without stealing window focus.
+Disposable Herdr sessions exercised the real Pi extension and plain-shell OSC8 links through `pane.link.activate` → production plugin/helper → exact line/column. The workspace-policy smoke additionally verified: a matching editor in another workspace is ignored; clicking an unfocused source creates and focuses a local split; the second click reuses it without another split; and moving the editor to another tab in the same workspace still permits reuse. No existing editor buffers were changed during the smoke test. GUI Control-click transport was previously verified in `spikes/terminal-links/`; the production smoke uses that same Herdr activation API without stealing window focus.

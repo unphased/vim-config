@@ -1,8 +1,8 @@
 id = "local.reveal-location"
 name = "Reveal file location"
-version = "0.1.0"
+version = "0.2.0"
 min_herdr_version = "0.9.0"
-description = "Open local OSC8 file links in an existing editor"
+description = "Reveal file links in a workspace Neovim or a new split"
 platforms = ["macos", "linux"]
 
 [[actions]]
@@ -17,3 +17,9 @@ id = "files"
 title = "Reveal local file"
 pattern = "(?i)^file://"
 action = "reveal"
+
+[[panes]]
+id = "editor"
+title = "File editor"
+placement = "split"
+command = ["./open-editor.sh"]

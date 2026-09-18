@@ -13,6 +13,12 @@ sh "$root/herdr-plugins/reveal-location/reveal-location.sh"
 printf '%s\n' -- "$HERDR_PLUGIN_CLICKED_URL" > "$tmp/expected"
 cmp "$tmp/args" "$tmp/expected"
 test ! -e "$tmp/notice"
+REVEAL_LOCATION_TARGET="$HERDR_PLUGIN_CLICKED_URL" sh "$root/herdr-plugins/reveal-location/open-editor.sh"
+printf '%s\n' --editor -- "$HERDR_PLUGIN_CLICKED_URL" > "$tmp/editor-expected"
+cmp "$tmp/args" "$tmp/editor-expected"
+if env -u REVEAL_LOCATION_TARGET sh "$root/herdr-plugins/reveal-location/open-editor.sh" 2>/dev/null; then
+  echo 'editor pane without target must fail' >&2; exit 1
+fi
 printf '%s\n' '#!/bin/sh' 'echo "foreign host rejected" >&2' 'exit 2' > "$tmp/handler"
 if sh "$root/herdr-plugins/reveal-location/reveal-location.sh" 2>"$tmp/errors"; then
   echo 'expected failure to propagate' >&2; exit 1
