@@ -39,8 +39,9 @@ pi = [
     { token = "$session_tokens_active", fg = "#89b4fa", dim = false },
     { token = "$session_tokens_warn", fg = "#f9e2af", bold = true, dim = false },
     { token = "$session_tokens_long", fg = "#f38ba8", dim = false },
-    { token = "$session_tokens_very_long", fg = "#f38ba8", bold = true, dim = false },
     { token = "$session_tokens_extreme", fg = "#cba6f7", bold = true, dim = false },
+    # Fallback for Pi sessions that have not reloaded the metadata extension yet.
+    { token = "$session_tokens", fg = "#cba6f7", dim = false },
   ],
 ]
 
