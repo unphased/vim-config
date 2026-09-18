@@ -7,6 +7,11 @@ local function record()
   return vim.json.decode(table.concat(vim.fn.readfile(record_path), '\n'))
 end
 reveal.setup()
+assert(vim.uv.fs_stat(record_path) == nil, 'unattached/headless startup must not publish an editor')
+-- This headless unit test models attachment; the RPC smoke covers a real TUI.
+local list_uis = vim.api.nvim_list_uis
+vim.api.nvim_list_uis = function() return {{chan=1}} end
+vim.api.nvim_exec_autocmds('UIEnter', {})
 local first = record()
 assert(first.version == 1 and first.pid == vim.fn.getpid())
 assert(first.socket == vim.v.servername and first.socket ~= '')
@@ -36,7 +41,9 @@ vim.env.HERDR_ENV = nil
 reveal.publish()
 local tmux = record()
 assert(tmux.tmux_socket == '/tmp/reveal-test-tmux.sock' and tmux.tmux_pane_id == '%777')
+vim.api.nvim_list_uis = list_uis
+vim.api.nvim_exec_autocmds('UILeave', {})
+assert(vim.uv.fs_stat(record_path) == nil, 'detached editors must leave the registry')
 reveal.remove()
-assert(vim.uv.fs_stat(record_path) == nil)
 print('PASS: reveal registry lifecycle, JSON paths, container precedence, and focus timestamps')
 vim.cmd('qa!')
