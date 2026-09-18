@@ -31,7 +31,7 @@ Herdr configuration and local plugin sources are tracked here:
 flowchart LR
     Config[~/.vim/herdr.toml] -->|symlink| Runtime[~/.config/herdr/config.toml]
     Plugins[~/.vim/herdr-plugins/] -->|make bootstrap-herdr| Registry[~/.config/herdr/plugins.json]
-    Claude[Claude statusLine JSON] --> Reporter[~/.vim/herdr-claude-statusline.sh] --> Runtime
+    Claude[Claude statusLine JSON] --> Reporter[~/util/pi/claude/herdr-claude-statusline.sh] --> Runtime
 ```
 
 `plugins.json` is Herdr-generated registry state containing machine-specific
@@ -48,23 +48,10 @@ Herdr does not watch plugin manifests, so rerun that command after adding or
 changing one. Changes to linked implementation scripts apply on their next
 invocation.
 
-Claude Code can publish its model, context pressure, and cumulative session
-tokens to Herdr while preserving the existing statusline renderer. Set its
-`statusLine.command` in the profile actually used to launch Claude, such as
-`~/.claude/settings.json` or `~/.claude-work2/settings.json` when using
-`claude-account work2`:
-
-```json
-{
-  "statusLine": {
-    "type": "command",
-    "command": "bash ~/.vim/herdr-claude-statusline.sh"
-  }
-}
-```
-
-The wrapper delegates display rendering to `~/.claude/statusline-command.sh`.
-Override that command with `CLAUDE_STATUSLINE_DELEGATE` when needed.
+Claude Code publishes its model, context pressure, and cumulative session
+tokens through the canonical harness in `~/util/pi/claude`. Run
+`~/util/manage-skill-symlinks.sh install` to apply that setup, including
+Herdr's profile-local hook, to every discovered Claude account directory.
 
 Linux virtual terminal customization is tracked here too:
 
