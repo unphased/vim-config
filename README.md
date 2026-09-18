@@ -50,7 +50,9 @@ invocation.
 
 Claude Code can publish its model, context pressure, and cumulative session
 tokens to Herdr while preserving the existing statusline renderer. Set its
-`statusLine.command` in `~/.claude/settings.json` to:
+`statusLine.command` in the profile actually used to launch Claude, such as
+`~/.claude/settings.json` or `~/.claude-work2/settings.json` when using
+`claude-account work2`:
 
 ```json
 {
