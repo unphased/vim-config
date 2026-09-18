@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-repo=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+repo=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/herdr-claude-statusline.XXXXXX")
 trap 'rm -rf "$tmp"' EXIT
 
@@ -47,6 +47,7 @@ HERDR_ENV=1 \
 HERDR_PANE_ID=w:test \
 HERDR_SOCKET_PATH="$tmp/herdr.sock" \
 HERDR_TEST_ARGS="$tmp/herdr.args" \
+HERDR_CLAUDE_CACHE_DIR="$tmp/cache" \
 PATH="$tmp/bin:$PATH" \
   "$repo/herdr-claude-statusline.sh" --report-only <"$tmp/status.json"
 
@@ -66,6 +67,31 @@ assert_arg 'session_tokens_warn'
 assert_arg 'session_tokens_long'
 assert_arg 'session_tokens_extreme'
 assert_no_arg 'session_tokens_healthy=?'
+
+cat >"$tmp/status-empty.json" <<'JSON'
+{
+  "model": {"display_name": "Opus 5 (1M context)"},
+  "effort": {"level": "high"},
+  "context_window": {"context_window_size": 1000000}
+}
+JSON
+HERDR_ENV=1 \
+HERDR_PANE_ID=w:test \
+HERDR_SOCKET_PATH="$tmp/herdr.sock" \
+HERDR_TEST_ARGS="$tmp/herdr.args" \
+HERDR_CLAUDE_CACHE_DIR="$tmp/cache" \
+PATH="$tmp/bin:$PATH" \
+  "$repo/herdr-claude-statusline.sh" --report-only <"$tmp/status-empty.json"
+assert_arg 'context_ok=?/1M'
+assert_no_arg 'context_error=1000000%/?'
+assert_arg 'session_tokens_healthy'
+assert_arg 'session_tokens_active'
+assert_arg 'session_tokens_warn'
+assert_arg 'session_tokens_long'
+assert_arg 'session_tokens_extreme'
+if grep -E '^session_tokens_[^=]+=' "$tmp/herdr.args" >/dev/null; then
+  fail 'missing transcript retained a session-token value'
+fi
 
 cat >"$tmp/delegate.sh" <<'SH'
 #!/bin/sh

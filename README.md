@@ -31,6 +31,7 @@ Herdr configuration and local plugin sources are tracked here:
 flowchart LR
     Config[~/.vim/herdr.toml] -->|symlink| Runtime[~/.config/herdr/config.toml]
     Plugins[~/.vim/herdr-plugins/] -->|make bootstrap-herdr| Registry[~/.config/herdr/plugins.json]
+    Claude[Claude statusLine JSON] --> Reporter[~/.vim/herdr-claude-statusline.sh] --> Runtime
 ```
 
 `plugins.json` is Herdr-generated registry state containing machine-specific
@@ -46,6 +47,22 @@ it is absent, and registers every tracked `herdr-plugins/*/herdr-plugin.toml`.
 Herdr does not watch plugin manifests, so rerun that command after adding or
 changing one. Changes to linked implementation scripts apply on their next
 invocation.
+
+Claude Code can publish its model, context pressure, and cumulative session
+tokens to Herdr while preserving the existing statusline renderer. Set its
+`statusLine.command` in `~/.claude/settings.json` to:
+
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "bash ~/.vim/herdr-claude-statusline.sh"
+  }
+}
+```
+
+The wrapper delegates display rendering to `~/.claude/statusline-command.sh`.
+Override that command with `CLAUDE_STATUSLINE_DELEGATE` when needed.
 
 Linux virtual terminal customization is tracked here too:
 
