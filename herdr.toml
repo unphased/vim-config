@@ -45,6 +45,9 @@ claude = [
   ["state_icon", { token = "$claude", fg = "#cba6f7", bold = true }, { token = "workspace", bold = true }, { token = "tab", dim = false }],
   [{ token = "$model", fg = "#cba6f7", dim = false }],
   [
+    { token = "$session_cost_low", fg = "#a6e3a1", dim = false },
+    { token = "$session_cost_moderate", fg = "#f9e2af", dim = false },
+    { token = "$session_cost_high", fg = "#f38ba8", bold = true, dim = false },
     { token = "$context_ok", fg = "#a6e3a1", dim = false },
     { token = "$context_warn", fg = "#f9e2af", bold = true, dim = false },
     { token = "$context_error", fg = "#f38ba8", bold = true, dim = false },
