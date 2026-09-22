@@ -87,6 +87,8 @@ focus_pane_left = "prefix+h"
 focus_pane_down = "prefix+j"
 focus_pane_up = "prefix+k"
 focus_pane_right = "prefix+l"
+# Toggle to the previously focused pane, including across workspaces.
+last_pane = "ctrl+tab"
 resize_pane_left = ["alt+h"]
 resize_pane_down = "alt+j"
 resize_pane_up = "alt+k"
