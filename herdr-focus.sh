@@ -1,19 +1,33 @@
 #!/bin/sh
 
 if [ "$#" -ne 1 ]; then
-  printf 'usage: %s {left|right|up|down}\n' "$0" >&2
+  printf 'usage: %s {left|right|up|down|toggle}\n' "$0" >&2
   exit 2
 fi
 
 case "$1" in
-  left|right|up|down) ;;
+  left|right|up|down|toggle) ;;
   *)
-    printf 'usage: %s {left|right|up|down}\n' "$0" >&2
+    printf 'usage: %s {left|right|up|down|toggle}\n' "$0" >&2
     exit 2
     ;;
 esac
 
 direction=$1
+
+if [ -n "${HERDR_WORKSPACE_TOGGLE_STATE:-}" ]; then
+  state_file=$HERDR_WORKSPACE_TOGGLE_STATE
+else
+  state_key=$(printf '%s' "${HERDR_SOCKET_PATH:-default}" | cksum)
+  state_key=${state_key%% *}
+  state_file="${XDG_STATE_HOME:-$HOME/.local/state}/herdr/workspace-toggle-$state_key"
+fi
+
+save_toggle_state() {
+  mkdir -p "$(dirname "$state_file")" || return
+  printf '%s\t%s\n' "$1" "$2" >"$state_file.tmp.$$" || return
+  mv "$state_file.tmp.$$" "$state_file"
+}
 
 adjacent_target() {
   case "$2" in
@@ -86,7 +100,36 @@ context=$(herdr pane current --current) || exit
 pane=$(printf '%s' "$context" | jq -r '.result.pane.pane_id')
 tab=$(printf '%s' "$context" | jq -r '.result.pane.tab_id')
 workspace=$(printf '%s' "$context" | jq -r '.result.pane.workspace_id')
+
+remembered=
+last_controlled=
+if [ -r "$state_file" ]; then
+  IFS="$(printf '\t')" read -r remembered last_controlled <"$state_file"
+fi
+
+if [ "$direction" = toggle ]; then
+  if [ -n "$remembered" ] && [ "$remembered" != "$workspace" ]; then
+    target=$remembered
+    if herdr workspace focus "$target"; then
+      save_toggle_state "$workspace" "$target"
+    else
+      rm -f "$state_file"
+      exit 1
+    fi
+  else
+    save_toggle_state "$workspace" "$workspace"
+  fi
+  exit
+fi
+
+# A workspace change outside this helper starts a new navigation chain. Once
+# custom navigation starts, preserve its origin while it crosses workspaces.
+if [ -z "$remembered" ] || [ "$last_controlled" != "$workspace" ]; then
+  remembered=$workspace
+fi
+
 edges=$(herdr pane edges --pane "$pane") || exit
+focused_workspace=$workspace
 
 case "$direction" in
   left|right)
@@ -106,10 +149,13 @@ case "$direction" in
       workspaces=$(herdr workspace list) || exit
       target=$(printf '%s' "$workspaces" | workspace_adjacent_target "$workspace" "$direction")
       if [ -n "$target" ]; then
-        herdr workspace focus "$target"
+        herdr workspace focus "$target" || exit
+        focused_workspace=$target
       fi
     else
       herdr pane focus --pane "$pane" --direction "$direction"
     fi
     ;;
 esac
+
+save_toggle_state "$remembered" "$focused_workspace"

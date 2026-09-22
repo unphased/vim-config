@@ -48,15 +48,32 @@ run_focus() {
   HERDR_TEST_ARGS="$tmp/args" \
   HERDR_TEST_FOCUS="$tmp/focus" \
   HERDR_TEST_WORKSPACE="${2:-w-parent}" \
+  HERDR_WORKSPACE_TOGGLE_STATE="$tmp/toggle-state" \
   PATH="$tmp:$PATH" \
     "$root/herdr-focus.sh" "$1"
   cat "$tmp/focus"
 }
 
+rm -f "$tmp/toggle-state"
 [ "$(run_focus down)" = 'workspace focus w-child-a' ] || fail 'down from parent should enter its first child'
+rm -f "$tmp/toggle-state"
 [ -z "$(run_focus up)" ] || fail 'up from parent should remain at the boundary'
+rm -f "$tmp/toggle-state"
 [ "$(run_focus up w-child-a)" = 'workspace focus w-parent' ] || fail 'up from a child should return to the parent'
-[ "$(run_focus down w-child-a)" = 'workspace focus w-child-b' ] || fail 'down from a child should enter the next sibling'
+rm -f "$tmp/toggle-state"
 [ "$(run_focus down w-child-b)" = 'workspace focus w-other' ] || fail 'down from the last child should leave the project group'
 
-printf 'PASS: Herdr workspace navigation order\n'
+rm -f "$tmp/toggle-state"
+[ "$(run_focus down)" = 'workspace focus w-child-a' ] || fail 'toggle setup should enter the first child'
+[ "$(cat "$tmp/toggle-state")" = $'w-parent\tw-child-a' ] || fail 'first navigation should remember its starting workspace'
+[ "$(run_focus down w-child-a)" = 'workspace focus w-child-b' ] || fail 'continued navigation should enter the next sibling'
+[ "$(cat "$tmp/toggle-state")" = $'w-parent\tw-child-b' ] || fail 'continued navigation should preserve the remembered workspace'
+[ "$(run_focus toggle w-child-b)" = 'workspace focus w-parent' ] || fail 'toggle should return to the remembered workspace'
+[ "$(cat "$tmp/toggle-state")" = $'w-child-b\tw-parent' ] || fail 'toggle should swap current and remembered workspaces'
+[ "$(run_focus toggle w-parent)" = 'workspace focus w-child-b' ] || fail 'toggle should switch back again'
+
+printf 'w-parent\tw-parent\n' >"$tmp/toggle-state"
+[ "$(run_focus toggle w-other)" = 'workspace focus w-parent' ] || fail 'explicit workspace navigation should not clobber the toggle target'
+[ "$(cat "$tmp/toggle-state")" = $'w-other\tw-parent' ] || fail 'explicit navigation toggle should establish the new pair'
+
+printf 'PASS: Herdr workspace navigation and toggle\n'
