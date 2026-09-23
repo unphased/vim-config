@@ -15,13 +15,35 @@ cat >"$tmp/herdr" <<'MOCK'
 case "$*" in
   'pane current --current')
     pane=$(cat "$HERDR_TEST_STATE")
-    printf '{"result":{"pane":{"pane_id":"%s","tab_id":"w1:t1","workspace_id":"w1"}}}\n' "$pane"
+    tab='w1:t1'
+    [ "${HERDR_TEST_TRANSITION:-false}:$pane" != 'true:w1:p1' ] || tab='w1:t2'
+    printf '{"result":{"pane":{"pane_id":"%s","tab_id":"%s","workspace_id":"w1"}}}\n' "$pane" "$tab"
+    ;;
+  'pane get w1:p1'|'pane get w1:p2')
+    pane=${3}
+    tab='w1:t1'
+    [ "${HERDR_TEST_TRANSITION:-false}:$pane" != 'true:w1:p1' ] || tab='w1:t2'
+    printf '{"result":{"pane":{"pane_id":"%s","tab_id":"%s","workspace_id":"w1"}}}\n' "$pane" "$tab"
     ;;
   'pane layout --pane w1:p1'|'pane layout --pane w1:p2')
+    target=${4}
     pane=$(cat "$HERDR_TEST_STATE")
-    cat <<JSON
-{"result":{"layout":{"area":{"height":40,"width":100,"x":0,"y":0},"focused_pane_id":"$pane","panes":[{"pane_id":"w1:p1","rect":{"height":40,"width":60,"x":0,"y":0}},{"pane_id":"w1:p2","rect":{"height":40,"width":40,"x":60,"y":0}}],"tab_id":"w1:t1","workspace_id":"w1","zoomed":${HERDR_TEST_ZOOMED:-true}}}}
-JSON
+    tab='w1:t1'
+    if [ "${HERDR_TEST_TRANSITION:-false}" = true ]; then
+      if [ "$target" = 'w1:p1' ]; then tab='w1:t2'; else pane='w1:p2'; fi
+    fi
+    if [ "${HERDR_TEST_SINGLE:-false}" = true ]; then
+      panes='[{"pane_id":"w1:p1","rect":{"height":40,"width":100,"x":0,"y":0}}]'
+      pane='w1:p1'
+    else
+      panes='[{"pane_id":"w1:p1","rect":{"height":40,"width":60,"x":0,"y":0}},{"pane_id":"w1:p2","rect":{"height":40,"width":40,"x":60,"y":0}}]'
+    fi
+    printf '{"result":{"layout":{"area":{"height":40,"width":100,"x":0,"y":0},"focused_pane_id":"%s","panes":%s,"tab_id":"%s","workspace_id":"w1","zoomed":%s}}}\n' \
+      "$pane" "$panes" "$tab" "${HERDR_TEST_ZOOMED:-true}"
+    ;;
+  'plugin pane open --plugin local.pane-navigator --entrypoint minimap --env HERDR_NAV_PANE_ID='*)
+    printf '%s\n' "$*" >>"$HERDR_TEST_POPUPS"
+    printf '{"result":{"ok":true}}\n'
     ;;
   *)
     printf 'unexpected herdr command: %s\n' "$*" >&2
@@ -41,34 +63,59 @@ esac
 MOCK
 chmod +x "$tmp/herdr" "$tmp/focus"
 printf 'w1:p2\n' >"$tmp/state"
+: >"$tmp/directions"
+: >"$tmp/popups"
 
-printf '\014' | \
+run_navigator() {
   HERDR_BIN_PATH="$tmp/herdr" \
-  HERDR_ACTIVE_PANE_ID='w1:p2' \
   HERDR_FOCUS_HELPER="$tmp/focus" \
-  HERDR_MINIMAP_TIMEOUT=0.01 \
   HERDR_TEST_DIRECTIONS="$tmp/directions" \
+  HERDR_TEST_POPUPS="$tmp/popups" \
   HERDR_TEST_STATE="$tmp/state" \
-  python3 "$root/herdr-pane-navigator.py" left >"$tmp/output"
+    cargo run --quiet --manifest-path "$root/herdr-plugins/pane-navigator/Cargo.toml" -- "$@"
+}
 
-[ "$(cat "$tmp/directions")" = $'left\nright' ] || fail 'popup should handle repeated navigation before closing'
+HERDR_PANE_ID='w1:p2' run_navigator left
+[ "$(cat "$tmp/directions")" = 'left' ] || fail 'the action should move before showing the minimap'
+grep -Fq 'HERDR_NAV_PANE_ID=w1:p1' "$tmp/popups" || fail 'zoomed multi-pane navigation should open the minimap'
+
+: >"$tmp/directions"
+printf 'w1:p1\n' >"$tmp/state"
+printf '\014' | HERDR_NAV_PANE_ID='w1:p1' HERDR_MINIMAP_TIMEOUT=0.01 run_navigator popup >"$tmp/output"
+[ "$(cat "$tmp/directions")" = 'right' ] || fail 'the popup should handle repeated navigation before closing'
 [ "$(cat "$tmp/state")" = 'w1:p2' ] || fail 'the latest movement should determine the focused pane'
 grep -Fq 'Workspace w1  Tab w1:t1' "$tmp/output" || fail 'minimap context is missing'
-grep -Fq '● current' "$tmp/output" || fail 'focused-pane legend is missing'
 grep -Fq '┌' "$tmp/output" || fail 'minimap border is missing'
 [ "$(grep -o '●' "$tmp/output" | wc -l | tr -d ' ')" -eq 4 ] || fail 'each redraw should mark the focused box and include its legend'
 [ "$(grep -o $'\033\[2J' "$tmp/output" | wc -l | tr -d ' ')" -eq 2 ] || fail 'minimap should redraw after every movement'
 
 : >"$tmp/directions"
+: >"$tmp/popups"
 printf 'w1:p2\n' >"$tmp/state"
-HERDR_BIN_PATH="$tmp/herdr" \
-HERDR_ACTIVE_PANE_ID='w1:p2' \
-HERDR_FOCUS_HELPER="$tmp/focus" \
-HERDR_TEST_DIRECTIONS="$tmp/directions" \
-HERDR_TEST_STATE="$tmp/state" \
-HERDR_TEST_ZOOMED=false \
-  python3 "$root/herdr-pane-navigator.py" left >"$tmp/not-zoomed"
+HERDR_PANE_ID='w1:p2' HERDR_TEST_ZOOMED=false run_navigator left
 [ "$(cat "$tmp/directions")" = 'left' ] || fail 'normal tiled navigation should still move once'
-[ ! -s "$tmp/not-zoomed" ] || fail 'normal tiled navigation should not draw or wait on the minimap'
+[ ! -s "$tmp/popups" ] || fail 'normal tiled navigation should not open a popup'
 
-printf 'PASS: Herdr popup pane navigator\n'
+: >"$tmp/directions"
+: >"$tmp/popups"
+printf 'w1:p1\n' >"$tmp/state"
+HERDR_PANE_ID='w1:p1' HERDR_TEST_SINGLE=true run_navigator left
+[ "$(cat "$tmp/directions")" = 'left' ] || fail 'single-pane navigation should still move once'
+[ ! -s "$tmp/popups" ] || fail 'single-pane tabs should not open a popup'
+
+: >"$tmp/directions"
+: >"$tmp/popups"
+printf 'w1:p2\n' >"$tmp/state"
+HERDR_PANE_ID='w1:p2' HERDR_TEST_TRANSITION=true run_navigator left
+grep -Fq 'HERDR_NAV_PREVIOUS_PANE_ID=w1:p2' "$tmp/popups" || fail 'tab transitions should retain the previous layout'
+grep -Fq 'HERDR_NAV_TRANSITION_DIRECTION=left' "$tmp/popups" || fail 'tab transitions should retain their direction'
+printf '' | \
+  HERDR_NAV_PANE_ID='w1:p1' \
+  HERDR_NAV_PREVIOUS_PANE_ID='w1:p2' \
+  HERDR_NAV_TRANSITION_DIRECTION=left \
+  HERDR_TEST_TRANSITION=true \
+  run_navigator popup >"$tmp/transition-output"
+grep -Fq '← previous' "$tmp/transition-output" || fail 'transition minimap should label the previous layout with an arrow'
+[ "$(grep -o '←' "$tmp/transition-output" | wc -l | tr -d ' ')" -eq 2 ] || fail 'transition arrow should replace the current-pane dot'
+
+printf 'PASS: Herdr Rust popup pane navigator\n'

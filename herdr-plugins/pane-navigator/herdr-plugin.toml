@@ -1,0 +1,41 @@
+id = "local.pane-navigator"
+name = "Pane Navigator"
+version = "0.1.0"
+min_herdr_version = "0.9.1"
+description = "Transient layout minimap for zoomed-pane navigation"
+platforms = ["linux", "macos"]
+
+[[build]]
+command = ["cargo", "build", "--release"]
+
+[[actions]]
+id = "left"
+title = "Navigate left with minimap"
+contexts = ["pane"]
+command = ["target/release/herdr-pane-navigator", "left"]
+
+[[actions]]
+id = "right"
+title = "Navigate right with minimap"
+contexts = ["pane"]
+command = ["target/release/herdr-pane-navigator", "right"]
+
+[[actions]]
+id = "up"
+title = "Navigate up with minimap"
+contexts = ["pane"]
+command = ["target/release/herdr-pane-navigator", "up"]
+
+[[actions]]
+id = "down"
+title = "Navigate down with minimap"
+contexts = ["pane"]
+command = ["target/release/herdr-pane-navigator", "down"]
+
+[[panes]]
+id = "minimap"
+title = "Pane layout"
+placement = "popup"
+width = 44
+height = 16
+command = ["target/release/herdr-pane-navigator", "popup"]

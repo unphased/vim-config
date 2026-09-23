@@ -99,36 +99,27 @@ key = "ctrl+tab"
 type = "shell"
 command = "~/.vim/herdr-focus.sh toggle"
 
-# Keep the tiled layout visible while focus moves through a zoomed pane. The
-# popup handles repeated Ctrl+H/J/K/L itself and closes after a short idle delay;
-# outside zoom mode the command moves once and exits without drawing.
+# Move first, then open a 300 ms minimap only for zoomed, multi-pane tabs.
+# The popup handles repeated Ctrl+H/J/K/L itself while it remains visible.
 [[keys.command]]
 key = "ctrl+h"
-type = "popup"
-command = "~/.vim/herdr-pane-navigator.py left"
-width = 44
-height = 16
+type = "plugin_action"
+command = "local.pane-navigator.left"
 
 [[keys.command]]
 key = "ctrl+l"
-type = "popup"
-command = "~/.vim/herdr-pane-navigator.py right"
-width = 44
-height = 16
+type = "plugin_action"
+command = "local.pane-navigator.right"
 
 [[keys.command]]
 key = "ctrl+k"
-type = "popup"
-command = "~/.vim/herdr-pane-navigator.py up"
-width = 44
-height = 16
+type = "plugin_action"
+command = "local.pane-navigator.up"
 
 [[keys.command]]
 key = "ctrl+j"
-type = "popup"
-command = "~/.vim/herdr-pane-navigator.py down"
-width = 44
-height = 16
+type = "plugin_action"
+command = "local.pane-navigator.down"
 
 # Move the focused pane into a new, focused workspace.
 [[keys.command]]

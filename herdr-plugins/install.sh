@@ -4,6 +4,11 @@ set -euo pipefail
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 herdr=${HERDR:-herdr}
 
+# Linked plugins do not run manifest build steps. Keep the keybinding hot path
+# on the compiled release binary even when this installer is called directly.
+cargo build --quiet --release \
+  --manifest-path "$root/herdr-plugins/pane-navigator/Cargo.toml"
+
 while IFS= read -r -d '' manifest; do
   if [[ ! -f "$root/$manifest" ]]; then
     printf 'tracked Herdr plugin manifest is missing: %s\n' "$root/$manifest" >&2
