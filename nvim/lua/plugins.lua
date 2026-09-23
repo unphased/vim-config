@@ -1,4 +1,5 @@
 local snacks_image_scale = 1
+local snacks_image_max_scale = 2
 local snacks_image_base_size = { width = 80, height = 40 }
 
 local function refresh_snacks_images()
@@ -15,7 +16,7 @@ local function snacks_image_size()
 end
 
 local function resize_snacks_images(delta)
-  snacks_image_scale = math.max(0.25, math.min(2, snacks_image_scale + delta))
+  snacks_image_scale = math.max(0.25, math.min(snacks_image_max_scale, snacks_image_scale + delta))
   refresh_snacks_images()
   local width, height = snacks_image_size()
   vim.notify(('Image size: %d%% (%d×%d cells max)'):format(
@@ -841,6 +842,13 @@ return {
           max_height = snacks_image_base_size.height,
           on_update_pre = function(placement)
             placement.opts.max_width, placement.opts.max_height = snacks_image_size()
+          end,
+        },
+        convert = {
+          mermaid = function()
+            local theme = vim.o.background == 'light' and 'neutral' or 'dark'
+            local scale = (Snacks.image.terminal.size().scale or 1) * snacks_image_max_scale
+            return { '-i', '{src}', '-o', '{file}', '-b', 'transparent', '-t', theme, '-s', tostring(scale) }
           end,
         },
       },
