@@ -91,6 +91,12 @@ printf 'w1:p1\n' >"$tmp/state"
 printf '\014' | HERDR_NAV_PANE_ID='w1:p1' HERDR_MINIMAP_TIMEOUT=0.01 run_navigator popup >"$tmp/output"
 [ "$(cat "$tmp/directions")" = 'right' ] || fail 'the popup should replay captured navigation before closing'
 [ "$(cat "$tmp/state")" = 'w1:p2' ] || fail 'captured navigation should determine the focused pane'
+for _ in {1..100}; do
+  [ "$(wc -l <"$tmp/popups" | tr -d ' ')" -ge 2 ] && break
+  sleep 0.01
+done
+[ "$(wc -l <"$tmp/popups" | tr -d ' ')" -eq 2 ] || fail 'captured navigation should reopen the resulting minimap'
+tail -1 "$tmp/popups" | grep -Fq 'HERDR_NAV_PANE_ID=w1:p2' || fail 'reopened minimap should follow captured navigation'
 grep -Fq 'Workspace w1  Tab w1:t1' "$tmp/output" || fail 'minimap context is missing'
 grep -Fq '┌' "$tmp/output" || fail 'minimap border is missing'
 [ "$(grep -o '●' "$tmp/output" | wc -l | tr -d ' ')" -eq 2 ] || fail 'the initial minimap should mark the focused box and include its legend'

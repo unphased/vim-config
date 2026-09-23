@@ -2,6 +2,7 @@ use serde_json::Value;
 use std::env;
 use std::error::Error;
 use std::io::{self, Read, Write};
+use std::os::unix::process::CommandExt;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
@@ -124,22 +125,42 @@ fn open_popup(pane_id: &str, previous: Option<(&str, &str)>) -> Result<()> {
     Ok(())
 }
 
-fn navigate_once(direction: &str) -> Result<()> {
-    let pane_id = env::var("HERDR_PANE_ID").or_else(|_| current_pane_id())?;
-    move_focus(direction, &pane_id)?;
-
+fn show_after_move(direction: &str, pane_id: &str) -> Result<()> {
     let destination = current_pane()?;
     let destination_id = value_str(&destination, &["pane_id"])?;
-    let source_layout = pane_layout(&pane_id)?;
+    let source_layout = pane_layout(pane_id)?;
     let transition = crossed_tab_or_workspace(&source_layout, &destination);
     if should_show(&source_layout) {
-        open_popup(
-            destination_id,
-            transition.then_some((pane_id.as_str(), direction)),
-        )?;
+        open_popup(destination_id, transition.then_some((pane_id, direction)))?;
     } else if transition && should_show(&pane_layout(destination_id)?) {
         open_popup(destination_id, None)?;
     }
+    Ok(())
+}
+
+fn navigate_once(direction: &str) -> Result<()> {
+    let pane_id = env::var("HERDR_PANE_ID").or_else(|_| current_pane_id())?;
+    move_focus(direction, &pane_id)?;
+    show_after_move(direction, &pane_id)
+}
+
+fn defer_show_after_move(direction: &str, pane_id: &str) -> Result<()> {
+    let executable = env::current_exe()?;
+    let mut command = Command::new(executable);
+    command
+        .args(["after-move", direction, pane_id])
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null());
+    unsafe {
+        command.pre_exec(|| {
+            if libc::setsid() < 0 {
+                return Err(io::Error::last_os_error());
+            }
+            Ok(())
+        });
+    }
+    command.spawn()?;
     Ok(())
 }
 
@@ -381,9 +402,10 @@ fn popup() -> Result<()> {
             };
 
             // The popup owns terminal input while visible. Replay a captured
-            // navigation chord, then exit immediately so the tiled pane
-            // regains input instead of extending the modal interval.
+            // navigation chord, then exit immediately. A detached follow-up
+            // opens the resulting minimap after this modal has gone away.
             move_focus(next_direction, &pane_id)?;
+            defer_show_after_move(next_direction, &pane_id)?;
             return Ok(());
         }
     })();
@@ -394,10 +416,18 @@ fn popup() -> Result<()> {
 }
 
 fn run() -> Result<()> {
-    match env::args().nth(1).as_deref() {
+    let arguments: Vec<String> = env::args().collect();
+    match arguments.get(1).map(String::as_str) {
         Some(direction @ ("left" | "right" | "up" | "down")) => navigate_once(direction),
         Some("popup") => popup(),
-        _ => Err("usage: herdr-pane-navigator {left|right|up|down|popup}".into()),
+        Some("after-move") if arguments.len() == 4 => {
+            std::thread::sleep(Duration::from_millis(20));
+            show_after_move(&arguments[2], &arguments[3])
+        }
+        _ => Err(
+            "usage: herdr-pane-navigator {left|right|up|down|popup|after-move DIRECTION PANE}"
+                .into(),
+        ),
     }
 }
 
