@@ -99,8 +99,8 @@ key = "ctrl+tab"
 type = "shell"
 command = "~/.vim/herdr-focus.sh toggle"
 
-# Move first, then open a 300 ms minimap only for zoomed, multi-pane tabs.
-# The popup handles repeated Ctrl+H/J/K/L itself while it remains visible.
+# Move first, then open a 500 ms minimap only for zoomed, multi-pane tabs.
+# A Ctrl+H/J/K/L captured by the popup is applied before it closes immediately.
 [[keys.command]]
 key = "ctrl+h"
 type = "plugin_action"

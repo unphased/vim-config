@@ -343,7 +343,7 @@ fn wait_for_input(timeout: Duration) -> Result<Option<u8>> {
 }
 
 fn popup() -> Result<()> {
-    let mut pane_id = env::var("HERDR_NAV_PANE_ID").or_else(|_| current_pane_id())?;
+    let pane_id = env::var("HERDR_NAV_PANE_ID").or_else(|_| current_pane_id())?;
     let previous = env::var("HERDR_NAV_PREVIOUS_PANE_ID").ok();
     let transition_direction = env::var("HERDR_NAV_TRANSITION_DIRECTION").ok();
     let initial_display = previous.unwrap_or_else(|| pane_id.clone());
@@ -356,7 +356,7 @@ fn popup() -> Result<()> {
         .ok()
         .and_then(|value| value.parse::<f64>().ok())
         .map(Duration::from_secs_f64)
-        .unwrap_or(Duration::from_millis(300));
+        .unwrap_or(Duration::from_millis(500));
     let _terminal = TerminalMode::cbreak()?;
     print!("\x1b[?25l");
     io::stdout().flush()?;
@@ -367,7 +367,7 @@ fn popup() -> Result<()> {
         } else {
             draw(&initial_display, '●', "current")?;
         }
-        let mut deadline = Instant::now() + timeout;
+        let deadline = Instant::now() + timeout;
         loop {
             let remaining = deadline.saturating_duration_since(Instant::now());
             let Some(byte) = wait_for_input(remaining)? else {
@@ -380,24 +380,11 @@ fn popup() -> Result<()> {
                 continue;
             };
 
-            let source_id = pane_id.clone();
-            move_focus(next_direction, &source_id)?;
-            let destination = current_pane()?;
-            pane_id = value_str(&destination, &["pane_id"])?.to_owned();
-            let source_layout = pane_layout(&source_id)?;
-            let transition = crossed_tab_or_workspace(&source_layout, &destination);
-            if should_show(&source_layout) {
-                if transition {
-                    draw(&source_id, arrow(next_direction), "previous")?;
-                } else {
-                    draw(&pane_id, '●', "current")?;
-                }
-            } else if transition && should_show(&pane_layout(&pane_id)?) {
-                draw(&pane_id, '●', "current")?;
-            } else {
-                return Ok(());
-            }
-            deadline = Instant::now() + timeout;
+            // The popup owns terminal input while visible. Replay a captured
+            // navigation chord, then exit immediately so the tiled pane
+            // regains input instead of extending the modal interval.
+            move_focus(next_direction, &pane_id)?;
+            return Ok(());
         }
     })();
 

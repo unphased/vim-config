@@ -89,12 +89,12 @@ grep -Fq 'HERDR_NAV_PANE_ID=w1:p1' "$tmp/popups" || fail 'zoomed multi-pane navi
 : >"$tmp/directions"
 printf 'w1:p1\n' >"$tmp/state"
 printf '\014' | HERDR_NAV_PANE_ID='w1:p1' HERDR_MINIMAP_TIMEOUT=0.01 run_navigator popup >"$tmp/output"
-[ "$(cat "$tmp/directions")" = 'right' ] || fail 'the popup should handle repeated navigation before closing'
-[ "$(cat "$tmp/state")" = 'w1:p2' ] || fail 'the latest movement should determine the focused pane'
+[ "$(cat "$tmp/directions")" = 'right' ] || fail 'the popup should replay captured navigation before closing'
+[ "$(cat "$tmp/state")" = 'w1:p2' ] || fail 'captured navigation should determine the focused pane'
 grep -Fq 'Workspace w1  Tab w1:t1' "$tmp/output" || fail 'minimap context is missing'
 grep -Fq '┌' "$tmp/output" || fail 'minimap border is missing'
-[ "$(grep -o '●' "$tmp/output" | wc -l | tr -d ' ')" -eq 4 ] || fail 'each redraw should mark the focused box and include its legend'
-[ "$(grep -o $'\033\[2J' "$tmp/output" | wc -l | tr -d ' ')" -eq 2 ] || fail 'minimap should redraw after every movement'
+[ "$(grep -o '●' "$tmp/output" | wc -l | tr -d ' ')" -eq 2 ] || fail 'the initial minimap should mark the focused box and include its legend'
+[ "$(grep -o $'\033\[2J' "$tmp/output" | wc -l | tr -d ' ')" -eq 1 ] || fail 'captured navigation should close instead of redrawing the popup'
 
 : >"$tmp/directions"
 : >"$tmp/popups"
