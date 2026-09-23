@@ -12,4 +12,20 @@ mthesaur.txt
 .env
 .nvimlog
 ghostty.platform.conf
-herdr-plugins/pane-load/target/
+herdr-plugins/*/target/
+
+# Local editor output, generated backups, and reproduction dependencies.
+.DS_Store
+*.log
+.nvim_autoload_monitor.*
+aider.chat.history.md
+/karabiner/automatic_backups/
+/nvim/nvim-in-tmux.state
+/nvim/nvim-in-tmux-state.json
+/.codex-debug/cache/
+/.codex-debug/nvim/
+/.codex-debug/nvim-copy/
+/.codex-debug/runtime/
+/.codex-debug/state/
+/.codex-debug/tmp/
+/.codex-debug/vendor/
