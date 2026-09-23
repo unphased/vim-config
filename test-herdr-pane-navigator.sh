@@ -52,6 +52,10 @@ case "$*" in
     printf '%s\n' "$*" >>"$HERDR_TEST_POPUPS"
     printf '{"result":{"ok":true}}\n'
     ;;
+  'pane send-text w1:p1 '*)
+    printf '%s\n' "$*" >>"$HERDR_TEST_FORWARDED"
+    printf '{"result":{"ok":true}}\n'
+    ;;
   *)
     printf 'unexpected herdr command: %s\n' "$*" >&2
     exit 1
@@ -72,12 +76,14 @@ chmod +x "$tmp/herdr" "$tmp/focus"
 printf 'w1:p2\n' >"$tmp/state"
 : >"$tmp/directions"
 : >"$tmp/popups"
+: >"$tmp/forwarded"
 
 run_navigator() {
   HERDR_BIN_PATH="$tmp/herdr" \
   HERDR_FOCUS_HELPER="$tmp/focus" \
   HERDR_TEST_DIRECTIONS="$tmp/directions" \
   HERDR_TEST_POPUPS="$tmp/popups" \
+  HERDR_TEST_FORWARDED="$tmp/forwarded" \
   HERDR_TEST_STATE="$tmp/state" \
     cargo run --quiet --manifest-path "$root/herdr-plugins/pane-navigator/Cargo.toml" -- "$@"
 }
@@ -149,5 +155,16 @@ printf '' | \
   HERDR_TEST_DEST_ZOOMED=true \
   run_navigator popup >"$tmp/enter-output"
 grep -Fq '● current' "$tmp/enter-output" || fail 'entered zoomed tab should mark its current pane'
+
+: >"$tmp/directions"
+: >"$tmp/popups"
+: >"$tmp/forwarded"
+printf 'w1:p1\n' >"$tmp/state"
+printf 'λ' | \
+  HERDR_NAV_PANE_ID='w1:p1' \
+  run_navigator popup >"$tmp/text-output"
+grep -Fxq 'pane send-text w1:p1 λ' "$tmp/forwarded" || fail 'non-navigation input should reach the underlying pane'
+[ ! -s "$tmp/directions" ] || fail 'ordinary input should not be reinterpreted as navigation'
+[ ! -s "$tmp/popups" ] || fail 'ordinary input should close without reopening the minimap'
 
 printf 'PASS: Herdr Rust popup pane navigator\n'

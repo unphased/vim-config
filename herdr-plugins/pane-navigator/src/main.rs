@@ -5,7 +5,7 @@ use std::io::{self, Read, Write};
 use std::os::unix::process::CommandExt;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
@@ -314,7 +314,8 @@ impl TerminalMode {
             return Err(io::Error::last_os_error().into());
         }
         let mut mode = original;
-        mode.c_lflag &= !(libc::ICANON | libc::ECHO);
+        mode.c_lflag &= !(libc::ICANON | libc::ECHO | libc::ISIG | libc::IEXTEN);
+        mode.c_iflag &= !(libc::IXON | libc::ICRNL | libc::INLCR | libc::IGNCR);
         mode.c_cc[libc::VMIN] = 1;
         mode.c_cc[libc::VTIME] = 0;
         if unsafe { libc::tcsetattr(libc::STDIN_FILENO, libc::TCSANOW, &mode) } != 0 {
@@ -342,7 +343,7 @@ fn direction(byte: u8) -> Option<&'static str> {
     }
 }
 
-fn wait_for_input(timeout: Duration) -> Result<Option<u8>> {
+fn input_ready(timeout: Duration) -> Result<bool> {
     let milliseconds = timeout.as_millis().min(i32::MAX as u128) as i32;
     let mut descriptor = libc::pollfd {
         fd: libc::STDIN_FILENO,
@@ -353,14 +354,37 @@ fn wait_for_input(timeout: Duration) -> Result<Option<u8>> {
     if ready < 0 {
         return Err(io::Error::last_os_error().into());
     }
-    if ready == 0 {
+    Ok(ready > 0)
+}
+
+fn wait_for_input(timeout: Duration) -> Result<Option<Vec<u8>>> {
+    if !input_ready(timeout)? {
         return Ok(None);
     }
-    let mut byte = [0_u8; 1];
-    if io::stdin().read(&mut byte)? == 0 {
-        return Ok(None);
+
+    let mut input = Vec::new();
+    let mut buffer = [0_u8; 4096];
+    loop {
+        let read = io::stdin().read(&mut buffer)?;
+        if read == 0 {
+            break;
+        }
+        input.extend_from_slice(&buffer[..read]);
+        if !input_ready(Duration::from_millis(2))? {
+            break;
+        }
     }
-    Ok(Some(byte[0]))
+    Ok((!input.is_empty()).then_some(input))
+}
+
+fn forward_input(pane_id: &str, input: &[u8]) -> Result<()> {
+    if input == [0] {
+        herdr(&["pane", "send-keys", pane_id, "ctrl+space"])?;
+        return Ok(());
+    }
+    let text = std::str::from_utf8(input)?;
+    herdr(&["pane", "send-text", pane_id, text])?;
+    Ok(())
 }
 
 fn popup() -> Result<()> {
@@ -388,19 +412,12 @@ fn popup() -> Result<()> {
         } else {
             draw(&initial_display, '●', "current")?;
         }
-        let deadline = Instant::now() + timeout;
-        loop {
-            let remaining = deadline.saturating_duration_since(Instant::now());
-            let Some(byte) = wait_for_input(remaining)? else {
-                return Ok(());
-            };
-            if matches!(byte, 3 | 27 | b'q') {
-                return Ok(());
-            }
-            let Some(next_direction) = direction(byte) else {
-                continue;
-            };
-
+        let Some(input) = wait_for_input(timeout)? else {
+            return Ok(());
+        };
+        if input.len() == 1
+            && let Some(next_direction) = direction(input[0])
+        {
             // The popup owns terminal input while visible. Replay a captured
             // navigation chord, then exit immediately. A detached follow-up
             // opens the resulting minimap after this modal has gone away.
@@ -408,6 +425,10 @@ fn popup() -> Result<()> {
             defer_show_after_move(next_direction, &pane_id)?;
             return Ok(());
         }
+
+        // Any other bytes were intended for the tiled terminal underneath
+        // the modal. Forward the complete key/UTF-8 burst before closing.
+        forward_input(&pane_id, &input)
     })();
 
     print!("\x1b[?25h");
