@@ -1,3 +1,34 @@
+local snacks_image_scale = 1
+local snacks_image_base_size = { width = 80, height = 40 }
+
+local function refresh_snacks_images()
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_is_loaded(buf) then
+      pcall(vim.api.nvim_exec_autocmds, 'WinScrolled', { buffer = buf, modeline = false })
+    end
+  end
+end
+
+local function snacks_image_size()
+  return math.floor(snacks_image_base_size.width * snacks_image_scale + 0.5),
+    math.floor(snacks_image_base_size.height * snacks_image_scale + 0.5)
+end
+
+local function resize_snacks_images(delta)
+  snacks_image_scale = math.max(0.25, math.min(2, snacks_image_scale + delta))
+  refresh_snacks_images()
+  local width, height = snacks_image_size()
+  vim.notify(('Image size: %d%% (%d×%d cells max)'):format(
+    math.floor(snacks_image_scale * 100 + 0.5), width, height
+  ))
+end
+
+local function reset_snacks_image_size()
+  snacks_image_scale = 1
+  refresh_snacks_images()
+  vim.notify('Image size: 100% (80×40 cells max)')
+end
+
 return {
   {
     'unphased/zephyr-nvim',
@@ -794,8 +825,29 @@ return {
   -- },
   {
     'folke/snacks.nvim',
+    init = function()
+      for _, lhs in ipairs({ '<M-=>', '<M-+>' }) do
+        vim.keymap.set('n', lhs, function() resize_snacks_images(0.1) end,
+          { desc = 'Increase inline image size' })
+      end
+      for _, lhs in ipairs({ '<M-->', '<M-_>' }) do
+        vim.keymap.set('n', lhs, function() resize_snacks_images(-0.1) end,
+          { desc = 'Decrease inline image size' })
+      end
+      vim.api.nvim_create_user_command('SnacksImageZoomIn', function() resize_snacks_images(0.1) end, {})
+      vim.api.nvim_create_user_command('SnacksImageZoomOut', function() resize_snacks_images(-0.1) end, {})
+      vim.api.nvim_create_user_command('SnacksImageZoomReset', reset_snacks_image_size, {})
+    end,
     opts = {
-      image = {},
+      image = {
+        doc = {
+          max_width = snacks_image_base_size.width,
+          max_height = snacks_image_base_size.height,
+          on_update_pre = function(placement)
+            placement.opts.max_width, placement.opts.max_height = snacks_image_size()
+          end,
+        },
+      },
     },
   },
   -- Disabled in favor of source-faithful Markdown highlighting: its conceal and
