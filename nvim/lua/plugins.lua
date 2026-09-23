@@ -387,7 +387,17 @@ return {
   -- },
 
   'neovim/nvim-lspconfig',
-  'williamboman/mason.nvim',
+  {
+    'williamboman/mason.nvim',
+    opts = {},
+  },
+  {
+    'WhoIsSethDaniel/mason-tool-installer.nvim',
+    dependencies = { 'williamboman/mason.nvim' },
+    opts = {
+      ensure_installed = { 'mmdc' },
+    },
+  },
   'williamboman/mason-lspconfig.nvim',
 
   -- Autocompletion
