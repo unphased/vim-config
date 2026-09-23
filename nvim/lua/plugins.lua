@@ -857,8 +857,7 @@ return {
         convert = {
           mermaid = function()
             local theme = vim.o.background == 'light' and 'neutral' or 'dark'
-            local scale = (Snacks.image.terminal.size().scale or 1) * snacks_image_max_scale
-            return { '-i', '{src}', '-o', '{file}', '-b', 'transparent', '-t', theme, '-s', tostring(scale) }
+            return { '-i', '{src}', '-o', '{file}', '-b', 'transparent', '-t', theme }
           end,
         },
       },
