@@ -131,12 +131,14 @@ fn navigate_once(direction: &str) -> Result<()> {
     let destination = current_pane()?;
     let destination_id = value_str(&destination, &["pane_id"])?;
     let source_layout = pane_layout(&pane_id)?;
+    let transition = crossed_tab_or_workspace(&source_layout, &destination);
     if should_show(&source_layout) {
-        let transition = crossed_tab_or_workspace(&source_layout, &destination);
         open_popup(
             destination_id,
             transition.then_some((pane_id.as_str(), direction)),
         )?;
+    } else if transition && should_show(&pane_layout(destination_id)?) {
+        open_popup(destination_id, None)?;
     }
     Ok(())
 }
@@ -383,13 +385,17 @@ fn popup() -> Result<()> {
             let destination = current_pane()?;
             pane_id = value_str(&destination, &["pane_id"])?.to_owned();
             let source_layout = pane_layout(&source_id)?;
-            if !should_show(&source_layout) {
-                return Ok(());
-            }
-            if crossed_tab_or_workspace(&source_layout, &destination) {
-                draw(&source_id, arrow(next_direction), "previous")?;
-            } else {
+            let transition = crossed_tab_or_workspace(&source_layout, &destination);
+            if should_show(&source_layout) {
+                if transition {
+                    draw(&source_id, arrow(next_direction), "previous")?;
+                } else {
+                    draw(&pane_id, '●', "current")?;
+                }
+            } else if transition && should_show(&pane_layout(&pane_id)?) {
                 draw(&pane_id, '●', "current")?;
+            } else {
+                return Ok(());
             }
             deadline = Instant::now() + timeout;
         }

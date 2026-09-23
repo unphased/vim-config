@@ -29,8 +29,15 @@ case "$*" in
     target=${4}
     pane=$(cat "$HERDR_TEST_STATE")
     tab='w1:t1'
+    zoomed=${HERDR_TEST_ZOOMED:-true}
     if [ "${HERDR_TEST_TRANSITION:-false}" = true ]; then
-      if [ "$target" = 'w1:p1' ]; then tab='w1:t2'; else pane='w1:p2'; fi
+      if [ "$target" = 'w1:p1' ]; then
+        tab='w1:t2'
+        zoomed=${HERDR_TEST_DEST_ZOOMED:-$zoomed}
+      else
+        pane='w1:p2'
+        zoomed=${HERDR_TEST_SOURCE_ZOOMED:-$zoomed}
+      fi
     fi
     if [ "${HERDR_TEST_SINGLE:-false}" = true ]; then
       panes='[{"pane_id":"w1:p1","rect":{"height":40,"width":100,"x":0,"y":0}}]'
@@ -39,7 +46,7 @@ case "$*" in
       panes='[{"pane_id":"w1:p1","rect":{"height":40,"width":60,"x":0,"y":0}},{"pane_id":"w1:p2","rect":{"height":40,"width":40,"x":60,"y":0}}]'
     fi
     printf '{"result":{"layout":{"area":{"height":40,"width":100,"x":0,"y":0},"focused_pane_id":"%s","panes":%s,"tab_id":"%s","workspace_id":"w1","zoomed":%s}}}\n' \
-      "$pane" "$panes" "$tab" "${HERDR_TEST_ZOOMED:-true}"
+      "$pane" "$panes" "$tab" "$zoomed"
     ;;
   'plugin pane open --plugin local.pane-navigator --entrypoint minimap --env HERDR_NAV_PANE_ID='*)
     printf '%s\n' "$*" >>"$HERDR_TEST_POPUPS"
@@ -117,5 +124,24 @@ printf '' | \
   run_navigator popup >"$tmp/transition-output"
 grep -Fq '← previous' "$tmp/transition-output" || fail 'transition minimap should label the previous layout with an arrow'
 [ "$(grep -o '←' "$tmp/transition-output" | wc -l | tr -d ' ')" -eq 2 ] || fail 'transition arrow should replace the current-pane dot'
+
+: >"$tmp/directions"
+: >"$tmp/popups"
+printf 'w1:p2\n' >"$tmp/state"
+HERDR_PANE_ID='w1:p2' \
+HERDR_TEST_TRANSITION=true \
+HERDR_TEST_SOURCE_ZOOMED=false \
+HERDR_TEST_DEST_ZOOMED=true \
+  run_navigator left
+grep -Fq 'HERDR_NAV_PANE_ID=w1:p1' "$tmp/popups" || fail 'entering a zoomed tab should open its minimap'
+if grep -Fq 'HERDR_NAV_PREVIOUS_PANE_ID' "$tmp/popups"; then
+  fail 'entering a zoomed tab should show current state rather than previous state'
+fi
+printf '' | \
+  HERDR_NAV_PANE_ID='w1:p1' \
+  HERDR_TEST_TRANSITION=true \
+  HERDR_TEST_DEST_ZOOMED=true \
+  run_navigator popup >"$tmp/enter-output"
+grep -Fq '● current' "$tmp/enter-output" || fail 'entered zoomed tab should mark its current pane'
 
 printf 'PASS: Herdr Rust popup pane navigator\n'
