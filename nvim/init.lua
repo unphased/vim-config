@@ -2509,21 +2509,6 @@ require('snippy').setup({
 --   ["<leader>j"] = { function() require('treesj').join() end, "Join node under cursor (treesj)" },
 -- })
 
--- I only ever want these two options so why not just make it a single toggle
-function ToggleIndentation()
-  local current_indent = vim.bo.shiftwidth
-  if current_indent == 2 then
-    vim.bo.shiftwidth = 4
-    vim.bo.tabstop = 4
-  else
-    vim.bo.shiftwidth = 2
-    vim.bo.tabstop = 2
-  end
-
-  -- Re-indent the entire file
-  vim.api.nvim_command('normal! ggVG=')
-end
-
 vim.keymap.set('n', "<M-C-F11>", "<cmd>lua CycleWindowsOrBuffers(true)<cr>", { desc = "Cycle Windows or Buffers" })
 vim.keymap.set('n', "<M-C-S-F11>", "<cmd>lua CycleWindowsOrBuffers(false)<cr>", { desc = "Cycle Windows or Buffers Reverse" })
 
