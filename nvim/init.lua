@@ -2524,10 +2524,6 @@ function ToggleIndentation()
   vim.api.nvim_command('normal! ggVG=')
 end
 
--- Map the function to a keybinding
--- TODO do something about how this is a little bit unsafe since it requires total trust in syntax parse.
-vim.api.nvim_set_keymap('n', '<leader>i', ':lua ToggleIndentation()<CR>', { noremap = true, silent = true })
-
 vim.keymap.set('n', "<M-C-F11>", "<cmd>lua CycleWindowsOrBuffers(true)<cr>", { desc = "Cycle Windows or Buffers" })
 vim.keymap.set('n', "<M-C-S-F11>", "<cmd>lua CycleWindowsOrBuffers(false)<cr>", { desc = "Cycle Windows or Buffers Reverse" })
 

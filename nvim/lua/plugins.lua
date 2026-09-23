@@ -826,12 +826,10 @@ return {
   {
     'folke/snacks.nvim',
     init = function()
-      vim.keymap.set('n', '<leader>I+', function() resize_snacks_images(0.1) end,
-        { desc = 'Increase inline image size' })
-      vim.keymap.set('n', '<leader>I-', function() resize_snacks_images(-0.1) end,
+      vim.keymap.set('n', '<leader>i', function() resize_snacks_images(-0.1) end,
         { desc = 'Decrease inline image size' })
-      vim.keymap.set('n', '<leader>I0', reset_snacks_image_size,
-        { desc = 'Reset inline image size' })
+      vim.keymap.set('n', '<leader>I', function() resize_snacks_images(0.1) end,
+        { desc = 'Increase inline image size' })
       vim.api.nvim_create_user_command('SnacksImageZoomIn', function() resize_snacks_images(0.1) end, {})
       vim.api.nvim_create_user_command('SnacksImageZoomOut', function() resize_snacks_images(-0.1) end, {})
       vim.api.nvim_create_user_command('SnacksImageZoomReset', reset_snacks_image_size, {})
