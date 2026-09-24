@@ -251,13 +251,45 @@ fn minimap(layout: &Value, width: usize, height: usize, marker: char) -> Result<
         .into_iter()
         .map(|row| row.into_iter().map(box_character).collect())
         .collect();
-    if let Some((_, x1, y1, x2, y2)) = boxes.iter().find(|pane| pane.0 == focused) {
+    let selected = boxes
+        .iter()
+        .find(|pane| pane.0 == focused)
+        .map(|pane| (pane.1, pane.2, pane.3, pane.4));
+    if let Some((x1, y1, x2, y2)) = selected {
         canvas[(y1 + y2) / 2][(x1 + x2) / 2] = marker;
     }
 
+    let pane_style = if marker == '●' {
+        "\x1b[48;2;137;180;250m\x1b[38;2;30;30;46m"
+    } else {
+        "\x1b[48;2;249;226;175m\x1b[38;2;30;30;46m"
+    };
     Ok(canvas
         .into_iter()
-        .map(|row| row.into_iter().collect::<String>().trim_end().to_owned())
+        .enumerate()
+        .map(|(y, row)| {
+            let visible_end = row
+                .iter()
+                .rposition(|character| *character != ' ')
+                .map_or(0, |x| x + 1);
+            let Some((x1, y1, x2, y2)) = selected else {
+                return row[..visible_end].iter().collect();
+            };
+            if !(y1..=y2).contains(&y) {
+                return row[..visible_end].iter().collect();
+            }
+            let mut line = String::new();
+            for (x, character) in row.into_iter().take(visible_end.max(x2 + 1)).enumerate() {
+                if x == x1 {
+                    line.push_str(pane_style);
+                }
+                line.push(character);
+                if x == x2 {
+                    line.push_str("\x1b[0m");
+                }
+            }
+            line
+        })
         .collect::<Vec<_>>()
         .join("\n"))
 }
@@ -491,9 +523,20 @@ mod tests {
     }
 
     #[test]
-    fn minimap_marks_the_focused_box() {
+    fn minimap_colors_the_current_pane_blue() {
+        let output = minimap(&layout(true, 2), 30, 8, '●').unwrap();
+        assert_eq!(output.matches("\x1b[48;2;137;180;250m").count(), 8);
+        assert!(!output.contains("\x1b[48;2;249;226;175m"));
+        assert_eq!(output.matches("\x1b[0m").count(), 8);
+        assert_eq!(output.matches('●').count(), 1);
+    }
+
+    #[test]
+    fn minimap_colors_the_previous_pane_yellow() {
         let output = minimap(&layout(true, 2), 30, 8, '→').unwrap();
-        assert!(output.contains('┌'));
+        assert_eq!(output.matches("\x1b[48;2;249;226;175m").count(), 8);
+        assert!(!output.contains("\x1b[48;2;137;180;250m"));
+        assert_eq!(output.matches("\x1b[0m").count(), 8);
         assert_eq!(output.matches('→').count(), 1);
     }
 }
