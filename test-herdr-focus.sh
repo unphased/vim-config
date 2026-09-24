@@ -21,25 +21,28 @@ case "$*" in
     printf '%s\n' '{"result":{"edges":{"up":true,"down":true,"left":false,"right":false}}}'
     ;;
   'workspace list')
-    marker=
-    [ ! -r "$HERDR_TEST_MARKER" ] || read -r marker <"$HERDR_TEST_MARKER"
-    jq -nc --arg marker "$marker" '
+    markers=
+    [ ! -r "$HERDR_TEST_MARKER" ] || markers=$(cat "$HERDR_TEST_MARKER")
+    jq -nc --arg markers "$markers" '
+      ($markers | split("\n")) as $marked |
       {result: {workspaces: [
         {workspace_id:"w-parent", number:2, worktree:{repo_key:"/repo/.git", is_linked_worktree:false}},
         {workspace_id:"w-other", number:3},
         {workspace_id:"w-child-a", number:7, worktree:{repo_key:"/repo/.git", is_linked_worktree:true}},
         {workspace_id:"w-child-b", number:9, worktree:{repo_key:"/repo/.git", is_linked_worktree:true}},
         {workspace_id:"w-final", number:10}
-      ] | map(if .workspace_id == $marker then . + {tokens:{ctrl_tab_target:"↩"}} else . end)}}'
+      ] | map(. as $workspace | if ($marked | index($workspace.workspace_id)) then . + {tokens:{ctrl_tab_target:"↩"}} else . end)}}'
     ;;
   'workspace report-metadata '*)
     metadata_workspace=$3
     case "${6:-}:${7:-}" in
-      '--token:ctrl_tab_target=↩') printf '%s\n' "$metadata_workspace" >"$HERDR_TEST_MARKER" ;;
+      '--token:ctrl_tab_target=↩')
+        grep -Fxq "$metadata_workspace" "$HERDR_TEST_MARKER" 2>/dev/null \
+          || printf '%s\n' "$metadata_workspace" >>"$HERDR_TEST_MARKER"
+        ;;
       '--clear-token:ctrl_tab_target')
-        marker=
-        [ ! -r "$HERDR_TEST_MARKER" ] || read -r marker <"$HERDR_TEST_MARKER"
-        [ "$marker" != "$metadata_workspace" ] || : >"$HERDR_TEST_MARKER"
+        grep -Fxv "$metadata_workspace" "$HERDR_TEST_MARKER" >"$HERDR_TEST_MARKER.tmp" || :
+        mv "$HERDR_TEST_MARKER.tmp" "$HERDR_TEST_MARKER"
         ;;
       *) printf 'unexpected metadata command: %s\n' "$*" >&2; exit 1 ;;
     esac
@@ -56,7 +59,8 @@ MOCK
 chmod +x "$tmp/herdr"
 
 set_marker() {
-  printf '%s\n' "$1" >"$tmp/marker"
+  : >"$tmp/marker"
+  [ "$#" -eq 0 ] || printf '%s\n' "$@" >"$tmp/marker"
 }
 
 run_focus() {
@@ -100,7 +104,11 @@ set_marker w-other
 [ "$(cat "$tmp/marker")" = w-other ] || fail 'self-targeting toggle must preserve the sticky target'
 ! grep -q 'workspace focus' "$tmp/args" || fail 'self-targeting toggle must not focus another workspace'
 
-set_marker ''
+set_marker w-parent w-final
+[ "$(run_focus toggle)" = 'workspace focus w-final' ] || fail 'toggle should recover a duplicate marker by choosing the noncurrent target'
+[ "$(cat "$tmp/marker")" = w-parent ] || fail 'toggle should reconcile duplicate markers to its source'
+
+set_marker
 [ "$(run_focus toggle)" = 'workspace focus w-child-a' ] || fail 'toggle without an arrow should bootstrap to an adjacent workspace'
 [ "$(cat "$tmp/marker")" = w-parent ] || fail 'bootstrap toggle should mark its source workspace'
 

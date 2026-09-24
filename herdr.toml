@@ -62,7 +62,7 @@ claude = [
 [ui.sidebar.spaces]
 row_gap = 0
 rows = [
-  ["state_icon", "workspace"],
+  ["state_icon", { token = "$ctrl_tab_target", fg = "#f9e2af", bold = true }, "workspace"],
   [
     { token = "$cpu_idle", fg = "#686868", dim = false },
     { token = "$cpu_cool", fg = "#89b4fa", dim = false },
@@ -93,7 +93,7 @@ resize_pane_up = "alt+k"
 resize_pane_right = "alt+l"
 zoom = ["prefix+z", "alt+m", "ctrl+m"]
 
-# Toggle between the custom navigation origin and its current workspace.
+# Swap with the workspace carrying the sticky yellow-arrow bookmark.
 [[keys.command]]
 key = "ctrl+tab"
 type = "shell"

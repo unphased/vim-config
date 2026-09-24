@@ -1,32 +1,35 @@
 #!/bin/sh
 
-if [ "$#" -ne 1 ]; then
+usage() {
   printf 'usage: %s {left|right|up|down|toggle}\n' "$0" >&2
   exit 2
-fi
+}
 
+[ "$#" -eq 1 ] || usage
 case "$1" in
-  left|right|up|down|toggle) ;;
-  *)
-    printf 'usage: %s {left|right|up|down|toggle}\n' "$0" >&2
-    exit 2
-    ;;
+  left|right|up|down|toggle) direction=$1 ;;
+  *) usage ;;
 esac
 
-direction=$1
+run_locked_toggle() {
+  if [ -n "${HERDR_WORKSPACE_TOGGLE_LOCK:-}" ]; then
+    toggle_lock=$HERDR_WORKSPACE_TOGGLE_LOCK
+  else
+    lock_key=$(printf '%s' "${HERDR_SOCKET_PATH:-default}" | cksum)
+    lock_key=${lock_key%% *}
+    toggle_lock="${XDG_STATE_HOME:-$HOME/.local/state}/herdr/workspace-toggle-$lock_key.lock"
+  fi
+  mkdir -p "$(dirname "$toggle_lock")" || exit
+  HERDR_WORKSPACE_TOGGLE_LOCKED=1
+  export HERDR_WORKSPACE_TOGGLE_LOCKED
 
-if [ -n "${HERDR_WORKSPACE_TOGGLE_STATE:-}" ]; then
-  state_file=$HERDR_WORKSPACE_TOGGLE_STATE
-else
-  state_key=$(printf '%s' "${HERDR_SOCKET_PATH:-default}" | cksum)
-  state_key=${state_key%% *}
-  state_file="${XDG_STATE_HOME:-$HOME/.local/state}/herdr/workspace-toggle-$state_key"
-fi
-
-save_toggle_state() {
-  mkdir -p "$(dirname "$state_file")" || return
-  printf '%s\t%s\n' "$1" "$2" >"$state_file.tmp.$$" || return
-  mv "$state_file.tmp.$$" "$state_file"
+  if command -v lockf >/dev/null 2>&1; then
+    exec lockf -t 2 "$toggle_lock" "$0" toggle
+  elif command -v flock >/dev/null 2>&1; then
+    exec flock -w 2 "$toggle_lock" "$0" toggle
+  fi
+  printf 'Ctrl-Tab requires lockf or flock\n' >&2
+  exit 1
 }
 
 adjacent_target() {
@@ -53,9 +56,7 @@ adjacent_target() {
       end'
 }
 
-# Herdr's workspace numbers reflect creation/sidebar positions, so linked
-# worktrees can be separated from their parent by unrelated workspaces. Keep
-# each repository's parent followed immediately by its linked workspaces.
+# Keep each repository's parent followed immediately by its linked workspaces.
 workspace_adjacent_target() {
   jq -r \
     --arg current "$1" \
@@ -96,50 +97,66 @@ workspace_adjacent_target() {
         end // empty'
 }
 
+if [ "$direction" = toggle ] && [ "${HERDR_WORKSPACE_TOGGLE_LOCKED:-}" != 1 ]; then
+  run_locked_toggle
+fi
+
 context=$(herdr pane current --current) || exit
 pane=$(printf '%s' "$context" | jq -r '.result.pane.pane_id')
 tab=$(printf '%s' "$context" | jq -r '.result.pane.tab_id')
 workspace=$(printf '%s' "$context" | jq -r '.result.pane.workspace_id')
 
-remembered=
-last_controlled=
-if [ -r "$state_file" ]; then
-  IFS="$(printf '\t')" read -r remembered last_controlled <"$state_file"
-fi
-
 if [ "$direction" = toggle ]; then
-  if [ -n "$remembered" ] && [ "$remembered" != "$workspace" ]; then
-    target=$remembered
-    if herdr workspace focus "$target"; then
-      save_toggle_state "$workspace" "$target"
-    else
-      rm -f "$state_file"
-      exit 1
-    fi
-  else
-    save_toggle_state "$workspace" "$workspace"
+  workspaces=$(herdr workspace list) || exit
+  target=$(printf '%s' "$workspaces" | jq -r --arg current "$workspace" \
+    '.result.workspaces[]
+      | select(.workspace_id != $current and .tokens.ctrl_tab_target? == "↩")
+      | .workspace_id' \
+    | head -n 1)
+
+  if [ -z "$target" ] && printf '%s' "$workspaces" | jq -e --arg current "$workspace" \
+      'any(.result.workspaces[]; .workspace_id == $current and .tokens.ctrl_tab_target? == "↩")' \
+      >/dev/null; then
+    # The target is a sticky bookmark. Reaching it by some other means does not
+    # silently assign a different workspace.
+    exit
   fi
+
+  if [ -z "$target" ]; then
+    target=$(printf '%s' "$workspaces" | workspace_adjacent_target "$workspace" up)
+    [ -n "$target" ] \
+      || target=$(printf '%s' "$workspaces" | workspace_adjacent_target "$workspace" down)
+  fi
+  [ -n "$target" ] || exit
+
+  # Move the visible bookmark before focus. If the command is interrupted,
+  # either the old or new current workspace still carries a usable marker.
+  herdr workspace report-metadata "$workspace" --source workspace-toggle \
+    --token 'ctrl_tab_target=↩' >/dev/null || exit
+  if ! herdr workspace focus "$target"; then
+    herdr workspace report-metadata "$workspace" --source workspace-toggle \
+      --clear-token ctrl_tab_target >/dev/null 2>&1 || :
+    exit 1
+  fi
+
+  printf '%s' "$workspaces" | jq -r \
+    '.result.workspaces[] | select(.tokens.ctrl_tab_target? == "↩") | .workspace_id' \
+    | while IFS= read -r marked_workspace; do
+        [ "$marked_workspace" = "$workspace" ] && continue
+        herdr workspace report-metadata "$marked_workspace" --source workspace-toggle \
+          --clear-token ctrl_tab_target >/dev/null 2>&1 || :
+      done
   exit
 fi
 
-# A workspace change outside this helper starts a new navigation chain. Once
-# custom navigation starts, preserve its origin while it crosses workspaces.
-if [ -z "$remembered" ] || [ "$last_controlled" != "$workspace" ]; then
-  remembered=$workspace
-fi
-
 edges=$(herdr pane edges --pane "$pane") || exit
-focused_workspace=$workspace
-
 case "$direction" in
   left|right)
     if [ "$(printf '%s' "$edges" | jq -r --arg key "$direction" '.result.edges | .[$key]')" = true ]; then
       tabs=$(herdr tab list --workspace "$workspace") || exit
       current=$(printf '%s' "$tabs" | jq -r --arg id "$tab" '.result.tabs[] | select(.tab_id == $id) | .number')
       target=$(printf '%s' "$tabs" | adjacent_target tabs "$current" "$direction" tab_id)
-      if [ -n "$target" ]; then
-        herdr tab focus "$target"
-      fi
+      [ -z "$target" ] || herdr tab focus "$target"
     else
       herdr pane focus --pane "$pane" --direction "$direction"
     fi
@@ -148,14 +165,9 @@ case "$direction" in
     if [ "$(printf '%s' "$edges" | jq -r --arg key "$direction" '.result.edges | .[$key]')" = true ]; then
       workspaces=$(herdr workspace list) || exit
       target=$(printf '%s' "$workspaces" | workspace_adjacent_target "$workspace" "$direction")
-      if [ -n "$target" ]; then
-        herdr workspace focus "$target" || exit
-        focused_workspace=$target
-      fi
+      [ -z "$target" ] || herdr workspace focus "$target"
     else
       herdr pane focus --pane "$pane" --direction "$direction"
     fi
     ;;
 esac
-
-save_toggle_state "$remembered" "$focused_workspace"
