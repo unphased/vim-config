@@ -132,10 +132,26 @@ printf '' | \
   HERDR_NAV_PANE_ID='w1:p1' \
   HERDR_NAV_PREVIOUS_PANE_ID='w1:p2' \
   HERDR_NAV_TRANSITION_DIRECTION=left \
+  HERDR_MINIMAP_TIMEOUT=0.01 \
   HERDR_TEST_TRANSITION=true \
   run_navigator popup >"$tmp/transition-output"
 grep -Fq '← previous' "$tmp/transition-output" || fail 'transition minimap should label the previous layout with an arrow'
-[ "$(grep -o '←' "$tmp/transition-output" | wc -l | tr -d ' ')" -eq 2 ] || fail 'transition arrow should replace the current-pane dot'
+grep -Fq '● current' "$tmp/transition-output" || fail 'zoomed-to-zoomed navigation should then show the destination layout'
+[ "$(grep -o '←' "$tmp/transition-output" | wc -l | tr -d ' ')" -eq 2 ] || fail 'transition arrow should replace the previous current-pane dot'
+[ "$(grep -o '●' "$tmp/transition-output" | wc -l | tr -d ' ')" -eq 2 ] || fail 'destination minimap should mark its current pane'
+[ "$(grep -o $'\033\[2J' "$tmp/transition-output" | wc -l | tr -d ' ')" -eq 2 ] || fail 'the two layouts should be shown as sequential popup frames'
+
+: >"$tmp/forwarded"
+{ sleep 0.075; printf 'λ'; } | \
+  HERDR_NAV_PANE_ID='w1:p1' \
+  HERDR_NAV_PREVIOUS_PANE_ID='w1:p2' \
+  HERDR_NAV_TRANSITION_DIRECTION=left \
+  HERDR_MINIMAP_TIMEOUT=0.05 \
+  HERDR_TEST_TRANSITION=true \
+  run_navigator popup >"$tmp/transition-interrupt-output"
+grep -Fq '← previous' "$tmp/transition-interrupt-output" || fail 'interruptible transition should first show the previous layout'
+grep -Fq '● current' "$tmp/transition-interrupt-output" || fail 'interruptible transition should advance to the destination layout'
+grep -Fxq 'pane send-text w1:p1 λ' "$tmp/forwarded" || fail 'destination minimap should remain interruptible'
 
 : >"$tmp/directions"
 : >"$tmp/popups"
