@@ -21,15 +21,28 @@ case "$*" in
     printf '%s\n' '{"result":{"edges":{"up":true,"down":true,"left":false,"right":false}}}'
     ;;
   'workspace list')
-    cat <<'JSON'
-{"result":{"workspaces":[
-  {"workspace_id":"w-parent","number":2,"worktree":{"repo_key":"/repo/.git","is_linked_worktree":false}},
-  {"workspace_id":"w-other","number":3},
-  {"workspace_id":"w-child-a","number":7,"worktree":{"repo_key":"/repo/.git","is_linked_worktree":true}},
-  {"workspace_id":"w-child-b","number":9,"worktree":{"repo_key":"/repo/.git","is_linked_worktree":true}},
-  {"workspace_id":"w-final","number":10}
-]}}
-JSON
+    marker=
+    [ ! -r "$HERDR_TEST_MARKER" ] || read -r marker <"$HERDR_TEST_MARKER"
+    jq -nc --arg marker "$marker" '
+      {result: {workspaces: [
+        {workspace_id:"w-parent", number:2, worktree:{repo_key:"/repo/.git", is_linked_worktree:false}},
+        {workspace_id:"w-other", number:3},
+        {workspace_id:"w-child-a", number:7, worktree:{repo_key:"/repo/.git", is_linked_worktree:true}},
+        {workspace_id:"w-child-b", number:9, worktree:{repo_key:"/repo/.git", is_linked_worktree:true}},
+        {workspace_id:"w-final", number:10}
+      ] | map(if .workspace_id == $marker then . + {tokens:{ctrl_tab_target:"↩"}} else . end)}}'
+    ;;
+  'workspace report-metadata '*)
+    metadata_workspace=$3
+    case "${6:-}:${7:-}" in
+      '--token:ctrl_tab_target=↩') printf '%s\n' "$metadata_workspace" >"$HERDR_TEST_MARKER" ;;
+      '--clear-token:ctrl_tab_target')
+        marker=
+        [ ! -r "$HERDR_TEST_MARKER" ] || read -r marker <"$HERDR_TEST_MARKER"
+        [ "$marker" != "$metadata_workspace" ] || : >"$HERDR_TEST_MARKER"
+        ;;
+      *) printf 'unexpected metadata command: %s\n' "$*" >&2; exit 1 ;;
+    esac
     ;;
   'workspace focus w-child-a'|'workspace focus w-child-b'|'workspace focus w-parent'|'workspace focus w-other'|'workspace focus w-final')
     printf '%s\n' "$*" >>"$HERDR_TEST_FOCUS"
@@ -42,38 +55,53 @@ esac
 MOCK
 chmod +x "$tmp/herdr"
 
+set_marker() {
+  printf '%s\n' "$1" >"$tmp/marker"
+}
+
 run_focus() {
   : >"$tmp/args"
   : >"$tmp/focus"
   HERDR_TEST_ARGS="$tmp/args" \
   HERDR_TEST_FOCUS="$tmp/focus" \
+  HERDR_TEST_MARKER="$tmp/marker" \
   HERDR_TEST_WORKSPACE="${2:-w-parent}" \
-  HERDR_WORKSPACE_TOGGLE_STATE="$tmp/toggle-state" \
+  HERDR_WORKSPACE_TOGGLE_LOCK="$tmp/toggle-lock" \
   PATH="$tmp:$PATH" \
     "$root/herdr-focus.sh" "$1"
   cat "$tmp/focus"
 }
 
-rm -f "$tmp/toggle-state"
+set_marker w-final
 [ "$(run_focus down)" = 'workspace focus w-child-a' ] || fail 'down from parent should enter its first child'
-rm -f "$tmp/toggle-state"
+[ "$(cat "$tmp/marker")" = w-final ] || fail 'directional navigation must not change the toggle target'
+! grep -q 'workspace report-metadata' "$tmp/args" || fail 'directional navigation must not touch toggle metadata'
 [ -z "$(run_focus up)" ] || fail 'up from parent should remain at the boundary'
-rm -f "$tmp/toggle-state"
 [ "$(run_focus up w-child-a)" = 'workspace focus w-parent' ] || fail 'up from a child should return to the parent'
-rm -f "$tmp/toggle-state"
 [ "$(run_focus down w-child-b)" = 'workspace focus w-other' ] || fail 'down from the last child should leave the project group'
 
-rm -f "$tmp/toggle-state"
-[ "$(run_focus down)" = 'workspace focus w-child-a' ] || fail 'toggle setup should enter the first child'
-[ "$(cat "$tmp/toggle-state")" = $'w-parent\tw-child-a' ] || fail 'first navigation should remember its starting workspace'
-[ "$(run_focus down w-child-a)" = 'workspace focus w-child-b' ] || fail 'continued navigation should enter the next sibling'
-[ "$(cat "$tmp/toggle-state")" = $'w-parent\tw-child-b' ] || fail 'continued navigation should preserve the remembered workspace'
-[ "$(run_focus toggle w-child-b)" = 'workspace focus w-parent' ] || fail 'toggle should return to the remembered workspace'
-[ "$(cat "$tmp/toggle-state")" = $'w-child-b\tw-parent' ] || fail 'toggle should swap current and remembered workspaces'
-[ "$(run_focus toggle w-parent)" = 'workspace focus w-child-b' ] || fail 'toggle should switch back again'
+set_marker w-final
+[ "$(run_focus toggle)" = 'workspace focus w-final' ] || fail 'toggle should focus the yellow-arrow workspace'
+[ "$(cat "$tmp/marker")" = w-parent ] || fail 'toggle should move the yellow arrow to its source workspace'
+grep -q 'workspace report-metadata w-parent --source workspace-toggle --token ctrl_tab_target=↩' "$tmp/args" \
+  || fail 'toggle should mark its source workspace'
+grep -q 'workspace report-metadata w-final --source workspace-toggle --clear-token ctrl_tab_target' "$tmp/args" \
+  || fail 'toggle should clear its former target marker'
 
-printf 'w-parent\tw-parent\n' >"$tmp/toggle-state"
-[ "$(run_focus toggle w-other)" = 'workspace focus w-parent' ] || fail 'explicit workspace navigation should not clobber the toggle target'
-[ "$(cat "$tmp/toggle-state")" = $'w-other\tw-parent' ] || fail 'explicit navigation toggle should establish the new pair'
+[ "$(run_focus toggle w-final)" = 'workspace focus w-parent' ] || fail 'second toggle should swap back'
+[ "$(cat "$tmp/marker")" = w-final ] || fail 'second toggle should return the arrow to the prior workspace'
 
-printf 'PASS: Herdr workspace navigation and toggle\n'
+set_marker w-final
+[ "$(run_focus toggle w-other)" = 'workspace focus w-final' ] || fail 'ordinary navigation must not change the sticky target'
+[ "$(cat "$tmp/marker")" = w-other ] || fail 'toggle after ordinary navigation should remember only its source'
+
+set_marker w-other
+[ -z "$(run_focus toggle w-other)" ] || fail 'toggle should do nothing when the arrow is already current'
+[ "$(cat "$tmp/marker")" = w-other ] || fail 'self-targeting toggle must preserve the sticky target'
+! grep -q 'workspace focus' "$tmp/args" || fail 'self-targeting toggle must not focus another workspace'
+
+set_marker ''
+[ "$(run_focus toggle)" = 'workspace focus w-child-a' ] || fail 'toggle without an arrow should bootstrap to an adjacent workspace'
+[ "$(cat "$tmp/marker")" = w-parent ] || fail 'bootstrap toggle should mark its source workspace'
+
+printf 'PASS: Herdr workspace navigation and sticky toggle\n'
