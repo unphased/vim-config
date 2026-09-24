@@ -142,15 +142,36 @@ grep -Fq '● current' "$tmp/transition-output" || fail 'zoomed-to-zoomed naviga
 [ "$(grep -o $'\033\[2J' "$tmp/transition-output" | wc -l | tr -d ' ')" -eq 2 ] || fail 'the two layouts should be shown as sequential popup frames'
 
 : >"$tmp/forwarded"
-{ sleep 0.075; printf 'λ'; } | \
+printf 'λ' | \
   HERDR_NAV_PANE_ID='w1:p1' \
   HERDR_NAV_PREVIOUS_PANE_ID='w1:p2' \
   HERDR_NAV_TRANSITION_DIRECTION=left \
-  HERDR_MINIMAP_TIMEOUT=0.05 \
+  HERDR_MINIMAP_TIMEOUT=0.1 \
   HERDR_TEST_TRANSITION=true \
-  run_navigator popup >"$tmp/transition-interrupt-output"
-grep -Fq '← previous' "$tmp/transition-interrupt-output" || fail 'interruptible transition should first show the previous layout'
+  run_navigator popup >"$tmp/previous-interrupt-output"
+grep -Fq '← previous' "$tmp/previous-interrupt-output" || fail 'previous transition frame should be visible before interruption'
+! grep -Fq '● current' "$tmp/previous-interrupt-output" || fail 'input during the previous frame should close before the destination frame'
+grep -Fxq 'pane send-text w1:p1 λ' "$tmp/forwarded" || fail 'previous minimap should remain interruptible'
+
+: >"$tmp/forwarded"
+mkfifo "$tmp/transition-input"
+exec 3<>"$tmp/transition-input"
+HERDR_NAV_PANE_ID='w1:p1' \
+HERDR_NAV_PREVIOUS_PANE_ID='w1:p2' \
+HERDR_NAV_TRANSITION_DIRECTION=left \
+HERDR_MINIMAP_TIMEOUT=0.1 \
+HERDR_TEST_TRANSITION=true \
+  run_navigator popup <&3 >"$tmp/transition-interrupt-output" &
+popup_pid=$!
+for _ in {1..100}; do
+  grep -Fq '● current' "$tmp/transition-interrupt-output" 2>/dev/null && break
+  sleep 0.005
+done
 grep -Fq '● current' "$tmp/transition-interrupt-output" || fail 'interruptible transition should advance to the destination layout'
+printf 'λ' >&3
+wait "$popup_pid"
+exec 3>&-
+grep -Fq '← previous' "$tmp/transition-interrupt-output" || fail 'interruptible transition should first show the previous layout'
 grep -Fxq 'pane send-text w1:p1 λ' "$tmp/forwarded" || fail 'destination minimap should remain interruptible'
 
 : >"$tmp/directions"

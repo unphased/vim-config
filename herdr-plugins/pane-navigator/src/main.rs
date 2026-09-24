@@ -419,13 +419,35 @@ fn forward_input(pane_id: &str, input: &[u8]) -> Result<()> {
     Ok(())
 }
 
+fn interrupt_popup(pane_id: &str, timeout: Duration) -> Result<bool> {
+    let Some(input) = wait_for_input(timeout)? else {
+        return Ok(false);
+    };
+    if input.len() == 1
+        && let Some(next_direction) = direction(input[0])
+    {
+        // The popup owns terminal input while visible. Replay a captured
+        // navigation chord, then exit immediately. A detached follow-up opens
+        // the resulting minimap after this modal has gone away.
+        move_focus(next_direction, pane_id)?;
+        defer_show_after_move(next_direction, pane_id)?;
+    } else {
+        // Any other bytes were intended for the tiled terminal underneath.
+        forward_input(pane_id, &input)?;
+    }
+    Ok(true)
+}
+
 fn popup() -> Result<()> {
     let pane_id = env::var("HERDR_NAV_PANE_ID").or_else(|_| current_pane_id())?;
     let previous = env::var("HERDR_NAV_PREVIOUS_PANE_ID").ok();
     let transition_direction = env::var("HERDR_NAV_TRANSITION_DIRECTION").ok();
-    let initial_display = previous.unwrap_or_else(|| pane_id.clone());
-    let initial_layout = pane_layout(&initial_display)?;
-    if !should_show(&initial_layout) {
+    let show_previous = match previous.as_deref() {
+        Some(pane) => should_show(&pane_layout(pane)?),
+        None => false,
+    };
+    let show_current = should_show(&pane_layout(&pane_id)?);
+    if !show_previous && !show_current {
         return Ok(());
     }
 
@@ -439,28 +461,21 @@ fn popup() -> Result<()> {
     io::stdout().flush()?;
 
     let result = (|| -> Result<()> {
-        if let Some(direction) = transition_direction.as_deref() {
-            draw(&initial_display, arrow(direction), "previous")?;
-        } else {
-            draw(&initial_display, '●', "current")?;
+        if show_previous && let Some(previous) = previous.as_deref() {
+            draw(
+                previous,
+                arrow(transition_direction.as_deref().unwrap_or_default()),
+                "previous",
+            )?;
+            if interrupt_popup(&pane_id, timeout)? {
+                return Ok(());
+            }
         }
-        let Some(input) = wait_for_input(timeout)? else {
-            return Ok(());
-        };
-        if input.len() == 1
-            && let Some(next_direction) = direction(input[0])
-        {
-            // The popup owns terminal input while visible. Replay a captured
-            // navigation chord, then exit immediately. A detached follow-up
-            // opens the resulting minimap after this modal has gone away.
-            move_focus(next_direction, &pane_id)?;
-            defer_show_after_move(next_direction, &pane_id)?;
-            return Ok(());
+        if show_current {
+            draw(&pane_id, '●', "current")?;
+            interrupt_popup(&pane_id, timeout)?;
         }
-
-        // Any other bytes were intended for the tiled terminal underneath
-        // the modal. Forward the complete key/UTF-8 burst before closing.
-        forward_input(&pane_id, &input)
+        Ok(())
     })();
 
     print!("\x1b[?25h");
