@@ -218,6 +218,8 @@ gds() {
   __git_set_stat_width_args --stat "$@"
   git diff "${stat_width_args[@]}" --stat "$@"
 }
+# The everyday high-level diff view; `search` retains the old search utility.
+alias s=gds
 alias di="git diff-with-ignored"
 alias gc!="git commit --amend"
 
