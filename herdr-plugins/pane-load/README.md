@@ -6,6 +6,9 @@ resident memory through macOS `libproc`, then reports a short-lived pane title
 plus `$cpu`, `$cpu_tree`, and `$memory` pane tokens. The same sample is summed
 across every pane in each workspace and published in the workspace sidebar.
 
+The proposed capture-owned sampler and shared topology cache are tracked in
+[`PROCSTATS_CAPTURE_PLAN.md`](PROCSTATS_CAPTURE_PLAN.md).
+
 ```mermaid
 flowchart LR
   Start[Herdr startup or Start action] --> Lock[State-dir flock singleton]
