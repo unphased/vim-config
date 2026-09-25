@@ -141,6 +141,25 @@ and the installed `herdr api schema --json`.
 Requests use one fresh Unix socket connection each; only the event subscription
 stays open. The API and plugin source are local to the running Herdr server.
 
+## Benchmark sampler passes
+
+The binary has a diagnostic-only mode that times a slower whole-machine
+session-membership discovery pass separately from faster metric reads of the
+known members. It writes JSONL to stdout and does not contact Herdr:
+
+```bash
+cargo run --quiet --release \
+  --manifest-path ~/.vim/herdr-plugins/pane-load/Cargo.toml -- \
+  benchmark --duration 5 --sid "$SID" --discovery-ms 1000 --sample-ms 500
+```
+
+`--sid` defaults to the benchmark process's current session. Pass the captured
+PTY session leader's PID (term-capture's direct child) to measure that session.
+Discovery events report PIDs
+scanned and membership changes; sample events report known-member read timing;
+the final event summarizes average and maximum costs. This mode currently uses
+the macOS backend and is never launched by the plugin manifest.
+
 ## Test
 
 ```bash

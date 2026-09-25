@@ -802,6 +802,60 @@ impl MacProcessSampler {
     }
 
     #[cfg(target_os = "macos")]
+    fn bsd_info(&self, pid: i32) -> Option<ProcBsdInfo> {
+        let mut info = ProcBsdInfo::default();
+        // Flavor 3 is proc_pidinfo(PROC_PIDTBSDINFO).
+        let size = unsafe {
+            proc_pidinfo(
+                pid,
+                3,
+                0,
+                (&mut info as *mut ProcBsdInfo).cast(),
+                std::mem::size_of::<ProcBsdInfo>() as i32,
+            )
+        };
+        (size == std::mem::size_of::<ProcBsdInfo>() as i32).then_some(info)
+    }
+
+    #[cfg(target_os = "macos")]
+    fn task_info(&self, pid: i32) -> Option<ProcTaskInfo> {
+        let mut info = ProcTaskInfo::default();
+        // Flavor 4 is proc_pidinfo(PROC_PIDTASKINFO).
+        let size = unsafe {
+            proc_pidinfo(
+                pid,
+                4,
+                0,
+                (&mut info as *mut ProcTaskInfo).cast(),
+                std::mem::size_of::<ProcTaskInfo>() as i32,
+            )
+        };
+        (size == std::mem::size_of::<ProcTaskInfo>() as i32).then_some(info)
+    }
+
+    #[cfg(target_os = "macos")]
+    fn process(&self, pid: i32) -> Option<Process> {
+        let bsd = self.bsd_info(pid)?;
+        let task = self.task_info(pid)?;
+        let raw = c_string(&bsd.name).or_else(|| c_string(&bsd.comm));
+        let name = raw
+            .map(|bytes| String::from_utf8_lossy(&bytes).into_owned())
+            .unwrap_or_else(|| "?".into());
+        let convert = |ticks: u64| {
+            ((ticks as u128 * self.timebase.numer as u128) / self.timebase.denom as u128) as u64
+        };
+        Some(Process {
+            pid,
+            ppid: bsd.ppid as i32,
+            start: (bsd.start_sec, bsd.start_usec),
+            user_ns: convert(task.total_user),
+            system_ns: convert(task.total_system),
+            name,
+            resident_bytes: task.resident_size,
+        })
+    }
+
+    #[cfg(target_os = "macos")]
     fn native_command(&self, pid: i32) -> Option<String> {
         let mut mib = [1_i32, 49_i32, pid]; // CTL_KERN, KERN_PROCARGS2, pid.
         let mut size = 0_usize;
@@ -845,55 +899,10 @@ impl ProcessSampler for MacProcessSampler {
     fn enumerate(&mut self) -> Vec<Process> {
         #[cfg(target_os = "macos")]
         {
-            let mut result = Vec::new();
-            for pid in self.pids() {
-                let mut bsd = ProcBsdInfo::default();
-                let mut task = ProcTaskInfo::default();
-                // Flavor 3 is proc_pidinfo(PROC_PIDTBSDINFO).
-                let bsd_size = unsafe {
-                    proc_pidinfo(
-                        pid,
-                        3,
-                        0,
-                        (&mut bsd as *mut ProcBsdInfo).cast(),
-                        std::mem::size_of::<ProcBsdInfo>() as i32,
-                    )
-                };
-                if bsd_size != std::mem::size_of::<ProcBsdInfo>() as i32 {
-                    continue;
-                }
-                // Flavor 4 is proc_pidinfo(PROC_PIDTASKINFO).
-                let task_size = unsafe {
-                    proc_pidinfo(
-                        pid,
-                        4,
-                        0,
-                        (&mut task as *mut ProcTaskInfo).cast(),
-                        std::mem::size_of::<ProcTaskInfo>() as i32,
-                    )
-                };
-                if task_size != std::mem::size_of::<ProcTaskInfo>() as i32 {
-                    continue;
-                }
-                let raw = c_string(&bsd.name).or_else(|| c_string(&bsd.comm));
-                let name = raw
-                    .map(|bytes| String::from_utf8_lossy(&bytes).into_owned())
-                    .unwrap_or_else(|| "?".into());
-                let convert = |ticks: u64| {
-                    ((ticks as u128 * self.timebase.numer as u128) / self.timebase.denom as u128)
-                        as u64
-                };
-                result.push(Process {
-                    pid,
-                    ppid: bsd.ppid as i32,
-                    start: (bsd.start_sec, bsd.start_usec),
-                    user_ns: convert(task.total_user),
-                    system_ns: convert(task.total_system),
-                    name,
-                    resident_bytes: task.resident_size,
-                });
-            }
-            result
+            self.pids()
+                .into_iter()
+                .filter_map(|pid| self.process(pid))
+                .collect()
         }
         #[cfg(not(target_os = "macos"))]
         {
@@ -2298,6 +2307,276 @@ fn log_message(message: &str) {
     eprintln!("{message}");
 }
 
+#[derive(Debug, PartialEq)]
+struct BenchmarkOptions {
+    duration: Duration,
+    sid: i32,
+    discovery_interval: Duration,
+    sample_interval: Duration,
+}
+
+fn parse_benchmark_options(args: &[String], default_sid: i32) -> Result<BenchmarkOptions, String> {
+    let mut options = BenchmarkOptions {
+        duration: Duration::from_secs(5),
+        sid: default_sid,
+        discovery_interval: Duration::from_secs(1),
+        sample_interval: Duration::from_millis(500),
+    };
+    let mut index = 0;
+    while index < args.len() {
+        let flag = args[index].as_str();
+        let value = args
+            .get(index + 1)
+            .ok_or_else(|| format!("{flag} requires a value"))?;
+        match flag {
+            "--duration" => {
+                let seconds = value
+                    .parse::<f64>()
+                    .map_err(|_| "--duration must be a positive number".to_string())?;
+                if !seconds.is_finite() || seconds <= 0.0 {
+                    return Err("--duration must be a positive number".into());
+                }
+                options.duration = Duration::try_from_secs_f64(seconds)
+                    .map_err(|_| "--duration is too large".to_string())?;
+            }
+            "--sid" => {
+                options.sid = value
+                    .parse::<i32>()
+                    .ok()
+                    .filter(|sid| *sid > 0)
+                    .ok_or_else(|| "--sid must be a positive process ID".to_string())?;
+            }
+            "--discovery-ms" | "--sample-ms" => {
+                let milliseconds = value
+                    .parse::<u64>()
+                    .ok()
+                    .filter(|milliseconds| *milliseconds > 0)
+                    .ok_or_else(|| format!("{flag} must be a positive integer"))?;
+                if flag == "--discovery-ms" {
+                    options.discovery_interval = Duration::from_millis(milliseconds);
+                } else {
+                    options.sample_interval = Duration::from_millis(milliseconds);
+                }
+            }
+            _ => return Err(format!("unknown benchmark option: {flag}")),
+        }
+        index += 2;
+    }
+    Ok(options)
+}
+
+fn duration_ns(duration: Duration) -> u64 {
+    duration.as_nanos().min(u128::from(u64::MAX)) as u64
+}
+
+#[cfg(target_os = "macos")]
+fn benchmark_macos(options: BenchmarkOptions) -> i32 {
+    let sampler = match MacProcessSampler::new() {
+        Ok(sampler) => sampler,
+        Err(error) => {
+            log_message(&error.to_string());
+            return 1;
+        }
+    };
+    let started = Instant::now();
+    let mut known: HashMap<i32, Identity> = HashMap::new();
+    let mut next_discovery = Duration::ZERO;
+    let mut next_sample = options.sample_interval;
+    let mut discovery_count = 0_u64;
+    let mut sample_count = 0_u64;
+    let mut discovery_total_ns = 0_u64;
+    let mut sample_total_ns = 0_u64;
+    let mut discovery_max_ns = 0_u64;
+    let mut sample_max_ns = 0_u64;
+    let mut last_pid_count = 0_usize;
+
+    while started.elapsed() < options.duration {
+        let mut elapsed = started.elapsed();
+        let mut ran = false;
+        if elapsed >= next_discovery {
+            let pass_started = Instant::now();
+            let pids = sampler.pids();
+            last_pid_count = pids.len();
+            let mut readable = 0_usize;
+            let mut current = HashMap::new();
+            for pid in pids {
+                let Some(first) = sampler.bsd_info(pid) else {
+                    continue;
+                };
+                readable += 1;
+                // SAFETY: getsid only reads kernel process metadata for pid.
+                if unsafe { libc::getsid(pid) } != options.sid {
+                    continue;
+                }
+                let Some(last) = sampler.bsd_info(pid) else {
+                    continue;
+                };
+                let first_identity = (pid, first.start_sec, first.start_usec);
+                let last_identity = (pid, last.start_sec, last.start_usec);
+                if first_identity == last_identity {
+                    current.insert(pid, last_identity);
+                }
+            }
+            let added = current
+                .iter()
+                .filter(|(pid, identity)| known.get(pid) != Some(identity))
+                .count();
+            let removed = known
+                .iter()
+                .filter(|(pid, identity)| current.get(pid) != Some(identity))
+                .count();
+            known = current;
+            let pass_ns = duration_ns(pass_started.elapsed());
+            discovery_count += 1;
+            discovery_total_ns = discovery_total_ns.saturating_add(pass_ns);
+            discovery_max_ns = discovery_max_ns.max(pass_ns);
+            println!(
+                "{}",
+                json!({
+                    "type": "discovery",
+                    "t_ns": duration_ns(started.elapsed()),
+                    "elapsed_ns": pass_ns,
+                    "pids": last_pid_count,
+                    "readable": readable,
+                    "members": known.len(),
+                    "added": added,
+                    "removed": removed,
+                })
+            );
+            next_discovery += options.discovery_interval;
+            elapsed = started.elapsed();
+            while next_discovery <= elapsed {
+                next_discovery += options.discovery_interval;
+            }
+            ran = true;
+        }
+
+        if elapsed >= options.duration {
+            break;
+        }
+        if elapsed >= next_sample {
+            let pass_started = Instant::now();
+            let attempted = known.len();
+            let mut read = 0_usize;
+            let mut unreadable = 0_usize;
+            let mut stale = Vec::new();
+            let mut cpu_ticks = 0_u64;
+            let mut rss_bytes = 0_u64;
+            for (&pid, &expected) in &known {
+                let Some(first) = sampler.bsd_info(pid) else {
+                    stale.push(pid);
+                    continue;
+                };
+                let identity = (pid, first.start_sec, first.start_usec);
+                // SAFETY: getsid only reads kernel process metadata for pid.
+                if identity != expected || unsafe { libc::getsid(pid) } != options.sid {
+                    stale.push(pid);
+                    continue;
+                }
+                let Some(task) = sampler.task_info(pid) else {
+                    unreadable += 1;
+                    continue;
+                };
+                let Some(last) = sampler.bsd_info(pid) else {
+                    stale.push(pid);
+                    continue;
+                };
+                // Recheck both identity and membership around the metric read.
+                if (pid, last.start_sec, last.start_usec) != expected
+                    // SAFETY: getsid only reads kernel process metadata for pid.
+                    || unsafe { libc::getsid(pid) } != options.sid
+                {
+                    stale.push(pid);
+                    continue;
+                }
+                read += 1;
+                cpu_ticks = cpu_ticks
+                    .saturating_add(task.total_user)
+                    .saturating_add(task.total_system);
+                rss_bytes = rss_bytes.saturating_add(task.resident_size);
+            }
+            for pid in &stale {
+                known.remove(pid);
+            }
+            let pass_ns = duration_ns(pass_started.elapsed());
+            sample_count += 1;
+            sample_total_ns = sample_total_ns.saturating_add(pass_ns);
+            sample_max_ns = sample_max_ns.max(pass_ns);
+            println!(
+                "{}",
+                json!({
+                    "type": "sample",
+                    "t_ns": duration_ns(started.elapsed()),
+                    "elapsed_ns": pass_ns,
+                    "attempted": attempted,
+                    "read": read,
+                    "unreadable": unreadable,
+                    "removed": stale.len(),
+                    "cpu_ticks": cpu_ticks,
+                    "rss_bytes": rss_bytes,
+                })
+            );
+            next_sample += options.sample_interval;
+            elapsed = started.elapsed();
+            while next_sample <= elapsed {
+                next_sample += options.sample_interval;
+            }
+            ran = true;
+        }
+
+        if !ran {
+            let next = next_discovery.min(next_sample).min(options.duration);
+            thread::sleep(next.saturating_sub(started.elapsed()));
+        }
+    }
+
+    println!(
+        "{}",
+        json!({
+            "type": "summary",
+            "wall_ns": duration_ns(started.elapsed()),
+            "sid": options.sid,
+            "discoveries": discovery_count,
+            "samples": sample_count,
+            "discovery_total_ns": discovery_total_ns,
+            "discovery_average_ns": discovery_total_ns.checked_div(discovery_count).unwrap_or(0),
+            "discovery_max_ns": discovery_max_ns,
+            "sample_total_ns": sample_total_ns,
+            "sample_average_ns": sample_total_ns.checked_div(sample_count).unwrap_or(0),
+            "sample_max_ns": sample_max_ns,
+            "pids_last": last_pid_count,
+            "members_last": known.len(),
+        })
+    );
+    0
+}
+
+fn benchmark(args: &[String]) -> i32 {
+    // SAFETY: getsid with pid 0 returns this process's session ID.
+    let default_sid = unsafe { libc::getsid(0) };
+    if default_sid <= 0 {
+        log_message(&io::Error::last_os_error().to_string());
+        return 1;
+    }
+    let options = match parse_benchmark_options(args, default_sid) {
+        Ok(options) => options,
+        Err(error) => {
+            log_message(&error);
+            return 1;
+        }
+    };
+    #[cfg(target_os = "macos")]
+    {
+        benchmark_macos(options)
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = options;
+        log_message("pane-load benchmark currently supports macOS only");
+        1
+    }
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     let status = match args.get(1).map(String::as_str) {
@@ -2319,9 +2598,10 @@ fn main() {
             }
             Err(_) => 1,
         },
+        Some("benchmark") => benchmark(&args[2..]),
         _ => {
             eprintln!(
-                "usage: pane-load <start|stop|worker --lock-fd N|format-title CPU MEMORY TREE>"
+                "usage: pane-load <start|stop|worker --lock-fd N|format-title CPU MEMORY TREE|benchmark [--duration SECONDS] [--sid PID] [--discovery-ms MS] [--sample-ms MS]>"
             );
             1
         }
@@ -2386,6 +2666,7 @@ mod tests {
     #[test]
     fn benchmark_options_reject_zero_and_unknown_values() {
         assert!(parse_benchmark_options(&strings(&["--duration", "0"]), 42).is_err());
+        assert!(parse_benchmark_options(&strings(&["--duration", "1e300"]), 42).is_err());
         assert!(parse_benchmark_options(&strings(&["--sample-ms", "0"]), 42).is_err());
         assert!(parse_benchmark_options(&strings(&["--wat"]), 42).is_err());
     }
