@@ -2348,6 +2348,48 @@ mod tests {
         }
     }
 
+    fn strings(values: &[&str]) -> Vec<String> {
+        values.iter().map(|value| (*value).into()).collect()
+    }
+
+    #[test]
+    fn benchmark_options_have_short_safe_defaults() {
+        let options = parse_benchmark_options(&[], 42).unwrap();
+        assert_eq!(options.duration, Duration::from_secs(5));
+        assert_eq!(options.sid, 42);
+        assert_eq!(options.discovery_interval, Duration::from_secs(1));
+        assert_eq!(options.sample_interval, Duration::from_millis(500));
+    }
+
+    #[test]
+    fn benchmark_options_parse_intervals_and_sid() {
+        let options = parse_benchmark_options(
+            &strings(&[
+                "--duration",
+                "2.5",
+                "--sid",
+                "123",
+                "--discovery-ms",
+                "750",
+                "--sample-ms",
+                "100",
+            ]),
+            42,
+        )
+        .unwrap();
+        assert_eq!(options.duration, Duration::from_millis(2500));
+        assert_eq!(options.sid, 123);
+        assert_eq!(options.discovery_interval, Duration::from_millis(750));
+        assert_eq!(options.sample_interval, Duration::from_millis(100));
+    }
+
+    #[test]
+    fn benchmark_options_reject_zero_and_unknown_values() {
+        assert!(parse_benchmark_options(&strings(&["--duration", "0"]), 42).is_err());
+        assert!(parse_benchmark_options(&strings(&["--sample-ms", "0"]), 42).is_err());
+        assert!(parse_benchmark_options(&strings(&["--wat"]), 42).is_err());
+    }
+
     #[test]
     fn cpu_delta_is_wall_based_and_pid_reuse_safe() {
         let mut tracker = CpuTracker::default();
