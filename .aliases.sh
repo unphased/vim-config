@@ -421,17 +421,14 @@ pi() {
 	crw_api_url="${CRW_API_URL:-http://slu-nas-eos:3000}"
 	# The bootstrap leaves .env mode 0600 but assigns it to the operator who
 	# invoked sudo, so ordinary SSH access is sufficient. Keep the sudo fallback
-	# for older/root-owned deployments when a narrow NOPASSWD rule exists.
-	if ! crw_key="$(ssh -o BatchMode=yes -o RequestTTY=no -o ConnectTimeout=10 \
-		nas "awk -F= '\$1 == \"CRW_API_KEY\" { print \$2 }' /opt/crw-stack/.env" \
+	# for older/root-owned deployments when a narrow NOPASSWD rule exists. Try
+	# both over one connection so an unavailable NAS delays Pi by about 2s total.
+	if ! crw_key="$(ssh -o BatchMode=yes -o RequestTTY=no -o ConnectTimeout=2 \
+		nas "awk -F= '\$1 == \"CRW_API_KEY\" { print \$2 }' /opt/crw-stack/.env || sudo -n awk -F= '\$1 == \"CRW_API_KEY\" { print \$2 }' /opt/crw-stack/.env" \
 		2>/dev/null)"; then
-		if ! crw_key="$(ssh -o BatchMode=yes -o RequestTTY=no -o ConnectTimeout=10 \
-			nas "sudo -n awk -F= '\$1 == \"CRW_API_KEY\" { print \$2 }' /opt/crw-stack/.env" \
-			2>/dev/null)"; then
-			printf '%s\n' 'Unable to retrieve the CRW API key from nas; Pi was not started.' >&2
-			printf '%s\n' 'Run CRW bootstrap once with sudo, or set PI_CRW_DISABLED=1.' >&2
-			return 1
-		fi
+		printf '%s\n' 'Unable to retrieve the CRW API key from nas; Pi was not started.' >&2
+		printf '%s\n' 'Run CRW bootstrap once with sudo, or set PI_CRW_DISABLED=1.' >&2
+		return 1
 	fi
 	if [ -z "$crw_key" ]; then
 		printf '%s\n' 'The CRW API key retrieved from nas was empty; Pi was not started.' >&2
