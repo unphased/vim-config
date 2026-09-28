@@ -67,15 +67,16 @@ assert_commands $'pane neighbor --pane w1:p2 --direction right\npane resize --pa
 run_resize down '' '' w1:p-top w1:p-bottom
 assert_commands $'pane neighbor --pane w1:p2 --direction down\npane resize --pane w1:p2 --direction down'
 
-# At the bottom/right edge, fall back to moving the only available boundary.
+# At the bottom/right edge, preserve spatial direction: move the only boundary
+# left/up or right/down exactly as requested.
 run_resize left w1:p-left
-assert_commands $'pane neighbor --pane w1:p2 --direction right\npane neighbor --pane w1:p2 --direction left\npane resize --pane w1:p-left --direction right'
-run_resize right w1:p-left
 assert_commands $'pane neighbor --pane w1:p2 --direction right\npane neighbor --pane w1:p2 --direction left\npane resize --pane w1:p2 --direction left'
+run_resize right w1:p-left
+assert_commands $'pane neighbor --pane w1:p2 --direction right\npane neighbor --pane w1:p2 --direction left\npane resize --pane w1:p2 --direction right'
 run_resize up '' '' w1:p-top
-assert_commands $'pane neighbor --pane w1:p2 --direction down\npane neighbor --pane w1:p2 --direction up\npane resize --pane w1:p-top --direction down'
-run_resize down '' '' w1:p-top
 assert_commands $'pane neighbor --pane w1:p2 --direction down\npane neighbor --pane w1:p2 --direction up\npane resize --pane w1:p2 --direction up'
+run_resize down '' '' w1:p-top
+assert_commands $'pane neighbor --pane w1:p2 --direction down\npane neighbor --pane w1:p2 --direction up\npane resize --pane w1:p2 --direction down'
 
 # A pane without a split on this axis cannot be resized.
 run_resize left
