@@ -6,7 +6,8 @@ usage() {
 }
 
 [ "$#" -eq 1 ] || usage
-case "$1" in
+direction=$1
+case "$direction" in
   left) before=left; after=right; resize=shrink ;;
   right) before=left; after=right; resize=grow ;;
   up) before=up; after=down; resize=shrink ;;
@@ -38,13 +39,8 @@ if [ -n "$after_pane" ]; then
 else
   before_pane=$(neighbor "$before") || exit
   [ -n "$before_pane" ] || exit 0
-  if [ "$resize" = grow ]; then
-    target=$pane
-    move=$before
-  else
-    target=$before_pane
-    move=$after
-  fi
+  target=$pane
+  move=$direction
 fi
 
 exec "$herdr" pane resize --pane "$target" --direction "$move" >/dev/null
