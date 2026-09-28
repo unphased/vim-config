@@ -479,6 +479,15 @@ fn tree_payload(
         }
     }
 
+    let hottest = nodes
+        .iter()
+        .filter(|process| cpus.get(&process.identity()).copied().unwrap_or(0.0) > 0.0)
+        .max_by(|left, right| {
+            cpus[&left.identity()]
+                .total_cmp(&cpus[&right.identity()])
+                .then_with(|| right.pid.cmp(&left.pid))
+        });
+
     let mut cpu_totals = HashMap::new();
     let mut memory_totals = HashMap::new();
     for process in nodes.iter().rev() {
@@ -581,6 +590,15 @@ fn tree_payload(
         }
     }
 
+    // Keep the hottest process and its ancestry even below the side-branch cutoff.
+    let mut current = hottest;
+    while let Some(process) = current {
+        if !selected.insert(process.identity()) {
+            break;
+        }
+        current = index.by_pid.get(&process.ppid);
+    }
+
     let mut order = Vec::new();
     let mut rendered_seen = HashSet::new();
     let mut stack = vec![root.clone()];
@@ -616,6 +634,9 @@ fn tree_payload(
         );
         let memory_bar = memory_share_bar(process.resident_bytes as f64, total_memory);
         let mut here = name;
+        if hottest.map(Process::identity) == Some(identity) {
+            here.push_str(&format!("[{}]", process.pid));
+        }
         if !cpu_bar.is_empty() || !memory_bar.is_empty() {
             here.push(':');
             here.push_str(&cpu_bar);
@@ -2786,7 +2807,10 @@ mod tests {
         assert!(tree.starts_with("root[10]:"), "{tree}");
         assert_eq!(tree.matches('[').count(), 1);
 
-        for cpus in [HashMap::new(), cpus.into_keys().map(|id| (id, 0.0)).collect()] {
+        for cpus in [
+            HashMap::new(),
+            cpus.into_keys().map(|id| (id, 0.0)).collect(),
+        ] {
             let (_, tree) = token_payload(10, &processes, &cpus, &HashMap::new());
             assert!(!tree.contains('['), "{tree}");
         }

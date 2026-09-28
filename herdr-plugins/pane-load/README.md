@@ -122,8 +122,10 @@ are refreshed on every native enumeration. Mach ticks are converted using the ma
 or detach/reparent away from the pane are not accounted for.
 
 `$cpu_tree` keeps an idle main chain and includes side branches whose descendant
-CPU or RSS accounts for at least 5% of the pane total. Entries append adjacent
-bars as `name[:<cpu><rss>]`: solid block glyphs identify CPU and Braille glyphs
+CPU or RSS accounts for at least 5% of the pane total. The process with the
+highest own CPU usage is labeled `name[pid]` (lowest PID breaks ties); its path
+is kept even below the branch cutoff. No PID is marked when all processes are
+idle. Entries append adjacent bars as `name[:<cpu><rss>]`: solid block glyphs identify CPU and Braille glyphs
 identify RSS, so no separator or empty placeholder is needed. Parentheses and
 commas remain reserved for tree edges, and metrics are omitted when both shares
 are zero. Both bars use eight cells per 100% (two per 25%). CPU keeps thin `▉`

@@ -2,6 +2,7 @@
 """Opt-in live test: only creates/runs/closes its own unfocused workspace."""
 import json
 import os
+import re
 import shlex
 import subprocess
 import sys
@@ -76,7 +77,8 @@ def main():
         wait_workspace_cpu(workspace, lambda cpu: cpu == 0, 'to become idle')
         burner = 'import time; end=time.monotonic()+8; exec("while time.monotonic()<end: pass"); print("PANE_LOAD_FINISHED", flush=True)'
         herdr('pane', 'run', pane, f'{shlex.quote(sys.executable)} -c {shlex.quote(burner)}')
-        busy = wait_tokens(pane, lambda t: int(t.get('cpu', '0')) >= 40 and 'python' in t.get('cpu_tree', '').lower())
+        busy = wait_tokens(pane, lambda t: int(t.get('cpu', '0')) >= 40
+                           and re.search(r'python[\w.-]*\[\d+\]', t.get('cpu_tree', '').lower()))
         print('busy:', busy['cpu'], busy['cpu_tree'])
         wait_workspace_cpu(workspace, lambda cpu: cpu >= int(busy['cpu']),
                            f">= {busy['cpu']}%")
