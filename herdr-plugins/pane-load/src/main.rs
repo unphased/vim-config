@@ -2753,8 +2753,63 @@ mod tests {
         ]);
         assert_eq!(
             token_payload(root.pid, &processes, &cpus, &names),
-            ("11".into(), "zsh(pi:█▉█▉█▉██⣿⡿⣿⡿⣿⡿⣧(pi:⣿⡄))".into())
+            ("11".into(), "zsh(pi[21]:█▉█▉█▉██⣿⡿⣿⡿⣿⡿⣧(pi:⣿⡄))".into())
         );
+    }
+
+    #[test]
+    fn tree_marks_only_highest_own_cpu_with_stable_ties_and_no_idle_pid() {
+        let processes = vec![
+            process(10, 1, 1, "root", 0),
+            process(11, 10, 2, "parent", 0),
+            process(12, 11, 3, "child", 0),
+            process(13, 10, 4, "hot", 0),
+            process(99, 1, 5, "unrelated", 0),
+        ];
+        let mut cpus = HashMap::from([
+            (processes[1].identity(), 30.0),
+            (processes[2].identity(), 30.0),
+            (processes[3].identity(), 40.0),
+            (processes[4].identity(), 999.0),
+        ]);
+        let (_, tree) = token_payload(10, &processes, &cpus, &HashMap::new());
+        assert!(tree.contains("hot[13]:"), "{tree}");
+        assert_eq!(tree.matches('[').count(), 1);
+
+        cpus.insert(processes[3].identity(), 30.0);
+        let (_, tree) = token_payload(10, &processes, &cpus, &HashMap::new());
+        assert!(tree.contains("parent[11]:"), "{tree}");
+        assert_eq!(tree.matches('[').count(), 1);
+
+        cpus.insert(processes[0].identity(), 50.0);
+        let (_, tree) = token_payload(10, &processes, &cpus, &HashMap::new());
+        assert!(tree.starts_with("root[10]:"), "{tree}");
+        assert_eq!(tree.matches('[').count(), 1);
+
+        for cpus in [HashMap::new(), cpus.into_keys().map(|id| (id, 0.0)).collect()] {
+            let (_, tree) = token_payload(10, &processes, &cpus, &HashMap::new());
+            assert!(!tree.contains('['), "{tree}");
+        }
+    }
+
+    #[test]
+    fn tree_keeps_hottest_process_even_below_branch_cutoff() {
+        let mut processes = vec![process(1, 0, 1, "root", 0)];
+        let mut cpus = HashMap::new();
+        for pid in 2..32 {
+            let branch = process(pid, 1, pid as u64, "branch", 0);
+            let child = process(pid + 100, pid, pid as u64, "child", 0);
+            cpus.insert(branch.identity(), 2.0);
+            cpus.insert(child.identity(), 2.0);
+            processes.extend([branch, child]);
+        }
+        let parent = process(200, 1, 200, "hidden", 0);
+        let hot = process(201, 200, 201, "hot", 0);
+        cpus.insert(hot.identity(), 3.0);
+        processes.extend([parent, hot]);
+        let (_, tree) = token_payload(1, &processes, &cpus, &HashMap::new());
+        assert!(tree.contains("hidden(hot[201]:"), "{tree}");
+        assert_eq!(tree.matches('[').count(), 1);
     }
 
     #[test]
@@ -2848,7 +2903,7 @@ mod tests {
             (main_cpu.identity(), 100.0),
         ]);
         let (_, tree) = token_payload(20, &[root, hot_memory, main_cpu], &cpus, &HashMap::new());
-        assert!(tree.contains("hot-memory:⣧") && tree.contains("main-cpu:"));
+        assert!(tree.contains("hot-memory:⣧") && tree.contains("main-cpu[24]:"));
     }
 
     #[test]
@@ -2910,7 +2965,7 @@ mod tests {
         ]);
         let (cpu, tree) = token_payload(20, &[root, idle, busy], &cpus, &HashMap::new());
         assert_eq!(cpu, "0");
-        assert_eq!(tree, "root(busy:█▉█▉█▉██)");
+        assert_eq!(tree, "root(busy[22]:█▉█▉█▉██)");
         let first = process(1, 2, 1, "first", 0);
         let second = process(2, 1, 2, "cycle-back", 0);
         let sibling = process(3, 1, 3, "sibling", 0);
