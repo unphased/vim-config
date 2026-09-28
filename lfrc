@@ -5,6 +5,7 @@ map sn :set sortby natural; set info size:time
 map ss :set sortby size; set info size:time
 map st :set sortby time; set info size:time
 map sa :set sortby atime; set info size:atime
+map sb :set sortby btime; set info size:btime
 map sc :set sortby ctime; set info size:ctime
 map se :set sortby ext; set info size:time
 
