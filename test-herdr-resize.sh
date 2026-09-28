@@ -16,6 +16,7 @@ printf '%s\n' "$*" >>"$HERDR_TEST_ARGS"
 case "$*" in
   'pane current --current')
     printf '%s\n' '{"result":{"pane":{"pane_id":"w1:p2"}}}'
+    exit 0
     ;;
   'pane neighbor --pane w1:p2 --direction left') neighbor=${HERDR_TEST_LEFT:-} ;;
   'pane neighbor --pane w1:p2 --direction right') neighbor=${HERDR_TEST_RIGHT:-} ;;
@@ -42,6 +43,7 @@ run_resize() {
   HERDR_TEST_UP="${4:-}" \
   HERDR_TEST_DOWN="${5:-}" \
   HERDR_PANE_ID="${HERDR_TEST_PANE_ID-w1:p2}" \
+  HERDR_BIN_PATH="$tmp/herdr" \
   PATH="$tmp:$PATH" \
     "$root/herdr-resize.sh" "$direction"
 }

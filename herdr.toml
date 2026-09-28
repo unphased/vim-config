@@ -87,11 +87,33 @@ focus_pane_left = "prefix+h"
 focus_pane_down = "prefix+j"
 focus_pane_up = "prefix+k"
 focus_pane_right = "prefix+l"
-resize_pane_left = ["alt+h"]
-resize_pane_down = "alt+j"
-resize_pane_up = "alt+k"
-resize_pane_right = "alt+l"
+resize_pane_left = ""
+resize_pane_down = ""
+resize_pane_up = ""
+resize_pane_right = ""
 zoom = ["prefix+z", "alt+m", "ctrl+m"]
+
+# Resize from a stable top/left anchor instead of expanding a middle pane in
+# both directions. At the bottom/right edge, move the only available boundary.
+[[keys.command]]
+key = "alt+h"
+type = "shell"
+command = "~/.vim/herdr-resize.sh left"
+
+[[keys.command]]
+key = "alt+j"
+type = "shell"
+command = "~/.vim/herdr-resize.sh down"
+
+[[keys.command]]
+key = "alt+k"
+type = "shell"
+command = "~/.vim/herdr-resize.sh up"
+
+[[keys.command]]
+key = "alt+l"
+type = "shell"
+command = "~/.vim/herdr-resize.sh right"
 
 # Swap with the workspace carrying the sticky yellow-arrow bookmark.
 [[keys.command]]
