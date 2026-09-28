@@ -1,4 +1,13 @@
+# Keep file sizes visible when changing sort modes. lf's default s* mappings
+# replace the info columns with only the active sort field.
 set info size:time
+map sn :set sortby natural; set info size:time
+map ss :set sortby size; set info size:time
+map st :set sortby time; set info size:time
+map sa :set sortby atime; set info size:atime
+map sc :set sortby ctime; set info size:ctime
+map se :set sortby ext; set info size:time
+
 # interpreter for shell commands
 set shell sh
 
