@@ -8,9 +8,9 @@ all: test
 test:
 	zsh -n zprofile
 	zsh -n zshrc zsh/herdr-machine-background.zsh nvim/shell/nvim-bgcolor.zsh test-git-cli-helpers.zsh test-herdr-machine-background.zsh test-nvim-bgcolor-hook.zsh
-	sh -n herdr-focus.sh herdr-resize.sh herdr-session-context.sh ssh-server-security-check.sh ghostty-quickdash.sh ghostty-quickdash-ssh-log.sh ghostty-quickdash-ssh-active.sh herdr-plugins/copy-pane-id/move-pane-new-workspace.sh herdr-plugins/move-pane-new-tab/move-pane-new-tab.sh
+	sh -n herdr-focus.sh herdr-resize.sh herdr-sidebar-resize.sh herdr-session-context.sh ssh-server-security-check.sh ghostty-quickdash.sh ghostty-quickdash-ssh-log.sh ghostty-quickdash-ssh-active.sh herdr-plugins/copy-pane-id/move-pane-new-workspace.sh herdr-plugins/move-pane-new-tab/move-pane-new-tab.sh
 	sh -n linux-vt-install.sh linux-vt-startup.sh linux-vt-font-select.sh test-linux-vt.sh
-	bash -n git-lg-full.sh test-git-lg-full.sh test-herdr-copy-pane-id-plugin.sh test-herdr-focus.sh test-herdr-resize.sh test-herdr-pane-navigator.sh test-herdr-move-pane-new-tab-plugin.sh test-herdr-plugin-install.sh test-herdr-session-context.sh herdr-plugins/install.sh
+	bash -n test-herdr-sidebar-resize.sh git-lg-full.sh test-git-lg-full.sh test-herdr-copy-pane-id-plugin.sh test-herdr-focus.sh test-herdr-resize.sh test-herdr-pane-navigator.sh test-herdr-move-pane-new-tab-plugin.sh test-herdr-plugin-install.sh test-herdr-session-context.sh herdr-plugins/install.sh
 	./test-linux-vt.sh
 	zsh test-herdr-machine-background.zsh
 	zsh test-nvim-bgcolor-hook.zsh
@@ -19,7 +19,7 @@ test:
 	./test-herdr-copy-pane-id-plugin.sh
 	./test-herdr-focus.sh
 	./test-herdr-resize.sh
-	python3 test-herdr-sidebar-resize.py
+	./test-herdr-sidebar-resize.sh
 	./test-herdr-pane-navigator.sh
 	./test-herdr-move-pane-new-tab-plugin.sh
 	./test-herdr-plugin-install.sh
