@@ -19,6 +19,7 @@ test:
 	./test-herdr-copy-pane-id-plugin.sh
 	./test-herdr-focus.sh
 	./test-herdr-resize.sh
+	python3 test-herdr-sidebar-resize.py
 	./test-herdr-pane-navigator.sh
 	./test-herdr-move-pane-new-tab-plugin.sh
 	./test-herdr-plugin-install.sh
