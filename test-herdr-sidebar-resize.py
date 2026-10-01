@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import shlex
 import sys
 import tempfile
 import unittest
@@ -31,7 +32,7 @@ class SidebarResizeTests(unittest.TestCase):
 
     def run_resize(self, direction):
         return subprocess.run(
-            [sys.executable, str(ROOT / "herdr-sidebar-resize.py"), direction],
+            ['/bin/sh', '-lc', shlex.join([str(ROOT / 'herdr-sidebar-resize.py'), direction])],
             env=self.env, capture_output=True, text=True,
         )
 
