@@ -115,6 +115,19 @@ key = "alt+l"
 type = "shell"
 command = "~/.vim/herdr-resize.sh right"
 
+# Adjust the sidebar width cap by two columns, then reload config.
+[[keys.command]]
+key = "prefix+comma"
+type = "shell"
+command = "~/.vim/herdr-sidebar-resize.py shrink"
+description = "Narrow sidebar cap"
+
+[[keys.command]]
+key = "prefix+period"
+type = "shell"
+command = "~/.vim/herdr-sidebar-resize.py grow"
+description = "Widen sidebar cap"
+
 # Swap with the workspace carrying the sticky yellow-arrow bookmark.
 [[keys.command]]
 key = "ctrl+tab"
