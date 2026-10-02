@@ -29,6 +29,12 @@
 #     both are often too noisy, so this script hides them by default unless
 #     you pass `--include-notes-dag`.
 
+# Git shell aliases run at the repository root. Restore the caller's directory
+# so relative pathspecs (including `.`) still refer to the requested paths.
+if [[ -n "${GIT_PREFIX:-}" ]]; then
+  cd -- "$GIT_PREFIX" || exit 1
+fi
+
 # A rarely-used ASCII control character used to separate fields safely.
 # We want to split the output line into multiple fields without risking
 # collisions with normal text.
