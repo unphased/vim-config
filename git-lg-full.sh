@@ -8,6 +8,12 @@
 
 set -eu
 
+# Git shell aliases run at the repository root; restore the caller's directory
+# so relative pathspecs still refer to the requested paths.
+if [[ -n "${GIT_PREFIX:-}" ]]; then
+  cd -- "$GIT_PREFIX" || exit 1
+fi
+
 stat_width_args=()
 stat_requested=false
 for arg in "$@"; do

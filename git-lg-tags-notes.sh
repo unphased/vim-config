@@ -20,8 +20,8 @@
 #
 # Notes:
 #   - Lightweight tags have no annotation message. We ignore them.
-#   - If you quit `less` early, awk can get SIGPIPE and complain; we
-#     silence awk stderr because that’s expected for an interactive viewer.
+#   - Interactive pager early-quit SIGPIPE is tolerated; other pipeline errors
+#     are returned to the caller.
 #   - `-n` is the memorable short opt-in; `--include-notes-dag` remains the
 #     explicit spelling. The `ggn` and `ggsn` aliases are convenience shorthands.
 #   - When you pass `--all`, git will normally include notes histories under
@@ -51,66 +51,124 @@ SEP=$'\x1f'
 # commits are excluded from the main log traversal.
 
 include_notes_dag=false
-log_args=()
-parsing_options=true
 args=("$@")
-i=0
+log_args=()
+has_separator=false
+for arg in "${args[@]}"; do
+  [[ "$arg" == "--" ]] && has_separator=true
+done
+# The gg wrapper marks separators it assembled itself; those still get the
+# usual notes-DAG hiding. User-supplied separators opt out of rewriting.
+infer_arguments=true
+if [[ "$has_separator" == true && "${GIT_LGTN_ARGUMENT_MODE:-}" != auto ]]; then
+  infer_arguments=false
+fi
 
-while (( i < ${#args[@]} )); do
-  arg="${args[i]}"
-  if [[ "$parsing_options" == true ]]; then
+# Git's log options commonly take a separate value. Keep this list finite:
+# it covers the options whose values could be mistaken for our private flags.
+option_takes_value() {
+  case "$1" in
+    --author|--committer|--grep|--grep-reflog|--since|--after|--until|--before|\
+    --max-count|--skip|--date|--diff-filter|--exclude|--decorate-refs|\
+    --decorate-refs-exclude|--stat-width|--stat-name-width|--stat-count|\
+    --encoding|--output|--glob|-L|-S|-G|-O|-U)
+      return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+stat_requested=false
+if [[ "$infer_arguments" == true ]]; then
+  i=0
+  while (( i < ${#args[@]} )); do
+    arg="${args[i]}"
+    if option_takes_value "$arg"; then
+      log_args+=("$arg")
+      if (( i + 1 < ${#args[@]} )); then
+        log_args+=("${args[i + 1]}")
+        i=$((i + 2))
+      else
+        i=$((i + 1))
+      fi
+      continue
+    fi
     case "$arg" in
+      --)
+        log_args+=("${args[@]:i}")
+        break
+        ;;
       --include-notes-dag)
         include_notes_dag=true
-        i=$((i + 1))
-        continue
         ;;
       -n)
-        # Preserve the usual `git log -n <count>` spelling when -n has a
-        # numeric argument; a standalone -n is our notes-DAG opt-in.
+        # Numeric -n remains Git's commit limit; bare -n is the legacy opt-in.
         if (( i + 1 < ${#args[@]} )) && [[ "${args[i + 1]}" =~ ^[0-9]+$ ]]; then
           log_args+=("$arg" "${args[i + 1]}")
           i=$((i + 2))
-        else
-          include_notes_dag=true
-          i=$((i + 1))
+          continue
         fi
-        continue
+        include_notes_dag=true
         ;;
-      --)
-        parsing_options=false
+      --stat|--stat=*|--patch-with-stat|--patch-with-stat=*)
+        stat_requested=true
+        log_args+=("$arg")
         ;;
+      *) log_args+=("$arg") ;;
     esac
+    i=$((i + 1))
+  done
+else
+  # Explicit `--` opts out of all inferred rewrites. Remove only an explicit
+  # private flag in the leading option region (the wrapper puts it first), and
+  # otherwise keep the user's argument vector byte-for-byte/order-for-order.
+  log_args=("${args[@]}")
+  if [[ "${log_args[0]-}" == --include-notes-dag ]]; then
+    include_notes_dag=true
+    log_args=("${log_args[@]:1}")
   fi
-  log_args+=("$arg")
-  i=$((i + 1))
-done
+  # The wrapper may prepend --stat even in passthrough mode; inspect flags only
+  # before the separator so path operands are never mistaken for options.
+  i=0
+  while (( i < ${#args[@]} )); do
+    arg="${args[i]}"
+    [[ "$arg" == "--" ]] && break
+    if option_takes_value "$arg"; then i=$((i + 2)); continue; fi
+    case "$arg" in
+      --stat|--stat=*|--patch-with-stat|--patch-with-stat=*) stat_requested=true ;;
+      --include-notes-dag) ;;
+      -n) (( i + 1 < ${#args[@]} )) && i=$((i + 1)) ;;
+    esac
+    i=$((i + 1))
+  done
+fi
 
-has_all=false
-parsing_options=true
-for arg in "${log_args[@]}"; do
-  if [[ "$arg" == "--" ]]; then
-    parsing_options=false
-  elif [[ "$parsing_options" == true && "$arg" == "--all" ]]; then
-    has_all=true
-    break
-  fi
-done
-
-if [[ "$has_all" == true && "$include_notes_dag" == false ]]; then
-  # `--all` includes every ref under `refs/` (including the notes DAG and its
-  # remote snapshots), which makes the output very noisy. Exclude both note
-  # namespaces from each `--all` traversal without appending pseudo-ref
-  # options after user pathspecs.
+# Re-scan inferred arguments with the same finite value grammar so --grep
+# --all is never treated as a traversal selector, and never inspect paths.
+if [[ "$infer_arguments" == true && "$include_notes_dag" == false ]]; then
   filtered=()
-  parsing_options=true
-  for arg in "${log_args[@]}"; do
-    if [[ "$parsing_options" == true && "$arg" == "--all" ]]; then
+  i=0
+  while (( i < ${#log_args[@]} )); do
+    arg="${log_args[i]}"
+    if [[ "$arg" == -- ]]; then
+      filtered+=("${log_args[@]:i}")
+      break
+    fi
+    if option_takes_value "$arg"; then
+      filtered+=("$arg")
+      if (( i + 1 < ${#log_args[@]} )); then
+        filtered+=("${log_args[i + 1]}")
+        i=$((i + 2))
+      else
+        i=$((i + 1))
+      fi
+      continue
+    fi
+    if [[ "$arg" == --all ]]; then
       filtered+=("--exclude=refs/notes/*" "--exclude=refs/notes-sync/*" --all)
     else
       filtered+=("$arg")
-      [[ "$arg" == "--" ]] && parsing_options=false
     fi
+    i=$((i + 1))
   done
   log_args=("${filtered[@]}")
 fi
@@ -375,15 +433,8 @@ if [[ -z "$stat_cols" ]]; then
   fi
 fi
 
-if [[ "$stat_cols" =~ ^[0-9]+$ ]] && [[ "$stat_cols" -gt 0 ]]; then
-  for arg in "${log_args[@]}"; do
-    case "$arg" in
-      --stat|--stat=*|--patch-with-stat|--patch-with-stat=*)
-        stat_width_args=(--stat-width="$stat_cols" --stat-name-width="$stat_cols")
-        break
-        ;;
-    esac
-  done
+if [[ "$stat_cols" =~ ^[0-9]+$ ]] && [[ "$stat_cols" -gt 0 && "$stat_requested" == true ]]; then
+  stat_width_args=(--stat-width="$stat_cols" --stat-name-width="$stat_cols")
 fi
 
 git -c color.ui=always log \
@@ -608,7 +659,7 @@ git -c color.ui=always log \
 
     print left deco_color_start deco_text color_reset " " right
   }
-' 2>/dev/null \
+' \
 | {
     if [[ -t 1 ]] && command -v less >/dev/null 2>&1; then
       LESS='-FRS' less -R
@@ -616,3 +667,19 @@ git -c color.ui=always log \
       cat
     fi
   }
+pipeline_status=("${PIPESTATUS[@]}")
+
+# An interactive pager may quit early, which sends SIGPIPE upstream. Ignore
+# only that expected case; propagate all real git, awk, and pager failures.
+interactive_pager=false
+if [[ -t 1 ]] && command -v less >/dev/null 2>&1; then interactive_pager=true; fi
+git_status=${pipeline_status[0]:-0}
+awk_status=${pipeline_status[1]:-0}
+pager_status=${pipeline_status[2]:-0}
+if (( git_status != 0 )) && ! { [[ "$interactive_pager" == true && "$pager_status" == 0 && $git_status -eq 141 ]]; }; then
+  exit "$git_status"
+fi
+if (( awk_status != 0 )) && ! { [[ "$interactive_pager" == true && "$pager_status" == 0 && $awk_status -eq 141 ]]; }; then
+  exit "$awk_status"
+fi
+if (( pager_status != 0 )); then exit "$pager_status"; fi

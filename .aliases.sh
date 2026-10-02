@@ -83,9 +83,6 @@ alias ssht="TERM=xterm-256color ssh"
 alias v="nvim"
 alias vd='v $(git diff --name-only | while read file; do printf "$(git rev-parse --show-toplevel)/$file "; done) -O'
 alias g="git"
-# Full-message variants of gg/ggs; keep gf available for git fetch.
-alias ggf="git lgf --all"
-alias ggfs="git lgfs --all"
 alias gs="git s" # short status 
 alias gco="git checkout"
 alias gta="git ta"
@@ -231,104 +228,162 @@ alias gde="GIT_EXTERNAL_DIFF=sift GIT_PAGER=less git diff --ext-diff"
 alias de="gde"
 alias gdc="gd --cached"
 #unalias gg # some git gui thing from ohmyzsh
-unalias gg ggn ggs ggsn 2>/dev/null || true
+unalias gg ggn ggs ggsn ggf ggfs 2>/dev/null || true
 
-__git_lgtn_view() {
-  local include_notes_dag=false
-  local arg
-  local -a log_opts revs paths cmd
+# Without --: infer paths/revisions, default to --all for path-only calls, and
+# report the assembled command. A literal -- bypasses inference completely.
+# Bare operands must resolve as exactly one of path or revision. Keep every
+# other argument in its original order and append only inferred paths after --.
+# Unsupported options need --option=value or the explicit-separator escape hatch.
+__git_log_path_candidate() {
+  local operand=$1
+  [[ -e "$operand" || -L "$operand" ]] && return 0
+  case "$operand" in
+    .|..|./*|../*|/*|*'*'*|*'?'*|*'['*|:\(*|:!*|:^*) return 0 ;;
+  esac
+  git ls-files --error-unmatch -- "$operand" >/dev/null 2>&1 && return 0
+  [[ -n "$(git log --all -1 --format=%H --no-notes -- "$operand" 2>/dev/null)" ]]
+}
+
+__git_log_run() {
+  local label=$1 mode=$2 arg
+  shift 2
+  printf '%s (%s):' "$label" "$mode" >&2
+  for arg in "$@"; do
+    printf ' %q' "$arg" >&2
+  done
+  printf '\n' >&2
+  # Distinguish a user-supplied separator from one assembled by this wrapper.
+  GIT_LGTN_ARGUMENT_MODE="$mode" "$@"
+}
+
+__git_log_view() {
+  local label=$1 log_alias=$2 include_notes=$3 add_stat=$4
+  shift 4
+  local arg rev_check path_check has_selector=false passthrough=false
+  local -a cmd=() ordered=() paths=()
+
+  cmd=(git "$log_alias")
+  [[ "$include_notes" == true && "$log_alias" == lgtn ]] && cmd+=(--include-notes-dag)
+  [[ "$add_stat" == true ]] && cmd+=(--stat)
+
+  # Any literal separator opts out completely: preserve every user argument.
+  for arg in "$@"; do
+    if [[ "$arg" == -- ]]; then passthrough=true; break; fi
+  done
+  if [[ "$passthrough" == true ]]; then
+    cmd+=("$@")
+    __git_log_run "$label" passthrough "${cmd[@]}"
+    return $?
+  fi
 
   while [[ $# -gt 0 ]]; do
-    arg="$1"
-    shift
-
+    arg=$1; shift
     case "$arg" in
       --include-notes-dag)
-        include_notes_dag=true
+        if [[ "$log_alias" != lgtn ]]; then
+          printf '%s: --include-notes-dag is only supported by gg/ggs notes views\n' "$label" >&2
+          return 2
+        fi
+        include_notes=true
         ;;
       -n)
-        # A standalone -n opts into the notes DAG; retain `git log -n <count>`.
         if [[ $# -gt 0 && "$1" =~ ^[0-9]+$ ]]; then
-          log_opts+=("$arg" "$1")
-          shift
+          ordered+=("--max-count=$1"); shift
+        elif [[ "$log_alias" == lgtn ]]; then
+          include_notes=true
         else
-          include_notes_dag=true
+          printf '%s: -n requires a commit count in full-message views\n' "$label" >&2
+          return 2
         fi
         ;;
-      --stat)
-        log_opts+=("$arg")
+      --all|--reflog|--alternate-refs)
+        ordered+=("$arg"); has_selector=true
         ;;
-      --)
-        while [[ $# -gt 0 ]]; do
-          paths+=("$1")
-          shift
-        done
+      --branches|--tags|--remotes|--branches=*|--tags=*|--remotes=*)
+        ordered+=("$arg"); has_selector=true
         ;;
-      --author|--committer|--grep|--grep-reflog|--since|--after|--until|--before|--max-count|--skip|--date|--format|--diff-filter|--glob|--exclude|--decorate-refs|--decorate-refs-exclude|--stat-width|--stat-name-width|--stat-count|-n|-L|-S|-G)
-        log_opts+=("$arg")
-        if [[ $# -gt 0 ]]; then
-          log_opts+=("$1")
-          shift
-        fi
+      --glob=*)
+        ordered+=("$arg"); has_selector=true
         ;;
-      --*=*|-[0-9]*|-*)
-        log_opts+=("$arg")
+      --glob)
+        if [[ $# -eq 0 ]]; then echo "gg: --glob needs a pattern" >&2; return 2; fi
+        ordered+=("$arg" "$1"); shift; has_selector=true
+        ;;
+      -L)
+        if [[ $# -eq 0 ]]; then echo "gg: -L needs a line range and file" >&2; return 2; fi
+        ordered+=("$arg" "$1"); shift; has_selector=true
+        ;;
+      -L*)
+        # Line history requires one starting commit; retain Git's HEAD default.
+        ordered+=("$arg"); has_selector=true
+        ;;
+      --author|--committer|--grep|--grep-reflog|--since|--after|--until|--before|--max-count|--skip|--date|--diff-filter|--exclude|--decorate-refs|--decorate-refs-exclude|--stat-width|--stat-name-width|--stat-count|--encoding|--output|-S|-G|-O|-U)
+        if [[ $# -eq 0 ]]; then echo "gg: $arg needs a value" >&2; return 2; fi
+        ordered+=("$arg" "$1"); shift
+        ;;
+      --*=*)
+        ordered+=("$arg")
+        ;;
+      --not|--oneline|--graph|--decorate|--no-decorate|--color|--no-color|--ext-diff|--no-ext-diff|--textconv|--no-textconv|--stat|--shortstat|--numstat|--name-only|--name-status|--summary|--check|--patch|--no-patch|--raw|--binary|--full-index|--abbrev|--pretty|--format|--notes|--no-notes|--follow|--no-merges|--merges|--first-parent|--root|--reverse|--topo-order|--date-order|--author-date-order|--boundary|--left-right|--cherry|--cherry-mark|--cherry-pick|--right-only|--left-only|--ancestry-path|--full-history|--simplify-merges|--simplify-by-decoration|--dense|--sparse|--walk-reflogs|--no-walk|--no-renames|--find-renames|--find-copies|--find-copies-harder|--ignore-space-change|--ignore-all-space|--ignore-space-at-eol|--word-diff|--color-moved|--patch-with-stat|--patch-with-raw|-p|-u|-v|-q|-s|-w|-m|-c|-t|-i|-E|-M|-C|-B)
+        ordered+=("$arg")
+        ;;
+      -[0-9]*|-n[0-9]*|-S*|-G*|-U*|-O*)
+        ordered+=("$arg")
+        ;;
+      -*)
+        printf 'gg: unknown option %q; use --option=value or an explicit -- to bypass inference\n' "$arg" >&2
+        return 2
         ;;
       *)
-        if [[ -e "$arg" || "$arg" == "." || "$arg" == ".." || "$arg" == ./* || "$arg" == ../* ]]; then
+        path_check=false
+        __git_log_path_candidate "$arg" && path_check=true
+        rev_check="$(git rev-parse --revs-only --no-flags "$arg" 2>/dev/null)"
+        if [[ "$path_check" == true && -n "$rev_check" ]]; then
+          printf 'gg: %q is both a path and revision; use -- %q for the path or %q -- for the revision\n' "$arg" "$arg" "$arg" >&2
+          return 2
+        elif [[ "$path_check" == true ]]; then
           paths+=("$arg")
+        elif [[ -n "$rev_check" ]]; then
+          ordered+=("$arg"); has_selector=true
         else
-          revs+=("$arg")
+          printf 'gg: cannot classify operand %q; use -- %q for a path or %q -- for a revision\n' "$arg" "$arg" "$arg" >&2
+          return 2
         fi
         ;;
     esac
   done
 
-  cmd=(git lgtn)
-  [[ "$include_notes_dag" == true ]] && cmd+=(--include-notes-dag)
-  cmd+=("${log_opts[@]}")
-  if [[ ${#revs[@]} -gt 0 ]]; then
-    cmd+=("${revs[@]}")
-  else
-    cmd+=(--all)
+  if [[ "$include_notes" == true && "$log_alias" == lgtn ]]; then
+    cmd=(git "$log_alias" --include-notes-dag)
+    [[ "$add_stat" == true ]] && cmd+=(--stat)
   fi
-  if [[ ${#paths[@]} -gt 0 ]]; then
-    cmd+=(-- "${paths[@]}")
-  fi
-  "${cmd[@]}"
+  # Ref-selection modifiers such as --exclude must precede the default --all.
+  [[ "$has_selector" == true ]] || ordered+=(--all)
+  cmd+=("${ordered[@]}")
+  [[ ${#paths[@]} -gt 0 ]] && cmd+=(-- "${paths[@]}")
+  __git_log_run "$label" auto "${cmd[@]}"
 }
 
 __git_lgtn_hint() {
   printf '%s\n' 'gg tip: -n alone/--include-notes-dag shows the notes DAG; -n N limits commits; --stat adds stats.' >&2
 }
 
-__git_lgtn_view_with_hint() {
+__git_log_view_with_hint() {
   local view_status
-  if __git_lgtn_view "$@"; then
-    view_status=0
-  else
-    view_status=$?
-  fi
+  if __git_log_view "$@"; then view_status=0; else view_status=$?; fi
   __git_lgtn_hint
   return "$view_status"
 }
 
-gg() {
-  __git_lgtn_view_with_hint "$@"
-}
-
-ggn() {
-  __git_lgtn_view --include-notes-dag "$@"
-}
-
-alias gfp="git push --force-with-lease" # for force push when e.g. amending
-ggs() {
-  __git_lgtn_view_with_hint --stat "$@"
-}
-
-ggsn() {
-  __git_lgtn_view --stat --include-notes-dag "$@"
-}
+gg()   { __git_log_view_with_hint gg lgtn false false "$@"; }
+ggn()  { __git_log_view gg lgtn true false "$@"; }
+ggs()  { __git_log_view_with_hint ggs lgtn false true "$@"; }
+ggsn() { __git_log_view ggsn lgtn true true "$@"; }
+# Full-message variants; keep gf available for git fetch.
+ggf()  { __git_log_view ggf lgf false false "$@"; }
+ggfs() { __git_log_view ggfs lgfs false false "$@"; }
+alias gfp="git push --force-with-lease"
 alias gca="git commit -av"
 alias gcm="git commit-message"
 #unalias gcp # I rarely cherry pick (if not using ohmyzsh, this will cause bash to emit a warning)
