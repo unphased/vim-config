@@ -18,7 +18,8 @@ git config alias.diff-with-ignored "$(git config --file "$script_dir/.gitconfig"
 
 mkdir nested
 printf 'base\n' >nested/tracked.txt
-git add nested/tracked.txt
+printf 'unrelated\n' >unrelated.txt
+git add nested/tracked.txt unrelated.txt
 git commit -q -m "shared base"
 
 git checkout -qb feature/topic
@@ -46,6 +47,28 @@ if [[ "$path_output" != *"shared base"* || "$path_output" == *"branch only"* ]];
   print -u2 'FAIL: gg no longer recognizes an existing nested path'
   exit 1
 fi
+
+assert_stat_path() {
+  local label="$1"
+  shift
+  local output="$(ggs "$@" 2>/dev/null)"
+  if [[ "$output" != *"shared base"* || "$output" != *"tracked.txt |"* ]]; then
+    print -u2 "FAIL: $label did not show the selected path's history and stats"
+    exit 1
+  fi
+  if [[ "$output" == *"branch only"* || "$output" == *"unrelated.txt"* ]]; then
+    print -u2 "FAIL: $label included history or stats outside the selected path"
+    exit 1
+  fi
+}
+
+assert_stat_path 'ggs from root' nested/tracked.txt
+assert_stat_path 'ggs explicit path from root' -- nested/tracked.txt
+cd nested
+assert_stat_path 'ggs from subdirectory' tracked.txt
+assert_stat_path 'ggs explicit path from subdirectory' -- tracked.txt
+assert_stat_path 'ggs directory from subdirectory' .
+cd ..
 
 printf 'staged\n' >staged.txt
 git add staged.txt
