@@ -1,9 +1,10 @@
 #!/bin/sh
 
+reset=0
 case "${1:-}" in
-  shrink) delta=-2 ;;
-  grow) delta=2 ;;
-  *) printf 'usage: %s {shrink|grow}\n' "$0" >&2; exit 2 ;;
+  shrink) delta=-4 ;;
+  reset) delta=0; reset=48 ;;
+  *) printf 'usage: %s {shrink|reset}\n' "$0" >&2; exit 2 ;;
 esac
 [ "$#" -eq 1 ] || exit 2
 
@@ -22,7 +23,7 @@ trap 'rm -f "$tmp"; rmdir "$lock"' EXIT
 trap 'exit 1' HUP INT TERM
 tmp=$(mktemp "$config.sidebar-resize.XXXXXX") || exit
 
-awk -v delta="$delta" '
+awk -v delta="$delta" -v reset="$reset" '
 function width(line, value) {
   value = line
   sub(/^[^=]*=[ \t]*/, "", value)
@@ -48,7 +49,8 @@ BEGIN { minimum = 18; maximum = 36 }
 }
 END {
   if (failed) exit 2
-  maximum += delta
+  if (reset) maximum = reset
+  else maximum += delta
   if (maximum < minimum) maximum = minimum
   if (maximum > 65535) maximum = 65535
   if (!end) end = NR + 1
@@ -65,6 +67,9 @@ END {
   if (!maxline && (!found || end == NR + 1)) print "sidebar_max_width = " maximum
 }
 ' "$config" >"$tmp" || exit
+
+# Avoid expensive reloads when already at the floor or reset cap.
+cmp -s "$tmp" "$config" && exit 0
 
 # Writing through the existing path preserves its symlink and permissions.
 cat "$tmp" >"$config" || exit
