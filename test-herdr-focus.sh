@@ -15,10 +15,29 @@ cat >"$tmp/herdr" <<'MOCK'
 printf '%s\n' "$*" >>"$HERDR_TEST_ARGS"
 case "$*" in
   'pane current --current')
-    printf '{"result":{"pane":{"pane_id":"w-parent:p1","tab_id":"w-parent:t1","workspace_id":"%s"}}}\n' "$HERDR_TEST_WORKSPACE"
+    printf '{"result":{"pane":{"pane_id":"w-parent:p1","tab_id":"%s","workspace_id":"%s"}}}\n' \
+      "${HERDR_TEST_TAB:-w-parent:t2}" "$HERDR_TEST_WORKSPACE"
     ;;
   'pane edges --pane w-parent:p1')
     printf '%s\n' '{"result":{"edges":{"up":true,"down":true,"left":false,"right":false}}}'
+    ;;
+  'tab list --workspace w-parent')
+    printf '%s\n' '{"result":{"tabs":[{"tab_id":"w-parent:t1","number":1},{"tab_id":"w-parent:t2","number":2},{"tab_id":"w-parent:t3","number":3}]}}'
+    ;;
+  'tab list --workspace w-child-a')
+    printf '%s\n' '{"result":{"tabs":[{"tab_id":"w-child-a:t1","number":1},{"tab_id":"w-child-a:t2","number":2}]}}'
+    ;;
+  'tab list --workspace w-child-b')
+    printf '%s\n' '{"result":{"tabs":[{"tab_id":"w-child-b:t1","number":1}]}}'
+    ;;
+  'tab list --workspace w-other')
+    printf '%s\n' '{"result":{"tabs":[{"tab_id":"w-other:t1","number":1}]}}'
+    ;;
+  'tab list --workspace w-final')
+    printf '%s\n' '{"result":{"tabs":[{"tab_id":"w-final:t1","number":1}]}}'
+    ;;
+  'tab focus '*)
+    printf '%s\n' "$*" >>"$HERDR_TEST_FOCUS"
     ;;
   'workspace list')
     markers=
@@ -70,13 +89,25 @@ run_focus() {
   HERDR_TEST_FOCUS="$tmp/focus" \
   HERDR_TEST_MARKER="$tmp/marker" \
   HERDR_TEST_WORKSPACE="${2:-w-parent}" \
+  HERDR_TEST_TAB="${3:-w-parent:t2}" \
   HERDR_WORKSPACE_TOGGLE_LOCK="$tmp/toggle-lock" \
   PATH="$tmp:$PATH" \
-    "$root/herdr-focus.sh" "$1"
+    "$root/herdr-focus.sh" "$1" || return
   cat "$tmp/focus"
 }
 
 set_marker w-final
+[ "$(run_focus previous-tab w-parent w-parent:t2)" = 'tab focus w-parent:t1' ] || fail 'previous-tab should focus the adjacent lower-numbered tab'
+[ "$(run_focus next-tab w-parent w-parent:t2)" = 'tab focus w-parent:t3' ] || fail 'next-tab should focus the adjacent higher-numbered tab'
+[ "$(run_focus previous-tab w-child-a w-child-a:t1)" = 'tab focus w-parent:t3' ] || fail 'previous-tab should cross up to the previous workspace last tab'
+[ "$(run_focus next-tab w-parent w-parent:t3)" = 'tab focus w-child-a:t1' ] || fail 'next-tab should cross down to the next workspace first tab'
+[ "$(run_focus next-tab w-child-a w-child-a:t2)" = 'tab focus w-child-b:t1' ] || fail 'tab navigation should respect grouped workspace ordering'
+result=$(run_focus previous-tab w-parent w-parent:t1) || fail 'the global beginning must be a successful no-op'
+[ -z "$result" ] || fail 'previous-tab should not wrap at the global beginning'
+result=$(run_focus next-tab w-final w-final:t1) || fail 'the global end must be a successful no-op'
+[ -z "$result" ] || fail 'next-tab should not wrap at the global end'
+! grep -q 'pane edges' "$tmp/args" || fail 'linear tab navigation must not inspect pane edges'
+
 [ "$(run_focus down)" = 'workspace focus w-child-a' ] || fail 'down from parent should enter its first child'
 [ "$(cat "$tmp/marker")" = w-final ] || fail 'directional navigation must not change the toggle target'
 ! grep -q 'workspace report-metadata' "$tmp/args" || fail 'directional navigation must not touch toggle metadata'

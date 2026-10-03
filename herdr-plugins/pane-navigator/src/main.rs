@@ -5,7 +5,7 @@ use std::io::{self, Read, Write};
 use std::os::unix::process::CommandExt;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
@@ -76,8 +76,8 @@ fn move_focus(direction: &str, pane_id: &str) -> Result<()> {
 
 fn arrow(direction: &str) -> char {
     match direction {
-        "left" => '←',
-        "right" => '→',
+        "left" | "previous-tab" => '←',
+        "right" | "next-tab" => '→',
         "up" => '↑',
         "down" => '↓',
         _ => '●',
@@ -128,6 +128,9 @@ fn open_popup(pane_id: &str, previous: Option<(&str, &str)>) -> Result<()> {
 fn show_after_move(direction: &str, pane_id: &str) -> Result<()> {
     let destination = current_pane()?;
     let destination_id = value_str(&destination, &["pane_id"])?;
+    if destination_id == pane_id {
+        return Ok(());
+    }
     let source_layout = pane_layout(pane_id)?;
     let transition = crossed_tab_or_workspace(&source_layout, &destination);
     if should_show(&source_layout) {
@@ -420,19 +423,60 @@ fn forward_input(pane_id: &str, input: &[u8]) -> Result<()> {
 }
 
 fn interrupt_popup(pane_id: &str, timeout: Duration) -> Result<bool> {
-    let Some(input) = wait_for_input(timeout)? else {
+    let deadline = Instant::now() + timeout;
+    let Some(mut input) = wait_for_input(timeout)? else {
         return Ok(false);
     };
-    if input.len() == 1
-        && let Some(next_direction) = direction(input[0])
-    {
-        // The popup owns terminal input while visible. Replay a captured
-        // navigation chord, then exit immediately. A detached follow-up opens
-        // the resulting minimap after this modal has gone away.
-        move_focus(next_direction, pane_id)?;
-        defer_show_after_move(next_direction, pane_id)?;
+
+    let mut cursor = 0;
+    let mut navigations = Vec::new();
+    while cursor < input.len() {
+        let byte = input[cursor];
+        let (navigation, consumed) = if byte == 0x1b || byte == 0x13 {
+            if cursor + 1 == input.len() {
+                let remaining = deadline.saturating_duration_since(Instant::now());
+                if let Some(more) = wait_for_input(remaining)? {
+                    input.extend_from_slice(&more);
+                }
+            }
+            if let Some(&next) = input.get(cursor + 1) {
+                let navigation = match (byte, next) {
+                    (0x1b, b'{') | (0x13, b'p') => Some("previous-tab"),
+                    (0x1b, b'}') | (0x13, b'n') => Some("next-tab"),
+                    _ => None,
+                };
+                (navigation, 2)
+            } else {
+                (None, 0)
+            }
+        } else if let Some(navigation) = direction(byte) {
+            (Some(navigation), 1)
+        } else {
+            (None, 0)
+        };
+        let Some(navigation) = navigation else {
+            break;
+        };
+        navigations.push(navigation);
+        cursor += consumed;
+    }
+
+    let mut current_source = pane_id.to_owned();
+    let mut last_source = current_source.clone();
+    let mut last_navigation = None;
+    for navigation in navigations {
+        last_source = current_source;
+        move_focus(navigation, &last_source)?;
+        current_source = current_pane_id()?;
+        last_navigation = Some(navigation);
+    }
+    if cursor < input.len() {
+        // Forward all unconsumed bytes exactly, after applying preceding navigation.
+        forward_input(&current_source, &input[cursor..])?;
+    } else if let Some(navigation) = last_navigation {
+        // A pure navigation batch closes now and reopens only once afterward.
+        defer_show_after_move(navigation, &last_source)?;
     } else {
-        // Any other bytes were intended for the tiled terminal underneath.
         forward_input(pane_id, &input)?;
     }
     Ok(true)
@@ -486,7 +530,9 @@ fn popup() -> Result<()> {
 fn run() -> Result<()> {
     let arguments: Vec<String> = env::args().collect();
     match arguments.get(1).map(String::as_str) {
-        Some(direction @ ("left" | "right" | "up" | "down")) => navigate_once(direction),
+        Some(direction @ ("left" | "right" | "up" | "down" | "previous-tab" | "next-tab")) => {
+            navigate_once(direction)
+        }
         Some("popup") => popup(),
         Some("after-move") if arguments.len() == 4 => {
             std::thread::sleep(Duration::from_millis(20));

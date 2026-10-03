@@ -52,7 +52,7 @@ case "$*" in
     printf '%s\n' "$*" >>"$HERDR_TEST_POPUPS"
     printf '{"result":{"ok":true}}\n'
     ;;
-  'pane send-text w1:p1 '*)
+  pane\ send-text\ *)
     printf '%s\n' "$*" >>"$HERDR_TEST_FORWARDED"
     printf '{"result":{"ok":true}}\n'
     ;;
@@ -66,15 +66,20 @@ MOCK
 cat >"$tmp/focus" <<'MOCK'
 #!/bin/sh
 printf '%s\n' "$1" >>"$HERDR_TEST_DIRECTIONS"
+printf '%s:%s\n' "$1" "${HERDR_PANE_ID:-}" >>"$HERDR_TEST_TARGETS"
+if [ "${HERDR_TEST_NOOP:-false}" = true ]; then
+  exit 0
+fi
 case "$1" in
-  left) printf 'w1:p1\n' >"$HERDR_TEST_STATE" ;;
-  right) printf 'w1:p2\n' >"$HERDR_TEST_STATE" ;;
+  left|previous-tab) printf 'w1:p1\n' >"$HERDR_TEST_STATE" ;;
+  right|next-tab) printf 'w1:p2\n' >"$HERDR_TEST_STATE" ;;
   *) exit 1 ;;
 esac
 MOCK
 chmod +x "$tmp/herdr" "$tmp/focus"
 printf 'w1:p2\n' >"$tmp/state"
 : >"$tmp/directions"
+: >"$tmp/targets"
 : >"$tmp/popups"
 : >"$tmp/forwarded"
 
@@ -84,6 +89,7 @@ run_navigator() {
   HERDR_TEST_DIRECTIONS="$tmp/directions" \
   HERDR_TEST_POPUPS="$tmp/popups" \
   HERDR_TEST_FORWARDED="$tmp/forwarded" \
+  HERDR_TEST_TARGETS="$tmp/targets" \
   HERDR_TEST_STATE="$tmp/state" \
     cargo run --quiet --manifest-path "$root/herdr-plugins/pane-navigator/Cargo.toml" -- "$@"
 }
@@ -203,5 +209,112 @@ printf 'λ' | \
 grep -Fxq 'pane send-text w1:p1 λ' "$tmp/forwarded" || fail 'non-navigation input should reach the underlying pane'
 [ ! -s "$tmp/directions" ] || fail 'ordinary input should not be reinterpreted as navigation'
 [ ! -s "$tmp/popups" ] || fail 'ordinary input should close without reopening the minimap'
+
+# Linear tab actions retain their helper direction while rendering conventional arrows.
+: >"$tmp/directions"
+: >"$tmp/popups"
+printf 'w1:p2\n' >"$tmp/state"
+HERDR_PANE_ID='w1:p2' HERDR_TEST_TRANSITION=true run_navigator previous-tab
+[ "$(cat "$tmp/directions")" = 'previous-tab' ] || fail 'previous-tab action should preserve its helper direction'
+grep -Fq 'HERDR_NAV_TRANSITION_DIRECTION=previous-tab' "$tmp/popups" || fail 'tab transition should carry the replayable helper direction'
+printf '' | \
+  HERDR_NAV_PANE_ID='w1:p1' \
+  HERDR_NAV_PREVIOUS_PANE_ID='w1:p2' \
+  HERDR_NAV_TRANSITION_DIRECTION=previous-tab \
+  HERDR_MINIMAP_TIMEOUT=0.01 \
+  HERDR_TEST_TRANSITION=true \
+  run_navigator popup >"$tmp/tab-transition-output"
+grep -Fq '← previous' "$tmp/tab-transition-output" || fail 'previous-tab transition should use a left arrow'
+
+check_captured_navigation() {
+  expected=$1
+  shift
+  : >"$tmp/directions"
+  : >"$tmp/popups"
+  if [ "$expected" = previous-tab ]; then
+    printf 'w1:p2\n' >"$tmp/state"
+  else
+    printf 'w1:p1\n' >"$tmp/state"
+  fi
+  "$@" | \
+    HERDR_NAV_PANE_ID="$(cat "$tmp/state")" \
+    HERDR_MINIMAP_TIMEOUT=0.2 \
+    run_navigator popup >"$tmp/captured-output"
+  [ "$(cat "$tmp/directions")" = "$expected" ] || fail "captured sequence should replay $expected"
+  # Observe completion before the next case reuses the detached worker's files.
+  for _ in {1..100}; do
+    [ -s "$tmp/popups" ] && break
+    sleep 0.01
+  done
+  [ "$(wc -l <"$tmp/popups" | tr -d ' ')" -eq 1 ] || fail 'captured navigation should finish its deferred popup'
+}
+
+check_captured_navigation previous-tab printf '\033{'
+check_captured_navigation next-tab printf '\033}'
+check_captured_navigation previous-tab bash -c 'printf "\\023"; sleep 0.03; printf p'
+check_captured_navigation next-tab bash -c 'printf "\\023"; sleep 0.03; printf n'
+check_captured_navigation next-tab bash -c 'printf "\\023"; sleep 0.15; printf n'
+
+# A buffered sequence navigates against each latest destination, then defers once.
+: >"$tmp/directions"
+: >"$tmp/targets"
+: >"$tmp/popups"
+printf 'w1:p1\n' >"$tmp/state"
+printf '\033}\033{' | \
+  HERDR_NAV_PANE_ID='w1:p1' \
+  HERDR_MINIMAP_TIMEOUT=0.5 \
+  run_navigator popup >"$tmp/multi-navigation-output"
+[ "$(cat "$tmp/directions")" = $'next-tab\nprevious-tab' ] || fail 'all buffered navigation chords should replay sequentially'
+[ "$(cat "$tmp/targets")" = $'next-tab:w1:p1\nprevious-tab:w1:p2' ] || fail 'each navigation should target the latest focused pane'
+for _ in {1..100}; do
+  [ "$(wc -l <"$tmp/popups" | tr -d ' ')" -ge 1 ] && break
+  sleep 0.01
+done
+[ "$(wc -l <"$tmp/popups" | tr -d ' ')" -eq 1 ] || fail 'a navigation sequence should defer the popup exactly once'
+grep -Fq 'HERDR_NAV_PANE_ID=w1:p1' "$tmp/popups" || fail 'deferred popup should follow the final navigation destination'
+
+# Ordinary trailing bytes are forwarded unchanged after the navigation.
+: >"$tmp/directions"
+: >"$tmp/popups"
+: >"$tmp/forwarded"
+printf 'w1:p1\n' >"$tmp/state"
+printf '\033}λ ordinary' | \
+  HERDR_NAV_PANE_ID='w1:p1' \
+  HERDR_MINIMAP_TIMEOUT=0.5 \
+  run_navigator popup >"$tmp/navigation-and-text-output"
+[ "$(cat "$tmp/directions")" = 'next-tab' ] || fail 'navigation before ordinary text should still be replayed'
+grep -Fxq 'pane send-text w1:p2 λ ordinary' "$tmp/forwarded" || fail 'ordinary trailing bytes should be forwarded unchanged to the resulting pane'
+[ ! -s "$tmp/popups" ] || fail 'trailing ordinary input should suppress deferred popup reopening'
+
+# At a global boundary, helper no-ops must not reopen a minimap.
+for mode in previous-tab next-tab; do
+  : >"$tmp/directions"
+  : >"$tmp/popups"
+  if [ "$mode" = previous-tab ]; then
+    printf 'w1:p1\n' >"$tmp/state"
+  else
+    printf 'w1:p2\n' >"$tmp/state"
+  fi
+  HERDR_PANE_ID="$(cat "$tmp/state")" HERDR_TEST_NOOP=true run_navigator "$mode"
+  [ ! -s "$tmp/popups" ] || fail "$mode at the global boundary should not open the minimap"
+done
+
+: >"$tmp/directions"
+: >"$tmp/forwarded"
+printf '\023x' | \
+  HERDR_NAV_PANE_ID='w1:p1' \
+  HERDR_MINIMAP_TIMEOUT=0.2 \
+  run_navigator popup >"$tmp/prefix-forward-output"
+grep -Fxq $'pane send-text w1:p1 \023x' "$tmp/forwarded" || fail 'unrecognized prefix sequences should be forwarded unchanged'
+[ ! -s "$tmp/directions" ] || fail 'unrecognized prefix sequences should not navigate'
+
+grep -Fq 'previous_tab = ""' "$root/herdr.toml" || fail 'native previous-tab binding should be disabled'
+grep -Fq 'next_tab = ""' "$root/herdr.toml" || fail 'native next-tab binding should be disabled'
+grep -Fq 'key = "alt+{"' "$root/herdr.toml" || fail 'Alt+{ should be bound through the navigator plugin'
+grep -Fq 'key = "alt+}"' "$root/herdr.toml" || fail 'Alt+} should be bound through the navigator plugin'
+grep -Fq 'key = "prefix+p"' "$root/herdr.toml" || fail 'Ctrl+S,p should be bound through the navigator plugin'
+grep -Fq 'key = "prefix+n"' "$root/herdr.toml" || fail 'Ctrl+S,n should be bound through the navigator plugin'
+grep -Fq 'id = "previous-tab"' "$root/herdr-plugins/pane-navigator/herdr-plugin.toml" || fail 'previous-tab plugin action should be registered'
+grep -Fq 'id = "next-tab"' "$root/herdr-plugins/pane-navigator/herdr-plugin.toml" || fail 'next-tab plugin action should be registered'
 
 printf 'PASS: Herdr Rust popup pane navigator\n'

@@ -81,8 +81,8 @@ enabled = true
 
 [keys]
 prefix = "ctrl+s"
-previous_tab = ["alt+{", "prefix+p"]
-next_tab = ["alt+}", "prefix+n"]
+previous_tab = ""
+next_tab = ""
 focus_pane_left = "prefix+h"
 focus_pane_down = "prefix+j"
 focus_pane_up = "prefix+k"
@@ -162,6 +162,28 @@ command = "local.pane-navigator.up"
 key = "ctrl+j"
 type = "plugin_action"
 command = "local.pane-navigator.down"
+
+# Linear tab navigation: cross up/down a workspace only at the tab ends.
+# Use the same zoom minimap as pane navigation, including captured repeats.
+[[keys.command]]
+key = "alt+{"
+type = "plugin_action"
+command = "local.pane-navigator.previous-tab"
+
+[[keys.command]]
+key = "alt+}"
+type = "plugin_action"
+command = "local.pane-navigator.next-tab"
+
+[[keys.command]]
+key = "prefix+p"
+type = "plugin_action"
+command = "local.pane-navigator.previous-tab"
+
+[[keys.command]]
+key = "prefix+n"
+type = "plugin_action"
+command = "local.pane-navigator.next-tab"
 
 # Move the focused pane into a new, focused workspace.
 [[keys.command]]

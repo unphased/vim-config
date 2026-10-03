@@ -1,13 +1,13 @@
 #!/bin/sh
 
 usage() {
-  printf 'usage: %s {left|right|up|down|toggle}\n' "$0" >&2
+  printf 'usage: %s {left|right|up|down|previous-tab|next-tab|toggle}\n' "$0" >&2
   exit 2
 }
 
 [ "$#" -eq 1 ] || usage
 case "$1" in
-  left|right|up|down|toggle) direction=$1 ;;
+  left|right|up|down|previous-tab|next-tab|toggle) direction=$1 ;;
   *) usage ;;
 esac
 
@@ -148,6 +148,40 @@ if [ "$direction" = toggle ]; then
       done
   exit
 fi
+
+case "$direction" in
+  previous-tab|next-tab)
+    if [ "$direction" = previous-tab ]; then
+      tab_direction=left
+      workspace_direction=up
+    else
+      tab_direction=right
+      workspace_direction=down
+    fi
+
+    tabs=$(herdr tab list --workspace "$workspace") || exit
+    current=$(printf '%s' "$tabs" | jq -r --arg id "$tab" '.result.tabs[] | select(.tab_id == $id) | .number')
+    target=$(printf '%s' "$tabs" | adjacent_target tabs "$current" "$tab_direction" tab_id)
+    if [ -n "$target" ]; then
+      herdr tab focus "$target"
+      exit
+    fi
+
+    workspaces=$(herdr workspace list) || exit
+    target_workspace=$(printf '%s' "$workspaces" | workspace_adjacent_target "$workspace" "$workspace_direction")
+    [ -n "$target_workspace" ] || exit 0
+    tabs=$(herdr tab list --workspace "$target_workspace") || exit
+    target=$(printf '%s' "$tabs" | jq -r --arg direction "$direction" '
+      .result.tabs | sort_by(.number) |
+      if length == 0 then empty
+      elif $direction == "previous-tab" then .[-1].tab_id
+      else .[0].tab_id
+      end')
+    [ -n "$target" ] || exit 0
+    herdr tab focus "$target"
+    exit
+    ;;
+esac
 
 edges=$(herdr pane edges --pane "$pane") || exit
 case "$direction" in

@@ -32,6 +32,18 @@ title = "Navigate down with minimap"
 contexts = ["pane"]
 command = ["target/release/herdr-pane-navigator", "down"]
 
+[[actions]]
+id = "previous-tab"
+title = "Previous tab with minimap"
+contexts = ["pane"]
+command = ["target/release/herdr-pane-navigator", "previous-tab"]
+
+[[actions]]
+id = "next-tab"
+title = "Next tab with minimap"
+contexts = ["pane"]
+command = ["target/release/herdr-pane-navigator", "next-tab"]
+
 [[panes]]
 id = "minimap"
 title = "Pane layout"
