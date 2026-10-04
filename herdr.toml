@@ -115,25 +115,27 @@ key = "alt+l"
 type = "shell"
 command = "~/.vim/herdr-resize.sh right"
 
-# Mobile sidebar workaround: shrink the cap by four, or relax it to 48.
-# Keep the prefix fallback for terminals that cannot transmit Ctrl+comma.
-[[keys.command]]
-key = "ctrl+comma"
-type = "shell"
-command = "~/.vim/herdr-sidebar-resize.sh shrink"
-description = "Narrow sidebar cap by 4"
-
+# Shellfish-friendly sidebar sizing: adjustments pin min/max to the same width.
+# Toggle restores loose mouse bounds (18..48) or the remembered keyboard width.
 [[keys.command]]
 key = "prefix+comma"
 type = "shell"
 command = "~/.vim/herdr-sidebar-resize.sh shrink"
-description = "Narrow sidebar cap by 4"
+description = "Pin sidebar and narrow by 4"
 
 [[keys.command]]
 key = "prefix+period"
 type = "shell"
-command = "~/.vim/herdr-sidebar-resize.sh reset"
-description = "Relax sidebar cap to 48"
+command = "~/.vim/herdr-sidebar-resize.sh grow"
+description = "Pin sidebar and widen by 4"
+
+[[keys.command]]
+key = "prefix+semicolon"
+type = "popup"
+command = "~/.vim/herdr-sidebar-resize.sh toggle"
+width = "90%"
+height = 5
+description = "Toggle pinned/mouse sidebar sizing"
 
 # Swap with the workspace carrying the sticky yellow-arrow bookmark.
 [[keys.command]]

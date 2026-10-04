@@ -1,10 +1,10 @@
 #!/bin/sh
 
-reset=0
 case "${1:-}" in
   shrink) delta=-4 ;;
-  reset) delta=0; reset=48 ;;
-  *) printf 'usage: %s {shrink|reset}\n' "$0" >&2; exit 2 ;;
+  grow) delta=4 ;;
+  toggle) delta=0 ;;
+  *) printf 'usage: %s {shrink|grow|toggle}\n' "$0" >&2; exit 2 ;;
 esac
 [ "$#" -eq 1 ] || exit 2
 
@@ -23,7 +23,7 @@ trap 'rm -f "$tmp"; rmdir "$lock"' EXIT
 trap 'exit 1' HUP INT TERM
 tmp=$(mktemp "$config.sidebar-resize.XXXXXX") || exit
 
-awk -v delta="$delta" -v reset="$reset" '
+awk -v delta="$delta" -v action="$1" '
 function width(line, value) {
   value = line
   sub(/^[^=]*=[ \t]*/, "", value)
@@ -36,41 +36,87 @@ function width(line, value) {
   }
   return value + 0
 }
-BEGIN { minimum = 18; maximum = 36 }
+function insert_missing() {
+  for (k = 1; k <= 3; k++)
+    if (!keyline[keys[k]]) print keys[k] " = " values[keys[k]]
+}
+BEGIN {
+  preferred = 26; minimum = 18; maximum = 36
+  keys[1] = "sidebar_width"
+  keys[2] = "sidebar_min_width"
+  keys[3] = "sidebar_max_width"
+}
 {
   lines[NR] = $0
   if ($0 ~ /^[ \t]*\[ui\][ \t]*(#.*)?$/) { ui = 1; found = 1 }
   else if (ui && $0 ~ /^[ \t]*\[/) { ui = 0; end = NR }
-  if (ui && $0 ~ /^[ \t]*sidebar_min_width[ \t]*=/) minimum = width($0)
-  if (ui && $0 ~ /^[ \t]*sidebar_max_width[ \t]*=/) {
-    maximum = width($0)
-    maxline = NR
+  if (ui && $0 ~ /^[ \t]*sidebar_(width|min_width|max_width)[ \t]*=/) {
+    key = $0
+    sub(/^[ \t]*/, "", key)
+    sub(/[ \t]*=.*/, "", key)
+    values[key] = width($0)
+    keyline[key] = NR
+    linekey[NR] = key
+    if (key == "sidebar_width") preferred = values[key]
+    if (key == "sidebar_min_width") minimum = values[key]
+    if (key == "sidebar_max_width") maximum = values[key]
   }
 }
 END {
   if (failed) exit 2
-  if (reset) maximum = reset
-  else maximum += delta
-  if (maximum < minimum) maximum = minimum
-  if (maximum > 65535) maximum = 65535
+  pinned = !(action == "toggle" && minimum == maximum)
+  if (pinned) {
+    preferred += delta
+    if (preferred < 18) preferred = 18
+    if (preferred > 65535) preferred = 65535
+    minimum = maximum = preferred
+  } else {
+    # Mouse mode restores the normal loose bounds; keep the last pinned width.
+    minimum = 18; maximum = 48
+  }
+  values["sidebar_width"] = preferred
+  values["sidebar_min_width"] = minimum
+  values["sidebar_max_width"] = maximum
   if (!end) end = NR + 1
   for (i = 1; i <= NR; i++) {
-    if (found && !maxline && i == end) print "sidebar_max_width = " maximum
-    if (i == maxline) {
+    if (found && i == end) insert_missing()
+    if (i in linekey) {
       match(lines[i], /=[ \t]*[0-9_]+/)
       value = substr(lines[i], RSTART, RLENGTH)
-      sub(/[0-9_]+$/, maximum, value)
+      sub(/[0-9_]+$/, values[linekey[i]], value)
       print substr(lines[i], 1, RSTART - 1) value substr(lines[i], RSTART + RLENGTH)
     } else print lines[i]
   }
   if (!found) print "\n[ui]"
-  if (!maxline && (!found || end == NR + 1)) print "sidebar_max_width = " maximum
+  if (!found || end == NR + 1) insert_missing()
 }
 ' "$config" >"$tmp" || exit
 
-# Avoid expensive reloads when already at the floor or reset cap.
-cmp -s "$tmp" "$config" && exit 0
+# Avoid expensive reloads when already at the floor or ceiling.
+if ! cmp -s "$tmp" "$config"; then
+  # Writing through the existing path preserves its symlink and permissions.
+  cat "$tmp" >"$config" || exit
+  "$herdr" server reload-config >/dev/null || exit "$?"
+fi
 
-# Writing through the existing path preserves its symlink and permissions.
-cat "$tmp" >"$config" || exit
-"$herdr" server reload-config >/dev/null
+if [ "$1" = toggle ]; then
+  message=$(awk -F= '
+    /^[ \t]*\[ui\][ \t]*(#.*)?$/ { ui = 1; next }
+    /^[ \t]*\[/ { ui = 0 }
+    ui && /^[ \t]*sidebar_(min_width|max_width)[ \t]*=/ {
+      value = $2 + 0
+      if ($1 ~ /sidebar_min_width/) minimum = value
+      else maximum = value
+    }
+    END {
+      if (minimum == maximum) print "Pinned: " minimum " columns\nPrefix+, / Prefix+. to resize"
+      else print "Mouse resizing enabled"
+    }
+  ' "$tmp")
+  # Release the edit lock before the short-lived popup waits to close.
+  rm -f "$tmp"
+  rmdir "$lock"
+  trap - EXIT
+  printf '\n%s\n' "$message"
+  sleep 1
+fi

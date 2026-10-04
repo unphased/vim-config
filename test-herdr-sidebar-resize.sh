@@ -50,6 +50,12 @@ widths 40 18 48
 resize shrink
 widths 36 36 36
 
+# Preserve compact assignments, indentation, underscores, and comments.
+printf ' [ui] # settings\n sidebar_width=3_6 # preferred\n sidebar_min_width=18\n sidebar_max_width=48\n' >"$HERDR_CONFIG_PATH"
+output=$(resize toggle)
+grep -qx ' sidebar_width=36 # preferred' "$HERDR_CONFIG_PATH" || fail 'compact assignment changed'
+grep -Fq 'Pinned: 36 columns' <<<"$output" || fail 'compact popup status'
+
 printf '[ui]\nsidebar_width = 18\nsidebar_min_width = 18\nsidebar_max_width = 18\n' >"$HERDR_CONFIG_PATH"
 cp "$CALL_LOG" "$tmp/calls-before"
 resize shrink
