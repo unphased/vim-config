@@ -18,6 +18,7 @@ test:
 	zsh test-git-log-args.zsh
 	./test-git-lg-full.sh
 	./test-herdr-copy-pane-id-plugin.sh
+	python3 test-herdr-open-history.py
 	./test-herdr-focus.sh
 	./test-herdr-resize.sh
 	./test-herdr-sidebar-resize.sh

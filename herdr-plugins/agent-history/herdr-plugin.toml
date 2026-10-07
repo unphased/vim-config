@@ -1,0 +1,19 @@
+id = "local.agent-history"
+name = "Agent History"
+version = "0.1.0"
+min_herdr_version = "0.9.0"
+description = "Open project-scoped history beside a pane and select its agent session"
+platforms = ["macos", "linux"]
+
+[[actions]]
+id = "open"
+title = "Open agent history beside"
+description = "Open history in a right split with this pane's project and session"
+contexts = ["pane"]
+command = ["./open-history.py"]
+
+[[panes]]
+id = "history"
+title = "Agent history"
+placement = "split"
+command = ["./open-history.py", "--run"]

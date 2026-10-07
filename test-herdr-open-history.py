@@ -90,7 +90,9 @@ with open(os.environ['CALL_LOG'], 'a') as log:
         self.assertEqual(launch[:3], ["plugin", "pane", "open"])
         self.assertIn("--focus", launch)
         self.assertNotIn("--no-focus", launch)
-        self.assertEqual(launch[launch.index("--workspace") + 1], "clicked:workspace")
+        # Split placement derives the workspace from its target pane; Herdr
+        # rejects a workspace override even when it names the same workspace.
+        self.assertNotIn("--workspace", launch)
         self.assertEqual(launch[launch.index("--target-pane") + 1], "clicked:pane")
         self.assertEqual(launch[launch.index("--direction") + 1], "right")
         return launch
@@ -131,6 +133,17 @@ with open(os.environ['CALL_LOG'], 'a') as log:
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.calls(), [{"argv": ["--select-session", selector], "cwd": str(ROOT)}])
 
+    def test_direct_entrypoint_keeps_project_cwd_outside_plugin_directory(self):
+        selector = "codex:id:target"
+        result = subprocess.run(
+            [str(PLUGIN / "open-history.py"), "--run"],
+            cwd=self.root,
+            env={**self.env, "AGHIST_SELECT_SESSION": selector, "AGHIST_BIN_PATH": str(self.bin / "agent-history")},
+            capture_output=True, text=True, timeout=10,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.calls(), [{"argv": ["--select-session", selector], "cwd": str(self.root.resolve())}])
+
     def test_pane_entrypoint_keeps_empty_selector_argument(self):
         result = self.invoke("--run", AGHIST_SELECT_SESSION="", AGHIST_BIN_PATH=str(self.bin / "agent-history"))
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -142,7 +155,7 @@ with open(os.environ['CALL_LOG'], 'a') as log:
         self.assertIn("source pane disappeared", result.stderr)
         self.assertEqual(self.calls()[0], ["pane", "get", "clicked:pane"])
         self.assertEqual(self.calls()[1][:2], ["notification", "show"])
-        self.assertNotIn("open", str(self.calls()))
+        self.assertFalse(any(call[:3] == ["plugin", "pane", "open"] for call in self.calls()))
 
     def test_missing_binary_notifies_without_opening_split(self):
         (self.bin / "agent-history").unlink()
@@ -150,14 +163,15 @@ with open(os.environ['CALL_LOG'], 'a') as log:
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("agent-history", result.stderr)
         self.assertEqual(self.calls()[0][:2], ["notification", "show"])
-        self.assertNotIn("open", str(self.calls()))
+        self.assertFalse(any(call[:3] == ["plugin", "pane", "open"] for call in self.calls()))
 
     def test_manifest_exposes_pane_context_action_and_direct_entrypoint(self):
         manifest = (PLUGIN / "herdr-plugin.toml").read_text()
         self.assertIn('contexts = ["pane"]', manifest)
         self.assertIn('title = "Open agent history beside"', manifest)
-        self.assertIn('command = ["python3", "open-history.py"]', manifest)
-        self.assertIn('command = ["python3", "open-history.py", "--run"]', manifest)
+        self.assertIn('command = ["./open-history.py"]', manifest)
+        self.assertIn('command = ["./open-history.py", "--run"]', manifest)
+        self.assertTrue(os.access(PLUGIN / "open-history.py", os.X_OK))
         self.assertIn('placement = "split"', manifest)
 
 
