@@ -165,7 +165,7 @@ with open(os.environ['CALL_LOG'], 'a') as log:
         self.assertEqual(self.calls()[0][:2], ["notification", "show"])
         self.assertFalse(any(call[:3] == ["plugin", "pane", "open"] for call in self.calls()))
 
-    def test_manifest_exposes_pane_context_action_and_direct_entrypoint(self):
+    def test_manifest_declares_pane_context_and_direct_entrypoint(self):
         manifest = (PLUGIN / "herdr-plugin.toml").read_text()
         self.assertIn('contexts = ["pane"]', manifest)
         self.assertIn('title = "Open agent history beside"', manifest)

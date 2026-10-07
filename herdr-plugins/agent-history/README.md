@@ -1,13 +1,19 @@
 # Agent history beside a pane
 
-Right-click a Herdr pane and choose **Open agent history beside**. The action
-captures that pane's foreground directory and structured agent session before
-opening a focused right split. History retains its usual cwd-based project
-scope and selects the originating session once, without following later focus.
+The **Open agent history beside** plugin action captures the originating
+pane's foreground directory and structured agent session before opening a
+focused right split. History retains its usual cwd-based project scope and
+selects the originating session once, without following later focus.
+
+**Herdr 0.9.3 limitation:** its client-side right-click menu contains only
+built-in actions; it does not render registered plugin actions, despite the
+manifest's `contexts = ["pane"]`. Reloading config or reattaching does not
+make this action appear there. Use the CLI or a `plugin_action` keybinding
+until Herdr's client menu supports plugin actions.
 
 ```mermaid
 flowchart LR
-    Click[Clicked pane] --> Capture[Capture cwd and agent session]
+    Invoke[Invoke action for source pane] --> Capture[Capture cwd and agent session]
     Capture --> Split[Focused right split]
     Split --> History[Project-scoped history]
     History --> Select[Select exact session once, or show error]
@@ -24,11 +30,15 @@ make -C ~/agent-history build
 herdr plugin link ~/.vim/herdr-plugins/agent-history
 ```
 
-The normal `make bootstrap-herdr` links this plugin after it is tracked.
-The action is also available as `local.agent-history.open` in the action picker.
+The normal `make bootstrap-herdr` links this plugin. To invoke the action from
+an external terminal while the desired source pane is focused in Herdr:
 
-The action uses the **clicked pane**, not whichever pane becomes focused after
-the split. Session identity is passed as a literal process argument, never typed
+```sh
+herdr plugin action invoke local.agent-history.open
+```
+
+The action uses the **pane captured in its invocation context**, not whichever
+pane becomes focused after the split. Session identity is passed as a literal process argument, never typed
 into the source shell. Missing recognition passes an explicit empty selector;
 invalid or unmatched identities produce a visible error in history instead of
 silently ignoring the request. Active project/query/tag filters are not removed.
