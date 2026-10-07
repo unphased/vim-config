@@ -105,21 +105,25 @@ zoom = ["prefix+z", "alt+m", "ctrl+m"]
 key = "alt+h"
 type = "shell"
 command = "~/.vim/herdr-resize.sh left"
+description = "Resize pane left (anchored)"
 
 [[keys.command]]
 key = "alt+j"
 type = "shell"
 command = "~/.vim/herdr-resize.sh down"
+description = "Resize pane down (anchored)"
 
 [[keys.command]]
 key = "alt+k"
 type = "shell"
 command = "~/.vim/herdr-resize.sh up"
+description = "Resize pane up (anchored)"
 
 [[keys.command]]
 key = "alt+l"
 type = "shell"
 command = "~/.vim/herdr-resize.sh right"
+description = "Resize pane right (anchored)"
 
 # Shellfish-friendly sidebar sizing: adjustments pin min/max to the same width.
 # Toggle restores loose mouse bounds (18..48) or the remembered keyboard width.
@@ -148,6 +152,7 @@ description = "Toggle pinned/mouse sidebar sizing"
 key = "ctrl+tab"
 type = "shell"
 command = "~/.vim/herdr-focus.sh toggle"
+description = "Toggle bookmarked workspace"
 
 # Move first, then open a 500 ms minimap only for zoomed, multi-pane tabs.
 # A Ctrl+H/J/K/L captured by the popup is applied before it closes immediately.
@@ -155,21 +160,25 @@ command = "~/.vim/herdr-focus.sh toggle"
 key = "ctrl+h"
 type = "plugin_action"
 command = "local.pane-navigator.left"
+description = "Focus left pane (zoom minimap)"
 
 [[keys.command]]
 key = "ctrl+l"
 type = "plugin_action"
 command = "local.pane-navigator.right"
+description = "Focus right pane (zoom minimap)"
 
 [[keys.command]]
 key = "ctrl+k"
 type = "plugin_action"
 command = "local.pane-navigator.up"
+description = "Focus pane above (zoom minimap)"
 
 [[keys.command]]
 key = "ctrl+j"
 type = "plugin_action"
 command = "local.pane-navigator.down"
+description = "Focus pane below (zoom minimap)"
 
 # Linear tab navigation: cross up/down a workspace only at the tab ends.
 # Use the same zoom minimap as pane navigation, including captured repeats.
@@ -177,27 +186,32 @@ command = "local.pane-navigator.down"
 key = "alt+{"
 type = "plugin_action"
 command = "local.pane-navigator.previous-tab"
+description = "Previous tab (zoom minimap)"
 
 [[keys.command]]
 key = "alt+}"
 type = "plugin_action"
 command = "local.pane-navigator.next-tab"
+description = "Next tab (zoom minimap)"
 
 [[keys.command]]
 key = "prefix+p"
 type = "plugin_action"
 command = "local.pane-navigator.previous-tab"
+description = "Previous tab (zoom minimap)"
 
 [[keys.command]]
 key = "prefix+n"
 type = "plugin_action"
 command = "local.pane-navigator.next-tab"
+description = "Next tab (zoom minimap)"
 
 # Move the focused pane into a new, focused workspace.
 [[keys.command]]
 key = "ctrl+shift+w"
 type = "shell"
 command = "herdr pane move \"$(herdr pane current --current | jq -r '.result.pane.pane_id')\" --new-workspace --focus"
+description = "Move pane to new workspace"
 
 # Separate the focused pane: use a new tab when its tab has siblings, otherwise a new workspace.
 [[keys.command]]
@@ -213,6 +227,18 @@ command = "~/.vim/herdr-session-context.sh"
 width = "80%"
 height = "60%"
 description = "Show active pane and agent session information"
+
+[[keys.command]]
+key = "prefix+y"
+type = "plugin_action"
+command = "local.copy-pane-id.copy-pane-id"
+description = "Copy pane ID"
+
+[[keys.command]]
+key = "prefix+a"
+type = "plugin_action"
+command = "local.agent-history.open"
+description = "Open agent history beside"
 
 [ui.toast]
 delivery = "system"

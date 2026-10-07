@@ -24,7 +24,11 @@ Bootstrap the tracked Herdr config and all local plugins on each machine running
 make -C ~/.vim bootstrap-herdr
 ```
 
-Focus the target pane, then invoke an action from the Herdr CLI:
+With the tracked config, focus the target pane and press **Ctrl+S, then Y**
+to copy its pane ID. The keybinding helper labels this **Copy pane ID**. Run
+`herdr server reload-config` after updating an already-running server's config.
+
+The actions can also be invoked from the Herdr CLI:
 
 ```bash
 herdr plugin action invoke local.copy-pane-id.copy-pane-id

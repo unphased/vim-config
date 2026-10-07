@@ -8,8 +8,8 @@ selects the originating session once, without following later focus.
 **Herdr 0.9.3 limitation:** its client-side right-click menu contains only
 built-in actions; it does not render registered plugin actions, despite the
 manifest's `contexts = ["pane"]`. Reloading config or reattaching does not
-make this action appear there. Use the CLI or a `plugin_action` keybinding
-until Herdr's client menu supports plugin actions.
+make this action appear there. Use **Ctrl+S, then A** with the tracked config,
+or the CLI, until Herdr's client menu supports plugin actions.
 
 ```mermaid
 flowchart LR
@@ -30,8 +30,13 @@ make -C ~/agent-history build
 herdr plugin link ~/.vim/herdr-plugins/agent-history
 ```
 
-The normal `make bootstrap-herdr` links this plugin. To invoke the action from
-an external terminal while the desired source pane is focused in Herdr:
+The normal `make bootstrap-herdr` links this plugin. With the tracked config,
+focus the source pane and press **Ctrl+S, then A**; the keybinding helper labels
+it **Open agent history beside**. Run `herdr server reload-config` after updating
+an already-running server's config.
+
+Alternatively, invoke the action from an external terminal while the desired
+source pane is focused in Herdr:
 
 ```sh
 herdr plugin action invoke local.agent-history.open
