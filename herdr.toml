@@ -1,8 +1,8 @@
 onboarding = false
 [ui]
 agent_panel_sort = "priority"
-sidebar_width = 36
-sidebar_max_width = 60
+sidebar_width = 40
+sidebar_max_width = 40
 pane_borders = "always"
 # Show Herdr's native agent label when no higher-priority pane title is set.
 show_agent_labels_on_pane_borders = true
@@ -10,6 +10,7 @@ window_title = "{workspace} — {tab} — {pane} — {terminal_title}"
 
 status_indicators = "symbols"
 
+sidebar_min_width = 40
 [ui.sidebar.agents]
 row_gap = 0
 # Herdr's default agent style uses overlay0 plus DIM, which is nearly invisible.
@@ -21,14 +22,19 @@ rows = [
 # Pi publishes these $tokens from the session-topic extension.
 [ui.sidebar.agents.rows_by_agent]
 pi = [
-  ["state_icon", { token = "$pi", fg = "#89b4fa", bold = true }, { token = "workspace", bold = true }, { token = "tab", dim = false }],
+  ["state_icon",
+    { token = "$pi", fg = "#89b4fa", bold = true },
+    { token = "workspace", bold = true },
+    { token = "$project-different", fg = "#dadada", bold = true},
+    { token = "tab", dim = false }
+  ],
+    
   [{ token = "$topic", fg = "#aaaaaa", bold = true, dim = false }],
   [{ token = "$model", fg = "#89b4fa", dim = false }],
   [
     { token = "$session_cost_low", fg = "#a6e3a1", dim = false },
     { token = "$session_cost_moderate", fg = "#f9e2af", dim = false },
     { token = "$session_cost_high", fg = "#f38ba8", bold = true, dim = false },
-    { token = "$project-different", fg = "#bababa", bold = true},
     { token = "$context_ok", fg = "#a6e3a1", dim = false },
     { token = "$context_warn", fg = "#f9e2af", bold = true, dim = false },
     { token = "$context_error", fg = "#f38ba8", bold = true, dim = false },
