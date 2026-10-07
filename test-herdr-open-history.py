@@ -131,8 +131,15 @@ with open(os.environ['CALL_LOG'], 'a') as log:
     def test_zoomed_source_uses_visible_area_instead_of_hidden_split_rect(self):
         self.layout["zoomed"] = True
         self.layout["focused_pane_id"] = "clicked:pane"
-        self.layout["panes"][0]["rect"] = {"width": 40, "height": 40}
-        self.launch("right")
+        for area, hidden, direction in [
+            ({"width": 240, "height": 80}, {"width": 40, "height": 40}, "right"),
+            ({"width": 80, "height": 60}, {"width": 120, "height": 40}, "down"),
+        ]:
+            with self.subTest(direction=direction):
+                self.log.unlink(missing_ok=True)
+                self.layout["area"] = area
+                self.layout["panes"][0]["rect"] = hidden
+                self.launch(direction)
 
     def test_zooming_another_pane_does_not_change_source_shape(self):
         self.layout["zoomed"] = True
@@ -144,6 +151,14 @@ with open(os.environ['CALL_LOG'], 'a') as log:
         result = self.invoke()
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("source pane", result.stderr.lower())
+        self.assertEqual(self.calls()[-1][:2], ["notification", "show"])
+        self.assertFalse(any(call[:3] == ["plugin", "pane", "open"] for call in self.calls()))
+
+    def test_unusable_dimensions_notifies_without_opening_split(self):
+        self.layout["panes"][0]["rect"]["height"] = 0
+        result = self.invoke()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("no usable layout dimensions", result.stderr)
         self.assertEqual(self.calls()[-1][:2], ["notification", "show"])
         self.assertFalse(any(call[:3] == ["plugin", "pane", "open"] for call in self.calls()))
 

@@ -8,7 +8,7 @@ platforms = ["macos", "linux"]
 [[actions]]
 id = "open"
 title = "Open agent history beside"
-description = "Open history in a right split with this pane's project and session"
+description = "Open history in a shape-aware split with this pane's project and session"
 contexts = ["pane"]
 command = ["./open-history.py"]
 

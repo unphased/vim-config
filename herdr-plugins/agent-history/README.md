@@ -1,9 +1,13 @@
 # Agent history beside a pane
 
 The **Open agent history beside** plugin action captures the originating
-pane's foreground directory and structured agent session before opening a
-focused right split. History retains its usual cwd-based project scope and
-selects the originating session once, without following later focus.
+pane's foreground directory, structured agent session, and layout before
+opening a focused split. Wide panes split **right**; tall/narrow panes split
+**down**. The shape comparison treats terminal cells as approximately twice
+as tall as they are wide (`columns >= 2 × rows` splits right, including ties).
+For a zoomed source pane, it uses the visible area rather than its hidden tiled
+rectangle. History retains its usual cwd-based project scope and selects the
+originating session once, without following later focus.
 
 **Herdr 0.9.3 limitation:** its client-side right-click menu contains only
 built-in actions; it does not render registered plugin actions, despite the
@@ -14,8 +18,11 @@ or the CLI, until Herdr's client menu supports plugin actions.
 ```mermaid
 flowchart LR
     Invoke[Invoke action for source pane] --> Capture[Capture cwd and agent session]
-    Capture --> Split[Focused right split]
-    Split --> History[Project-scoped history]
+    Capture --> Shape{Wide pane?}
+    Shape -->|Yes| SplitRight[Focused right split]
+    Shape -->|No| SplitDown[Focused down split]
+    SplitRight --> History[Project-scoped history]
+    SplitDown --> History
     History --> Select[Select exact session once, or show error]
 ```
 
