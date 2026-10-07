@@ -55,4 +55,22 @@ grep -Fxq 'keep me' "$tmp/existing/config.toml" || {
   exit 1
 }
 
-printf 'PASS: tracked Herdr plugin registration\n'
+python3 - "$root/herdr.toml" <<'PY'
+import sys
+import tomllib
+
+with open(sys.argv[1], 'rb') as config_file:
+    commands = tomllib.load(config_file)['keys']['command']
+missing = [command['key'] for command in commands if not command.get('description', '').strip()]
+assert not missing, f'Custom bindings need helper descriptions: {missing}'
+copy = [command for command in commands if command['command'] == 'local.copy-pane-id.copy-pane-id']
+assert len(copy) == 1, 'Copy pane ID needs exactly one binding'
+assert copy[0]['key'] == 'prefix+y' and copy[0]['type'] == 'plugin_action'
+assert copy[0]['description'] == 'Copy pane ID'
+history = [command for command in commands if command['command'] == 'local.agent-history.open']
+assert len(history) == 1, 'Open agent history beside needs exactly one binding'
+assert history[0]['key'] == 'prefix+a' and history[0]['type'] == 'plugin_action'
+assert history[0]['description'] == 'Open agent history beside'
+PY
+
+printf 'PASS: tracked Herdr plugin registration and described custom bindings\n'
