@@ -1,6 +1,9 @@
 # Capture-owned process statistics
 
-Status: design notebook; no production format or IPC contract is fixed yet.
+Status: historical design notebook; the capture-owned helper direction is
+superseded by [`PROCSTATS_DAEMON_PLAN.md`](PROCSTATS_DAEMON_PLAN.md), which moves
+sampling and recording into an independent host-scoped service. The notes below
+are retained as design history, not the current implementation plan.
 
 This plan lives with `pane-load` while its Rust/libproc implementation is the
 source of the process sampling logic. The eventual capture integration also
