@@ -33,6 +33,15 @@ class OpenHistoryTests(unittest.TestCase):
                 "value": str(self.root / "session:with spaces.jsonl"),
             },
         }
+        self.layout = {
+            "area": {"width": 240, "height": 80},
+            "focused_pane_id": "elsewhere:pane",
+            "zoomed": False,
+            "panes": [
+                {"pane_id": "clicked:pane", "rect": {"width": 120, "height": 40}},
+                {"pane_id": "elsewhere:pane", "rect": {"width": 60, "height": 60}},
+            ],
+        }
         self.herdr = self.executable("herdr", """
 import json, os, sys
 args = sys.argv[1:]
@@ -43,6 +52,8 @@ if args[:2] == ['pane', 'get']:
         print('source pane disappeared', file=sys.stderr)
         sys.exit(1)
     print(json.dumps({'result': {'pane': json.loads(os.environ['TEST_PANE'])}}))
+elif args[:2] == ['pane', 'layout']:
+    print(json.dumps({'result': {'layout': json.loads(os.environ['TEST_LAYOUT'])}}))
 elif args[:3] == ['plugin', 'pane', 'open']:
     print(json.dumps({'result': {'type': 'plugin_pane_opened'}}))
 elif args[:2] == ['notification', 'show']:
@@ -75,18 +86,19 @@ with open(os.environ['CALL_LOG'], 'a') as log:
     def invoke(self, *args, **env):
         return subprocess.run(
             [sys.executable, str(PLUGIN / "open-history.py"), *args],
-            env={**self.env, "TEST_PANE": json.dumps(self.pane), **env},
+            env={**self.env, "TEST_PANE": json.dumps(self.pane), "TEST_LAYOUT": json.dumps(self.layout), **env},
             capture_output=True, text=True, timeout=10,
         )
 
     def calls(self):
         return [json.loads(line) for line in self.log.read_text().splitlines()]
 
-    def launch(self):
+    def launch(self, direction="right"):
         result = self.invoke()
         self.assertEqual(result.returncode, 0, result.stderr)
-        get, launch = self.calls()
+        get, layout, launch = self.calls()
         self.assertEqual(get, ["pane", "get", "clicked:pane"])
+        self.assertEqual(layout, ["pane", "layout", "--pane", "clicked:pane"])
         self.assertEqual(launch[:3], ["plugin", "pane", "open"])
         self.assertIn("--focus", launch)
         self.assertNotIn("--no-focus", launch)
@@ -94,7 +106,7 @@ with open(os.environ['CALL_LOG'], 'a') as log:
         # rejects a workspace override even when it names the same workspace.
         self.assertNotIn("--workspace", launch)
         self.assertEqual(launch[launch.index("--target-pane") + 1], "clicked:pane")
-        self.assertEqual(launch[launch.index("--direction") + 1], "right")
+        self.assertEqual(launch[launch.index("--direction") + 1], direction)
         return launch
 
     @staticmethod
@@ -108,6 +120,32 @@ with open(os.environ['CALL_LOG'], 'a') as log:
             self.launch_env(launch)["AGHIST_SELECT_SESSION"],
             "pi:path:" + self.pane["agent_session"]["value"],
         )
+
+    def test_split_direction_uses_source_shape_and_terminal_cell_aspect(self):
+        for width, height, direction in [(120, 40, "right"), (60, 40, "down"), (80, 40, "right")]:
+            with self.subTest(width=width, height=height):
+                self.log.unlink(missing_ok=True)
+                self.layout["panes"][0]["rect"] = {"width": width, "height": height}
+                self.launch(direction)
+
+    def test_zoomed_source_uses_visible_area_instead_of_hidden_split_rect(self):
+        self.layout["zoomed"] = True
+        self.layout["focused_pane_id"] = "clicked:pane"
+        self.layout["panes"][0]["rect"] = {"width": 40, "height": 40}
+        self.launch("right")
+
+    def test_zooming_another_pane_does_not_change_source_shape(self):
+        self.layout["zoomed"] = True
+        self.layout["panes"][0]["rect"] = {"width": 40, "height": 40}
+        self.launch("down")
+
+    def test_missing_source_layout_notifies_without_opening_split(self):
+        self.layout["panes"] = self.layout["panes"][1:]
+        result = self.invoke()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("source pane", result.stderr.lower())
+        self.assertEqual(self.calls()[-1][:2], ["notification", "show"])
+        self.assertFalse(any(call[:3] == ["plugin", "pane", "open"] for call in self.calls()))
 
     def test_id_session_is_not_converted_to_query_or_shell_text(self):
         self.pane["agent_session"] = {"agent": "claude", "kind": "id", "value": "id:$(touch nope)"}
