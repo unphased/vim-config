@@ -60,7 +60,8 @@ import sys
 import tomllib
 
 with open(sys.argv[1], 'rb') as config_file:
-    commands = tomllib.load(config_file)['keys']['command']
+    config = tomllib.load(config_file)
+commands = config['keys']['command']
 missing = [command['key'] for command in commands if not command.get('description', '').strip()]
 assert not missing, f'Custom bindings need helper descriptions: {missing}'
 copy = [command for command in commands if command['command'] == 'local.copy-pane-id.copy-pane-id']
@@ -71,6 +72,20 @@ history = [command for command in commands if command['command'] == 'local.agent
 assert len(history) == 1, 'Open agent history beside needs exactly one binding'
 assert history[0]['key'] == 'prefix+a' and history[0]['type'] == 'plugin_action'
 assert history[0]['description'] == 'Open agent history beside'
+
+# Metadata expires independently; empty tokens must not leave a permanent label.
+marker = {'token': '$aghist_relation', 'fg': '#89dceb', 'bold': True, 'dim': False}
+sidebar = config['ui']['sidebar']
+row_sets = {
+    'agents default': sidebar['agents']['rows'],
+    **sidebar['agents']['rows_by_agent'],
+    'spaces': sidebar['spaces']['rows'],
+}
+for name, rows in row_sets.items():
+    assert marker in rows[0], f'{name}: aghist marker needs a visible first-row slot'
+    occurrences = [item for row in rows for item in row
+                   if isinstance(item, dict) and item.get('token') == '$aghist_relation']
+    assert occurrences == [marker], f'{name}: expected exactly one styled aghist marker'
 PY
 
-printf 'PASS: tracked Herdr plugin registration and described custom bindings\n'
+printf 'PASS: tracked Herdr plugins, described bindings, and aghist sidebar markers\n'
