@@ -129,6 +129,20 @@ class AdaptiveRecordingTests(unittest.TestCase):
         self.assertTrue(any(e.get("reason") == "counter_reset" and e["seq"] == 2
                             for e in events))
 
+    def test_exact_cpu_threshold_boundary_is_not_lost_to_float_rounding(self):
+        events, _ = collect(single_process_rows([.7] * 6 + [.5] * 6),
+                            pre_seconds=1, post_seconds=1, cpu_threshold=.2)
+        self.assertTrue(any(e.get("reason") == "cpu" and e["seq"] == 6 for e in events))
+
+    def test_invalid_time_progression_and_buffer_overflow_are_rejected(self):
+        for rows in ([make_row(0,[process()]), make_row(1,[process()],time=0)],
+                     [make_row(0,[process()]), make_row(1,[process()],time=-1)]):
+            with self.assertRaises(ValueError):
+                collect(rows)
+        with self.assertRaises(ValueError):
+            collect(single_process_rows([.05]*40),pre_seconds=100,
+                    post_seconds=0,max_buffered_per_process=8)
+
     def test_pid_reuse_is_a_distinct_identity(self):
         rows = [make_row(0, [process(pid=20, start=(1, 2))]),
                 make_row(1, [process(pid=20, user_ns=50_000_000, start=(1, 2))]),

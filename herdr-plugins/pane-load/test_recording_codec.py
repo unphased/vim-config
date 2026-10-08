@@ -9,6 +9,46 @@ from recording_codec import (
 )
 
 
+def _uvarint(value):
+    output = bytearray()
+    while value >= 0x80:
+        output.append((value & 0x7f) | 0x80)
+        value >>= 7
+    output.append(value)
+    return output
+
+
+def _svarint(value):
+    return _uvarint(value * 2 if value >= 0 else -value * 2 - 1)
+
+
+def _pae1(vectors, bad_tag_at=None):
+    """Build PAE1 bytes from typed vectors for malformed-wire tests."""
+    output = bytearray(b"PAE1")
+    output.extend(_uvarint(len(vectors)))
+    previous = {}
+    time_indexes = {1: range(2, 6), 2: range(2, 10), 3: range(2, 6)}
+    for vector_index, vector in enumerate(vectors):
+        output.extend(_uvarint(len(vector)))
+        kind, slot = vector[:2]
+        for index, value in enumerate(vector):
+            if isinstance(value, str):
+                tag, encoded = 1, value.encode("utf-8")
+                output.append(tag)
+                output.extend(_uvarint(len(encoded)))
+                output.extend(encoded)
+            else:
+                output.append(7 if bad_tag_at == (vector_index, index) else 0)
+                if kind != 0 and index >= 2:
+                    key = ((kind, index) if index in time_indexes[kind]
+                           else (kind, slot, index))
+                    old = previous.get(key, 0)
+                    previous[key] = value
+                    value -= old
+                output.extend(_svarint(value))
+    return bytes(output)
+
+
 def row(seq, wall, scan_start, processes=(), duration=10):
     return {
         "seq": seq,
@@ -109,6 +149,83 @@ class RecordingCodecTests(unittest.TestCase):
         duplicate = row(0, 0, 0, [(1, 0, 2, 3, "a", 0, 0, 0), (1, 0, 2, 3, "b", 0, 0, 0)])
         with self.assertRaises(ValueError):
             encode_sparse([duplicate])
+
+
+class AdaptiveWireTests(unittest.TestCase):
+    def test_adaptive_events_roundtrip_including_delayed_summaries(self):
+        from recording_adaptive import adaptive_records
+        from recording_codec import encode_events, decode_events
+        rows = []
+        for seq in range(100):
+            cpu = min(max(seq - 10, 0), 50) * 50_000_000
+            rows.append({"seq":seq,"wall_start_ns":10**18+seq*100_000_000,
+                         "scan_start_ns":seq*100_000_000,"scan_end_ns":seq*100_000_000+10,
+                         "processes":[[10,1,2,3,"worker",cpu,seq,1000]]})
+        events = list(adaptive_records(rows, pre_seconds=.2, post_seconds=.2, summary_seconds=1))
+        self.assertTrue(any(e["type"] == "summary" for e in events))
+        self.assertEqual(decode_events(encode_events(events)), events)
+
+    def test_adaptive_events_reject_corruption(self):
+        from recording_codec import encode_events, decode_events
+        data = encode_events([])
+        for bad in [b"", data[:-1], data+b"x", b"PAE1\\x01\\x01\\xff"]:
+            with self.assertRaises(ValueError):
+                decode_events(bad)
+
+    def test_adaptive_wire_rejects_invalid_field_schemas(self):
+        from recording_codec import decode_events
+        identity = [0, 0, 1, 2, 3]
+        sample = [1, 0, 10, 20, 30, 5, 4, "x", 1, 2, 3, "birth"]
+        summary = [2, 0, 1, 2, 100, 200, 10, 20, 5, 6, 3, "x", 1, 2,
+                   3, 4, 5, 8, 7, 2]
+        missing = [3, 0, 10, 20, 30, 5, "missing"]
+        invalid = [
+            [[0, 0, -1, 2, 3]],
+            [identity, sample[:2] + ["10"] + sample[3:]],
+            [identity, sample[:5] + [-1] + sample[6:]],
+            [identity, sample[:6] + [-1] + sample[7:]],
+            [identity, sample[:7] + [1] + sample[8:]],
+            [identity, sample[:8] + [-1] + sample[9:]],
+            [identity, sample[:11] + [4]],
+            [identity, summary[:2] + [2, 1] + summary[4:]],
+            [identity, summary[:8] + [-1] + summary[9:]],
+            [identity, summary[:12] + [-1] + summary[13:]],
+            [identity, summary[:16] + [9] + summary[17:]],
+            [identity, summary[:19] + [0]],
+            [identity, missing[:6] + [3]],
+            [identity, sample, [0, 1, 1, 2, 3]],
+            [sample],  # referenced identity has not been declared
+        ]
+        for vectors in invalid:
+            with self.subTest(vectors=vectors), self.assertRaises(ValueError):
+                decode_events(_pae1(vectors))
+        with self.assertRaises(ValueError):
+            decode_events(_pae1([identity, sample], bad_tag_at=(1, 2)))
+
+    def test_encode_events_rejects_invalid_inputs(self):
+        from copy import deepcopy
+        from recording_codec import encode_events
+        valid = {"type": "sample", "identity": [1, 2, 3], "seq": 10,
+                 "wall_start_ns": 20, "scan_start_ns": 30, "scan_end_ns": 35,
+                 "process": [1, 4, 2, 3, "x", 5, 6, 7]}
+        invalid = []
+        for key, value in (("seq", 1.5), ("wall_start_ns", "20"),
+                           ("scan_end_ns", 29), ("reason", 7), ("extra", 1)):
+            event = deepcopy(valid)
+            event[key] = value
+            invalid.append([event])
+        event = deepcopy(valid)
+        event["identity"] = [1, 2, -3]
+        invalid.append([event])
+        event = deepcopy(valid)
+        event["process"][5] = -1
+        invalid.append([event])
+        event = deepcopy(valid)
+        event["process"][4] = 4
+        invalid.append([event])
+        for events in invalid:
+            with self.subTest(events=events), self.assertRaises(ValueError):
+                encode_events(events)
 
 
 if __name__ == "__main__":

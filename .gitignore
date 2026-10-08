@@ -13,6 +13,7 @@ mthesaur.txt
 .nvimlog
 ghostty.platform.conf
 herdr-plugins/*/target/
+herdr-plugins/*/__pycache__/
 
 # Local editor output, generated backups, and reproduction dependencies.
 .DS_Store
