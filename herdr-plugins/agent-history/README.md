@@ -56,8 +56,18 @@ invalid or unmatched identities produce a visible error in history instead of
 silently ignoring the request. Active project/query/tag filters are not removed.
 Errors creating the split appear as a Herdr notification and in the plugin log.
 
-Relationship indication is independent; this action does not publish markers,
-change agent lifecycle state, or enable history's follow-Herdr mode.
+Relationship indication is independent: aghist publishes a **cyan ↔** beside
+its selected session in Herdr's **Agents** and **Spaces** sidebars. Selection
+changes and manual interaction renew a five-second TTL; idle history does not.
+Old markers expire naturally, and another interaction rematches moved panes.
+This action itself does not publish markers, change agent lifecycle state, or
+enable history's follow-Herdr mode. Only **Ctrl+O** explicitly navigates; markers
+never steal focus or replace pane titles.
+
+```text
+selection / manual input → exact session match → pane + workspace tokens
+                                                   └→ expire after 5 s idle
+```
 
 ## Test
 

@@ -15,7 +15,7 @@ sidebar_min_width = 36
 row_gap = 0
 # Herdr's default agent style uses overlay0 plus DIM, which is nearly invisible.
 rows = [
-  ["state_icon", "machine", "workspace", "tab"],
+  ["state_icon", { token = "$aghist_relation", fg = "#89dceb", bold = true, dim = false }, "machine", "workspace", "tab"],
   [{ token = "agent", fg = "#aaaaaa", dim = false }],
 ]
 
@@ -23,6 +23,7 @@ rows = [
 [ui.sidebar.agents.rows_by_agent]
 pi = [
   ["state_icon",
+    { token = "$aghist_relation", fg = "#89dceb", bold = true, dim = false },
     { token = "$pi", fg = "#89b4fa", bold = true },
     { token = "workspace", bold = true },
     { token = "$project-different", fg = "#dadada", bold = true},
@@ -48,7 +49,7 @@ pi = [
   ],
 ]
 claude = [
-  ["state_icon", { token = "$claude", fg = "#cba6f7", bold = true }, { token = "workspace", bold = true }, { token = "tab", dim = false }],
+  ["state_icon", { token = "$aghist_relation", fg = "#89dceb", bold = true, dim = false }, { token = "$claude", fg = "#cba6f7", bold = true }, { token = "workspace", bold = true }, { token = "tab", dim = false }],
   [{ token = "$model", fg = "#cba6f7", dim = false }],
   [
     { token = "$session_cost_low", fg = "#a6e3a1", dim = false },
@@ -68,7 +69,7 @@ claude = [
 [ui.sidebar.spaces]
 row_gap = 0
 rows = [
-  ["state_icon", { token = "$ctrl_tab_target", fg = "#f9e2af", bold = true }, "workspace"],
+  ["state_icon", { token = "$ctrl_tab_target", fg = "#f9e2af", bold = true }, { token = "$aghist_relation", fg = "#89dceb", bold = true, dim = false }, "workspace"],
   [
     { token = "$cpu_idle", fg = "#686868", dim = false },
     { token = "$cpu_cool", fg = "#89b4fa", dim = false },
