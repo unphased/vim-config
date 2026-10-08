@@ -6,6 +6,7 @@ HERDR_CONFIG_DIR ?= $(HOME)/.config/herdr
 all: test
 
 test:
+	python3 test-lf-previewer.py
 	zsh -n zprofile
 	zsh -n zshrc zsh/herdr-machine-background.zsh nvim/shell/nvim-bgcolor.zsh test-git-cli-helpers.zsh test-git-log-args.zsh test-herdr-machine-background.zsh test-nvim-bgcolor-hook.zsh
 	sh -n herdr-focus.sh herdr-resize.sh herdr-sidebar-resize.sh herdr-session-context.sh ssh-server-security-check.sh ghostty-quickdash.sh ghostty-quickdash-ssh-log.sh ghostty-quickdash-ssh-active.sh herdr-plugins/copy-pane-id/move-pane-new-workspace.sh herdr-plugins/move-pane-new-tab/move-pane-new-tab.sh
