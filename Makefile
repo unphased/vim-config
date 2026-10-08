@@ -6,6 +6,8 @@ HERDR_CONFIG_DIR ?= $(HOME)/.config/herdr
 all: test
 
 test:
+	bash -n bat-lf-previewer
+	sh -n lf-kitty-cleaner
 	python3 test-lf-previewer.py
 	zsh -n zprofile
 	zsh -n zshrc zsh/herdr-machine-background.zsh nvim/shell/nvim-bgcolor.zsh test-git-cli-helpers.zsh test-git-log-args.zsh test-herdr-machine-background.zsh test-nvim-bgcolor-hook.zsh

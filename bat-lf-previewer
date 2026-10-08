@@ -35,6 +35,27 @@
 # map J scroll-preview-down
 # map K scroll-preview-up
 
+# Draw images directly on the tty; lf only understands text on stdout.
+# Reuse Kitty's decoder/protocol implementation (also works in Ghostty).
+if [[ ${TERM_PROGRAM:-} == ghostty || ${TERM:-} == xterm-kitty ||
+      ${TERM:-} == xterm-ghostty || -n ${KITTY_WINDOW_ID:-} ]]; then
+    case $(file -Lb --mime-type -- "$1" 2>/dev/null) in
+        image/*)
+            # Preloading must not paint files that aren't selected yet.
+            [[ ${6:-preview} == preload ]] && exit 1
+            kitten=$(command -v kitten)
+            if [[ -z $kitten && -x /Applications/kitty.app/Contents/MacOS/kitten ]]; then
+                kitten=/Applications/kitty.app/Contents/MacOS/kitten
+            fi
+            if [[ -n $kitten ]] && "$kitten" icat --stdin=no --transfer-mode=stream \
+                --image-id=424242 --place="${2}x${3}@${4}x${5}" -- "$1" \
+                > /dev/tty 2>/dev/null; then
+                exit 1 # Disable lf's text cache so revisiting redraws the image.
+            fi
+            ;;
+    esac
+fi
+
 # --- Glob Patterns for Default Sticky Bottom ---
 STICKY_BOTTOM_GLOBS="*.log *.journal" # Space-separated list of globs
 
@@ -48,7 +69,8 @@ JSONL_HEAD_LINES=200
 JSONL_TAIL_LINES=200
 
 # --- Logging Setup ---
-LOGFILE="$HOME/.cache/lf-previewer/previewer.log"
+mkdir -p "$CACHE_DIR" || { echo "Error: Cannot create cache dir $CACHE_DIR"; exit 1; }
+LOGFILE="$CACHE_DIR/previewer.log"
 exec 2>> "$LOGFILE" # Redirect stderr to the log file (append)
 
 # --- Dependency Check ---
@@ -283,9 +305,6 @@ handle_compressed() {
 }
 
 # --- Main Script Logic ---
-
-# Ensure cache directory exists
-mkdir -p "$CACHE_DIR" || { echo "Error: Cannot create cache dir $CACHE_DIR"; exit 1; }
 
 # Input validation
 input_file="$1"

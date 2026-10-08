@@ -1,0 +1,3 @@
+#!/bin/sh
+# Delete only the image owned by bat-lf-previewer, including its backing data.
+printf '\033_Ga=d,d=I,i=424242,q=2\033\\' > /dev/tty

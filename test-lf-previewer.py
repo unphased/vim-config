@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """Smoke the actual lf preview/cleaner scripts through a disposable tty."""
-import fcntl
-import json
 import os
 from pathlib import Path
 import pty
+import select
 import subprocess
 import tempfile
-import termios
+import time
 import unittest
 
 ROOT = Path(__file__).resolve().parent
@@ -43,28 +42,36 @@ class PreviewTests(unittest.TestCase):
         script.chmod(0o755)
 
     def run_script(self, script, *args):
-        master, slave = pty.openpty()
-        try:
-            result = subprocess.run([str(ROOT / script), *map(str, args)], env=self.env,
-                                    stdin=slave, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                    start_new_session=True,
-                                    preexec_fn=lambda: fcntl.ioctl(slave, termios.TIOCSCTTY, 0))
-            os.close(slave)
-            slave = None
+        args = [str(ROOT / script), *map(str, args)]
+        with tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:
+            pid, master = pty.fork()
+            if pid == 0:
+                os.dup2(stdout.fileno(), 1)
+                os.dup2(stderr.fileno(), 2)
+                os.execve(args[0], args, self.env)
             output = bytearray()
-            while True:
-                try:
-                    chunk = os.read(master, 4096)
-                except OSError:
-                    break
-                if not chunk:
-                    break
-                output.extend(chunk)
-            return result, bytes(output)
-        finally:
-            os.close(master)
-            if slave is not None:
-                os.close(slave)
+            deadline = time.monotonic() + 5
+            try:
+                while time.monotonic() < deadline:
+                    if select.select([master], [], [], 0.05)[0]:
+                        try:
+                            output.extend(os.read(master, 4096))
+                        except OSError:
+                            pass
+                    done, status = os.waitpid(pid, os.WNOHANG)
+                    if done:
+                        break
+                else:
+                    os.kill(pid, 9)
+                    os.waitpid(pid, 0)
+                    self.fail(f"Preview timed out: {args}")
+                stdout.seek(0)
+                stderr.seek(0)
+                result = subprocess.CompletedProcess(args, os.waitstatus_to_exitcode(status),
+                                                     stdout.read(), stderr.read())
+                return result, bytes(output)
+            finally:
+                os.close(master)
 
     def preview(self, file=None, mode="preview"):
         return self.run_script("bat-lf-previewer", file or self.image, 40, 20, 60, 1, mode)
@@ -75,7 +82,7 @@ class PreviewTests(unittest.TestCase):
         self.assertEqual(result.stdout, b"")
         self.assertIn(b"IMAGE", tty)
         args = self.calls.read_text().splitlines()
-        self.assertIn("40x20@60x1", args)
+        self.assertIn("--place=40x20@60x1", args)
         self.assertIn("--stdin=no", args)
         self.assertIn("--transfer-mode=stream", args)
         self.assertIn(f"--image-id={IMAGE_ID}", args)
@@ -107,6 +114,11 @@ class PreviewTests(unittest.TestCase):
         result, _ = self.preview()
         self.assertIn(b"text preview", result.stdout)
         self.assertFalse(self.calls.exists())
+
+    def test_quit_clears_image_without_suspending_lf(self):
+        # A $ shell command switches screens first, leaving the image behind.
+        config = (ROOT / "lfrc").read_text()
+        self.assertIn(r'cmd on-quit tty-write "\033_Ga=d,d=I,i=424242,q=2\033\\"', config)
 
     def test_cleaner_deletes_only_our_image(self):
         result, tty = self.run_script("lf-kitty-cleaner", self.image, 40, 20, 60, 1, self.text)

@@ -273,6 +273,8 @@ map D trash
 # map <delete> delete
 
 set previewer ~/.vim/bat-lf-previewer
+set cleaner ~/.vim/lf-kitty-cleaner
+cmd on-quit tty-write "\033_Ga=d,d=I,i=424242,q=2\033\\"
 
 # --- Preview Commands (Send Actions to Script) ---
 
