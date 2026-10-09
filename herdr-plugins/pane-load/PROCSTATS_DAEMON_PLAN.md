@@ -21,7 +21,7 @@ observer can read, not a promise of complete cross-user visibility.
 
 ```mermaid
 flowchart LR
-  OS[libproc or Linux procfs] --> S[Shared sampler]
+  OS[libproc or Linux procfs plus CPU clocks] --> S[Shared sampler]
   S --> L[Latest observation]
   S --> R[Time-indexed compressed chunks]
   L --> H[Herdr adapter]
@@ -47,7 +47,11 @@ In `src/main.rs`:
 
 Do not move pane ownership, CPU bars, tree layout, metadata TTLs, plugin polling,
 Herdr subscriptions or reconnect handling into the recorder. Percentages are
-reader-derived; the archive stores cumulative counters.
+reader-derived; the archive preserves cumulative-counter semantics. A native
+baseline plus integer CPU deltas is equivalent and need not repeat large totals.
+Precision reduction is optional: exact native deltas preserve every retained
+counter; coarse cumulative quotients plus endpoint remainders preserve exact
+chunk endpoint totals, not every intermediate interval.
 
 The existing native structs already expose additional fields such as virtual
 size and thread count, but these need semantics/availability checks before
@@ -60,8 +64,16 @@ Procfs is Linux-specific, not a POSIX process-stat interface. macOS already uses
 `proc_listpids` and `proc_pidinfo` through `libproc`.
 
 On Linux, begin with lightly parsed `/proc/<pid>/stat`: PID, PPID, process group,
-SID, start ticks, CPU ticks, RSS pages and a short name. Store units explicitly
-or normalize counters using `_SC_CLK_TCK` and memory using page size. Test names
+SID, start ticks, CPU ticks, RSS pages and a short name. CPU fields use
+`sysconf(_SC_CLK_TCK)`, commonly 100 ticks/s (10 ms/exported tick), not `CONFIG_HZ`.
+For finer total CPU, evaluate `clock_getcpuclockid(pid)` + `clock_gettime`: Linux
+exposes process/thread-group scheduler runtime in ns without that procfs tick
+quantization. Query `clock_getres`; advertised resolution is not measurement
+accuracy. This high-resolution path has not yet been measured or implemented here.
+macOS task total-user/system fields use native Mach time units; retain their sum
+in native counts with the `mach_timebase_info` rational conversion in the header.
+Keep CPU and elapsed-time units explicit; convert at query time rather than
+needlessly inflating native CPU increments. RSS pages use page size. Test names
 containing spaces/parentheses. Do not recursively archive `/proc`: mappings,
 argv, environment, descriptors and other files have very different cost/privacy
 properties. Optional metrics such as `/proc/<pid>/io` are separate reads.
@@ -73,9 +85,13 @@ capture every kind of machine activity.
 
 ## Smallest candidate archive
 
-First compare **full flat snapshots plus compression**, without custom tree
-patching. A tree is derived from observed parent relationships; it need not be
-serialized recursively.
+The original baseline was **full flat snapshots plus compression**, without custom
+tree patching. The newer CPU-only matrix in `RECORDING_RESULTS.md` favors delta
+columns over cumulative values and interleaved pairs, but does not meet the gate.
+Next compare a shared observation clock/coverage plane with CPU columns and
+separate topology events; nominal period changes need actual timing corrections.
+This is not a selected production wire format. A tree is derived from observed
+parent relationships; it need not be serialized recursively.
 
 ```text
 recording header: version, host/boot, recorder run, clock identities, units
@@ -116,6 +132,11 @@ The current UI sampler is not yet a trustworthy archive acquisition contract:
   no longer observed. None is an exact exit timestamp.
 - A scan is not atomic. Record scan bounds/completeness and reject raced reads;
   observed PPID is not proof of a continuous historical parent relationship.
+  For precise utilization, bracket each CPU read with monotonic readings (or
+  record per-process offsets/uncertainty against the shared scan clock). Frame
+  timestamps alone can misstate per-process elapsed time on long scans.
+  Specify whether the elapsed clock includes suspend. Cumulative CPU totals do
+  not recover final execution after a last successful read or unseen short lives.
 - Identity must include boot scope and process start, not PID alone. Linux PID
   namespace scope also matters if namespace support is added.
 - Record wall/monotonic anchors per observation or periodically with bounded

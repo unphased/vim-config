@@ -1,9 +1,11 @@
 import unittest
 
-from recording_cpu_columns import encode_series, decode_series, quantize_cumulative
+from recording_cpu_columns import encode_series, decode_series, quantize_cumulative, _runs
+from recording_codec import _uvarint
 
 
-LAYOUTS = ("interleaved", "columns", "runs", "grouped", "both-runs")
+LAYOUTS = ("interleaved", "columns", "runs", "grouped", "both-runs", "cpu-runs",
+           "cumulative-columns", "cumulative-interleaved")
 CODECS = ("uvarint", "uint64le")
 
 
@@ -29,6 +31,8 @@ class CpuSeriesTests(unittest.TestCase):
     def test_example_runs_and_stable_cadence(self):
         self.assert_roundtrip([1, 10, 20, 12, 1, 0, 5], [2, 2, 2, 2, 4, 4, 4])
         self.assert_roundtrip([0] * 7, [5] * 7, cpu0=0, time0=0)
+        self.assertEqual(_runs([2,2,2,2,4,4,4]),[(0,2),(4,4)])
+        self.assert_roundtrip([],[],cpu0=5,time0=10)
 
     def test_variable_cadence_including_a_b_a(self):
         self.assert_roundtrip([2, 0, 7, 3, 1, 9], [3, 8, 3, 8, 8, 3])
@@ -68,6 +72,33 @@ class CpuSeriesTests(unittest.TestCase):
         self.assertEqual(decode_series(small),(cpu,times))
         with self.assertRaises(ValueError):
             decode_series(small,max_samples=100)
+
+    def test_malformed_runs_groups_varints_and_overflow(self):
+        # Header, two samples, baselines, CPU run count/start/value, time run count/start/value.
+        header=b'CPD1'+bytes([5,1])
+        for values in ([2,0,0,1,1,0,1,0,2],  # CPU run starts at one, not zero.
+                       [2,0,0,1,0,0,1,0,0],  # Zero real-time period.
+                       [3,0,0,2,0,0,0,1,1,0,2]):  # Duplicate CPU start.
+            with self.assertRaises(ValueError):
+                decode_series(header+b''.join(_uvarint(x) for x in values))
+        encoded=encode_series([0],[1],'columns','uvarint')
+        with self.assertRaises(ValueError):
+            decode_series(encoded[:6]+b'\x81\x00'+encoded[7:])
+        maximum=(1<<64)-1
+        encoded=bytearray(encode_series([maximum-1,maximum],[0,1],'columns','uint64le'))
+        encoded[30:38]=(2).to_bytes(8,'little')
+        with self.assertRaises(ValueError):
+            decode_series(encoded)
+        # Absolute counter layout must reject decreasing counters, not produce negative CPU.
+        encoded=bytearray(encode_series([5,7],[0,1],'cumulative-columns','uvarint'))
+        encoded[9]=4
+        with self.assertRaises(ValueError):
+            decode_series(encoded)
+        # Grouped starts at zero and one: corrupt second index into a duplicate zero.
+        encoded=bytearray(encode_series([0,0,0],[0,1,3],'grouped','uvarint'))
+        encoded[-1]=0
+        with self.assertRaises(ValueError):
+            decode_series(encoded)
 
     def test_rejects_invalid_series_and_options(self):
         bad = [
