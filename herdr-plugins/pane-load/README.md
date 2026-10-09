@@ -10,7 +10,9 @@ The proposed independent process-history recorder, extraction boundaries and
 initial compression measurements are tracked in
 [`PROCSTATS_DAEMON_PLAN.md`](PROCSTATS_DAEMON_PLAN.md). The earlier capture-owned
 sampler proposal remains in [`PROCSTATS_CAPTURE_PLAN.md`](PROCSTATS_CAPTURE_PLAN.md)
-as design history.
+as design history. Latest recording/compression measurements and their limitations
+are in [`RECORDING_RESULTS.md`](RECORDING_RESULTS.md). Experimental codecs and
+bounded transition policies are tested by `make test`; none changes the live plugin.
 
 ```mermaid
 flowchart LR

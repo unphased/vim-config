@@ -5,6 +5,12 @@ This supersedes the capture-owned helper direction in
 [`PROCSTATS_CAPTURE_PLAN.md`](PROCSTATS_CAPTURE_PLAN.md). No change to the current
 plugin's restart behavior is proposed.
 
+Storage gate: roughly **10 MB/day encoded, ideally 1 MB/day compressed**.
+The initial snapshot results below do not meet it. Updated sparse/adaptive,
+precision and churn experiments are in [`RECORDING_RESULTS.md`](RECORDING_RESULTS.md);
+**the live storage gate remains unmet**. These are offline experiments, not a
+new daemon or an enabled recording path.
+
 ## Boundary
 
 One host-scoped observer acquires process metrics once and owns its recordings.
@@ -165,8 +171,9 @@ projections. It adds no dependencies to the plugin.
 1. Extract native acquisition into the independent project's small sampling module;
    preserve current Herdr behavior while fixing recording-quality reads separately.
 2. Tests first: frames round-trip, PID reuse/read failure, clock steps, independent
-   chunk decode, torn publication and index recovery. Implement foreground
-   `record` and offline `query --from/--to` over full tuples.
+   chunk decode and bounded transition retention. Compare sparse/predictive
+   representations and explicit precision choices before choosing an archive.
+   Add foreground `record` and offline range lookup only after the storage gate.
 3. Measure a longer workload with fork/exec churn and sustained pressure, including
    disk growth, compression backlog, query latency and memory. Select cadence,
    chunk size, codec and retention from that evidence.

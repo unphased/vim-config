@@ -3,7 +3,8 @@
 
 A live run observes the Mac at a constant base rate. Lower-rate comparisons are
 subsamples of that same run. --workload starts ONE bounded CPU worker plus a
-20 MiB allocation ramp. All private raw data is temporary; no production changes.
+20 MiB allocation ramp. Raw data is normally temporary; --capture-out explicitly
+retains a private diagnostic capture for --input replays. No production changes.
 """
 import argparse
 import json
@@ -192,6 +193,64 @@ def _check_quantized(data, chunk, events, cpu_unit_ns, rss_unit_bytes):
     _check_adaptive_sparse(data[offset:],chunk,quantize_summaries(events,cpu,rss))
 
 
+def quantize_rows(rows, cpu_unit, rss_unit, time_unit):
+    output=[]
+    for original in rows:
+        row=canonical_row(original)
+        for p in row["processes"]:
+            for index, unit in ((5,cpu_unit),(6,cpu_unit),(7,rss_unit)):
+                if unit:
+                    p[index]=p[index]//unit*unit
+        if time_unit:
+            for key in ("wall_start_ns","scan_start_ns"):
+                row[key]=row[key]//time_unit*time_unit
+            row["scan_end_ns"]=-(-row["scan_end_ns"]//time_unit)*time_unit
+        output.append(row)
+    return output
+
+
+def quantize_events(events, cpu, rss, clock, summary_cpu, summary_rss):
+    output=quantize_summaries(events,summary_cpu or cpu,summary_rss or rss)
+    for event in output:
+        if event["type"]=="sample":
+            row={key:event[key] for key in ("seq","wall_start_ns","scan_start_ns","scan_end_ns")}
+            row["processes"]=[event["process"]]
+            rounded=quantize_rows([row],cpu,rss,clock)[0]
+            event["process"]=rounded.pop("processes")[0]
+            event.update(rounded)
+        elif clock:
+            for key in ("first_wall_start_ns","last_wall_start_ns","first_scan_start_ns",
+                        "last_scan_start_ns","wall_start_ns","scan_start_ns"):
+                if key in event:
+                    event[key]=event[key]//clock*clock
+            for key in ("first_scan_end_ns","last_scan_end_ns","scan_end_ns"):
+                if key in event:
+                    event[key]=-(-event[key]//clock)*clock
+    return output
+
+
+def _precision_blob(chunk, events, units, adaptive=False):
+    cpu,rss,clock,summary_cpu,summary_rss=units
+    rounded=quantize_rows(chunk,cpu,rss,clock)
+    header=(b"PQA1" if adaptive else b"PQP1")+b"".join(bytes(_uvarint(u)) for u in units)
+    if adaptive:
+        return header+_adaptive_sparse_blob(rounded,quantize_events(events,*units))
+    return header+encode_sparse(rounded)
+
+
+def _check_precision(data, chunk, events, units, adaptive=False):
+    assert data[:4]==(b"PQA1" if adaptive else b"PQP1")
+    offset=4; found=[]
+    for _ in units:
+        value,offset=_read_uvarint(data,offset); found.append(value)
+    assert tuple(found)==units
+    rounded=quantize_rows(chunk,*units[:3])
+    if adaptive:
+        _check_adaptive_sparse(data[offset:],rounded,quantize_events(events,*units))
+    else:
+        assert decode_sparse(data[offset:])==rounded
+
+
 def _adaptive_blob(chunk, events):
     checkpoint=encode_sparse(chunk[:1])
     return b"PAB1"+bytes(_uvarint(len(checkpoint)))+checkpoint+encode_events(events)
@@ -206,7 +265,8 @@ def _check_adaptive(data, chunk, events):
 
 
 def compare(rows, hz, chunk_seconds, workload_pid=None, summary_seconds=10, cpu_threshold=.20,
-            summary_cpu_unit_ns=0,summary_rss_unit_bytes=0):
+            summary_cpu_unit_ns=0,summary_rss_unit_bytes=0,
+            precision_cpu_ns=0,precision_rss_bytes=0,precision_time_ns=0,only_precision=False):
     interval=statistics.mean(b["scan_start_ns"]-a["scan_start_ns"]
                             for a,b in zip(rows,rows[1:]))/1e9
     duration=(rows[-1]["scan_start_ns"]-rows[0]["scan_start_ns"])/1e9+interval
@@ -231,6 +291,13 @@ def compare(rows, hz, chunk_seconds, workload_pid=None, summary_seconds=10, cpu_
         layouts=["full-json","sparse-json","sparse-varint","adaptive-json","adaptive-varint","adaptive-sparse"]
         if summary_cpu_unit_ns or summary_rss_unit_bytes:
             layouts.append("adaptive-sparse-quantized")
+        precision=(precision_cpu_ns,precision_rss_bytes,precision_time_ns,
+                   summary_cpu_unit_ns or precision_cpu_ns,
+                   summary_rss_unit_bytes or precision_rss_bytes)
+        if any(precision[:3]):
+            layouts.extend(["bounded-precision-sparse","bounded-precision-adaptive"])
+        if only_precision:
+            layouts=[layout for layout in layouts if layout.startswith("bounded-")]
         for layout in layouts:
             raw_total=0
             compressed={codec:0 for codec,_,_ in CODECS}
@@ -255,10 +322,14 @@ def compare(rows, hz, chunk_seconds, workload_pid=None, summary_seconds=10, cpu_
                 elif layout=="adaptive-sparse":
                     data=_adaptive_sparse_blob(chunk,selected)
                     restore=lambda d: (_check_adaptive_sparse(d,chunk,selected) is None)
-                else:
+                elif layout=="adaptive-sparse-quantized":
                     data=_quantized_blob(chunk,selected,summary_cpu_unit_ns,summary_rss_unit_bytes)
                     restore=lambda d: (_check_quantized(d,chunk,selected,
                         summary_cpu_unit_ns,summary_rss_unit_bytes) is None)
+                else:
+                    adaptive=layout.endswith("adaptive")
+                    data=_precision_blob(chunk,selected,precision,adaptive)
+                    restore=lambda d: (_check_precision(d,chunk,selected,precision,adaptive) is None)
                 encode_seconds+=time.perf_counter()-start
                 raw_total+=len(data)
                 for codec,encoder,decoder in CODECS:
@@ -269,11 +340,19 @@ def compare(rows, hz, chunk_seconds, workload_pid=None, summary_seconds=10, cpu_
             print(json.dumps({"type":"storage","hz":hz,"observed_interval_s":interval,
                 "duration_s":duration,"chunk_seconds":seconds,"layout":layout,
                 "summary_seconds":summary_seconds,"cpu_threshold":cpu_threshold,
-                "summary_cpu_unit_ns":summary_cpu_unit_ns if layout.endswith("quantized") else 0,
-                "summary_rss_unit_bytes":summary_rss_unit_bytes if layout.endswith("quantized") else 0,
+                "summary_cpu_unit_ns":precision[3] if layout=="bounded-precision-adaptive"
+                    else summary_cpu_unit_ns if layout.endswith("quantized") else 0,
+                "summary_rss_unit_bytes":precision[4] if layout=="bounded-precision-adaptive"
+                    else summary_rss_unit_bytes if layout.endswith("quantized") else 0,
+                "sample_cpu_unit_ns":precision_cpu_ns if layout.startswith("bounded-") else 0,
+                "sample_rss_unit_bytes":precision_rss_bytes if layout.startswith("bounded-") else 0,
+                "timestamp_unit_ns":precision_time_ns if layout.startswith("bounded-") else 0,
+                "precision_units":precision if layout.startswith("bounded-") else None,
                 "raw_bytes":raw_total,"raw_MiB_per_day":raw_total/duration*86400/1024**2,
                 "encoded_in_s":encode_seconds,"compressed":[{"codec":codec,"bytes":size,
-                    "MiB_per_day":size/duration*86400/1024**2,"ratio":raw_total/size}
+                    "MiB_per_day":size/duration*86400/1024**2,
+                    "MiB_per_day_at_requested_rate":size/(len(rows)/hz)*86400/1024**2,
+                    "ratio":raw_total/size}
                     for codec,size in compressed.items()],"adaptive_stats":stats}),flush=True)
 
 
@@ -285,17 +364,37 @@ def main():
     parser.add_argument("--cpu-threshold",type=float,default=.20)
     parser.add_argument("--summary-cpu-ms",type=int,default=0)
     parser.add_argument("--summary-rss-kib",type=int,default=0)
+    parser.add_argument("--precision-cpu-ms",type=int,default=0)
+    parser.add_argument("--precision-rss-kib",type=int,default=0)
+    parser.add_argument("--precision-time-us",type=int,default=0)
+    parser.add_argument("--rates",type=int,nargs="+")
+    parser.add_argument("--only-precision",action="store_true")
+    parser.add_argument("--capture-out",type=Path)
+    parser.add_argument("--input",type=Path)
     parser.add_argument("--synthetic",action="store_true")
     parser.add_argument("--workload",action="store_true")
     args=parser.parse_args()
     if (not math.isfinite(args.seconds) or args.seconds<=0 or args.hz<1 or args.seconds*args.hz<2
             or not math.isfinite(args.summary_seconds) or args.summary_seconds<0
             or not math.isfinite(args.cpu_threshold) or args.cpu_threshold<0
-            or args.summary_cpu_ms<0 or args.summary_rss_kib<0):
+            or min(args.summary_cpu_ms,args.summary_rss_kib,args.precision_cpu_ms,
+                   args.precision_rss_kib,args.precision_time_us)<0):
         parser.error("positive finite duration/rate producing at least two samples required")
+    if args.only_precision and not any((args.precision_cpu_ms,args.precision_rss_kib,args.precision_time_us)):
+        parser.error("--only-precision requires explicit precision units")
+    if args.rates and any(hz<1 or args.hz%hz for hz in args.rates) and not args.input:
+        parser.error("comparison rates must be positive divisors of acquisition rate")
     PROBE["private_run"]()
     samples=round(args.seconds*args.hz)
-    if args.synthetic:
+    if args.input:
+        with args.input.open() as source:
+            header=json.loads(source.readline())
+            if header.get("probe_capture")!=1:
+                raise ValueError("not a diagnostic capture")
+            args.hz=header["hz"]; args.seconds=header["seconds"]
+            workload=header["workload"]
+            rows=[json.loads(line) for line in source]
+    elif args.synthetic:
         rows=list(synthetic_rows(samples,1/args.hz))
         workload={"pid":100,"events":[]}
     else:
@@ -309,16 +408,25 @@ def main():
             "scan_deadline_overruns":sum(r["scan_end_ns"]>(r["seq"]+1)/args.hz*1e9 for r in rows),
             "unreadable_or_raced_max":max(t["unreadable_or_raced"] for t in timings),
             "workload":workload}),flush=True)
+    if args.capture_out:
+        # Refuse overwrites; private_run's umask gives new captures mode 0600.
+        with args.capture_out.open("x") as out:
+            out.write(json.dumps({"probe_capture":1,"hz":args.hz,"seconds":args.seconds,
+                                  "workload":workload})+"\n")
+            for row in rows:
+                out.write(json.dumps(row,separators=(",", ":"))+"\n")
     for row in rows:
         row["processes"].sort(key=lambda p:(p[0],p[2],p[3]))
-    for hz in sorted({1,min(5,args.hz),args.hz}):
-        if args.hz%hz:
-            continue
+    defaults=[rate for rate in (1,min(5,args.hz),args.hz) if args.hz%rate==0]
+    for hz in sorted(set(args.rates or defaults)):
+        if hz<1 or args.hz%hz:
+            parser.error("comparison rates must be positive divisors of acquisition rate")
         subset=rows[::args.hz//hz]
         if len(subset)>1:
             compare(subset,hz,sorted({min(10,args.seconds),args.seconds}),workload["pid"],
                     args.summary_seconds,args.cpu_threshold,args.summary_cpu_ms*1_000_000,
-                    args.summary_rss_kib*1024)
+                    args.summary_rss_kib*1024,args.precision_cpu_ms*1_000_000,
+                    args.precision_rss_kib*1024,args.precision_time_us*1000,args.only_precision)
 
 
 if __name__=="__main__":
