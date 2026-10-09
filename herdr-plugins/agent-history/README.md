@@ -60,13 +60,16 @@ Relationship indication is independent: aghist publishes a
 **bold cyan `[aghist]` badge** beside its selected session in Herdr's
 **Agents** and **Spaces** sidebars. Selection
 changes and manual interaction renew a five-second TTL; idle history does not.
-Old markers expire naturally, and another interaction rematches moved panes.
+Switching sessions clears the previous pane badge and, if different, its
+workspace badge before marking the new target. Unmatched sessions clear both.
+Idle badges still expire naturally; another interaction rematches moved panes.
 This action itself does not publish markers, change agent lifecycle state, or
 enable history's follow-Herdr mode. Only **Ctrl+O** explicitly navigates; markers
 never steal focus or replace pane titles.
 
 ```text
-selection / manual input → exact session match → pane + workspace tokens
+selection / manual input → exact session match → clear previous target
+                                              → pane + workspace tokens
                                                    └→ expire after 5 s idle
 ```
 
