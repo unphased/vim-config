@@ -111,10 +111,13 @@ python3 - "$root/herdr.toml" <<'PY'
 import sys, tomllib
 with open(sys.argv[1], 'rb') as f:
     commands = {entry['key']: entry for entry in tomllib.load(f)['keys']['command']}
-for key, action in [('prefix+comma', 'shrink'), ('prefix+period', 'grow'), ('prefix+semicolon', 'toggle')]:
+for key, action in [('prefix+comma', 'shrink'), ('alt+[', 'shrink'),
+                    ('prefix+period', 'grow'), ('alt+]', 'grow'),
+                    ('prefix+semicolon', 'toggle')]:
     entry = commands[key]
     assert entry['command'] == f'~/.vim/herdr-sidebar-resize.sh {action}', entry
     assert entry['type'] == ('popup' if action == 'toggle' else 'shell'), entry
-assert 'ctrl+comma' not in commands
+for key in ('ctrl+comma', 'alt+comma', 'alt+period', 'alt+,', 'alt+.', 'prefix+[', 'prefix+]'):
+    assert key not in commands, f'reserved key overridden: {key}'
 PY
 printf 'PASS: Herdr sidebar pinned/mouse sizing (popup status, bounds, preservation, concurrency)\n'

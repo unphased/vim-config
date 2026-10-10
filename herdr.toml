@@ -128,6 +128,8 @@ description = "Resize pane right (anchored)"
 
 # Shellfish-friendly sidebar sizing: adjustments pin min/max to the same width.
 # Toggle restores loose mouse bounds (18..48) or the remembered keyboard width.
+# Alt+[ / Alt+] are prefix-free; keep prefix+[ for copy mode and Alt+, / Alt+.
+# available to the shell.
 [[keys.command]]
 key = "prefix+comma"
 type = "shell"
@@ -136,6 +138,18 @@ description = "Pin sidebar and narrow by 4"
 
 [[keys.command]]
 key = "prefix+period"
+type = "shell"
+command = "~/.vim/herdr-sidebar-resize.sh grow"
+description = "Pin sidebar and widen by 4"
+
+[[keys.command]]
+key = "alt+["
+type = "shell"
+command = "~/.vim/herdr-sidebar-resize.sh shrink"
+description = "Pin sidebar and narrow by 4"
+
+[[keys.command]]
+key = "alt+]"
 type = "shell"
 command = "~/.vim/herdr-sidebar-resize.sh grow"
 description = "Pin sidebar and widen by 4"
