@@ -4,7 +4,9 @@ import shutil
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
+import recording_compression as compression
 from recording_compression import compare, pack_frame, unpack_frame
 
 
@@ -132,6 +134,140 @@ class RecordingCompressionTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 compare(root, configs=[{"codec": "brotli", "level": 4,
                                        "window_log": 25}])
+
+    def test_byte_targets_include_envelope_overhead_and_report_short_and_oversize_frames(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = self.make_dataset(root, [100, 200, 300, 400])
+            blobs = [b"a" * 120, b"b", b"c" * 150, b"d"]
+            for entry, blob in zip(manifest["blocks"], blobs):
+                (root / entry["path"]).write_bytes(blob)
+                entry["raw_bytes"] = len(blob)
+                entry["sha256"] = hashlib.sha256(blob).hexdigest()
+            (root / "manifest.json").write_text(json.dumps(manifest))
+            payloads = []
+
+            def run(_command, payload):
+                payloads.append(payload)
+                return payload, 0.01, 0.02
+
+            with patch.object(compression, "_version", return_value="test"), \
+                    patch.object(compression, "_run", side_effect=run):
+                record, = compare(root, configs=[{"codec": "zstd", "level": 1,
+                                                  "window_log": 16}],
+                                  frame_bytes=(127,), repeats=2)
+            first_repeat = payloads[::2][:4]
+            self.assertEqual([unpack_frame(p) for p in first_repeat],
+                             [[blobs[0]], [blobs[1]], [blobs[2]], [blobs[3]]])
+            self.assertEqual(record["frame_input_bytes"], [len(p) for p in first_repeat])
+            self.assertEqual(record["oversize_frame_count"], 1)
+            self.assertEqual(record["partial_frame_count"], 1)
+            self.assertEqual(record["full_target_frame_count"], 2)
+            self.assertEqual(record["repeats"], 2)
+            self.assertAlmostEqual(record["encode_child_cpu_seconds"], 0.08)
+            self.assertAlmostEqual(record["decode_child_cpu_seconds"], 0.08)
+            self.assertAlmostEqual(record["encode_seconds"], 0.04)
+            self.assertEqual(record["compressed_bytes"], sum(len(p) for p in first_repeat))
+
+    def test_section_layout_is_exact_and_rejects_invalid_pst1_and_envelopes(self):
+        def pst1(header, cpu, metadata):
+            return (b"PST1" + compression._uvarint(len(header)) + header +
+                    compression._uvarint(len(cpu)) + cpu +
+                    compression._uvarint(len(metadata)) + metadata)
+
+        blocks = [pst1(b'{ "h":1 }', b"cpu-a", b"meta-a"),
+                  pst1(b"{}", b"cpu-b\x00", b"meta-b")]
+        packed = pack_frame(blocks, layout="sections")
+        self.assertTrue(packed.startswith(b"PCR2"))
+        self.assertEqual(unpack_frame(packed), blocks)
+        with self.assertRaises(ValueError):
+            pack_frame([b"opaque"], layout="sections")
+        for bad in (b"PCR2\x80", packed + b"x", b"PCR2\x01\x80"):
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                unpack_frame(bad)
+        noncanonical = b"PST1\x81\x00x\x00\x00"
+        with self.assertRaises(ValueError):
+            pack_frame([noncanonical], layout="sections")
+
+    def test_byte_frame_grouping_and_repeat_totals_cover_mixed_blocks_once(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = self.make_dataset(root, [100, 200, 300, 400])
+            blobs = [b"x" * 8, b"y" * 8, b"z" * 8, b"w" * 8]
+            for entry, blob in zip(manifest["blocks"], blobs):
+                (root / entry["path"]).write_bytes(blob)
+                entry["raw_bytes"] = len(blob)
+                entry["sha256"] = hashlib.sha256(blob).hexdigest()
+            (root / "manifest.json").write_text(json.dumps(manifest))
+            calls = []
+
+            def run(_command, payload):
+                calls.append(payload)
+                return payload, 0.1, 0.2
+
+            with patch.object(compression, "_version", return_value="test"), \
+                    patch.object(compression, "_run", side_effect=run):
+                record, = compare(root, configs=[{"codec": "brotli", "level": 4,
+                                                  "window_log": 16}],
+                                  frame_bytes=(30,), repeats=3)
+            self.assertEqual(record["frame_count"], 2)
+            first_repeat = calls[::2][:2]
+            self.assertEqual([len(x) for x in first_repeat], record["frame_input_bytes"])
+            self.assertEqual(record["block_count"], 4)
+            self.assertEqual(record["encode_seconds_by_repeat"], [0.2, 0.2, 0.2])
+            self.assertEqual(record["encode_child_cpu_seconds_by_repeat"], [0.4, 0.4, 0.4])
+            self.assertEqual(record["compressed_bytes"], sum(map(len, first_repeat)))
+            self.assertEqual(len(record["frame_span_seconds"]), 2)
+
+    def test_rejects_bad_byte_sizes_repeats_and_layout(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.make_dataset(root, [100])
+            for values in ((), (0,), (-1,), (1, 1), (True,)):
+                with self.subTest(values=values), self.assertRaises(ValueError):
+                    compare(root, configs=[], frame_bytes=values)
+            for repeats in (0, -1, True, 1.5):
+                with self.subTest(repeats=repeats), self.assertRaises(ValueError):
+                    compare(root, configs=[], repeats=repeats)
+            with self.assertRaises(ValueError):
+                compare(root, configs=[], layout="unknown")
+
+    def test_cpu_per_gib_and_zstd_threads_do_not_mix_cpu_with_wall_time(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.make_dataset(root, [100, 200])
+            configs = [{'codec': 'zstd', 'level': 3, 'window_log': 20, 'threads': n}
+                       for n in [1, 4]]
+            def run(command, payload):
+                return payload, .1, .4 if '-T4' in command else .2
+            with patch.object(compression, '_version', return_value='test'), \
+                    patch.object(compression, '_run', side_effect=run):
+                records = compare(root, configs=configs, frame_bytes=(1048576,), repeats=3)
+            self.assertEqual([r['threads'] for r in records], [1, 4])
+            for r in records:
+                self.assertAlmostEqual(r['compression_cpu_seconds_per_input_gib'],
+                                       r['encode_child_cpu_seconds'] / r['raw_bytes'] * 1024**3)
+                self.assertAlmostEqual(r['compression_wall_seconds_per_input_gib'],
+                                       r['encode_seconds'] / r['raw_bytes'] * 1024**3)
+            self.assertGreater(records[1]['encode_child_cpu_seconds'], records[0]['encode_child_cpu_seconds'])
+            self.assertEqual(records[1]['encode_seconds'], records[0]['encode_seconds'])
+
+    def test_parallel_zstd_and_opt_in_large_window_brotli_roundtrip(self):
+        if not all(shutil.which(c) for c in ['zstd', 'brotli']):
+            self.skipTest('codec CLIs unavailable')
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.make_dataset(root, [100, 200])
+            records = compare(root, configs=[
+                {'codec': 'zstd', 'level': 3, 'window_log': 20, 'threads': 2},
+                {'codec': 'brotli', 'level': 4, 'window_log': 27, 'large_window': True}],
+                frame_bytes=(1048576,))
+            self.assertEqual(records[1]['brotli_format'], 'large-window extension')
+            for bad in [{'codec': 'brotli', 'level': 4, 'window_log': 20, 'threads': 2},
+                        {'codec': 'brotli', 'level': 4, 'window_log': 27},
+                        {'codec': 'zstd', 'level': 3, 'window_log': 20, 'threads': 0}]:
+                with self.assertRaises(ValueError):
+                    compare(root, configs=[bad])
 
     def test_default_configuration_is_balanced_and_finalist_defaults_are_explicit(self):
         from recording_compression import default_configs, finalist_configs

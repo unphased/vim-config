@@ -8,6 +8,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import time
 import tracemalloc
 import unittest
 from unittest import mock
@@ -20,10 +21,11 @@ SPEC.loader.exec_module(probe)
 
 
 FAKE_NATIVE = r'''#!/usr/bin/env python3
-import json, os, sys
+import json, os, sys, time
 samples, interval = int(sys.argv[1]), float(sys.argv[2])
 stop_after = int(os.environ.get("PROBE_FAIL_AFTER", "0"))
 for seq in range(samples):
+    time.sleep(float(os.environ.get("PROBE_DELAY", "0")))
     start = int(seq * interval * 1_000_000_000)
     row = {"seq": seq, "wall_start_ns": start, "scan_start_ns": start,
            "scan_end_ns": start + 1000, "processes": []}
@@ -165,6 +167,190 @@ class RecordingCaptureTests(unittest.TestCase):
                 with self.assertRaises(SystemExit) as exit_info:
                     probe.main()
             self.assertEqual(exit_info.exception.code, 2)
+            self.assertFalse(output.exists())
+
+    @unittest.skipUnless(probe.shutil.which("zstd"), "zstd CLI unavailable")
+    def test_segmented_capture_is_compressed_continuous_and_private(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "capture"
+            with self.install_fake_build():
+                summary = probe.collect_rows(5, 0.1, capture_dir=output, segment_samples=2,
+                                             max_capture_bytes=1_000_000, min_free_bytes=1)
+            self.assertEqual(stat.S_IMODE(output.stat().st_mode), 0o700)
+            self.assertEqual(summary["status"], "complete")
+            self.assertEqual(summary["actual_samples"], 5)
+            self.assertEqual(summary["segments"], 3)
+            manifest = [json.loads(line) for line in (output / "segments.jsonl").read_text().splitlines()]
+            self.assertEqual([entry["count"] for entry in manifest], [2, 2, 1])
+            self.assertTrue(all(entry["complete"] for entry in manifest))
+            rows = []
+            run_ids = set()
+            for index, entry in enumerate(manifest):
+                compressed = output / entry["path"]
+                self.assertEqual(stat.S_IMODE(compressed.stat().st_mode), 0o600)
+                decoded = subprocess.run(["zstd", "-q", "-d", "-c", str(compressed)],
+                                         check=True, capture_output=True).stdout.decode().splitlines()
+                header = json.loads(decoded[0])
+                self.assertEqual(header["probe_capture"], 1)
+                self.assertEqual(header["hz"], 10)
+                self.assertEqual(header["requested_samples_this_segment"], entry["requested_samples"])
+                self.assertEqual(header["segment_index"], index)
+                run_ids.add(header["capture_run_id"])
+                self.assertEqual(len(decoded) - 1, entry["count"])
+                rows.extend(json.loads(line) for line in decoded[1:])
+            self.assertEqual(len(run_ids), 1)
+            self.assertEqual([row["seq"] for row in rows], [0, 1, 2, 3, 4])
+            self.assertEqual([row["scan_start_ns"] for row in rows], [0, 100_000_000,
+                                                                        200_000_000, 300_000_000,
+                                                                        400_000_000])
+            for name in ("native-timings.jsonl", "segments.jsonl", "status.json"):
+                self.assertEqual(stat.S_IMODE((output / name).stat().st_mode), 0o600)
+
+    def test_segmented_native_failure_keeps_finalized_incomplete_segment(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "capture"
+            with self.install_fake_build(), mock.patch.dict(os.environ, {"PROBE_FAIL_AFTER": "2"}):
+                with self.assertRaises(subprocess.CalledProcessError):
+                    probe.collect_rows(5, 0.1, capture_dir=output, segment_samples=4,
+                                       max_capture_bytes=1_000_000, min_free_bytes=1)
+            status = json.loads((output / "status.json").read_text())
+            manifest = [json.loads(line) for line in (output / "segments.jsonl").read_text().splitlines()]
+            self.assertEqual(status["status"], "failed")
+            self.assertEqual(status["actual_samples"], 2)
+            self.assertEqual(len(manifest), 1)
+            self.assertFalse(manifest[0]["complete"])
+            self.assertTrue((output / manifest[0]["path"]).exists())
+            self.assertTrue((output / "native-timings.jsonl").stat().st_size)
+
+    def test_segmented_compressor_failure_is_reported_and_preserves_partial(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            output = root / "capture"
+            fake_bin = root / "bin"
+            fake_bin.mkdir()
+            compressor = fake_bin / "zstd"
+            compressor.write_text("#!/usr/bin/env python3\nimport sys\nsys.stdin.buffer.read()\nsys.exit(9)\n")
+            compressor.chmod(0o700)
+            path = os.pathsep.join((str(fake_bin), os.environ["PATH"]))
+            with self.install_fake_build(), mock.patch.dict(os.environ, {"PATH": path}):
+                with self.assertRaises(subprocess.CalledProcessError):
+                    probe.collect_rows(2, 0.1, capture_dir=output, segment_samples=2,
+                                       max_capture_bytes=1_000_000, min_free_bytes=1)
+            status = json.loads((output / "status.json").read_text())
+            entry, = [json.loads(line) for line in (output / "segments.jsonl").read_text().splitlines()]
+            self.assertEqual(status["status"], "failed")
+            self.assertFalse(entry["complete"])
+            self.assertTrue(entry["path"].endswith(".partial"))
+            self.assertTrue((output / entry["path"]).exists())
+
+    def test_segmented_capture_stops_nonzero_on_disk_budget(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "capture"
+            with self.install_fake_build(), mock.patch.dict(os.environ, {"PROBE_DELAY": "0.01"}):
+                summary = probe.collect_rows(100, 0.1, capture_dir=output, segment_samples=5,
+                                             max_capture_bytes=1, min_free_bytes=1)
+            self.assertEqual(summary["status"], "stopped-budget")
+            self.assertLess(summary["actual_samples"], 100)
+            self.assertEqual(json.loads((output / "status.json").read_text())["status"],
+                             "stopped-budget")
+
+    def test_segmented_capture_low_free_space_stops_before_native_launch(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "capture"
+            usage = probe.shutil._ntuple_diskusage(100, 90, 10)
+            with mock.patch.object(probe.shutil, "disk_usage", return_value=usage):
+                summary = probe.collect_rows(2, 0.1, capture_dir=output, min_free_bytes=20)
+            self.assertEqual(summary["status"], "stopped-budget")
+            self.assertEqual(summary["actual_samples"], 0)
+            self.assertFalse((output / "native-timings.jsonl").stat().st_size)
+
+    def test_segment_finalization_failure_closes_resources_and_reports_retained_artifact(self):
+        for phase in ['fsync', 'manifest']:
+            with self.subTest(phase=phase), tempfile.TemporaryDirectory() as directory:
+                output = Path(directory) / 'capture'
+                original_sync, original_write = os.fsync, os.write
+                def fail_sync(fd):
+                    inode = os.fstat(fd).st_ino
+                    if any(p.stat().st_ino == inode for p in output.glob('*.partial')):
+                        raise OSError('injected segment sync failure')
+                    return original_sync(fd)
+                def fail_manifest(fd, data):
+                    if os.fstat(fd).st_ino == (output / 'segments.jsonl').stat().st_ino:
+                        raise OSError('injected manifest failure')
+                    return original_write(fd, data)
+                patcher = (mock.patch.object(probe.os, 'fsync', side_effect=fail_sync) if phase == 'fsync'
+                           else mock.patch.object(probe.os, 'write', side_effect=fail_manifest))
+                with self.install_fake_build(), patcher:
+                    with self.assertRaisesRegex(OSError, 'injected'):
+                        probe.collect_rows(2, .1, capture_dir=output, segment_samples=2,
+                                           max_capture_bytes=1_000_000, min_free_bytes=1)
+                status = json.loads((output / 'status.json').read_text())
+                self.assertEqual(status['status'], 'failed')
+                artifact = output / status['unindexed_artifact']
+                self.assertTrue(artifact.exists())
+                self.assertEqual(len(list(output.glob('source-*'))), 1)
+                # Reopening is possible; no stale file object is retried by cleanup.
+                with artifact.open('ab') as retained:
+                    self.assertFalse(retained.closed)
+
+    def test_sigterm_stalled_compressor_has_bounded_cleanup(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            native = root / 'native'
+            native.write_text(FAKE_NATIVE)
+            native.chmod(0o700)
+            fake_bin = root / 'bin'
+            fake_bin.mkdir()
+            stalled = fake_bin / 'zstd'
+            pidfile = root / 'compressor.pid'
+            stalled.write_text('#!/usr/bin/env python3\nimport os,time\n'
+                               f'open({str(pidfile)!r}, "w").write(str(os.getpid()))\n'
+                               'time.sleep(60)\n')
+            stalled.chmod(0o700)
+            output = root / 'capture'
+            program = f'''import importlib.util, contextlib
+spec=importlib.util.spec_from_file_location('probe', {str(MODULE_PATH)!r})
+probe=importlib.util.module_from_spec(spec); spec.loader.exec_module(probe)
+@contextlib.contextmanager
+def built(_):
+    yield {str(native)!r}
+probe._native_build=built
+probe.collect_rows(100, .1, capture_dir={str(output)!r}, segment_samples=2,
+                   max_capture_bytes=1000000, min_free_bytes=1)
+'''
+            env = {**os.environ, 'PATH': str(fake_bin) + os.pathsep + os.environ['PATH']}
+            child = subprocess.Popen([sys.executable, '-c', program], env=env,
+                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            try:
+                deadline = time.monotonic() + 10
+                while not pidfile.exists() and child.poll() is None and time.monotonic() < deadline:
+                    time.sleep(.02)
+                self.assertTrue(pidfile.exists())
+                compressor_pid = int(pidfile.read_text())
+                child.terminate()
+                child.communicate(timeout=12)
+                self.assertNotEqual(child.returncode, 0)
+                with self.assertRaises(ProcessLookupError):
+                    os.kill(compressor_pid, 0)
+                status = json.loads((output / 'status.json').read_text())
+                self.assertIn(status['status'], ['failed', 'interrupted'])
+                self.assertTrue(list(output.glob('source-*')))
+            finally:
+                if child.poll() is None:
+                    child.kill(); child.communicate()
+
+    def test_segmented_cli_rejects_conflicts_and_invalid_limits_before_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "capture"
+            for options in (("--capture-dir", str(output), "--capture-out", str(output / "old")),
+                            ("--capture-dir", str(output), "--segment-samples", "0"),
+                            ("--capture-dir", str(output), "--max-capture-bytes", "0"),
+                            ("--capture-dir", str(output), "--min-free-bytes", "-1")):
+                with mock.patch.object(sys, "argv", [str(MODULE_PATH), *options]), \
+                        mock.patch.object(probe, "private_run"):
+                    with self.assertRaises(SystemExit) as exit_info:
+                        probe.main()
+                    self.assertEqual(exit_info.exception.code, 2)
             self.assertFalse(output.exists())
 
 
