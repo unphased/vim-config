@@ -1,6 +1,8 @@
 import hashlib
 import json
 import os
+import shutil
+import subprocess
 from pathlib import Path
 import stat
 import tempfile
@@ -140,6 +142,26 @@ class RecordingStorageTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'page.aligned'):
                 prepare(src, root / 'output', 'relative10', 'columns')
             self.assertFalse((root / 'output').exists())
+
+    def test_lossless_compressed_source_replay_and_crc_failure(self):
+        if not shutil.which('zstd'):
+            self.skipTest('zstd unavailable')
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            src = root / 'raw.jsonl'
+            capture(src, source_rows())
+            compressed = root / 'source.jsonl.zst'
+            compressed.write_bytes(subprocess.run(['zstd', '-q', '-3', '-c'],
+                input=src.read_bytes(), capture_output=True, check=True).stdout)
+            result = prepare(compressed, root / 'prepared', '256k', 'mask')
+            self.assertEqual(result['input_sha256'], hashlib.sha256(src.read_bytes()).hexdigest())
+            damaged = bytearray(compressed.read_bytes())
+            damaged[-1] ^= 1
+            compressed.write_bytes(damaged)
+            # zstd may reject the CRC before emitting even the JSON header.
+            with self.assertRaises(ValueError):
+                prepare(compressed, root / 'bad')
+            self.assertFalse((root / 'bad').exists())
 
     def test_bad_input_and_component_reset_fail_before_output_creation(self):
         with tempfile.TemporaryDirectory() as tmp:

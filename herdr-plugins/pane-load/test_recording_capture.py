@@ -132,6 +132,35 @@ class RecordingCaptureTests(unittest.TestCase):
             self.assertEqual(summary["actual_samples"], 10_000)
             self.assertLess(peak, 2_000_000)
 
+    def test_single_file_setup_failures_close_owned_descriptors(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            owned = []
+            original_open = os.open
+            def tracked_open(*args, **kwargs):
+                fd = original_open(*args, **kwargs)
+                owned.append(fd)
+                return fd
+            with mock.patch.object(probe.os, 'open', side_effect=tracked_open), \
+                    mock.patch.object(probe.os, 'fdopen', side_effect=OSError('fdopen failed')):
+                with self.assertRaisesRegex(OSError, 'fdopen failed'):
+                    probe.collect_rows(2, .1, capture_out=root / 'fdopen')
+            for fd in owned:
+                with self.assertRaises(OSError):
+                    os.fstat(fd)
+            opened = []
+            original_fdopen = os.fdopen
+            def track_file(*args, **kwargs):
+                out = original_fdopen(*args, **kwargs)
+                opened.append(out)
+                return out
+            with mock.patch.object(probe.os, 'fdopen', side_effect=track_file), \
+                    mock.patch.object(probe.tempfile, 'mkstemp', side_effect=OSError('temp failed')), \
+                    contextlib.redirect_stderr(io.StringIO()):
+                with self.assertRaisesRegex(OSError, 'temp failed'):
+                    probe.collect_rows(2, .1, capture_out=root / 'temp')
+            self.assertTrue(opened and all(out.closed for out in opened))
+
     def test_capture_cli_accepts_output_option_without_running_compression(self):
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "capture.jsonl"
@@ -269,6 +298,17 @@ class RecordingCaptureTests(unittest.TestCase):
             with self.subTest(phase=phase), tempfile.TemporaryDirectory() as directory:
                 output = Path(directory) / 'capture'
                 original_sync, original_write = os.fsync, os.write
+                original_fdopen, original_popen = os.fdopen, probe.subprocess.Popen
+                opened, compressors = [], []
+                def track_file(*args, **kwargs):
+                    out = original_fdopen(*args, **kwargs)
+                    opened.append(out)
+                    return out
+                def track_child(command, *args, **kwargs):
+                    child = original_popen(command, *args, **kwargs)
+                    if command[0] == 'zstd':
+                        compressors.append(child)
+                    return child
                 def fail_sync(fd):
                     inode = os.fstat(fd).st_ino
                     if any(p.stat().st_ino == inode for p in output.glob('*.partial')):
@@ -280,7 +320,9 @@ class RecordingCaptureTests(unittest.TestCase):
                     return original_write(fd, data)
                 patcher = (mock.patch.object(probe.os, 'fsync', side_effect=fail_sync) if phase == 'fsync'
                            else mock.patch.object(probe.os, 'write', side_effect=fail_manifest))
-                with self.install_fake_build(), patcher:
+                with self.install_fake_build(), patcher, \
+                        mock.patch.object(probe.os, 'fdopen', side_effect=track_file), \
+                        mock.patch.object(probe.subprocess, 'Popen', side_effect=track_child):
                     with self.assertRaisesRegex(OSError, 'injected'):
                         probe.collect_rows(2, .1, capture_dir=output, segment_samples=2,
                                            max_capture_bytes=1_000_000, min_free_bytes=1)
@@ -289,23 +331,32 @@ class RecordingCaptureTests(unittest.TestCase):
                 artifact = output / status['unindexed_artifact']
                 self.assertTrue(artifact.exists())
                 self.assertEqual(len(list(output.glob('source-*'))), 1)
-                # Reopening is possible; no stale file object is retried by cleanup.
-                with artifact.open('ab') as retained:
-                    self.assertFalse(retained.closed)
+                self.assertTrue(opened and all(out.closed for out in opened))
+                self.assertTrue(compressors)
+                for child in compressors:
+                    self.assertIsNotNone(child.returncode)
+                    with self.assertRaises(ProcessLookupError):
+                        os.kill(child.pid, 0)
 
     def test_sigterm_stalled_compressor_has_bounded_cleanup(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             native = root / 'native'
-            native.write_text(FAKE_NATIVE)
+            native.write_text(FAKE_NATIVE.replace('"processes": []',
+                '"processes": [[pid,1,1,0,"p",0,0,4096] for pid in range(1000)]'))
             native.chmod(0o700)
             fake_bin = root / 'bin'
             fake_bin.mkdir()
             stalled = fake_bin / 'zstd'
             pidfile = root / 'compressor.pid'
-            stalled.write_text('#!/usr/bin/env python3\nimport os,time\n'
-                               f'open({str(pidfile)!r}, "w").write(str(os.getpid()))\n'
-                               'time.sleep(60)\n')
+            stalled.write_text('#!/usr/bin/env python3\nimport os,time,fcntl,termios,array\n'
+                'previous=-1; stable=0\n'
+                'while stable<5:\n'
+                ' data=array.array("i",[0]); fcntl.ioctl(0,termios.FIONREAD,data,True)\n'
+                ' stable=stable+1 if data[0]>=4096 and data[0]==previous else 0\n'
+                ' previous=data[0]; time.sleep(.02)\n'
+                f'open({str(pidfile)!r}, "w").write(str(os.getpid()))\n'
+                'time.sleep(60)\n')
             stalled.chmod(0o700)
             output = root / 'capture'
             program = f'''import importlib.util, contextlib
@@ -315,7 +366,7 @@ probe=importlib.util.module_from_spec(spec); spec.loader.exec_module(probe)
 def built(_):
     yield {str(native)!r}
 probe._native_build=built
-probe.collect_rows(100, .1, capture_dir={str(output)!r}, segment_samples=2,
+probe.collect_rows(10000, .1, capture_dir={str(output)!r}, segment_samples=10000,
                    max_capture_bytes=1000000, min_free_bytes=1)
 '''
             env = {**os.environ, 'PATH': str(fake_bin) + os.pathsep + os.environ['PATH']}

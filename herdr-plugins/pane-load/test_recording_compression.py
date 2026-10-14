@@ -61,8 +61,8 @@ class RecordingCompressionTests(unittest.TestCase):
             self.assertEqual(record["requested_window_log"], 16)
             self.assertEqual(record["requested_window_bytes"], 1 << 16)
             self.assertGreaterEqual(record["encode_child_cpu_seconds"], 0)
-            self.assertGreaterEqual(record["decode_child_cpu_seconds"], 0)
-            self.assertGreater(record["max_decode_frame_bytes"], 0)
+            self.assertEqual(record['decompression_scope'], 'correctness verification only')
+            self.assertFalse(any(k.startswith('decode_') for k in record))
 
     def test_nominal_boundary_jitter_does_not_merge_two_thirty_second_blocks(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -110,8 +110,7 @@ class RecordingCompressionTests(unittest.TestCase):
                 self.assertEqual(record["block_count"], 2)
                 self.assertEqual(record["frame_count"], 1)
                 self.assertGreater(record["compressed_bytes"], 0)
-                self.assertGreaterEqual(record["decode_frame_p50_seconds"], 0)
-                self.assertGreaterEqual(record["max_decode_frame_seconds"], 0)
+                self.assertEqual(record['decompression_scope'], 'correctness verification only')
                 self.assertIn("version", record)
 
     def test_rejects_unsafe_paths_bad_frame_envelopes_and_invalid_limits(self):
@@ -165,7 +164,7 @@ class RecordingCompressionTests(unittest.TestCase):
             self.assertEqual(record["full_target_frame_count"], 2)
             self.assertEqual(record["repeats"], 2)
             self.assertAlmostEqual(record["encode_child_cpu_seconds"], 0.08)
-            self.assertAlmostEqual(record["decode_child_cpu_seconds"], 0.08)
+            self.assertNotIn('decode_child_cpu_seconds', record)
             self.assertAlmostEqual(record["encode_seconds"], 0.04)
             self.assertEqual(record["compressed_bytes"], sum(len(p) for p in first_repeat))
 
@@ -260,9 +259,11 @@ class RecordingCompressionTests(unittest.TestCase):
             self.make_dataset(root, [100, 200])
             records = compare(root, configs=[
                 {'codec': 'zstd', 'level': 3, 'window_log': 20, 'threads': 2},
-                {'codec': 'brotli', 'level': 4, 'window_log': 27, 'large_window': True}],
+                {'codec': 'brotli', 'level': 4, 'window_log': 27, 'large_window': True},
+                {'codec': 'zstd', 'level': 3, 'window_log': 27, 'long_distance': True}],
                 frame_bytes=(1048576,))
             self.assertEqual(records[1]['brotli_format'], 'large-window extension')
+            self.assertTrue(records[2]['zstd_long_distance'])
             for bad in [{'codec': 'brotli', 'level': 4, 'window_log': 20, 'threads': 2},
                         {'codec': 'brotli', 'level': 4, 'window_log': 27},
                         {'codec': 'zstd', 'level': 3, 'window_log': 20, 'threads': 0}]:

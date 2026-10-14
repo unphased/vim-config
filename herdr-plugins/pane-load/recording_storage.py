@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """Prepare private encoding blocks; audit state grows with distinct identities."""
 import argparse
+from contextlib import contextmanager
 from collections import Counter, defaultdict
 import hashlib
 import json
 import os
 from pathlib import Path
 import shutil
+import subprocess
+import tempfile
 
 from recording_codec import _read_uvarint, _uvarint, canonical_row, encode_sparse, decode_sparse
 from recording_cpu_shared import decode_shared, encode_shared
@@ -28,8 +31,33 @@ def restore_native(ns, numer=125, denom=3):
     return ticks
 
 
+@contextmanager
+def _source_stream(path):
+    path = Path(path)
+    if path.suffix != '.zst':
+        with path.open('rb') as stream:
+            yield stream
+        return
+    with tempfile.TemporaryFile() as errors:
+        child = subprocess.Popen(['zstd', '-q', '-d', '-c', '--', str(path)],
+                                 stdout=subprocess.PIPE, stderr=errors)
+        try:
+            yield child.stdout
+            if child.wait():
+                errors.seek(0)
+                raise ValueError('source decompression failed: ' + errors.read(4096).decode(errors='replace'))
+        finally:
+            child.stdout.close()
+            if child.poll() is None:
+                child.terminate()
+                try:
+                    child.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    child.kill(); child.wait()
+
+
 def _rows(path, digest=None):
-    with Path(path).open("rb") as source:
+    with _source_stream(path) as source:
         line = source.readline()
         if digest is not None:
             digest.update(line)
@@ -181,7 +209,9 @@ def prepare(input_path, output_dir, rss="exact", layout="mask"):
                        "first_scan_start_ns": first["scan_start_ns"],
                        "last_scan_start_ns": last["scan_start_ns"],
                        "duration_ns": last["scan_start_ns"] - first["scan_start_ns"],
-                       "nominal_hz": hz},
+                       'nominal_hz': hz,
+                       'capture_run_id': source['header'].get('capture_run_id'),
+                       'segment_index': source['header'].get('segment_index')},
             "cpu": {"unit": "native Mach ticks", "timebase_mach": [125, 3],
                     "quantum_native_ticks": CPU_QUANTUM, "quantum_ns": 1_000_000,
                     "time_exact": True, "cpu_exact": False,
