@@ -23,9 +23,11 @@ class PreviewTests(unittest.TestCase):
         self.calls = self.home / "calls.json"
         self.env = dict(os.environ, HOME=str(self.home), PATH=f"{self.bin}:{os.defpath}",
                         TERM="xterm-ghostty", TERM_PROGRAM="ghostty", CALLS=str(self.calls))
-        for name in ("KITTY_WINDOW_ID", "TMUX", "lf_user_preview_command"):
+        for name in ("KITTY_WINDOW_ID", "HERDR_ENV", "TMUX", "lf_user_preview_command"):
             self.env.pop(name, None)
-        self.stub("kitten", 'printf "%s\\n" "$@" > "$CALLS"; printf "IMAGE"; exit "${ICAT_STATUS:-0}"')
+        self.stub("kitten", 'printf "%s\\n" "$@" > "$CALLS"; printf "IMAGE"; '
+                  '[ "${ICAT_STATUS:-0}" = 0 ] || printf "icat decoder error\\n" >&2; '
+                  'exit "${ICAT_STATUS:-0}"')
         self.stub("bat", 'printf "text preview\\n"')
         self.stub("md5sum", 'printf "abc  -\\n"')
         for cmd in ("brotli", "zstd"):
@@ -110,6 +112,7 @@ class PreviewTests(unittest.TestCase):
         self.env["ICAT_STATUS"] = "1"
         result, _ = self.preview()
         self.assertIn(b"Image preview failed", result.stdout)
+        self.assertIn(b"icat decoder error", result.stdout)
         self.assertNotIn(b"text preview", result.stdout)
         self.assertFalse((self.home / ".cache/lf-previewer").exists())
         self.assertEqual(result.returncode, 1)

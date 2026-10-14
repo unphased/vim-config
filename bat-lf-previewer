@@ -36,25 +36,35 @@
 # map K scroll-preview-up
 
 # Draw images directly on the tty; lf only understands text on stdout.
-# Reuse Kitty's decoder/protocol implementation (also works in Ghostty).
-if [[ ${TERM_PROGRAM:-} == ghostty || ${TERM:-} == xterm-kitty ||
-      ${TERM:-} == xterm-ghostty || -n ${KITTY_WINDOW_ID:-} ]]; then
-    case $(file -Lb --mime-type -- "$1" 2>/dev/null) in
-        image/*)
-            # Preloading must not paint files that aren't selected yet.
-            [[ ${6:-preview} == preload ]] && exit 1
-            kitten=$(command -v kitten)
-            if [[ -z $kitten && -x /Applications/kitty.app/Contents/MacOS/kitten ]]; then
-                kitten=/Applications/kitty.app/Contents/MacOS/kitten
-            fi
-            if [[ -n $kitten ]] && "$kitten" icat --stdin=no --transfer-mode=stream \
-                --image-id=424242 --place="${2}x${3}@${4}x${5}" -- "$1" \
-                > /dev/tty 2>/dev/null; then
-                exit 1 # Disable lf's text cache so revisiting redraws the image.
-            fi
-            ;;
-    esac
-fi
+# Handle images before the text cache, including old cached bat warnings.
+case $(file -Lb --mime-type -- "$1" 2>/dev/null) in
+    image/*)
+        # Preloading must not paint files that aren't selected yet.
+        [[ ${6:-preview} == preload ]] && exit 1
+        if [[ ${TERM_PROGRAM:-} != ghostty && ${TERM_PROGRAM:-} != herdr &&
+              ${HERDR_ENV:-} != 1 && ${TERM:-} != xterm-kitty &&
+              ${TERM:-} != xterm-ghostty && -z ${KITTY_WINDOW_ID:-} ]]; then
+            printf '[Image preview requires a terminal with Kitty graphics support]\n'
+            exit 1
+        fi
+        kitten=$(command -v kitten)
+        if [[ -z $kitten && -x /Applications/kitty.app/Contents/MacOS/kitten ]]; then
+            kitten=/Applications/kitty.app/Contents/MacOS/kitten
+        fi
+        if [[ -z $kitten ]]; then
+            printf '[Image preview requires kitten (included with Kitty)]\n'
+            exit 1
+        fi
+        # Capture stderr instead of silently falling through to bat on failure.
+        if image_error=$("$kitten" icat --stdin=no --transfer-mode=stream \
+            --image-id=424242 --place="${2}x${3}@${4}x${5}" -- "$1" \
+            2>&1 > /dev/tty); then
+            exit 1 # Disable lf's text cache so revisiting redraws the image.
+        fi
+        printf '[Image preview failed] %s\n' "$image_error"
+        exit 1
+        ;;
+esac
 
 # --- Glob Patterns for Default Sticky Bottom ---
 STICKY_BOTTOM_GLOBS="*.log *.journal" # Space-separated list of globs
