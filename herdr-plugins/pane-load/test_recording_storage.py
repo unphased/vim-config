@@ -130,6 +130,17 @@ class RecordingStorageTests(unittest.TestCase):
                 self.assertEqual(manifest['audit']['disappearance_count'], 2)
                 self.assertEqual(sum(manifest['audit']['new_identity_names'].values()), 1)
 
+    def test_relative_quantization_rejects_nonpage_source_instead_of_breaking_bound(self):
+        rows = source_rows()
+        rows[0]['processes'][0][7] = 8191
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            src = root / 'source'
+            capture(src, rows)
+            with self.assertRaisesRegex(ValueError, 'page.aligned'):
+                prepare(src, root / 'output', 'relative10', 'columns')
+            self.assertFalse((root / 'output').exists())
+
     def test_bad_input_and_component_reset_fail_before_output_creation(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -164,7 +175,7 @@ class RecordingStorageTests(unittest.TestCase):
             root = Path(tmp)
             src, dest = root / "capture", root / "out"
             capture(src, rows, hz=1)
-            manifest = prepare(src, dest)
+            manifest = prepare(src, dest, layout='columns')
             self.assertEqual([b["point_count"] for b in manifest["blocks"]], [30, 1])
             for block in manifest["blocks"]:
                 self.assertEqual(len(decode_structure(unpack_block(

@@ -1,8 +1,9 @@
 # Process-history recording experiments
 
-Measured 2026-10-08; summarized 2026-10-09. Experimental Python codecs/policies
-around the existing Rust/macOS acquisition code. **Production `src/main.rs`,
-Herdr reporting, plugin configuration and startup behavior are unchanged.**
+Measured 2026-10-08 and 2026-10-14; updated 2026-10-14. Experimental Python
+codecs/policies around the existing Rust/macOS acquisition code. **These
+experiments do not modify production sampling, Herdr reporting, configuration or
+startup behavior.**
 
 ## Storage gate
 
@@ -364,9 +365,165 @@ This driver currently requires the supplied capture's verified Mach timebase
 125/3 and its normalized-ns input schema; it is not a generic Linux acquisition
 benchmark. Raw captures stay private; only aggregate measurements belong in Git.
 
+## Ten-minute ordinary-activity replay: RSS, churn and compressor windows
+
+A **different, longer real capture**, acquired 2026-10-14: 6,000 scans at nominal
+10 Hz, **599.900651167 seconds** first-to-last scan start, **6,334,450 process
+observations** and **19,963 identities**. Concurrent readable processes:
+1,039–1,118. No controlled workload; normal active development, including other
+builds/tools, continued. Compression benchmarks began only after capture ended.
+The approximately 466 MiB JSONL capture stays private. SHA-256:
+`033d51988cc605a51d57a8d893e0bed71fbe3cb7747849790466e5daa95809b2`.
+This is not a quiet/held-out workload or a measured daily recording. Do not infer
+format gains by comparing its daily projection directly with the older minute.
+
+Native scan mean **3.80 ms**, max **46.73 ms**; tuple encoding mean **0.37 ms**.
+The capture-only probe streams directly to an exclusive mode-0600 file rather
+than holding the entire capture in RAM. SIGTERM preserves the private partial
+capture, reports incomplete coverage, exits 143 and reaps the native child.
+
+```text
+same captured readings
+  -> independent ~30s encoding blocks: CPU + metadata/RSS
+  -> group whole blocks into 30 / 120 / 600s compression frames
+  -> zstd or Brotli: level and match-window limits varied independently
+  -> decompress, verify bytes, block hashes, counts and source endpoints
+```
+
+All variants keep every observed identity and observation. CPU is **total
+user+system**, cumulative 1 ms precision with exact native CPU endpoints for each
+identity in each encoding block, using this host's Mach timebase 125/3. Intermediate
+CPU counters underestimate by less than 1 ms. User/system split is not retained.
+All sequence, wall and scan bounds remain exact; scan markers are **not per-process
+read timestamps**. The complete input is validated for component resets before
+encoding. Names, PPID changes and missing/return coverage are lossless. Missing
+is not an exit, and never-observed processes/exit tails cannot be recovered.
+
+### How much structure churn?
+
+- Initial identities **1,051**; subsequently first-observed **18,912**:
+  approximately **1,892/minute**. No observed PID reuse.
+- **15,495 identities (77.6%) appeared in only one scan**. This is observed
+  coverage, not proof their entire lifetimes lasted under 100 ms.
+- Of newly observed identities, **90.2%** were initially named `sleep` or `bash`.
+- Existing identities changed PPID **13** times and name **465** times.
+  Most tree churn was new/vanishing children, not existing nodes moving around.
+- **18,917** transitions to absence; no same-identity returns. These are not
+  authenticated exit events. Polling misses some short-lived processes entirely.
+
+The existing `PSD1` format already delta-encodes field changes and availability.
+The alternative `PSS1` orders identities by start time, delta-codes start times and
+PIDs, dictionaries names, run-codes observation coverage, and separates sparse
+name/PPID/RSS update positions and signed value deltas. Every block has a baseline.
+**It reduced broader encoded bytes 12.4%, but did not consistently improve final
+compressed size.** With exact RSS, Brotli-11 preferred existing masks (105.78 vs
+107.38 MiB/day); zstd-9 slightly preferred columns (134.04 vs 135.33). No new
+structural format is selected. Generic compression already exploits much of this
+repetition; shorter pre-compression streams are not automatically better.
+
+### RSS precision, holding CPU/coverage/timing fixed
+
+All RSS values were multiples of 4,096 bytes, so that common unit is lossless
+here; it is not a claim about hardware page size. Fixed schemes floor **absolute RSS**, not individual RSS differences: no drift
+accumulates. Relative10 keeps the top ten significant page-count bits, with
+relative underestimate <1/512 (~0.1953%); it rejects non-page-aligned input rather
+than violating that bound. Both increases and decreases are preserved subject to
+the declared quantization.
+
+Broader CPU+metadata payload, **600s frames, Brotli-11, window limit log 24**:
+
+| RSS scheme | Masks MiB/day | Columns MiB/day | Largest point underestimate | RSS transitions |
+| --- | ---: | ---: | ---: | ---: |
+| Exact 4 KiB units | 105.78 | 107.38 | 0 | 49,231 |
+| Floor to 64 KiB | **97.85** | 101.44 | 60 KiB | 30,943 |
+| Floor to 256 KiB | **92.29** | 96.26 | 248 KiB | 15,385 |
+| Floor to 1 MiB | not tested | 93.11 | 1,008 KiB | 7,728 |
+| Relative10 | not tested | 103.34 | 2,032 KiB (0.192%) | 28,817 |
+
+Thus 64/256 KiB saved **7.5% / 12.8%** of the complete tested payload versus
+exact RSS in the same mask layout. Relative precision helped less because small
+processes remain near native page precision. Its larger processes can lose MiB
+of absolute detail despite a small relative error. Measured worst per-identity
+peak underestimates: **48 KiB / 240 KiB / 1,008 KiB / 1,200 KiB**, respectively.
+No coarse-window extrema protection is implemented here. Small spikes can vanish,
+and fixed schemes can round a small nonzero RSS to zero (100% relative loss).
+These are explicit fidelity choices, not recommendations or evidence that future
+RCA questions will remain answerable. RSS transitions count changes between
+successive successful readings of each identity, not just consecutive scan IDs.
+
+### Codec level, match window and compression-frame duration
+
+Using zstd **1.5.7** and Brotli **1.2.0**, on the **same columns/exact-RSS input**:
+zstd levels 1/3/9/15/19; Brotli qualities
+4/6/9/11; independent compression frames 30/120/600s. Balanced levels use match
+window logs 16/20/24; high levels were first compared at log 24, then 19/11 also
+at 16/20 for 600s. This is a narrowed staged comparison, not a full Cartesian sweep.
+
+| Codec/level, configured window log 24 | 30s MiB/day | 120s MiB/day | 600s MiB/day |
+| --- | ---: | ---: | ---: |
+| zstd-9 | 202.08 | 150.96 | 134.04 |
+| zstd-19 | 191.62 | 141.31 | 125.88 |
+| Brotli-9 | 193.36 | 140.60 | 125.78 |
+| Brotli-11 | 172.99 | 121.98 | **107.38** |
+
+At 600s, increasing window log **16 -> 20 -> 24** yielded:
+- zstd-19: **194.10 -> 126.40 -> 125.88 MiB/day**;
+- Brotli-11: **173.80 -> 107.78 -> 107.38 MiB/day**.
+
+Most window benefit was reached by roughly **1 MiB**, not the 16 MiB configured
+limit. These are **requested limits**, not measured allocations: zstd can clamp
+the actual window to known input size; Brotli windows are `2^log - 16` bytes.
+The largest entire compression-frame input was only **2.60 MB**, so this cannot
+evaluate long-distance matching across tens of MiB. No nonstandard Brotli
+large-window extension or trained dictionary was used.
+
+Brotli-11 used **4.52 child CPU-seconds per 599.9s** (~0.75% of one core) versus
+zstd-19 **0.67s** (~0.11%). Compression alone looks affordable at this measured
+rate. These figures exclude acquisition and Python transforms/validation; the
+single-case Python prepare plus audit took ~113s wall time. They do **not**
+establish production CPU/memory efficiency. At 600s framing, decompression to
+encoded bytes took ~16 ms zstd / ~23 ms Brotli including process startup. That
+is **not full semantic decoding, PID lookup or query latency**. Peak RSS of the
+compressors/decoders is not yet measured. A seek must decompress the entire
+compression frame; independently encoded internal blocks do not remove that cost.
+
+All quoted rates include encoding envelopes, CPU and metadata baselines, observed
+coverage, scan/wall timing, and codec frame headers. Artifact manifests, persistent
+host/boot catalogs, seek indexes, retention and filesystem overhead remain outside
+these payload measurements: **this is not a complete archive budget**. Component
+sizes are not additive. Even ~92 MiB/day compressed remains roughly two orders of
+magnitude above the ideal, and encoded size remains far above 10 MB/day. RSS
+precision and higher compressor levels help, but do not solve the gate.
+
+Reproduce from this directory (paths are private; output directories/files refuse
+overwrites):
+
+```sh
+python3 recording-probe.py --samples 6000 --interval .1 --capture-out /private/capture.jsonl
+python3 recording_storage.py --input /private/capture.jsonl \
+  --output-dir /private/mask-256k --layout mask --rss 256k
+python3 recording_compression.py --input-dir /private/mask-256k \
+  --frames 30 120 600 --output /private/compression.jsonl
+# Strong levels; window 24. Adjust levels/windows explicitly for follow-up comparisons.
+python3 recording_compression.py --input-dir /private/mask-256k \
+  --finalists --output /private/strong.jsonl
+```
+
+Preparation buffers bounded-size blocks but its exact per-identity churn/reset
+and peak audits grow with distinct identities. Compression comparison holds the
+prepared encoded blocks, not the raw capture. Neither is a nonstop production
+implementation. Next validate hours of quiet/bursty/high-churn and held-out
+activity, assess timing-plane precision and per-process/lifecycle baselines, and
+protect meaningful extrema before changing retention. Do not widen compressor
+sweeps or drop churn to manufacture a passing budget.
+
 ## Verification and limits
 
-- `make test`: 33 existing Rust tests, 79 experimental Python tests, fmt/clippy.
+- Latest `make test`: 46 Rust tests in the current working tree, **111 experimental
+  Python tests**, fmt/clippy. These experimental changes do not edit production
+  Rust; its additional tests came from concurrent unrelated work.
+  Python tests also pass under `python -O`; real capture SIGTERM/reaping smoke passes.
+  Historical earlier validation: 33 Rust and 79 Python tests.
   The existing wall-time-bounded busy-self test failed once while compression ran
   concurrently; isolated/full serial reruns passed. Its contention sensitivity
   was not addressed by changing production code or weakening the test.

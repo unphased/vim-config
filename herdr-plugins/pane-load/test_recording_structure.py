@@ -94,6 +94,11 @@ class RecordingStructureTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     decode_structure(malformed)
 
+    def test_embedded_clock_rejects_process_payload_before_expansion(self):
+        clock = encode_sparse([row(i, i, [proc(1, 1)]) for i in range(10)])
+        with self.assertRaisesRegex(ValueError, 'clock.*process'):
+            decode_structure(fixture(clock, 0, 0, 0, b''))
+
     def test_rejects_duplicate_wire_identity(self):
         clock = encode_sparse([row(0, 0, [])])
         # Each identity record has one point, one run, and only baseline fields.

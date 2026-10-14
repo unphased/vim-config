@@ -9,13 +9,20 @@ Storage gate: roughly **10 MB/day encoded, ideally 1 MB/day compressed**.
 The initial snapshot results below do not meet it. Updated sparse/adaptive,
 precision and churn experiments are in [`RECORDING_RESULTS.md`](RECORDING_RESULTS.md);
 **the live storage gate remains unmet**. These are offline experiments, not a
-new daemon or an enabled recording path. The narrowed same-real-capture replay
-now includes exact topology/RSS/availability alongside total CPU. At 60s framing,
-10 ms cumulative quantization measured ~230 MiB/day versus ~240 for bounded-error
-CPU-curve decimation; removing 97% of points did not win compressed size. The
-unchanged non-CPU sidecar alone measured ~138 MiB/day in its current encoding.
-Next measure compact lifecycle/RSS representation and longer held-out activity,
-not a production integration or an ever-wider compressor sweep.
+new daemon or an enabled recording path. The earlier one-minute replay found that removing 97% of CPU points did not
+beat simple cumulative quantization. A **new ten-minute ordinary-activity capture**
+now compares RSS precision, lifecycle columns and both zstd/Brotli levels/windows.
+With CPU points at 1 ms and exact native block endpoints, exact RSS measured
+~106 MiB/day; RSS floored to 256 KiB measured ~92 MiB/day (600s Brotli-11 frames).
+All observations, identities, names/PPID and scan/wall bounds remain retained.
+There were ~1,892 newly observed identities/minute but only 13 reparent changes
+in ten minutes. A smaller raw lifecycle-column representation did not consistently
+beat existing sparse masks after compression. Larger frames/windows helped;
+most window gains were reached by ~1 MiB on this input. These projections exclude
+archive catalogs/indexes and are still roughly 100 times the ideal compressed
+budget. Next validate hours/held-out activity, timing and lifecycle baseline costs,
+and useful extrema-preserving retention—not production integration or wider
+compressor sweeps.
 
 ## Boundary
 
@@ -94,9 +101,10 @@ capture every kind of machine activity.
 The original baseline was **full flat snapshots plus compression**, without custom
 tree patching. The newer CPU-only matrix in `RECORDING_RESULTS.md` favors delta
 columns over cumulative values and interleaved pairs, but does not meet the gate.
-Next compare a shared observation clock/coverage plane with CPU columns and
-separate topology events; nominal period changes need actual timing corrections.
-This is not a selected production wire format. A tree is derived from observed
+The shared-clock CPU/coverage plane and separate topology/RSS encodings have now
+been compared on real activity; RSS precision and stronger compression buy modest
+savings, not the required orders of magnitude. Nominal period changes still need
+actual timing corrections. This is not a selected production wire format. A tree is derived from observed
 parent relationships; it need not be serialized recursively.
 
 ```text

@@ -1,3 +1,4 @@
+import hashlib
 import json
 import shutil
 import tempfile
@@ -15,16 +16,22 @@ class RecordingCompressionTests(unittest.TestCase):
         for index, timestamp in enumerate(times):
             name = f"block-{index:04d}.pst"
             (root / name).write_bytes(f"opaque PST block {index}".encode())
-            blocks.append({"path": name, "time_range_ns": [timestamp, timestamp + 10]})
+            blocks.append({'path': name, 'time_range_ns': [timestamp, timestamp + 10],
+                           'row_count': 2, 'point_count': 0, 'raw_bytes': (root / name).stat().st_size,
+                           'sha256': hashlib.sha256((root / name).read_bytes()).hexdigest(),
+                           'seq_range': [index * 2, index * 2 + 1]})
         manifest = {
             "source": {"first_scan_start_ns": times[0],
-                       "duration_ns": times[-1] - times[0]},
+                       'last_scan_start_ns': times[-1] + 10,
+                       'observations': len(times) * 2, 'points': 0,
+                       'first_seq': 0, 'last_seq': len(times) * 2 - 1,
+                       "duration_ns": times[-1] + 10 - times[0]},
             "blocks": blocks,
         }
         (root / "manifest.json").write_text(json.dumps(manifest))
         return manifest
 
-    def test_frames_group_by_first_scan_time_and_cover_every_block(self):
+    def test_frames_pack_whole_blocks_with_actual_monotonic_bounds(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             manifest = self.make_dataset(root)
@@ -41,6 +48,7 @@ class RecordingCompressionTests(unittest.TestCase):
             }])
             self.assertEqual(record["block_count"], len(manifest["blocks"]))
             self.assertEqual(record["frame_count"], 4)
+            self.assertLessEqual(record['max_observed_frame_span_seconds'], 30)
             self.assertEqual(record["duration_ns"], manifest["source"]["duration_ns"])
             self.assertGreater(record["raw_bytes"], sum(
                 (root / block["path"]).stat().st_size for block in manifest["blocks"]))
@@ -53,6 +61,36 @@ class RecordingCompressionTests(unittest.TestCase):
             self.assertGreaterEqual(record["encode_child_cpu_seconds"], 0)
             self.assertGreaterEqual(record["decode_child_cpu_seconds"], 0)
             self.assertGreater(record["max_decode_frame_bytes"], 0)
+
+    def test_nominal_boundary_jitter_does_not_merge_two_thirty_second_blocks(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = self.make_dataset(root, [1_000, 30_000_000_000])
+            manifest['blocks'][0]['time_range_ns'][1] = 29_900_001_000
+            manifest['blocks'][1]['time_range_ns'][1] = 59_900_000_000
+            manifest['source']['last_scan_start_ns'] = 59_900_000_000
+            manifest['source']['duration_ns'] = 59_900_000_000 - 1_000
+            (root / 'manifest.json').write_text(json.dumps(manifest))
+            record, = compare(root, (30,), [{'codec': 'zstd', 'level': 1, 'window_log': 16}])
+            self.assertEqual(record['frame_count'], 2)
+            self.assertLess(record['max_observed_frame_span_seconds'], 30)
+
+    def test_rejects_removed_duplicate_and_corrupt_blocks(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = self.make_dataset(root)
+            original = json.dumps(manifest)
+            for kind in ['removed', 'duplicate', 'corrupt']:
+                modified = json.loads(original)
+                if kind == 'removed':
+                    modified['blocks'].pop(1)
+                elif kind == 'duplicate':
+                    modified['blocks'][1] = modified['blocks'][0]
+                else:
+                    (root / modified['blocks'][0]['path']).write_bytes(b'corrupt')
+                (root / 'manifest.json').write_text(json.dumps(modified))
+                with self.subTest(kind=kind), self.assertRaises(ValueError):
+                    compare(root, configs=[])
 
     def test_small_real_codec_roundtrips_for_each_available_codec(self):
         available = [name for name in ("zstd", "brotli") if shutil.which(name)]

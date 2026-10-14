@@ -147,6 +147,15 @@ class RecordingCaptureTests(unittest.TestCase):
             collect.assert_called_once_with(2, 0.1, capture_out=output)
             self.assertEqual(json.loads(stdout.getvalue()), summary)
 
+    def test_capture_entrypoint_propagates_failure_exit_status(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / 'exists.jsonl'
+            output.write_text('do not overwrite')
+            result = subprocess.run([sys.executable, str(MODULE_PATH), '--capture-out',
+                                     str(output)], capture_output=True)
+            self.assertEqual(result.returncode, 1)
+            self.assertEqual(output.read_text(), 'do not overwrite')
+
     def test_capture_cli_rejects_noninteger_hz(self):
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "capture.jsonl"
