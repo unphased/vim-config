@@ -259,9 +259,114 @@ measured cost, separate topology events. Preserve exact native deltas unless
 coarser point precision and endpoint-only exactness are explicitly chosen. This
 matrix does not establish a final format, full-machine budget, or adaptive policy.
 
+## Narrowed real-data replay: shared clock and bounded CPU noise
+
+The earlier 384 compression cases **already used real machine activity**, not
+synthetic rows. They replayed the same host-wide minute with one controlled
+worker. Only the separate ~1.7 MiB/day mostly-idle control was synthetic.
+
+This follow-up reuses that identical file: SHA-256
+`25dff4cc19fdfb078c759a53a2a7f1c822b2929fe4ab66c3a9bb0396d53f6399`;
+**631,155 observations, 4,816 identities, 59.904674875 seconds, nominal 10 Hz**.
+No new acquisition flukes are introduced between candidates. It is still one
+short workload, not a representative day or a held-out validation corpus.
+
+```text
+same real capture
+  +-- exact topology / RSS / availability / wall+scan timing sidecar
+  +-- shared CPU clock -> sparse changes OR bounded cumulative-CPU curve
+                          -> optional cumulative quantization
+  -> independently compressed 10s / 60s frames -> decode + exact loss audit
+```
+
+`recording_cpu_focus.py` narrows the sweep to nine representations, two frame
+sizes and zstd-3/Brotli-4/gzip-6: **54 aggregate comparisons**. The new shared-clock
+codec includes PID/start identities and coverage runs. The sidecar keeps original
+names, parents, RSS and observation availability, including single-point PIDs;
+RSS uses its exact common 4,096-byte unit, not rounded memory values. CPU is
+**total user+system**, not the separate components. These are broader payloads
+than the prior CPU/time-only table; do not directly compare their daily rates.
+Boot/run identifiers, a persistent seek index and recovery machinery remain
+outside this experimental payload. Files and runtime configuration are unchanged.
+
+The noise heuristic simplifies the **cumulative CPU curve**, not instantaneous
+CPU percentages. Retained knots are original observations; a straight line may
+replace intervening samples only when every original counter is within the
+specified absolute CPU-time tolerance. Integer cross-products and exact rational
+checks enforce the bound. First/last counters remain exact, gaps split runs, and
+segments are capped at 10 seconds unless an adjacent acquisition interval itself
+exceeds that. A 100 ms CPU-error allowance can hide meaningful short bursts;
+it is an intentionally aggressive comparison, not a recommended default.
+
+This is an **offline retrospective** simplifier, not a bounded-memory production
+policy or recurring-pattern classifier. Interpolated values are estimates of
+captured counters, not recovered truth between polls. Kernel accounting latency
+and non-atomic frame timing remain acquisition uncertainties. All compressors
+already exploit repeated byte patterns; no speculative periodic predictor added.
+
+### Results after 60-second independent compression frames
+
+Best compressed codec for each row; CPU endpoint totals exact in every case.
+The CPU curve error is bounded at all original observations. Projections repeat
+this minute, **not measured daily totals**.
+
+| Representation | Retained CPU points | Maximum CPU-counter error | Payload MiB/day | Worker maximum 1s CPU-rate error, percentage points |
+| --- | ---: | ---: | ---: | ---: |
+| Shared clock, sparse native changes | 631,155 | 0 | 525.24 | 0 |
+| Sparse changes, 1 ms cumulative quantum | 631,155 | <1 ms | **258.00** | 0.092 |
+| Sparse changes, 10 ms cumulative quantum | 631,155 | <10 ms | **230.26** | 0.971 |
+| Exact piecewise-linear CPU curve | 135,821 | 0 | 517.12 | 0 |
+| Curve tolerance 1 ms | 28,411 | <=1 ms | 291.10 | 0.113 |
+| Curve tolerance 10 ms | 16,631 | <=10 ms | 239.87 | 1.291 |
+| Curve tolerance 100 ms | 13,465 | <=100 ms | 223.96 | 9.616 |
+| Combined 0.5 ms curve + 0.5 ms quantum | 34,755 | <1 ms combined | 259.27 | 0.074 |
+| Combined 5 ms curve + 5 ms quantum | 19,159 | <10 ms combined | 231.60 | 0.960 |
+
+The first four rows used Brotli-4; the other rows used zstd-3. A 10-second frame
+was consistently much larger: e.g. **436.53 vs 230.26 MiB/day** for sparse 10 ms.
+Curve simplification removed **97.4% of points** at 10 ms error but did not beat
+simple 10 ms cumulative quantization. Fewer stored points are not automatically
+fewer compressed bytes: the remaining full-precision knots and positions can be
+less repetitive. Combining thinning and quantization nearly matched the simpler
+scheme but did not establish a size win.
+
+The exact non-CPU sidecar alone compressed to **138.12 MiB/day with Brotli-4**
+(or 141.90 with zstd-3) at 60s framing. This is a floor **for the tested sidecar
+encoding**, not an information-theoretic lower bound. CPU-only sparse 10 ms was
+104.35 MiB/day and curve 100 ms 97.68 MiB/day under their winning codecs.
+Component sizes are not additive: joint compression shares patterns. Optimizing
+CPU alone cannot meet the whole-recorder gate while leaving this sidecar intact.
+
+The one-second error figures audit the controlled worker across the **whole
+capture, including compression-frame boundaries**. They are not all-process
+maxima. All-process maxima at adjacent observed intervals were much larger:
+24.68 percentage points for sparse 1 ms, 232.62 for sparse 10 ms, 399.42 for curve
+10 ms and 1,983.18 for curve 100 ms. Very short catch-up intervals amplify a
+small counter error when differentiated. Exact CPU volume does not promise
+faithful short-window utilization. An absent eligible audit window is `null`,
+not zero. Per-process counter error <=epsilon implies interval CPU-time error
+<=2*epsilon, not an equally small relative utilization error.
+
+**Next narrowed questions:** compare compact lifecycle/metadata and RSS histories;
+protect coarse-window extrema before choosing more aggressive noise suppression;
+then test longer ordinary-activity captures for cross-minute repetition and
+held-out workloads. Do not choose a format because it discards many points or
+fits a short controlled capture. Native sampling and production reporting stay
+untouched. The storage gate remains unmet, including encoded-size targets.
+
+Reproduce with installed zstd/Brotli CLIs (gzip is stdlib):
+
+```sh
+python3 recording_cpu_focus.py --input /path/to/private/capture.jsonl --frames 10 60
+```
+
+This driver currently requires the supplied capture's verified Mach timebase
+125/3 and its normalized-ns input schema; it is not a generic Linux acquisition
+benchmark. Raw captures stay private; only aggregate measurements belong in Git.
+
 ## Verification and limits
 
-- `make test`: 33 existing Rust tests, 52 experimental Python tests, fmt/clippy.
+- `make test`: 33 existing Rust tests, 79 experimental Python tests, fmt/clippy.
   The existing wall-time-bounded busy-self test failed once while compression ran
   concurrently; isolated/full serial reruns passed. Its contention sensitivity
   was not addressed by changing production code or weakening the test.

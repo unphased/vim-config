@@ -98,6 +98,11 @@ class CpuDecimateTests(unittest.TestCase):
         self.assertEqual(result["max_100ms_cpu_rate_error"], 1e-8)
         self.assertIsNone(result["max_1s_cpu_rate_error"])
 
+    def test_audit_rejects_missing_reconstructed_runs(self):
+        samples=[(0,0,0),(1,24000,1000000000)]
+        with self.assertRaisesRegex(ValueError,'cover each observed run'):
+            audit(samples,[])
+
     def test_invalid_samples_and_options_are_rejected(self):
         bad_series = [
             [(0, -1, 0)],

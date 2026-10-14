@@ -9,7 +9,13 @@ Storage gate: roughly **10 MB/day encoded, ideally 1 MB/day compressed**.
 The initial snapshot results below do not meet it. Updated sparse/adaptive,
 precision and churn experiments are in [`RECORDING_RESULTS.md`](RECORDING_RESULTS.md);
 **the live storage gate remains unmet**. These are offline experiments, not a
-new daemon or an enabled recording path.
+new daemon or an enabled recording path. The narrowed same-real-capture replay
+now includes exact topology/RSS/availability alongside total CPU. At 60s framing,
+10 ms cumulative quantization measured ~230 MiB/day versus ~240 for bounded-error
+CPU-curve decimation; removing 97% of points did not win compressed size. The
+unchanged non-CPU sidecar alone measured ~138 MiB/day in its current encoding.
+Next measure compact lifecycle/RSS representation and longer held-out activity,
+not a production integration or an ever-wider compressor sweep.
 
 ## Boundary
 

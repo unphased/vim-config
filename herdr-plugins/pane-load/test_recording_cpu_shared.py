@@ -120,9 +120,22 @@ class SharedCpuTests(unittest.TestCase):
         self.assertLess(len(data),10000)
         self.assertEqual(decode_shared(data),source)
 
+    def test_decoder_rejects_impossible_frame_counts_and_unused_axis(self):
+        pack=lambda values:b''.join(bytes(_uvarint(v)) for v in values)
+        with self.assertRaisesRegex(ValueError,'impossible frame count'):
+            decode_shared(b'CSH1\x00'+pack([1,1,125,3,1,0,0,0,10]))
+        # Three axis entries, but all three points use only axis positions 0/1.
+        header=pack([1,1,125,3,3,2,3])
+        axis=pack([0,10,1,10,1,10])
+        first=pack([1,0,0,2,1,0,2,0,0,0,0])
+        second=pack([2,0,0,1,1,0,1,0,0,0,0])
+        with self.assertRaisesRegex(ValueError,'unused shared clock'):
+            decode_shared(b'CSH1\x00'+header+axis+first+second)
+
     def test_encode_rejects_bad_series_and_decode_rejects_noncanonical_varints(self):
         bad = [
             {(True, 0, 0): [(0, 1, 1)]},
+            {(1, 0, 0): [(0, 1 << 448, 1)]},
             {(1, 0, 0): [(0, 1, 2), (0, 2, 3)]},
             {(1, 0, 0): [(0, 3, 2), (1, 2, 3)]},
             {(1, 0, 0): [(0, 1, 3), (1, 2, 2)]},

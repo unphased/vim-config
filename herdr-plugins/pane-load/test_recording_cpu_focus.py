@@ -3,6 +3,13 @@ from fractions import Fraction
 from recording_cpu_focus import frame, unframe, loss, worker_window_error
 from recording_cpu_matrix import require
 from recording_cpu_shared import encode_shared,decode_shared
+from pathlib import Path
+from contextlib import redirect_stdout
+from unittest.mock import patch
+import tempfile
+import json
+import io
+import recording_cpu_focus as focus
 
 
 class FocusTests(unittest.TestCase):
@@ -20,6 +27,27 @@ class FocusTests(unittest.TestCase):
         self.assertEqual(metrics['max_counter_error_native'],Fraction(1,10**15))
         with self.assertRaises(ValueError):
             require(metrics['max_counter_error_native']<=0,'zero tolerance violated')
+
+    def test_real_shape_driver_restores_rss_and_audits_every_layout(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'capture.jsonl'
+            rows=[{'probe_capture':1,'hz':2,'workload':{'pid':1}}]
+            for seq in range(4):
+                stamp=seq*500000000
+                rows.append({'seq':seq,'scan_start_ns':stamp,'scan_end_ns':stamp+1000,
+                    'wall_start_ns':1000000000+stamp,
+                    'processes':[[1,0,10,0,'fixture',(10+20*seq)*125//3,0,4096]]})
+            path.write_text('\n'.join(json.dumps(row) for row in rows)+'\n')
+            output=io.StringIO()
+            with patch.object(focus,'CODECS',[('gzip-6',None,None)]), \
+                 patch.object(focus,'CASES',[focus.CASES[1],focus.CASES[-2]]),redirect_stdout(output):
+                focus.run(path,[1])
+            results=[json.loads(line) for line in output.getvalue().splitlines()]
+            self.assertEqual(results[0]['rss_exact_unit_bytes'],4096)
+            for result in results[1:]:
+                self.assertIsNotNone(result['controlled_worker_max_1s_error_pp'])
+                self.assertIn('across frame boundaries',result['worker_window_audit_scope'])
+                self.assertLessEqual(result['max_counter_error_ms'],result['total_counter_error_bound_ms'])
 
     def test_worker_audit_crosses_frames_and_missing_windows_are_null(self):
         key=(1,0,0)
