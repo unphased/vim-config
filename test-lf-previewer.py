@@ -96,10 +96,22 @@ class PreviewTests(unittest.TestCase):
         self.assertEqual(tty, b"")
         self.assertFalse(self.calls.exists())
 
-    def test_failed_icat_falls_back_to_existing_previewer(self):
+    def test_herdr_images_bypass_stale_bat_warning_cache(self):
+        self.env.update(TERM="xterm-256color", TERM_PROGRAM="herdr", HERDR_ENV="1")
+        cache = self.home / ".cache/lf-previewer"
+        cache.mkdir(parents=True)
+        (cache / f"abc_{int(self.image.stat().st_mtime)}.preview").write_text("[bat warning]\n")
+        result, tty = self.preview()
+        self.assertEqual(result.stdout, b"")
+        self.assertIn(b"IMAGE", tty)
+        self.assertEqual(result.returncode, 1)
+
+    def test_failed_icat_reports_error_without_sending_image_to_bat(self):
         self.env["ICAT_STATUS"] = "1"
         result, _ = self.preview()
-        self.assertIn(b"text preview", result.stdout)
+        self.assertIn(b"Image preview failed", result.stdout)
+        self.assertNotIn(b"text preview", result.stdout)
+        self.assertFalse((self.home / ".cache/lf-previewer").exists())
         self.assertEqual(result.returncode, 1)
 
     def test_text_preview_is_unchanged(self):
@@ -109,10 +121,11 @@ class PreviewTests(unittest.TestCase):
         self.assertFalse(self.calls.exists())
         self.assertNotIn(b"IMAGE", tty)
 
-    def test_unsupported_terminal_uses_existing_previewer(self):
+    def test_unsupported_terminal_does_not_send_image_to_bat(self):
         self.env.update(TERM="xterm-256color", TERM_PROGRAM="Apple_Terminal")
         result, _ = self.preview()
-        self.assertIn(b"text preview", result.stdout)
+        self.assertIn(b"Kitty graphics", result.stdout)
+        self.assertNotIn(b"text preview", result.stdout)
         self.assertFalse(self.calls.exists())
 
     def test_quit_clears_image_without_suspending_lf(self):
