@@ -48,8 +48,8 @@ def rust_pane_title(tokens):
     ], timeout=5).decode().strip()
 
 
-def wait_tokens(pane, predicate):
-    deadline = time.monotonic() + 25
+def wait_tokens(pane, predicate, *, marker=False, timeout=25):
+    deadline = time.monotonic() + timeout
     last = {}
     while time.monotonic() < deadline:
         info = herdr('pane', 'get', pane)['pane']
@@ -57,12 +57,43 @@ def wait_tokens(pane, predicate):
         if tokens != last:
             print('sample:', tokens, flush=True)
         last = tokens
-        expected = normalize_herdr_title(rust_pane_title(tokens))
+        expected = rust_pane_title(tokens)
+        if marker:
+            expected = f'[aghist] {expected}'
+        expected = normalize_herdr_title(expected)
         if predicate(last) and info.get('title') == expected:
             print('pane title:', info['title'], flush=True)
             return last
         time.sleep(.5)
     raise AssertionError(f'timed out waiting for sampler: {last}')
+
+
+def check_aghist_marker(pane):
+    def set_marker():
+        herdr('pane', 'report-metadata', pane, '--source', 'tool:aghist',
+              '--token', 'aghist_relation=[aghist]', '--ttl-ms', '5000')
+
+    has_marker = lambda tokens: tokens.get('aghist_relation') == '[aghist]'
+    set_marker()
+    marked = wait_tokens(pane, has_marker, marker=True, timeout=4)
+    assert all(key in marked for key in ('cpu', 'cpu_tree', 'memory'))
+
+    # Same-value updates must not trigger title feedback. Sampling keeps the
+    # overlay alive even when unchanged CPU reports are heartbeat-suppressed.
+    for _ in range(3):
+        time.sleep(2)
+        set_marker()
+        wait_tokens(pane, has_marker, marker=True, timeout=4)
+
+    herdr('pane', 'report-metadata', pane, '--source', 'tool:aghist',
+          '--clear-token', 'aghist_relation')
+    wait_tokens(pane, lambda t: 'aghist_relation' not in t, timeout=4)
+
+    # No explicit clear: Herdr's token TTL must restore the latest CPU title.
+    set_marker()
+    wait_tokens(pane, has_marker, marker=True, timeout=4)
+    wait_tokens(pane, lambda t: 'aghist_relation' not in t, timeout=8)
+    print('PASS: aghist header add, renewal, clear, and TTL expiry; CPU feed intact')
 
 
 def main():
@@ -75,11 +106,20 @@ def main():
     try:
         wait_tokens(pane, lambda t: 'cpu_tree' in t)
         wait_workspace_cpu(workspace, lambda cpu: cpu == 0, 'to become idle')
+        check_aghist_marker(pane)
         burner = 'import time; end=time.monotonic()+8; exec("while time.monotonic()<end: pass"); print("PANE_LOAD_FINISHED", flush=True)'
+        # A longer test-token TTL covers the changing-CPU check; the real
+        # five-second token expiry was exercised above.
+        herdr('pane', 'report-metadata', pane, '--source', 'tool:aghist',
+              '--token', 'aghist_relation=[aghist]', '--ttl-ms', '15000')
         herdr('pane', 'run', pane, f'{shlex.quote(sys.executable)} -c {shlex.quote(burner)}')
         busy = wait_tokens(pane, lambda t: int(t.get('cpu', '0')) >= 40
-                           and re.search(r'python[\w.-]*\[\d+\]', t.get('cpu_tree', '').lower()))
+                           and re.search(r'python[\w.-]*\[\d+\]', t.get('cpu_tree', '').lower()),
+                           marker=True)
         print('busy:', busy['cpu'], busy['cpu_tree'])
+        herdr('pane', 'report-metadata', pane, '--source', 'tool:aghist',
+              '--clear-token', 'aghist_relation')
+        wait_tokens(pane, lambda t: 'aghist_relation' not in t)
         wait_workspace_cpu(workspace, lambda cpu: cpu >= int(busy['cpu']),
                            f">= {busy['cpu']}%")
         herdr('pane', 'wait-output', pane, '--match', 'PANE_LOAD_FINISHED', '--timeout', '15000')

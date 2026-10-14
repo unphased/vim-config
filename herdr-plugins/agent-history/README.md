@@ -65,11 +65,16 @@ workspace badge before marking the new target. Unmatched sessions clear both.
 Idle badges still expire naturally; another interaction rematches moved panes.
 This action itself does not publish markers, change agent lifecycle state, or
 enable history's follow-Herdr mode. Only **Ctrl+O** explicitly navigates; markers
-never steal focus or replace pane titles.
+never steal focus. With `local.pane-load` running, the same pane token also shows
+plain-text `[aghist]` before its CPU header. Pane-load keeps the CPU feed intact
+and uses a separate five-second title TTL; clearing or expiring the token reveals
+the normal header. Without the sampler, sidebar markers still work.
 
 ```text
 selection / manual input → exact session match → clear previous target
                                               → pane + workspace tokens
+                                                   ├→ sidebars
+                                                   ├→ pane-load header [aghist]
                                                    └→ expire after 5 s idle
 ```
 

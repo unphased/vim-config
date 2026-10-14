@@ -18,6 +18,10 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 const PLUGIN_ID: &str = "local.pane-load";
 const SOURCE: &str = "plugin:local.pane-load";
+const AGHIST_SOURCE: &str = "plugin:local.pane-load.aghist";
+const AGHIST_TOKEN: &str = "aghist_relation";
+const AGHIST_MARKER: &str = "[aghist]";
+const AGHIST_TTL_MS: u64 = 5_000;
 const TTL_MS: u64 = 15_000;
 const FAST_SAMPLE_SECONDS: f64 = 0.5;
 const SLOW_SAMPLE_SECONDS: f64 = 3.0;
@@ -1170,13 +1174,14 @@ impl Api for RPCClient {
     }
 }
 
-const EVENTS: [&str; 6] = [
+const EVENTS: [&str; 7] = [
     "pane.created",
     "pane.closed",
     "pane.moved",
     "pane.exited",
     "workspace.closed",
     "tab.closed",
+    "pane.updated",
 ];
 
 struct EventStream {
@@ -1331,6 +1336,7 @@ struct Worker {
     tracker: CpuTracker,
     root_identities: HashMap<String, Identity>,
     last_sent: HashMap<String, (String, String, String, f64)>,
+    aghist_panes: HashSet<String>,
     last_workspace_sent: HashMap<String, (String, String, f64)>,
     roots: HashMap<String, i32>,
     pane_workspaces: HashMap<String, String>,
@@ -1377,6 +1383,7 @@ impl Worker {
             tracker: CpuTracker::default(),
             root_identities: HashMap::new(),
             last_sent: HashMap::new(),
+            aghist_panes: HashSet::new(),
             last_workspace_sent: HashMap::new(),
             roots: HashMap::new(),
             pane_workspaces: HashMap::new(),
@@ -1408,12 +1415,18 @@ impl Worker {
             .collect();
         let mut roots = HashMap::new();
         let mut pane_workspaces = HashMap::new();
+        let mut pane_ids = HashSet::new();
+        let mut marked_panes = HashSet::new();
         for pane in panes {
             let Some(pane_id) = pane.get("pane_id").and_then(Value::as_str) else {
                 continue;
             };
             if pane_id.is_empty() {
                 continue;
+            }
+            pane_ids.insert(pane_id.to_owned());
+            if Self::aghist_token_present(pane) {
+                marked_panes.insert(pane_id.to_owned());
             }
             if let Some(workspace_id) = pane.get("workspace_id").and_then(Value::as_str) {
                 pane_workspaces.insert(pane_id.into(), workspace_id.into());
@@ -1437,6 +1450,18 @@ impl Worker {
                 continue;
             };
             roots.insert(pane_id.into(), pid);
+        }
+        let previous_markers = self.aghist_panes.clone();
+        self.aghist_panes = marked_panes.clone();
+        for pane_id in &previous_markers {
+            if pane_ids.contains(pane_id) && !marked_panes.contains(pane_id) {
+                self.sync_aghist_title(pane_id, true)?;
+            }
+        }
+        for pane_id in &marked_panes {
+            if !previous_markers.contains(pane_id) {
+                self.sync_aghist_title(pane_id, false)?;
+            }
         }
         for pane_id in self.roots.keys() {
             if !roots.contains_key(pane_id) {
@@ -1484,6 +1509,134 @@ impl Worker {
             }
             Err(error) => Err(error),
         }
+    }
+
+    fn aghist_token_present(pane: &Value) -> bool {
+        pane.get("tokens")
+            .and_then(|tokens| tokens.get(AGHIST_TOKEN))
+            .and_then(Value::as_str)
+            == Some(AGHIST_MARKER)
+    }
+
+    fn report_aghist_title(&mut self, pane_id: &str) -> Result<bool, AppError> {
+        let base_title = self
+            .last_sent
+            .get(pane_id)
+            .and_then(|(cpu, tree, memory, _)| {
+                cpu.parse::<f64>()
+                    .ok()
+                    .map(|percent| pane_title(percent, memory, tree))
+            });
+        let title = base_title.map_or_else(
+            || AGHIST_MARKER.to_owned(),
+            |base| format!("{AGHIST_MARKER} {base}"),
+        );
+        let params = json!({
+            "pane_id": pane_id,
+            "source": AGHIST_SOURCE,
+            "title": title,
+            "ttl_ms": AGHIST_TTL_MS,
+        });
+        match self.rpc.call("pane.report_metadata", params) {
+            Ok(_) => Ok(true),
+            Err(AppError::Herdr(error)) => {
+                log_message(&format!(
+                    "aghist title report failed for {pane_id}: {error}"
+                ));
+                Ok(false)
+            }
+            Err(error) => Err(error),
+        }
+    }
+
+    fn clear_aghist_title(&mut self, pane_id: &str) -> Result<bool, AppError> {
+        let params = json!({
+            "pane_id": pane_id,
+            "source": AGHIST_SOURCE,
+            "clear_title": true,
+        });
+        match self.rpc.call("pane.report_metadata", params) {
+            Ok(_) => Ok(true),
+            Err(AppError::Herdr(error)) => {
+                log_message(&format!("aghist title clear failed for {pane_id}: {error}"));
+                Ok(false)
+            }
+            Err(error) => Err(error),
+        }
+    }
+
+    fn sync_aghist_title(&mut self, pane_id: &str, was_marked: bool) -> Result<(), AppError> {
+        let result = match self.rpc.call("pane.get", json!({"pane_id": pane_id})) {
+            Ok(result) => result,
+            Err(AppError::Herdr(error)) => {
+                log_message(&format!(
+                    "cannot validate aghist marker for {pane_id}: {error}"
+                ));
+                return Ok(());
+            }
+            Err(error) => return Err(error),
+        };
+        let Some(pane) = result.get("pane") else {
+            return Ok(());
+        };
+        if Self::aghist_token_present(pane) {
+            self.aghist_panes.insert(pane_id.into());
+            self.report_aghist_title(pane_id)?;
+        } else {
+            self.aghist_panes.remove(pane_id);
+            if was_marked {
+                // Keep failed clears eligible for a later sample retry; the TTL
+                // is still a bound if Herdr continues rejecting the clear.
+                self.aghist_panes.insert(pane_id.into());
+                if self.clear_aghist_title(pane_id)? {
+                    self.aghist_panes.remove(pane_id);
+                }
+            }
+        }
+        Ok(())
+    }
+
+    fn process_events(&mut self, events: &[Value], now: f64) -> Result<(), AppError> {
+        for event in events {
+            // Subscriptions use dotted names, but Herdr 0.9 emits underscore
+            // event names. Accept both spellings at the protocol boundary.
+            match event.get("event").and_then(Value::as_str) {
+                Some("pane.updated" | "pane_updated") => {
+                    let Some(pane) = event.get("data").and_then(|data| data.get("pane")) else {
+                        continue;
+                    };
+                    let Some(pane_id) = pane.get("pane_id").and_then(Value::as_str) else {
+                        continue;
+                    };
+                    if pane_id.is_empty() {
+                        continue;
+                    }
+                    let marked = Self::aghist_token_present(pane);
+                    let was_marked = self.aghist_panes.contains(pane_id);
+                    if marked == was_marked {
+                        continue;
+                    }
+                    // Update before writing: the resulting pane.updated event
+                    // must observe the already-applied marker transition.
+                    if marked {
+                        self.aghist_panes.insert(pane_id.into());
+                    } else {
+                        self.aghist_panes.remove(pane_id);
+                    }
+                    self.sync_aghist_title(pane_id, was_marked)?;
+                }
+                Some(
+                    "pane.created" | "pane_created" | "pane.closed" | "pane_closed" | "pane.moved"
+                    | "pane_moved" | "pane.exited" | "pane_exited" | "workspace.closed"
+                    | "workspace_closed" | "tab.closed" | "tab_closed",
+                ) => {
+                    self.dirty = true;
+                    self.next_snapshot = now + 0.2;
+                }
+                _ => {}
+            }
+        }
+        Ok(())
     }
 
     fn report_workspace(
@@ -1571,6 +1724,13 @@ impl Worker {
         }
     }
 
+    fn poll_events(&mut self, now: f64) -> Result<bool, AppError> {
+        let events = self.events.poll()?;
+        let received = !events.is_empty();
+        self.process_events(&events, now)?;
+        Ok(received)
+    }
+
     fn reconnect_snapshot(&mut self) -> bool {
         self.events.close();
         for attempt in 0..MAX_RECONNECTS {
@@ -1582,9 +1742,7 @@ impl Worker {
                 self.last_workspace_sent.clear();
                 self.root_identities.clear();
                 self.snapshot()?;
-                if !self.events.poll()?.is_empty() {
-                    self.dirty = true;
-                }
+                self.poll_events(monotonic_seconds())?;
                 Ok(())
             }) {
                 Ok(()) => return true,
@@ -1645,6 +1803,9 @@ impl Worker {
             let relevant = owned.get(&pane_id).cloned().unwrap_or_default();
             if !valid_roots.contains_key(&pane_id) || relevant.is_empty() {
                 self.last_sent.remove(&pane_id);
+                if self.aghist_panes.contains(&pane_id) {
+                    self.sync_aghist_title(&pane_id, true)?;
+                }
                 continue;
             }
             let mut display_names = HashMap::new();
@@ -1666,17 +1827,21 @@ impl Worker {
                 *workspace_memory.entry(workspace_id.clone()).or_default() += memory_bytes;
             }
             if tree.is_empty() {
+                if self.aghist_panes.contains(&pane_id) {
+                    self.sync_aghist_title(&pane_id, true)?;
+                }
                 continue;
             }
             let cpu = quantize_cpu(total).to_string();
             let unchanged = self.last_sent.get(&pane_id).is_some_and(|old| {
                 old.0 == cpu && old.1 == tree && old.2 == memory && now - old.3 < HEARTBEAT_SECONDS
             });
-            if unchanged {
-                continue;
+            if !unchanged && self.report(&pane_id, &cpu, &tree, &memory)? {
+                self.last_sent
+                    .insert(pane_id.clone(), (cpu, tree, memory, now));
             }
-            if self.report(&pane_id, &cpu, &tree, &memory)? {
-                self.last_sent.insert(pane_id, (cpu, tree, memory, now));
+            if self.aghist_panes.contains(&pane_id) {
+                self.sync_aghist_title(&pane_id, true)?;
             }
         }
         let mut workspace_ids: Vec<_> = self.workspaces.iter().cloned().collect();
@@ -1719,6 +1884,7 @@ impl Worker {
         );
         self.root_identities.clear();
         self.last_sent.clear();
+        self.aghist_panes.clear();
         self.last_workspace_sent.clear();
         self.pane_workspaces.clear();
         self.workspaces.clear();
@@ -1742,13 +1908,8 @@ impl Worker {
             let mut now = monotonic_seconds();
             let mut buffered = false;
             if self.events.raw_fd().is_some() {
-                match self.events.poll() {
-                    Ok(events) if !events.is_empty() => {
-                        buffered = true;
-                        self.dirty = true;
-                        self.next_snapshot = now + 0.2;
-                    }
-                    Ok(_) => {}
+                match self.poll_events(now) {
+                    Ok(received) => buffered = received,
                     Err(_) => {
                         if !self.reconnect_snapshot() {
                             break;
@@ -1762,21 +1923,12 @@ impl Worker {
             if control_ready {
                 self.handle_control();
             }
-            if event_ready {
-                match self.events.poll() {
-                    Ok(events) if !events.is_empty() => {
-                        self.dirty = true;
-                        self.next_snapshot = now + 0.2;
-                    }
-                    Ok(_) => {}
-                    Err(_) => {
-                        if !self.reconnect_snapshot() {
-                            break;
-                        }
-                        previous = None;
-                        continue;
-                    }
+            if event_ready && self.poll_events(now).is_err() {
+                if !self.reconnect_snapshot() {
+                    break;
                 }
+                previous = None;
+                continue;
             }
             if self.dirty && now >= self.next_snapshot {
                 if self.snapshot().is_err() && !self.reconnect_snapshot() {
@@ -3092,6 +3244,348 @@ mod tests {
     fn test_worker(processes: Vec<Process>) -> (Worker, Arc<Mutex<Vec<(String, Value)>>>) {
         let (worker, calls, _) = test_worker_with_responses(processes, Vec::new());
         (worker, calls)
+    }
+
+    fn pane_get(tokens: Value) -> Result<Value, AppError> {
+        Ok(json!({"pane":{"pane_id":"p1","tokens":tokens}}))
+    }
+
+    fn pane_updated(tokens: Value) -> Value {
+        json!({
+            "event":"pane_updated",
+            "data":{"pane":{"pane_id":"p1","tokens":tokens}}
+        })
+    }
+
+    #[test]
+    fn aghist_marker_event_writes_only_a_live_validated_overlay() {
+        let (mut worker, calls, _) = test_worker_with_responses(
+            Vec::new(),
+            vec![
+                pane_get(json!({"aghist_relation":"[aghist]"})),
+                Ok(json!({})),
+            ],
+        );
+        let marker = pane_updated(json!({"aghist_relation":"[aghist]"}));
+        worker
+            .process_events(std::slice::from_ref(&marker), 10.0)
+            .unwrap();
+        worker.process_events(&[marker], 11.0).unwrap();
+
+        let calls = calls.lock().unwrap();
+        assert_eq!(calls.len(), 2);
+        assert_eq!(calls[0].0, "pane.get");
+        assert_eq!(calls[1].0, "pane.report_metadata");
+        assert_eq!(calls[1].1["source"], "plugin:local.pane-load.aghist");
+        assert_eq!(calls[1].1["ttl_ms"], 5000);
+        assert_eq!(calls[1].1["title"], "[aghist]");
+        assert!(calls[1].1.get("tokens").is_none());
+        assert!(worker.aghist_panes.contains("p1"));
+        assert!(!worker.dirty);
+    }
+
+    #[test]
+    fn lifecycle_events_accept_live_underscore_and_dotted_names() {
+        for name in [
+            "pane_created",
+            "pane.created",
+            "pane_closed",
+            "pane.closed",
+            "pane_moved",
+            "pane.moved",
+            "pane_exited",
+            "pane.exited",
+            "workspace_closed",
+            "workspace.closed",
+            "tab_closed",
+            "tab.closed",
+        ] {
+            let (mut worker, calls) = test_worker(Vec::new());
+            worker
+                .process_events(&[json!({"event":name,"data":{}})], 10.0)
+                .unwrap();
+            assert!(worker.dirty, "ignored lifecycle event {name}");
+            assert_eq!(worker.next_snapshot, 10.2);
+            assert!(calls.lock().unwrap().is_empty());
+        }
+    }
+
+    #[test]
+    fn unrelated_pane_updates_do_not_call_rpc_or_dirty_the_snapshot() {
+        let (mut worker, calls) = test_worker(Vec::new());
+        worker
+            .process_events(&[pane_updated(json!({"cpu":"20"}))], 10.0)
+            .unwrap();
+        assert!(calls.lock().unwrap().is_empty());
+        assert!(!worker.dirty);
+    }
+
+    #[test]
+    fn stale_marker_add_is_live_checked_and_not_renewed() {
+        let (mut worker, calls, _) =
+            test_worker_with_responses(Vec::new(), vec![pane_get(json!({}))]);
+        worker
+            .process_events(&[pane_updated(json!({"aghist_relation":"[aghist]"}))], 10.0)
+            .unwrap();
+        let calls = calls.lock().unwrap();
+        assert_eq!(calls.len(), 1);
+        assert_eq!(calls[0].0, "pane.get");
+        assert!(!worker.aghist_panes.contains("p1"));
+    }
+
+    #[test]
+    fn marker_recognizes_only_the_exact_nonempty_string_token() {
+        for tokens in [
+            json!({}),
+            json!({"aghist_relation":null}),
+            json!({"aghist_relation":""}),
+            json!({"aghist_relation":"aghist"}),
+            json!({"aghist_relation":true}),
+        ] {
+            assert!(!Worker::aghist_token_present(&json!({"tokens":tokens})));
+        }
+        assert!(Worker::aghist_token_present(&json!({
+            "tokens":{"aghist_relation":"[aghist]"}
+        })));
+    }
+
+    #[test]
+    fn clearing_marker_clears_only_its_title_source() {
+        let (mut worker, calls, _) =
+            test_worker_with_responses(Vec::new(), vec![pane_get(json!({})), Ok(json!({}))]);
+        worker.aghist_panes.insert("p1".into());
+        worker
+            .process_events(&[pane_updated(json!({}))], 10.0)
+            .unwrap();
+        let calls = calls.lock().unwrap();
+        assert_eq!(calls[1].0, "pane.report_metadata");
+        assert_eq!(
+            calls[1].1,
+            json!({
+                "pane_id":"p1",
+                "source":"plugin:local.pane-load.aghist",
+                "clear_title":true
+            })
+        );
+        assert!(!worker.aghist_panes.contains("p1"));
+    }
+
+    #[test]
+    fn rejected_marker_clear_is_retried_on_the_next_sample() {
+        let root = process(10, 1, 1, "zsh", 0);
+        let (mut worker, calls, _) = test_worker_with_responses(
+            vec![root.clone()],
+            vec![
+                pane_get(json!({})),
+                Err(AppError::Herdr("clear rejected".into())),
+                Ok(json!({})),
+                pane_get(json!({})),
+                Ok(json!({})),
+            ],
+        );
+        worker.roots.insert("p1".into(), root.pid);
+        worker.aghist_panes.insert("p1".into());
+        worker
+            .process_events(&[pane_updated(json!({}))], 10.0)
+            .unwrap();
+        assert!(worker.aghist_panes.contains("p1"));
+        worker.sample(11.0, None).unwrap();
+        assert!(!worker.aghist_panes.contains("p1"));
+        let calls = calls.lock().unwrap();
+        assert_eq!(
+            calls
+                .iter()
+                .filter(|(_, params)| params["clear_title"] == true)
+                .count(),
+            2
+        );
+        assert_eq!(calls[2].1["source"], SOURCE);
+        assert!(worker.last_sent.contains_key("p1"));
+    }
+
+    #[test]
+    fn queued_clear_cannot_hide_a_live_renewed_marker() {
+        let (mut worker, calls, _) = test_worker_with_responses(
+            Vec::new(),
+            vec![
+                pane_get(json!({"aghist_relation":"[aghist]"})),
+                Ok(json!({})),
+            ],
+        );
+        worker.aghist_panes.insert("p1".into());
+        worker
+            .process_events(&[pane_updated(json!({}))], 10.0)
+            .unwrap();
+        assert!(worker.aghist_panes.contains("p1"));
+        let calls = calls.lock().unwrap();
+        assert_eq!(calls[1].1["title"], "[aghist]");
+        assert!(calls[1].1.get("clear_title").is_none());
+    }
+
+    #[test]
+    fn sampling_clears_a_cached_marker_when_the_expiry_event_was_lost() {
+        let root = process(10, 1, 1, "zsh", 0);
+        let (mut worker, calls, _) = test_worker_with_responses(
+            vec![root.clone()],
+            vec![Ok(json!({})), pane_get(json!({})), Ok(json!({}))],
+        );
+        worker.roots.insert("p1".into(), root.pid);
+        worker.aghist_panes.insert("p1".into());
+        worker.sample(100.0, None).unwrap();
+        assert!(!worker.aghist_panes.contains("p1"));
+        let calls = calls.lock().unwrap();
+        assert_eq!(calls[0].1["source"], SOURCE);
+        assert_eq!(calls[2].1["source"], AGHIST_SOURCE);
+        assert_eq!(calls[2].1["clear_title"], true);
+        assert!(calls[2].1.get("title").is_none());
+    }
+
+    #[test]
+    fn sampling_refreshes_live_marker_after_normal_cpu_report() {
+        let root = process(10, 1, 1, "zsh", 0);
+        let (mut worker, calls, _) = test_worker_with_responses(
+            vec![root.clone()],
+            vec![
+                Ok(json!({})),
+                pane_get(json!({"aghist_relation":"[aghist]"})),
+                Ok(json!({})),
+                pane_get(json!({"aghist_relation":"[aghist]"})),
+                Ok(json!({})),
+            ],
+        );
+        worker.roots.insert("p1".into(), root.pid);
+        worker.aghist_panes.insert("p1".into());
+        worker.sample(100.0, None).unwrap();
+        worker.sample(103.0, Some(100.0)).unwrap();
+
+        let calls = calls.lock().unwrap();
+        assert_eq!(
+            calls
+                .iter()
+                .map(|(method, _)| method.as_str())
+                .collect::<Vec<_>>(),
+            vec![
+                "pane.report_metadata",
+                "pane.get",
+                "pane.report_metadata",
+                "pane.get",
+                "pane.report_metadata"
+            ]
+        );
+        let normal = &calls[0].1;
+        assert_eq!(normal["source"], SOURCE);
+        assert_eq!(normal["ttl_ms"], 15_000);
+        assert_eq!(normal["tokens"]["cpu"], "0");
+        let first_overlay = &calls[2].1;
+        assert_eq!(first_overlay["source"], "plugin:local.pane-load.aghist");
+        assert_eq!(first_overlay["ttl_ms"], 5000);
+        assert_eq!(
+            first_overlay["title"],
+            format!("[aghist] {}", normal["title"].as_str().unwrap())
+        );
+        assert!(first_overlay.get("tokens").is_none());
+        assert_eq!(calls[4].1["title"], first_overlay["title"]);
+    }
+
+    #[test]
+    fn snapshots_seed_markers_and_reconcile_missing_or_closed_panes() {
+        let (mut worker, calls, _) = test_worker_with_responses(
+            Vec::new(),
+            vec![
+                Ok(json!({"snapshot":{"workspaces":[],"panes":[{
+                    "pane_id":"p1","tokens":{"aghist_relation":"[aghist]"}
+                }]}})),
+                Ok(json!({"process_info":{"shell_pid":42}})),
+                pane_get(json!({"aghist_relation":"[aghist]"})),
+                Ok(json!({})),
+                Ok(json!({"snapshot":{"workspaces":[],"panes":[{
+                    "pane_id":"p1","tokens":{}
+                }]}})),
+                Ok(json!({"process_info":{"shell_pid":42}})),
+                pane_get(json!({})),
+                Ok(json!({})),
+                Ok(json!({"snapshot":{"workspaces":[],"panes":[]}})),
+            ],
+        );
+        worker.snapshot().unwrap();
+        assert!(worker.aghist_panes.contains("p1"));
+        worker.snapshot().unwrap();
+        assert!(!worker.aghist_panes.contains("p1"));
+        worker.aghist_panes.insert("closed".into());
+        worker.snapshot().unwrap();
+        assert!(!worker.aghist_panes.contains("closed"));
+
+        let calls = calls.lock().unwrap();
+        let reports: Vec<_> = calls
+            .iter()
+            .filter(|(method, _)| method == "pane.report_metadata")
+            .map(|(_, params)| params)
+            .collect();
+        assert_eq!(reports.len(), 2);
+        assert_eq!(reports[0]["title"], "[aghist]");
+        assert_eq!(reports[1]["clear_title"], true);
+    }
+
+    #[test]
+    fn reconnect_snapshot_seeds_marker_state_from_full_pane_snapshot() {
+        let (mut worker, calls, event_calls) = test_worker_with_responses(
+            Vec::new(),
+            vec![
+                Ok(json!({"snapshot":{"workspaces":[],"panes":[{
+                    "pane_id":"p1","tokens":{"aghist_relation":"[aghist]"}
+                }]}})),
+                Ok(json!({"process_info":{"shell_pid":42}})),
+                pane_get(json!({"aghist_relation":"[aghist]"})),
+                Ok(json!({})),
+            ],
+        );
+        assert!(worker.reconnect_snapshot());
+        assert!(worker.aghist_panes.contains("p1"));
+        assert_eq!(*event_calls.lock().unwrap(), vec!["subscribe", "poll"]);
+        assert!(calls.lock().unwrap().iter().any(|(method, params)| {
+            method == "pane.report_metadata" && params["source"] == AGHIST_SOURCE
+        }));
+    }
+
+    #[test]
+    fn failed_marker_read_and_rejected_overlay_preserve_cpu_cache() {
+        let root = process(10, 1, 1, "zsh", 0);
+        let (mut worker, calls, _) = test_worker_with_responses(
+            vec![root.clone()],
+            vec![
+                Ok(json!({})),
+                Err(AppError::Herdr("read failed".into())),
+                pane_get(json!({"aghist_relation":"[aghist]"})),
+                Err(AppError::Herdr("overlay rejected".into())),
+            ],
+        );
+        worker.roots.insert("p1".into(), root.pid);
+        worker.aghist_panes.insert("p1".into());
+        worker.sample(100.0, None).unwrap();
+        let cached = worker.last_sent["p1"].clone();
+        assert_eq!(
+            calls
+                .lock()
+                .unwrap()
+                .iter()
+                .filter(|(method, _)| { method == "pane.report_metadata" })
+                .count(),
+            1
+        );
+        worker.sample(101.0, Some(100.0)).unwrap();
+        assert_eq!(worker.last_sent["p1"], cached);
+        let calls = calls.lock().unwrap();
+        let reports: Vec<_> = calls
+            .iter()
+            .filter(|(method, _)| method == "pane.report_metadata")
+            .collect();
+        assert_eq!(reports.len(), 2);
+        assert_eq!(reports[0].1["source"], SOURCE);
+        assert_eq!(reports[1].1["source"], AGHIST_SOURCE);
+        assert_eq!(
+            reports[1].1["title"],
+            format!("[aghist] {}", reports[0].1["title"].as_str().unwrap())
+        );
     }
 
     #[test]

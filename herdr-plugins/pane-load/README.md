@@ -18,7 +18,7 @@ bounded transition policies are tested by `make test`; none changes the live plu
 flowchart LR
   Start[Herdr startup or Start action] --> Lock[State-dir flock singleton]
   Lock --> Worker[Detached resident worker]
-  Worker -->|events.subscribe, persistent| Events[Lifecycle events]
+  Worker -->|events.subscribe, persistent| Events[Lifecycle + pane.updated events]
   Worker -->|one new socket per request| API[Herdr socket API]
   API --> Snapshot[Snapshot + pane.process_info]
   Worker --> Libproc[libproc: one process enumeration]
@@ -26,6 +26,9 @@ flowchart LR
   Libproc --> Aggregate[Sum pane CPU + RSS by workspace]
   Aggregate --> WorkspaceMetadata[workspace.report_metadata TTL 15s]
   PaneMetadata --> Chrome[Pane title: CPU meter + memory + process tree]
+  Events --> Marker[Live aghist_relation token check]
+  Marker --> Override[Separate aghist title TTL 5s]
+  Override --> Chrome
   WorkspaceMetadata --> Sidebar[Workspace sidebar CPU + memory]
 ```
 
@@ -93,10 +96,30 @@ control sequences.
 Process topology also remains independently available in the pane `$cpu_tree`
 token; CPU/tree rows remain absent from the Agent sidebar.
 
+### Agent-history relationship marker
+
+When aghist reports `$aghist_relation = "[aghist]"`, pane-load prefixes the
+header with plain-text `[aghist]`. It consumes Herdr's `pane.updated` events;
+there is no direct connection to aghist and no marker styling or ANSI escapes.
+Unrelated updates, including pane-load's own reports, do not trigger process
+snapshots or a title feedback loop.
+
+The CPU title and tokens keep their normal source and 15-second TTL. The marker
+is a separate, title-only source (`plugin:local.pane-load.aghist`) with a
+five-second TTL. Each marker write first checks the live token through
+`pane.get`; CPU sampling also refreshes marked headers when CPU values have not
+changed. This never renews aghist's token. Explicit token clears and token expiry
+clear only the marker title, revealing the latest CPU title underneath.
+If pane-load stops or cannot reach Herdr, the marker title expires within five
+seconds of its last report; it cannot permanently pollute a pane. Normal idle
+expiry follows aghist's five-second token TTL, with event-processing latency.
+If the expiry event is lost, the next live check clears the title; if the sampler
+also stops, the last title report can outlive the token by up to five seconds.
+Header markers require pane-load to be running; the sidebar badges do not.
+
 Pi's `session-topic` extension publishes its `$topic` and other sidebar tokens
-but never sets or clears the Herdr pane title. There is no shared title composer
-or controller coordination. Pi session names and terminal OSC titles are
-independent and unchanged; semantic agent state is also untouched.
+but never sets or clears the Herdr pane title. Pi session names and terminal OSC
+titles are independent and unchanged; semantic agent state is also untouched.
 
 After updating, run `/reload` in each existing Pi session once it is idle so
 it loads the current `session-topic` extension, including the latest sidebar
