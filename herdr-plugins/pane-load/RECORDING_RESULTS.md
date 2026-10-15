@@ -1,109 +1,116 @@
 # Process-history storage: current scorecard
 
-Goal: ~10 MB/day encoded, ideally ~1 MB/day compressed, useful for RCA and cheap
-enough to record continuously. **Not met.** No production sampler/config/startup
-changes. Old experiment rundowns are in Git history, not reproduced here.
-
-## What we are comparing
+Goal: ~10 MB/day encoded, ideally ~1 MB/day compressed. **Not met.** No
+production sampler/config/startup changes. Older rundowns remain in Git history.
 
 ```text
-real observations -> fixed representation/precision -> codec-input byte frames
-                  -> codec + level + window + zstd workers -> size / CPU frontier
+real observations -> fixed representation -> independent byte-sized frames
+                  -> codec / level / match window / workers -> size vs CPU
 ```
 
-Rank **compressed bytes versus compression CPU-seconds per input GiB**. Report
-wall-seconds/GiB separately: parallelism can improve throughput without improving
-CPU efficiency. Read latency does not constrain frame size or enter the ranking;
-decompression verifies correctness. Do not repeat captured data to fill a frame.
+Rank storage against **compression CPU-seconds/input GiB**; wall time is separate.
+Read costs do not constrain frames. Decompression only verifies correctness.
 
-## Current evidence — only ten minutes
+## Corpus and fidelity
 
-599.9007s at nominal 10 Hz; 6,334,450 readings, 19,963 identities. The fixed input
-below retains all observed identities/availability, names/PPID and exact wall/scan
-bounds. Total CPU has 1 ms point precision with exact native 30s-block endpoints;
-RSS is floored to 256 KiB (underestimate <256 KiB). User/system split is omitted.
-This is a precision tradeoff, not full native fidelity. Small RSS spikes can vanish.
+Measured 2026-10-15: **8.5 scan-clock hours**, 306,000 scans at nominal 10 Hz,
+326,450,656 process readings, 886,984 identities; 51 continuous source segments.
+The snapshot ends at sequence 305,999. Wall span was 8h31m30s; both clocks are
+retained. All daily figures below project from the 30,599.902s scan-clock span,
+not an observed day (wall-span normalization would be ~0.29% lower).
 
-The **entire compact binary input is only 2.68 MiB**, not the 466 MiB source JSON.
-The figures below are medians of three runs, normalized from that small corpus;
-**they are not GiB-scale throughput measurements or observed daily totals**.
-CLI startup is included. Codec versions: zstd 1.5.7, Brotli 1.2.0.
+Representation is unchanged across every case: all observations/coverage,
+names/PPID and observed wall/scan bounds; total CPU with <1ms interior error and
+exact native **30s encoding-block** endpoints; RSS floored to 256 KiB. User/system
+split is omitted. Small RSS changes can disappear. No churn or singleton filter.
 
-| Codec/level | Window log | Ratio¹ | MiB/day² | CPU s/GiB | Wall s/GiB |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| zstd-1 | 24 | 2.31 | 166.75 | 5.4 | 8.1 |
-| zstd-3 | 24 | 3.05 | 126.70 | 6.9 | 8.6 |
-| zstd-9 | 24 | 3.21 | 120.13 | 15.3 | 14.5 |
-| zstd-19 | 24 | 3.48 | 110.84 | 226.7 | 226.0 |
-| Brotli-4 | 20 | 3.09 | 124.83 | 14.5 | 19.4 |
-| Brotli-6 | 20 | 3.49 | 110.66 | 22.0 | 26.9 |
-| Brotli-9 | 24 | 3.54 | 108.89 | 58.2 | 62.9 |
-| Brotli-11 | 24 | 4.18 | **92.29** | 1,506.9 | 1,514.0 |
+**133.47 MiB compact input**, versus 556.84 MiB losslessly compressed source JSON.
+Encoding blocks remain fixed while compression frames change. Codec versions:
+zstd 1.5.7 / Brotli 1.2.0. Three-repeat medians, except expensive zstd-19/Brotli-11
+cases: one complete corpus pass each. All compressed frames round-trip exactly.
 
-¹ Codec input / output; larger is better. Same block-major input, single-thread.
-² Short-capture projection, excluding archive catalogs/indexes/filesystem overhead.
-Fast-case timings are noisy at this corpus size; CPU/wall medians are independent.
+## How large do frames need to be?
 
-**Useful provisional result:** Brotli-6 matched zstd-19's size at about one-tenth
-the compression CPU. Brotli-11 saved another ~17% versus Brotli-6, at ~69 times
-the CPU. There is a tradeoff frontier, not one universal codec winner.
+Same entire corpus, one compression worker, requested match window 16 MiB (log 24):
 
-Byte-target tests used 256 KiB / 1 MiB / 4 MiB. Whole ~30s encoding blocks are
-indivisible: actual maximum frame inputs were 149,336 / 985,198 / 2,809,693 bytes.
-The 4 MiB target was **underfilled**; it is not evidence for larger frames.
-Regrouping headers/CPU/metadata into separate lanes was lossless but did not
-consistently help (-1.5% to +6.0% across selected cases). Existing sparse masks
-also beat the smaller raw lifecycle-column encoding under the strongest Brotli.
+| Frame input target | Actual maximum scan-clock coverage | Brotli-6 MiB/day | Brotli-11 MiB/day |
+| --- | ---: | ---: | ---: |
+| 256 KiB | 1 min | 165.20 | — |
+| 1 MiB | 3.5 min | 108.46 | — |
+| 4 MiB | 15.5 min | 101.02 | 83.71 |
+| 16 MiB | 62.5 min | 99.84 | 82.39 |
+| 64 MiB | 4.1 hours | 99.48 | — |
+| Whole corpus: **133.47 MiB actual** | 8.5 hours | 99.37 | **81.82** |
 
-Other current findings: 64/256 KiB RSS precision saved ~7.5%/~12.8% versus exact
-RSS on the same mask layout. ~1,892 identities/minute were newly observed; 78% of
-identities appeared in one scan, but only 13 existing identities changed PPID.
-Missing does not prove exit; polling misses some complete short lifetimes.
+Whole-corpus tests used a 256 MiB target but **did not fill it**. They are not
+256 MiB or GiB-scale frame measurements. Whole ~30s blocks are indivisible; all
+tails and framing bytes are retained, and achieved frame sizes are recorded.
 
-## Longer acquisition and next sweep
+**Most gains arrive at 4–16 MiB: roughly 15–60 minutes on this host/workload.**
+- Brotli-6: 15 minutes -> whole corpus saves another **1.63%**; one hour -> whole
+  saves **0.47%**. Larger frames also lowered measured encoder CPU here, so they
+  are not worse on the stated objectives—just diminishing storage returns.
+- Brotli-11: 15 minutes -> whole saves **2.26%**, for **22% more encoder CPU**.
+  One hour -> whole saves **0.69%**, for 4.4% more CPU.
+- zstd-9: 15 minutes -> whole saves 3.2%; one hour -> whole saves 0.85%.
+  zstd-19 gains more: 4.8% / 1.53%, respectively, but uses more CPU as frames grow.
 
-A **finite 72-hour, 10 Hz capture started 2026-10-14 20:51 UTC**, using one native
-sampler across losslessly compressed 10-minute source segments. Raw fields are
-preserved for future representations. Private files; 24 GiB capture budget,
-20 GiB free-space guard; SIGTERM stops/reaps it. No restart/daemon installation.
-The corpus includes actual development/benchmark activity, not a quiet workload.
-Sleep can extend wall-clock completion; actual wall/scan markers are retained.
-At the prior binary rate, ~1 GiB of compact input needs 2–3 days; acquisition is
-still in progress. Do not advertise an underfilled large target as a full test.
+Thus an hour-sized frame captures nearly all measured benefit; ten-hour frames
+are not necessary for the bulk saving. Longer frames remain legitimate when the
+last fraction of storage matters. This is not a read-cost cutoff or a universal
+plateau across representations/workloads.
 
-Staged comparison, holding representation/precision constant:
-- Byte targets: **1 / 4 / 16 / 64 / 256 / 1,024 MiB**, then larger if data permits.
-- Locate the frame-size plateau before sweeping every other parameter.
-- Sweep codec levels and window limits around the useful frontier. Explicitly
-  label nonstandard Brotli large-window streams; test zstd long-distance matching.
-- Compare zstd 1/2/4/8 workers on sufficiently large inputs. On today's 2.68 MiB
-  input, extra workers mostly add overhead and cannot establish scaling.
-- Retain all tails, framing overhead and real time coverage. Use repeated total
-  child CPU (user+system, all threads), not elapsed time as a CPU substitute.
+## Storage / compression-CPU tradeoffs
 
-**Representation examples and brainstorming:** [RECORDING_DATA.md](RECORDING_DATA.md).
-The 30s identity/CPU baselines are a separate axis from compression-frame size.
-No higher-resolution detail is silently discarded to improve a codec result.
+Whole-corpus frames; window log 24 unless marked. Ratio = codec input / output.
 
-## Reproduce
+| Codec | Ratio | MiB/day | CPU s/GiB | Wall s/GiB |
+| --- | ---: | ---: | ---: | ---: |
+| zstd-3 | 3.30 | 114.24 | 5.8 | 6.4 |
+| zstd-9 | 3.55 | 106.21 | 16.8 | 14.8 |
+| zstd-9, 2 workers | 3.59 | 105.01 | 17.5 | 13.4 |
+| Brotli-6, **1 MiB window** | 3.81 | 98.79 | 20.7 | 24.7 |
+| zstd-19 | 3.93 | 96.01 | 388.2 | 388.1 |
+| Brotli-11 | 4.61 | **81.82** | 1,687.3 | 1,698.1 |
 
-From this directory; captures/results are private and refuse overwrites.
-`recording_storage.py` also reads completed `.jsonl.zst` source segments directly,
-without expanding whole source files. Joining their prepared manifests and the
-long-corpus sweep are pending acquisition, not completed results.
+Brotli-11 saves 17.2% versus the best tested Brotli-6 setting, costing ~82x the
+CPU. That is ~26 encoder CPU-seconds per recorded hour (~0.72% of one core).
+These are **encoder-process** user+system CPU costs, including child startup and
+all workers; preparation, parent-side framing and verification are excluded.
+Wall timings include CLI setup/IPC; default CLI I/O settings are retained.
+Normalized GiB units are not measured GiB frames. Memory costs and complete
+production recorder costs are not benchmarked.
 
-```sh
-python3 recording-probe.py --samples 2592000 --interval .1 --capture-dir /private/source
-python3 recording_compression.py --input-dir /private/prepared \
-  --frame-bytes 1048576 4194304 16777216 67108864 268435456 1073741824 \
-  --zstd-levels 3 9 19 --brotli-levels 6 9 11 --windows 20 24 \
-  --repeats 3 --output /private/comparison.jsonl
-# Test zstd parallelism separately on shortlisted large frames:
-# --codecs zstd --zstd-threads 1 2 4 8
-# --zstd-long-distance; or --brotli-large-window with --windows 27 30
-```
+A frame's length and its **match window** are separate:
+- Brotli-6 whole-corpus output: 1 / 16 / 128 MiB requested windows gave
+  **98.79 / 99.37 / 99.36 MiB/day**. A wider dictionary did not help this case.
+- zstd-9: 1 -> 16 MiB window saved 1.45%; 128 MiB added no further saving.
+  At 128 MiB, long-distance matching made size and CPU slightly worse.
+- zstd-9 whole-corpus 2/4/8 workers produced the same size and ~13.3s/GiB wall,
+  versus 14.8 single-thread, but ~17.5 vs 16.8 CPU s/GiB. No scaling beyond two
+  with these job defaults. At 16 MiB frames, extra workers were slower.
+- Brotli's 128 MiB window used its explicitly nonstandard large-window extension.
+  Requested limits are not allocation or effective-match-distance measurements.
 
-Binary preparation remains an offline Python experiment, not a production
-encoder; its CPU/validation cost is excluded from the codec-only table. Native
-sampling has scan skew and incomplete visibility. Seek catalogs, host/boot
-metadata, retention policy and total service resource costs remain unmeasured.
+## Integrity, limitations, next lever
+
+The original frozen snapshot covered nine hours. At 8h36m one process's system
+counter decreased ~0.237ms while user CPU increased. The strict replay rejected
+it. This sweep uses the **unchanged contiguous first 8.5 hours**, not selected
+"good" records with an undisclosed hole. Original source and anomaly details
+remain private/intact; acquisition continues independently. No fidelity rule was
+relaxed. All tested source/block hashes, coverage and cross-segment component
+monotonicity passed; all 326 million retained readings were verified in preparation.
+
+Encoded input still projects to **376.85 MiB/day**, compressed best **81.82**.
+Indexes/catalogs, persisted health diagnostics, retention and filesystem overhead
+are outside these payload numbers. Native scans are not atomic and visibility
+is incomplete. More hours per frame will not close the measured budget gap;
+representation/precision is the next useful lever, not waiting for 72 hours.
+See [real data examples](RECORDING_DATA.md).
+
+43 cases and fixed source/block manifests are private under
+`procstats-nine-hours-bxwo_imv`; provenance digest starts `d4079a2e84413c7d` (SHA256
+of the ordered compressed-source digest list, not a single expanded JSON file).
+The private `prepare_part.py`, `merge_prepared.py` and `analyze.py` reproduce this
+snapshot using the existing storage/compression modules; no new public framework.
