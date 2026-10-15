@@ -93,6 +93,26 @@ A frame's length and its **match window** are separate:
 - Brotli's 128 MiB window used its explicitly nonstandard large-window extension.
   Requested limits are not allocation or effective-match-distance measurements.
 
+## Neighboring Brotli levels and windows
+
+20 additional measurements: same corpus, **16 MiB frames**, one worker, three-run
+medians. Each cell is **projected MiB/day / encoder CPU s/input GiB**.
+
+| Match window | Level 4 | Level 5 | Level 6 | Level 7 | Level 8 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 256 KiB | 112.81 / 12.6 | 100.37 / 18.2 | 99.59 / 20.7 | 99.04 / 30.7 | 98.93 / 34.8 |
+| 1 MiB | 112.71 / 12.9 | 100.31 / 18.3 | 99.33 / 21.0 | 98.44 / 36.5 | 98.26 / 44.9 |
+| 4 MiB | 112.85 / 13.3 | 100.46 / 18.7 | 99.50 / 21.8 | 98.21 / 48.7 | 97.89 / 69.4 |
+| 16 MiB | 113.06 / 14.1 | 100.81 / 20.6 | 99.84 / 23.8 | 98.63 / 58.5 | 98.23 / 94.9 |
+
+At a 1 MiB window, level 5 is ~1% larger than 6 but uses **13% less CPU**;
+7 saves another 0.9% versus 6 for **74% more CPU**. Levels 5/6 are attractive
+background candidates, not a claim that 6 is uniquely optimal. Wider windows
+barely help 4–6. Levels 7/8 gain a little at 4 MiB, at sharply higher CPU; 16 MiB
+is worse than 4 MiB on both objectives for every tested level. These CPU ratios
+remain small absolute costs: level 5/6/7 at 1 MiB use 0.28/0.32/0.56 CPU-seconds
+per recorded hour. Acquisition and representation preparation remain excluded.
+
 ## Integrity, limitations, next lever
 
 The original frozen snapshot covered nine hours. At 8h36m one process's system
@@ -110,8 +130,10 @@ is incomplete. More hours per frame will not close the measured budget gap;
 representation/precision is the next useful lever, not waiting for 72 hours.
 See [real data examples](RECORDING_DATA.md).
 
-43 cases and fixed source/block manifests are private under
+43 frame/settings cases plus 20 neighboring-Brotli measurements (including two
+control rechecks) and fixed source/block manifests are private under
 `procstats-nine-hours-bxwo_imv`; provenance digest starts `d4079a2e84413c7d` (SHA256
 of the ordered compressed-source digest list, not a single expanded JSON file).
-The private `prepare_part.py`, `merge_prepared.py` and `analyze.py` reproduce this
-snapshot using the existing storage/compression modules; no new public framework.
+Private `prepare_part.py`, `merge_prepared.py`, `analyze.py` and
+`brotli_midlevels.py` reproduce this snapshot using the existing storage/compression
+modules; no new public framework.
