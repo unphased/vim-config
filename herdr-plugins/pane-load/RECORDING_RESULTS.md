@@ -31,16 +31,17 @@ cases: one complete corpus pass each. All compressed frames round-trip exactly.
 
 ## How large do frames need to be?
 
-Same entire corpus, one compression worker, requested match window 16 MiB (log 24):
+Same entire corpus, one compression worker, requested match window 16 MiB (log 24).
+All codec columns are projected **MiB/day**; — means not measured.
 
-| Frame input target | Actual maximum scan-clock coverage | Brotli-6 MiB/day | Brotli-11 MiB/day |
-| --- | ---: | ---: | ---: |
-| 256 KiB | 1 min | 165.20 | — |
-| 1 MiB | 3.5 min | 108.46 | — |
-| 4 MiB | 15.5 min | 101.02 | 83.71 |
-| 16 MiB | 62.5 min | 99.84 | 82.39 |
-| 64 MiB | 4.1 hours | 99.48 | — |
-| Whole corpus: **133.47 MiB actual** | 8.5 hours | 99.37 | **81.82** |
+| Frame input target | Maximum scan-clock coverage | zstd-3 | zstd-9 | zstd-19 | Brotli-6 | Brotli-11 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 256 KiB | 1 min | 184.33 | 179.06 | — | 165.20 | — |
+| 1 MiB | 3.5 min | 124.01 | 118.76 | — | 108.46 | — |
+| 4 MiB | 15.5 min | 116.15 | 109.73 | 100.86 | 101.02 | 83.71 |
+| 16 MiB | 62.5 min | 114.49 | 107.13 | 97.51 | 99.84 | 82.39 |
+| 64 MiB | 4.1 hours | 114.31 | 106.44 | — | 99.48 | — |
+| Whole corpus: **133.47 MiB actual** | 8.5 hours | 114.24 | 106.21 | 96.01 | 99.37 | **81.82** |
 
 Whole-corpus tests used a 256 MiB target but **did not fill it**. They are not
 256 MiB or GiB-scale frame measurements. Whole ~30s blocks are indivisible; all
