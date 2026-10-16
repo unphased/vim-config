@@ -181,10 +181,42 @@ scan clock, and most counters do not change by a whole millisecond at every poll
 
 ### Native ticks and the deliberate 1 ms tradeoff
 
-On this measured Mac, one native CPU tick is **125/3 ns**. The probe's source
-fields are normalized nanoseconds; preparation restores their native ticks and
-checks that conversion round-trips. In general the inverse needs rounding upward
-because normalization rounded down. This host's timebase is not universal.
+Think of CPU time as a distance, and the OS counter as a ruler that uses its own
+small units. A **native tick** is one unit on that ruler. It is not one CPU
+instruction, one processor cycle, or one sampler poll.
+
+On this Mac, the OS supplies a conversion factor: **one tick = 125/3 nanoseconds**,
+about **41.67 ns**. That is nanoseconds, **not milliseconds**. We measured/verified
+this host's scale; we did not choose it, and it is not universal. The numerator
+125 and denominator 3 are the tick-to-nanosecond scale reported by macOS's
+`mach_timebase_info`. A nanosecond is a billionth of a second; a millisecond is a
+thousandth, so **1 ms = 1,000,000 ns**. These units describe representation, not a
+promise that the CPU measurement is accurate to one tick.
+
+Separately, **we choose 1 ms as the interior CPU-counter precision** to save space.
+That choice means keeping whole milliseconds instead of every tiny fraction.
+How many OS ticks make one of our chosen 1 ms units?
+
+```text
+1,000,000 ns ÷ (125/3 ns per tick) = 24,000 ticks
+```
+
+So none of these numbers is a secret protocol rule:
+
+| Number | Where it comes from | Meaning |
+| --- | --- | --- |
+| 125/3 ns per tick | This Mac's OS timebase | Converts its native CPU units to familiar time. |
+| 1 ms | Our storage/detail tradeoff | The chosen whole-unit precision for interior CPU readings. |
+| 24,000 ticks | Calculated from the two above | One whole millisecond, expressed in this Mac's units. |
+
+We call that group size **Q** (the quantization unit). Lowercase **q** is the number
+of whole groups, and **r** is the leftover ticks. The format records Q and the
+conversion factor so the reader does not have to guess them.
+
+The probe's source fields have already been converted to integer nanoseconds.
+Preparation restores the original native counts and checks that converting them
+back reproduces the source values. The inverse needs rounding upward when the
+original conversion rounded down; this avoids losing the exact native endpoints.
 
 For `procstats-recording-probe`, PID **87412**, at scan 0:
 
@@ -200,7 +232,15 @@ Q = 24,000 ticks = exactly 1 ms
 
 We store the **total**, not separate user/system histories. Each cumulative total
 is divided by Q. Quotient 3 means the whole-millisecond portion is 3 ms, not that
-the source counter was exactly 3 ms: it was **3.101625 ms**.
+the source counter was exactly 3 ms: it was **3.101625 ms**. In ruler terms:
+**three whole 1 ms groups, plus a 0.101625 ms leftover**. We save that leftover
+at block endpoints so those counters remain exact.
+
+We round the **cumulative counter**, not each little increment separately. Tiny
+increments still accumulate in the original counter; once they cross a whole-ms
+boundary, q advances. We do not repeatedly round small increments down to zero
+and forget them. Also, **1 ms precision is not a 1 ms sampling interval**: this
+capture polls about every 100 ms, independently of the CPU rounding choice.
 
 The first 16 quotient values and their 15 differences are:
 
