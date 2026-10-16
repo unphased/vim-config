@@ -557,3 +557,7 @@ sections; can counters carry across more than 30 seconds without repeating full
 baselines; can native endpoint corrections be stored less redundantly; can clock
 prediction expose smaller exact residuals? Huge compression frames alone do not
 implement any of these changes. No production format has been selected.
+
+Adaptive CPU precision is planned research, not the fixed-Q encoding described
+above. The [plan](RECORDING_PLAN.md) owns future scope and approval questions;
+this guide describes only the benchmarked prototype.

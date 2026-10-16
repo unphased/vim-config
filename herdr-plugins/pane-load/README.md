@@ -6,13 +6,14 @@ resident memory through macOS `libproc`, then reports a short-lived pane title
 plus `$cpu`, `$cpu_tree`, and `$memory` pane tokens. The same sample is summed
 across every pane in each workspace and published in the workspace sidebar.
 
-The proposed independent process-history recorder, extraction boundaries and
-initial compression measurements are tracked in
-[`PROCSTATS_DAEMON_PLAN.md`](PROCSTATS_DAEMON_PLAN.md). The earlier capture-owned
-sampler proposal remains in [`PROCSTATS_CAPTURE_PLAN.md`](PROCSTATS_CAPTURE_PLAN.md)
-as design history. Latest recording/compression measurements and their limitations
-are in [`RECORDING_RESULTS.md`](RECORDING_RESULTS.md). Experimental codecs and
-bounded transition policies are tested by `make test`; none changes the live plugin.
+Process-history research is separate from this live plugin:
+
+- [Plan and scope](RECORDING_PLAN.md): the single current plan; Rust buildout awaits approval.
+- [Data and binary format](RECORDING_DATA.md): the benchmarked prototype, with worked examples.
+- [Measured results](RECORDING_RESULTS.md): storage/CPU comparisons and limitations.
+
+Superseded proposals live in Git history. Experimental codecs are tested by
+`make test`; none changes the live plugin.
 
 ```mermaid
 flowchart LR
@@ -62,7 +63,9 @@ herdr plugin action invoke local.pane-load.stop
 The worker also checks `plugin.list` periodically and exits when this plugin is
 disabled or unlinked. Its lock, status file, and log are under
 `HERDR_PLUGIN_STATE_DIR`; the private control socket uses a hashed path in `/tmp`
-to stay within Unix socket path limits. No runtime files live in this source tree.
+to stay within Unix socket path limits. Plugin runtime files stay outside this
+source tree; research captures live in the private, gitignored `.recordings/`
+directory described in the [plan](RECORDING_PLAN.md).
 A broken server connection triggers bounded reconnect attempts, then exit; a
 subsequent server startup launches a new worker. Hooks do not supervise crashes.
 

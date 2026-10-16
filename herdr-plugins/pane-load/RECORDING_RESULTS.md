@@ -145,16 +145,23 @@ The original frozen snapshot covered nine hours. At 8h36m one process's system
 counter decreased ~0.237ms while user CPU increased. The strict replay rejected
 it. This sweep uses the **unchanged contiguous first 8.5 hours**, not selected
 "good" records with an undisclosed hole. Original source and anomaly details
-remain private/intact; acquisition continues independently. No fidelity rule was
-relaxed. All tested source/block hashes, coverage and cross-segment component
-monotonicity passed; all 326 million retained readings were verified in preparation.
+remain private/intact. Within that 8.5-hour prefix, all tested source/block hashes,
+coverage and cross-segment component monotonicity passed; all 326 million retained
+readings were verified in preparation. No fidelity rule was relaxed.
+
+The longer diagnostic was stopped by request at 41h19m44s and preserved compressed
+locally. This scorecard and its semantic-validation claims have not been extended
+to that full span.
 
 Encoded input still projects to **376.85 MiB/day**, compressed best **81.82**.
 Indexes/catalogs, persisted health diagnostics, retention and filesystem overhead
 are outside these payload numbers. Native scans are not atomic and visibility
 is incomplete. More hours per frame will not close the measured budget gap;
 representation/precision is the next useful lever, not waiting for 72 hours.
-See [real data examples](RECORDING_DATA.md).
+
+Next-work scope and approval questions live only in the [plan](RECORDING_PLAN.md).
+Adaptive CPU precision is planned research, not implemented or measured here;
+Rust buildout awaits scope review and user approval. See [real data examples](RECORDING_DATA.md).
 
 43 frame/settings cases plus 20 neighboring-Brotli measurements (including two
 control rechecks) and fixed source/block manifests are private under

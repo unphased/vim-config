@@ -14,6 +14,8 @@ mthesaur.txt
 ghostty.platform.conf
 herdr-plugins/*/target/
 herdr-plugins/*/__pycache__/
+# Private process recordings and local transform artifacts.
+/herdr-plugins/pane-load/.recordings/
 
 # Local editor output, generated backups, and reproduction dependencies.
 .DS_Store
