@@ -24,7 +24,28 @@ names/PPID and observed wall/scan bounds; total CPU with <1ms interior error and
 exact native **30s encoding-block** endpoints; RSS floored to 256 KiB. User/system
 split is omitted. Small RSS changes can disappear. No churn or singleton filter.
 
-**133.47 MiB compact input**, versus 556.84 MiB losslessly compressed source JSON.
+### Overall reduction, not just the final codec ratio
+
+Same observations; Brotli-5 here uses 16 MiB frames and a 1 MiB window:
+
+| Stage | Exact bytes | Size | Reduction versus original JSONL |
+| --- | ---: | ---: | ---: |
+| Expanded source JSONL | 25,233,101,842 | 23.50 GiB | 1× |
+| Framed compact binary | 139,953,873 | 133.47 MiB | 180.30× |
+| Brotli-5 output | 37,252,743 | 35.53 MiB | **677.35×** |
+
+Binary representation gives ~180× reduction; Brotli adds **3.7569×**, for
+**677.35× overall (99.852% fewer bytes)**. The first stage includes the precision
+tradeoffs above; its lossless-only contribution has not been isolated. Binary
+blocks themselves occupy 139,950,768 bytes; frame wrappers add 3,105 bytes.
+
+JSONL sizes were streamed/count-checked against all 51 decompressed source hashes,
+including headers/newlines, excluding separate diagnostics. The source is already
+stored losslessly as zstd-3, using 583,888,358 bytes (556.84 MiB), not 23.50 GiB of
+expanded files. The smaller final representation also retains less native fidelity.
+See [the format walkthrough](RECORDING_DATA.md) for original unredacted records,
+worked CPU/RSS encodings, byte layouts and decoding order.
+
 **Input GiB = 1,073,741,824 bytes of this uncompressed binary after representation
 and quantization**, not raw JSON, compressed output or process RAM. One input GiB
 represents ~65 recorded hours at this rate; CPU costs are normalized from 133.47 MiB.
