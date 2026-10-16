@@ -160,8 +160,9 @@ is incomplete. More hours per frame will not close the measured budget gap;
 representation/precision is the next useful lever, not waiting for 72 hours.
 
 Next-work scope and approval questions live only in the [plan](RECORDING_PLAN.md).
-Adaptive CPU precision is planned research, not implemented or measured here;
-Rust buildout awaits scope review and user approval. See [real data examples](RECORDING_DATA.md).
+The planned canonical Rust transform must include adaptive CPU precision; it is
+not implemented or measured here. Remaining boundaries await final scope approval.
+See [real data examples](RECORDING_DATA.md).
 
 43 frame/settings cases plus 20 neighboring-Brotli measurements (including two
 control rechecks) and fixed source/block manifests are private under

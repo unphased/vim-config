@@ -332,6 +332,11 @@ process set; sparse encoding is not a sampling or lifetime filter.
 
 ### Actual RSS example: `ghostty`, PID 17970
 
+RSS is read alongside CPU in every nominal **10 Hz scan**, not on a slower
+schedule. Each readable-process observation has a point-in-time RSS reading;
+it is not a 100 ms average. Sparse encoding omits unchanged quantized values,
+not their observations or actual scan timestamps.
+
 This process's birth is **1790145305 seconds + 564952 microseconds**, PPID **1**.
 Here are its original RSS bytes and what the 256 KiB variant stores:
 
@@ -558,6 +563,6 @@ baselines; can native endpoint corrections be stored less redundantly; can clock
 prediction expose smaller exact residuals? Huge compression frames alone do not
 implement any of these changes. No production format has been selected.
 
-Adaptive CPU precision is planned research, not the fixed-Q encoding described
-above. The [plan](RECORDING_PLAN.md) owns future scope and approval questions;
-this guide describes only the benchmarked prototype.
+The planned canonical Rust transform includes adaptive CPU precision, not the
+fixed-Q encoding described above. The [plan](RECORDING_PLAN.md) owns future scope
+and approval questions; this guide describes only the benchmarked prototype.
