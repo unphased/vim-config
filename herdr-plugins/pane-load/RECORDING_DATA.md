@@ -1,9 +1,14 @@
 # What the compressor actually sees
 
-Real snippets from the ten-minute capture (`033d5198…95809b2`), not generated
-workloads. Process identities/names are anonymized; absolute PID/birth timestamps
-are shifted or omitted. Numeric deltas retain their measured values. Examples
-are excerpts, not the benchmark input: benchmarks use the unchanged private data.
+Current benchmarks use the verified **8.5-hour corpus**: 306,000 scans,
+326,450,656 readings and 886,984 identities. See [the scorecard](RECORDING_RESULTS.md)
+for current codec/CPU results and the source-counter anomaly that limits this prefix.
+
+The detailed snippets below come from the earlier ten-minute capture
+(`033d5198…95809b2`), using the same representation—not generated workloads.
+Process identities/names are anonymized; absolute PID/birth timestamps are shifted
+or omitted. Numeric deltas retain their measured values. These excerpts are not
+the benchmark input; benchmarks use the unchanged private data.
 
 ## Layers — JSON is not the current compressor input
 
@@ -18,11 +23,20 @@ source JSONL: seq, wall/start/end ns, [pid,ppid,start_sec,start_usec,name,user_n
 zstd / Brotli
 ```
 
-In the current 10-minute, 256 KiB-RSS variant, before outer compression:
-**CPU 1,467,537 bytes; metadata 1,337,631 bytes; block headers/framing 4,460 bytes**.
-The verbose JSON block headers are only ~0.16%; removing them cannot fix the budget.
-CPU and metadata repeat some identities/clocks. Component compressed sizes are
-not additive because joint compression can share those patterns.
+In the current **8.5-hour, 256 KiB-RSS variant**, before outer compression:
+**CPU 74,074,701 bytes; metadata 65,648,607 bytes; block headers/framing 227,460 bytes**.
+That is ~53% CPU / 47% metadata, not their shares of compressed output. The verbose
+JSON block headers are only ~0.16%; removing them cannot fix the budget. CPU and
+metadata repeat some identities/clocks; separate compressed sizes are not additive.
+
+The 1,020 encoding blocks average **~134 KiB each**. A 256 KiB–1 MiB match window
+can reach nearby blocks; this fits the observed lack of gains from huge windows,
+but does not prove the remaining data incompressible. Larger compression frames
+still contain independent 30s baselines—they do not extend the encoding region.
+
+In the long corpus's **first 30s block only**, 95.6% of successive observed CPU
+readings had no whole-millisecond counter change. Zero changes are already omitted;
+the compressor is not being fed dense arrays of all those unchanged readings.
 
 ## CPU: some streams really are almost constant
 

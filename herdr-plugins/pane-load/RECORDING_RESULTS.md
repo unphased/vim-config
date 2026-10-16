@@ -25,6 +25,9 @@ exact native **30s encoding-block** endpoints; RSS floored to 256 KiB. User/syst
 split is omitted. Small RSS changes can disappear. No churn or singleton filter.
 
 **133.47 MiB compact input**, versus 556.84 MiB losslessly compressed source JSON.
+**Input GiB = 1,073,741,824 bytes of this uncompressed binary after representation
+and quantization**, not raw JSON, compressed output or process RAM. One input GiB
+represents ~65 recorded hours at this rate; CPU costs are normalized from 133.47 MiB.
 Encoding blocks remain fixed while compression frames change. Codec versions:
 zstd 1.5.7 / Brotli 1.2.0. Three-repeat medians, except expensive zstd-19/Brotli-11
 cases: one complete corpus pass each. All compressed frames round-trip exactly.
@@ -112,6 +115,8 @@ barely help 4–6. Levels 7/8 gain a little at 4 MiB, at sharply higher CPU; 16 
 is worse than 4 MiB on both objectives for every tested level. These CPU ratios
 remain small absolute costs: level 5/6/7 at 1 MiB use 0.28/0.32/0.56 CPU-seconds
 per recorded hour. Acquisition and representation preparation remain excluded.
+**Brotli-5's window sweep is complete at 16 MiB frames; its frame-size sweep has
+not been run.** The frame-size plateau above was measured with 6/11 and zstd.
 
 ## Integrity, limitations, next lever
 
