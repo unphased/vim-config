@@ -34,10 +34,10 @@ class PreviewTests(unittest.TestCase):
         self.stub("kitten", 'printf "%s\\n" "$@" >> "$CALLS"; '
                   'case " $* " in *" --detect-support "*) exit 99;; esac; '
                   'for arg do image=$arg; done; cp "$image" "$RECEIVED"; '
-                  'printf "IMAGE"; '
-                  '[ "${ICAT_STATUS:-0}" = 0 ] && [ -z "${ICAT_ERROR:-}" ] || '
-                  'printf "icat decoder error\\n" >&2; '
-                  'exit "${ICAT_STATUS:-0}"')
+                  'if [ "${ICAT_STATUS:-0}" != 0 ] || [ -n "${ICAT_ERROR:-}" ]; then '
+                  'printf "icat decoder error\\n" >&2; exit "${ICAT_STATUS:-0}"; fi; '
+                  'printf "\\033_Ga=T;IMAGE\\033\\\\\\r\\033[38:2:6:121:50m\\0337"; '
+                  'printf "\\033[1;0H\\033[2CPLACEHOLDER\\033[2;0HROW2\\033[39m\\0338"')
         self.stub("bat", 'printf "text preview\\n"')
         self.stub("md5sum", 'printf "abc  -\\n"')
         for cmd in ("brotli", "zstd"):
@@ -103,10 +103,12 @@ class PreviewTests(unittest.TestCase):
     def test_image_uses_existing_icat_and_disables_lf_cache(self):
         result, tty = self.preview()
         self.assertEqual(result.returncode, 1)
-        self.assertEqual(result.stdout, b"")
+        self.assertEqual(result.stdout, b"\x1b[38;2;6;121;50m  PLACEHOLDER\nROW2\x1b[39m")
         self.assertIn(b"IMAGE", tty)
+        self.assertNotIn(b"PLACEHOLDER", tty)
         args = self.calls.read_text().splitlines()
-        self.assertIn("--place=40x20@60x1", args)
+        self.assertIn("--place=40x20@0x0", args)
+        self.assertIn("--unicode-placeholder", args)
         self.assertIn("--stdin=no", args)
         self.assertIn("--transfer-mode=stream", args)
         self.assertNotIn("--detect-support", args)
@@ -127,7 +129,7 @@ class PreviewTests(unittest.TestCase):
         cache.mkdir(parents=True)
         (cache / f"abc_{int(self.image.stat().st_mtime)}.preview").write_text("[bat warning]\n")
         result, tty = self.preview()
-        self.assertEqual(result.stdout, b"")
+        self.assertIn(b"PLACEHOLDER", result.stdout)
         self.assertIn(b"IMAGE", tty)
         self.assertEqual(result.returncode, 1)
 
@@ -144,12 +146,12 @@ class PreviewTests(unittest.TestCase):
         raw, jpeg = self.raw()
         result, tty = self.preview(raw)
         self.assertEqual(result.returncode, 1)
-        self.assertEqual(result.stdout, b"")
+        self.assertIn(b"PLACEHOLDER", result.stdout)
         self.assertIn(b"IMAGE", tty)
         self.assertEqual(self.received.read_bytes(), jpeg)
         passed_file = Path(self.calls.read_text().splitlines()[-1])
         self.assertNotEqual(passed_file, raw)
-        self.assertEqual(passed_file.parent, self.scratch)
+        self.assertEqual(passed_file.parent.parent, self.scratch)
         self.assertFalse(passed_file.exists())
         self.assertEqual(list(self.scratch.iterdir()), [])
         self.assertFalse((self.home / ".cache/lf-previewer").exists())
@@ -208,7 +210,7 @@ class PreviewTests(unittest.TestCase):
         self.env["TERM"] = "xterm-256color"
         self.env.pop("TERM_PROGRAM")
         result, tty = self.preview()
-        self.assertEqual(result.stdout, b"")
+        self.assertIn(b"PLACEHOLDER", result.stdout)
         self.assertIn(b"IMAGE", tty)
         self.assertEqual(result.returncode, 1)
         args = self.calls.read_text().splitlines()
