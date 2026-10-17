@@ -5,6 +5,7 @@ use std::io::{self, BufWriter, Cursor, Read, Write};
 use std::path::PathBuf;
 
 mod arw;
+mod lf;
 
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
@@ -21,6 +22,7 @@ const BASE64_CHUNK: usize = 4096;
 const FALLBACK_CELL_PIXELS: (usize, usize) = (10, 20);
 
 struct CliArgs {
+    lf_id: Option<u32>,
     image: PathBuf,
     width_cells: usize,
     height_cells: usize,
@@ -55,19 +57,36 @@ fn run() -> Result<(), Box<dyn Error>> {
         .ok_or("requested pixel height overflow")?;
     let prepared = prepare_path(&args.image, max_width, max_height)?;
 
-    let mut output = BufWriter::with_capacity(64 * 1024, io::stdout().lock());
-    emit_kitty(&mut output, &prepared, args.x, args.y)?;
-    output.flush()?;
+    if let Some(id) = args.lf_id {
+        lf::emit_kitty(&prepared, args.x, args.y, id)?;
+    } else {
+        let mut output = BufWriter::with_capacity(64 * 1024, io::stdout().lock());
+        emit_kitty(&mut output, &prepared, args.x, args.y)?;
+        output.flush()?;
+    }
     Ok(())
 }
 
 fn parse_args(args: impl Iterator<Item = OsString>) -> Result<CliArgs, Box<dyn Error>> {
     let args: Vec<_> = args.collect();
-    if args.len() != 5 {
-        return Err("usage: jpg-preview IMAGE WIDTH HEIGHT X Y".into());
+    let (lf_id, offset) = if args.first().is_some_and(|arg| arg == "--lf-id") {
+        if args.len() < 2 {
+            return Err("--lf-id requires a numeric client ID".into());
+        }
+        let id = args[1]
+            .to_str()
+            .filter(|value| !value.is_empty() && value.bytes().all(|byte| byte.is_ascii_digit()))
+            .ok_or("--lf-id must be a numeric u32")?
+            .parse::<u32>()?;
+        (Some(id), 2)
+    } else {
+        (None, 0)
+    };
+    if args.len() != offset + 5 {
+        return Err("usage: jpg-preview [--lf-id ID] IMAGE WIDTH HEIGHT X Y".into());
     }
     let number = |index: usize, name: &str| -> Result<usize, Box<dyn Error>> {
-        let value = args[index]
+        let value = args[offset + index]
             .to_str()
             .ok_or_else(|| format!("{name} must be a non-negative integer"))?;
         let value = value.parse::<usize>()?;
@@ -77,7 +96,8 @@ fn parse_args(args: impl Iterator<Item = OsString>) -> Result<CliArgs, Box<dyn E
         Ok(value)
     };
     Ok(CliArgs {
-        image: PathBuf::from(&args[0]),
+        lf_id,
+        image: PathBuf::from(&args[offset]),
         width_cells: number(1, "WIDTH")?,
         height_cells: number(2, "HEIGHT")?,
         x: number(3, "X")?,
@@ -393,6 +413,53 @@ mod tests {
         output
     }
 
+    fn decode_lf_command(line: &[u8]) -> Vec<u8> {
+        let prefix = b"send 17 tty-write \"";
+        assert!(line.starts_with(prefix));
+        assert!(line.ends_with(b"\"\n"));
+        assert!(!line.contains(&0x1b));
+        let mut output = Vec::new();
+        let mut cursor = prefix.len();
+        while cursor < line.len() - 2 {
+            if line[cursor] != b'\\' {
+                output.push(line[cursor]);
+                cursor += 1;
+                continue;
+            }
+            match &line[cursor + 1..cursor + 2] {
+                [b'0'..=b'9'] => {
+                    // lf r42 greedily consumes every decimal digit after an
+                    // octal escape, not exactly three (scan.go's isDigit loop).
+                    let start = cursor + 1;
+                    cursor = start;
+                    while line[cursor].is_ascii_digit() {
+                        cursor += 1;
+                    }
+                    let octal = std::str::from_utf8(&line[start..cursor]).unwrap();
+                    output.push(u8::from_str_radix(octal, 8).unwrap());
+                }
+                b"\\" => {
+                    output.push(b'\\');
+                    cursor += 2;
+                }
+                b"\"" => {
+                    output.push(b'\"');
+                    cursor += 2;
+                }
+                b"r" => {
+                    output.push(b'\r');
+                    cursor += 2;
+                }
+                b"n" => {
+                    output.push(b'\n');
+                    cursor += 2;
+                }
+                escape => panic!("unexpected escape: {escape:?}"),
+            }
+        }
+        output
+    }
+
     fn png(width: u32, height: u32, bytes: &[u8], color: ColorType) -> Vec<u8> {
         let mut encoded = Vec::new();
         PngEncoder::new(&mut encoded)
@@ -556,8 +623,14 @@ mod tests {
 
     #[test]
     fn emits_cursor_position_and_reassemblable_bounded_packets() {
-        let raw = (0u32..50_000)
-            .map(|i| (i.wrapping_mul(1_664_525).wrapping_add(1_013_904_223) >> 16) as u8)
+        let mut state = 0x1234_5678u32;
+        let raw = (0..200_000)
+            .map(|_| {
+                state ^= state << 13;
+                state ^= state >> 17;
+                state ^= state << 5;
+                state as u8
+            })
             .collect::<Vec<_>>();
         let mut encoder = ZlibEncoder::new(Vec::new(), Compression::fast());
         encoder.write_all(&raw).unwrap();
@@ -588,6 +661,56 @@ mod tests {
         let (header, inflated) = parse_protocol(&output);
         assert!(header.starts_with("a=T,f=24,s=4,v=3,i=424242,q=2,C=1,o=z,m=1"));
         assert_eq!(inflate_zlib(&inflated), raw);
+
+        let commands = lf::command_lines(&output, 17).unwrap();
+        assert!(commands.len() > 1, "image should be divided into batches");
+        let cursor_prefix = b"\x1b7\x1b[3;8H";
+        let mut reassembled = cursor_prefix.to_vec();
+        for command in &commands {
+            assert!(command.len() <= 60_000);
+            let body = decode_lf_command(command);
+            assert!(body.starts_with(cursor_prefix));
+            assert!(body.ends_with(b"\x1b8"));
+            let packets = &body[cursor_prefix.len()..body.len() - 2];
+            assert!(packets.starts_with(b"\x1b_G"));
+            assert!(packets.ends_with(b"\x1b\\"));
+            reassembled.extend_from_slice(packets);
+        }
+        reassembled.extend_from_slice(b"\x1b8");
+        let (_, reassembled_compressed) = parse_protocol(&reassembled);
+        assert_eq!(inflate_zlib(&reassembled_compressed), raw);
+    }
+
+    #[test]
+    fn validates_optional_lf_client_id_without_changing_legacy_arguments() {
+        let legacy = parse_args(
+            ["file.jpg", "2", "3", "4", "5"]
+                .map(OsString::from)
+                .into_iter(),
+        )
+        .unwrap();
+        assert_eq!(legacy.lf_id, None);
+        assert_eq!(
+            (legacy.width_cells, legacy.height_cells, legacy.x, legacy.y),
+            (2, 3, 4, 5)
+        );
+
+        let synchronized = parse_args(
+            ["--lf-id", "4294967295", "file.jpg", "2", "3", "4", "5"]
+                .map(OsString::from)
+                .into_iter(),
+        )
+        .unwrap();
+        assert_eq!(synchronized.lf_id, Some(u32::MAX));
+        for invalid in ["-1", "4294967296", "1;quit", "1\\n"] {
+            assert!(parse_args(
+                ["--lf-id", invalid, "file.jpg", "2", "3", "4", "5"]
+                    .map(OsString::from)
+                    .into_iter()
+            )
+            .is_err());
+        }
+        assert!(parse_args(["--lf-id"].map(OsString::from).into_iter()).is_err());
     }
 
     #[test]

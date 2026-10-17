@@ -52,9 +52,12 @@ case $image_type in
             printf '[Image preview requires: make -C ~/.vim/jpg-preview]\n'
             exit 1
         fi
-        # Rust handles decode, orientation, resize and Kitty protocol output.
-        # Do not query the tty here: lf also reads it and can steal replies.
-        if ! image_error=$("$image_preview" "$1" "$2" "$3" "$4" "$5" 2>&1 >/dev/tty); then
+        # In lf, queue complete image packets on its UI thread. Direct tty
+        # writes race tcell redraws and can corrupt or erase a fast preview.
+        image_args=()
+        [[ -n ${id:-} && ${lf_flag_single:-false} != true ]] && image_args=(--lf-id "$id")
+        # No tty response queries; standalone invocations still emit raw output.
+        if ! image_error=$("$image_preview" "${image_args[@]}" "$1" "$2" "$3" "$4" "$5" 2>&1 >/dev/tty); then
             printf '[Image preview failed] %s\n' "$image_error"
         fi
         exit 1 # Redraw on selection; do not cache a terminal image as text.

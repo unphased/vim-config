@@ -11,10 +11,11 @@ make -C ~/.vim/jpg-preview
 ~/.vim/jpg-preview/target/release/jpg-preview photo.ARW 40 20 60 1
 ```
 
-Arguments are `IMAGE WIDTH HEIGHT X Y`, with dimensions/position in terminal
-cells. Output is a Kitty graphics stream on stdout. `bat-lf-previewer` selects
-this binary for JPEG, PNG, and case-insensitive `.arw` paths. Other image formats
-report unsupported rather than implicitly falling back to legacy tools.
+Arguments are `[--lf-id ID] IMAGE WIDTH HEIGHT X Y`, with dimensions/position in
+terminal cells. Standalone output is a Kitty graphics stream on stdout.
+`bat-lf-previewer` supplies lf's client ID and selects this binary for JPEG, PNG,
+and case-insensitive `.arw` paths. Other image formats report unsupported rather
+than implicitly falling back to legacy tools.
 
 Build on each machine running lf (Rust 1.93+). The binary can also be installed
 as `jpg-preview` on PATH. Root `make all` builds it; `make test` runs its tests.
@@ -48,6 +49,27 @@ The first Rust small-preview run was 77 ms. These numbers **exclude** SSH
 transport and terminal rendering. Large raw-RGB protocol payloads still matter;
 measure before claiming equivalent end-to-end speedups.
 
-Direct tty placements still share ordering with lf's UI clears. Initial-open
-blanking was reproduced and remains a known issue: this format extension does
-not claim to fix it. No Unicode placeholders are used as a workaround.
+## lf redraw synchronization
+
+Direct `/dev/tty` writes race lf's UI drawing: the previewer runs on a separate
+thread. This reproduced as a blank JPEG locally in plain Ghostty, without SSH or
+Herdr. In normal lf mode, transmission and cleanup now use native `tty-write` on
+lf's UI thread. The local opening/selection/full-redraw reproducer passes.
+
+```text
+Rust → private command file → one small lf source request → UI-thread tty-write
+                              ← consumption acknowledgement ← shell builtin
+```
+
+The helper waits for acknowledgement through a private FIFO, then removes the
+command file, FIFO, and private directory. Rejection and a five-second timeout
+also clean up. Only a short notification crosses lf's server socket; bulk image
+commands there can deadlock quitting under backpressure. Packet boundaries and
+cursor save/restore are preserved; lf's greedy octal-escape parsing is accounted
+for. No placeholders, display delays, or persistent protocol cache are involved.
+
+Socket discovery matches lf r42: `$XDG_RUNTIME_DIR/lf.sock`, otherwise
+`${TMPDIR:-/tmp}/lf-UID/lf.sock`. `lf -single` has no server and retains raw tty
+output (and therefore does not get the synchronization guarantee). Standalone
+CLI rendering is unchanged. SIGKILL can leave temporary files, as with other
+process-owned temporary resources.

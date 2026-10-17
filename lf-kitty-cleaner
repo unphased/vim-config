@@ -1,3 +1,7 @@
 #!/bin/sh
-# Delete only the image owned by bat-lf-previewer, including its backing data.
+# Delete only our image, on the same UI-thread channel as its transmission.
+if [ -n "${id:-}" ] && [ "${lf_flag_single:-false}" != true ]; then
+    case $id in *[!0-9]*) printf 'Invalid lf client id\n' >&2; exit 1 ;; esac
+    exec lf -remote "send $id tty-write \"\033_Ga=d,d=I,i=424242,q=2\033\\\\\""
+fi
 printf '\033_Ga=d,d=I,i=424242,q=2\033\\' > /dev/tty

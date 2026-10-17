@@ -29,7 +29,7 @@ class PreviewTests(unittest.TestCase):
         self.scratch.mkdir()
         self.env = dict(os.environ, HOME=str(self.home), PATH=f"{self.bin}:{os.defpath}",
                         TERM="xterm-256color", CALLS=str(self.calls), TMPDIR=str(self.scratch))
-        for name in ("TERM_PROGRAM", "KITTY_WINDOW_ID", "HERDR_ENV", "TMUX", "id", "lf_user_preview_command"):
+        for name in ("TERM_PROGRAM", "KITTY_WINDOW_ID", "HERDR_ENV", "TMUX", "id", "lf_flag_single", "lf_user_preview_command"):
             self.env.pop(name, None)
         # Copy the entrypoint so PATH selects our stub instead of a local Cargo build.
         self.previewer = self.bin / "previewer"
@@ -125,6 +125,24 @@ class PreviewTests(unittest.TestCase):
         self.assertEqual(tty, b"")
         self.assertEqual(self.calls.read_text().splitlines(),
                          ["-remote", r'send 12345 tty-write "\033_Ga=d,d=I,i=424242,q=2\033\\"'])
+
+    def test_single_mode_keeps_raw_output_without_server(self):
+        self.env.update(id="12345", lf_flag_single="true")
+        result, tty = self.preview()
+        self.assertEqual(result.stdout, b"")
+        self.assertIn(b"RUST_IMAGE", tty)
+        self.assertNotIn("--lf-id", self.calls.read_text())
+        result, tty = self.run_script(ROOT / "lf-kitty-cleaner")
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(tty, b"\x1b_Ga=d,d=I,i=424242,q=2\x1b\\")
+
+    def test_cleaner_rejects_invalid_client_id(self):
+        self.env["id"] = "123; quit"
+        result, tty = self.run_script(ROOT / "lf-kitty-cleaner")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(b"Invalid lf client id", result.stderr)
+        self.assertEqual(tty, b"")
+        self.assertFalse(self.calls.exists())
 
     def test_preload_does_not_render_or_extract_any_image(self):
         for image in (self.jpeg, self.png, self.arw):
