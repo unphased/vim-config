@@ -41,18 +41,21 @@ case $(file -Lb --mime-type -- "$1" 2>/dev/null) in
     image/*)
         # Preloading must not paint files that aren't selected yet.
         [[ ${6:-preview} == preload ]] && exit 1
-        if [[ ${TERM_PROGRAM:-} != ghostty && ${TERM_PROGRAM:-} != herdr &&
-              ${HERDR_ENV:-} != 1 && ${TERM:-} != xterm-kitty &&
-              ${TERM:-} != xterm-ghostty && -z ${KITTY_WINDOW_ID:-} ]]; then
-            printf '[Image preview requires a terminal with Kitty graphics support]\n'
-            exit 1
-        fi
         kitten=$(command -v kitten)
         if [[ -z $kitten && -x /Applications/kitty.app/Contents/MacOS/kitten ]]; then
             kitten=/Applications/kitty.app/Contents/MacOS/kitten
         fi
         if [[ -z $kitten ]]; then
             printf '[Image preview requires kitten (included with Kitty)]\n'
+            exit 1
+        fi
+        # SSH often preserves only TERM=xterm-256color. Probe unidentified
+        # terminals instead of rejecting graphics-capable remote sessions.
+        if [[ ${TERM_PROGRAM:-} != ghostty && ${TERM_PROGRAM:-} != herdr &&
+              ${HERDR_ENV:-} != 1 && ${TERM:-} != xterm-kitty &&
+              ${TERM:-} != xterm-ghostty && -z ${KITTY_WINDOW_ID:-} ]] &&
+           ! "$kitten" icat --detect-support --detection-timeout=1 </dev/tty >/dev/tty 2>/dev/null; then
+            printf '[Image preview requires a terminal with Kitty graphics support]\n'
             exit 1
         fi
         # Capture stderr instead of silently falling through to bat on failure.
