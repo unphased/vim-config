@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import pty
 import select
+import struct
 import subprocess
 import tempfile
 import time
@@ -21,14 +22,20 @@ class PreviewTests(unittest.TestCase):
         self.bin = self.home / "bin"
         self.bin.mkdir()
         self.calls = self.home / "calls.json"
+        self.received = self.home / "received-image"
+        self.scratch = self.home / "tmp"
+        self.scratch.mkdir()
         self.env = dict(os.environ, HOME=str(self.home), PATH=f"{self.bin}:{os.defpath}",
-                        TERM="xterm-ghostty", TERM_PROGRAM="ghostty", CALLS=str(self.calls))
+                        TERM="xterm-ghostty", TERM_PROGRAM="ghostty", CALLS=str(self.calls),
+                        RECEIVED=str(self.received), TMPDIR=str(self.scratch))
         for name in ("KITTY_WINDOW_ID", "HERDR_ENV", "TMUX", "lf_user_preview_command"):
             self.env.pop(name, None)
         self.stub("kitten", 'printf "%s\\n" "$@" >> "$CALLS"; '
                   'case " $* " in *" --detect-support "*) exit 99;; esac; '
+                  'for arg do image=$arg; done; cp "$image" "$RECEIVED"; '
                   'printf "IMAGE"; '
-                  '[ "${ICAT_STATUS:-0}" = 0 ] || printf "icat decoder error\\n" >&2; '
+                  '[ "${ICAT_STATUS:-0}" = 0 ] && [ -z "${ICAT_ERROR:-}" ] || '
+                  'printf "icat decoder error\\n" >&2; '
                   'exit "${ICAT_STATUS:-0}"')
         self.stub("bat", 'printf "text preview\\n"')
         self.stub("md5sum", 'printf "abc  -\\n"')
@@ -39,6 +46,15 @@ class PreviewTests(unittest.TestCase):
         # file(1) recognizes this header; decoding is delegated to the mocked icat.
         self.image = self.home / "an image 'quoted'.png"
         self.image.write_bytes(bytes.fromhex("89504e470d0a1a0a0000000d4948445200000001000000010806000000"))
+
+    def raw(self, name="an image 'quoted'.ArW"):
+        image = self.home / name
+        jpeg = b"\xff\xd8embedded preview\xff\xd9"
+        image.write_bytes(b"II" + struct.pack("<HIH", 42, 8, 2)
+                          + struct.pack("<HHII", 0x0201, 4, 1, 38)
+                          + struct.pack("<HHII", 0x0202, 4, 1, len(jpeg))
+                          + struct.pack("<I", 0) + jpeg)
+        return image, jpeg
 
     def stub(self, name, body):
         script = self.bin / name
@@ -118,6 +134,55 @@ class PreviewTests(unittest.TestCase):
         self.assertIn(b"icat decoder error", result.stdout)
         self.assertNotIn(b"text preview", result.stdout)
         self.assertFalse((self.home / ".cache/lf-previewer").exists())
+        self.assertEqual(result.returncode, 1)
+
+    def test_arw_extracts_only_embedded_jpeg_and_cleans_temp_file(self):
+        raw, jpeg = self.raw()
+        result, tty = self.preview(raw)
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(result.stdout, b"")
+        self.assertIn(b"IMAGE", tty)
+        self.assertEqual(self.received.read_bytes(), jpeg)
+        passed_file = Path(self.calls.read_text().splitlines()[-1])
+        self.assertNotEqual(passed_file, raw)
+        self.assertEqual(passed_file.parent, self.scratch)
+        self.assertFalse(passed_file.exists())
+        self.assertEqual(list(self.scratch.iterdir()), [])
+        self.assertFalse((self.home / ".cache/lf-previewer").exists())
+
+    def test_arw_preload_never_extracts(self):
+        # Invalid input would report an extraction error if it were opened.
+        raw = self.home / "invalid.ARW"
+        raw.write_text("not a RAW")
+        result, tty = self.preview(raw, mode="preload")
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(result.stdout, b"")
+        self.assertEqual(tty, b"")
+        self.assertFalse(self.calls.exists())
+        self.assertEqual(list(self.scratch.iterdir()), [])
+
+    def test_invalid_arw_reports_extraction_error_without_raw_rendering(self):
+        raw = self.home / "invalid.arw"
+        raw.write_text("not a RAW")
+        result, tty = self.preview(raw)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn(b"ARW embedded preview unavailable", result.stdout)
+        self.assertNotIn(b"text preview", result.stdout)
+        self.assertNotIn(b"IMAGE", tty)
+        self.assertFalse(self.calls.exists())
+        self.assertEqual(list(self.scratch.iterdir()), [])
+
+    def test_arw_temp_is_removed_when_kitten_fails(self):
+        self.env["ICAT_STATUS"] = "1"
+        raw, _ = self.raw()
+        result, _ = self.preview(raw)
+        self.assertIn(b"Image preview failed", result.stdout)
+        self.assertEqual(list(self.scratch.iterdir()), [])
+
+    def test_kitten_error_is_reported_even_with_zero_exit(self):
+        self.env["ICAT_ERROR"] = "1"
+        result, _ = self.preview()
+        self.assertIn(b"icat decoder error", result.stdout)
         self.assertEqual(result.returncode, 1)
 
     def test_text_preview_is_unchanged(self):
