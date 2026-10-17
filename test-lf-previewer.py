@@ -29,7 +29,7 @@ class PreviewTests(unittest.TestCase):
         self.scratch.mkdir()
         self.env = dict(os.environ, HOME=str(self.home), PATH=f"{self.bin}:{os.defpath}",
                         TERM="xterm-256color", CALLS=str(self.calls), TMPDIR=str(self.scratch))
-        for name in ("TERM_PROGRAM", "KITTY_WINDOW_ID", "HERDR_ENV", "TMUX", "lf_user_preview_command"):
+        for name in ("TERM_PROGRAM", "KITTY_WINDOW_ID", "HERDR_ENV", "TMUX", "id", "lf_user_preview_command"):
             self.env.pop(name, None)
         # Copy the entrypoint so PATH selects our stub instead of a local Cargo build.
         self.previewer = self.bin / "previewer"
@@ -105,6 +105,26 @@ class PreviewTests(unittest.TestCase):
                 self.assertFalse(self.legacy.exists())
                 self.assertEqual(list(self.scratch.iterdir()), [])
                 self.assertFalse((self.home / ".cache/lf-previewer").exists())
+
+    def test_lf_client_uses_synchronized_renderer_mode(self):
+        self.env["id"] = "12345"
+        # In native mode the helper uses lf's socket, not terminal stdout.
+        self.stub("jpg-preview", 'printf "%s\\n" "$@" > "$CALLS"')
+        result, tty = self.preview()
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(result.stdout, b"")
+        self.assertEqual(tty, b"")
+        self.assertEqual(self.calls.read_text().splitlines(),
+                         ["--lf-id", "12345", str(self.png), "40", "20", "60", "1"])
+
+    def test_cleaner_in_lf_uses_synchronized_tty_write(self):
+        self.env["id"] = "12345"
+        self.stub("lf", 'printf "%s\\n" "$@" > "$CALLS"')
+        result, tty = self.run_script(ROOT / "lf-kitty-cleaner")
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(tty, b"")
+        self.assertEqual(self.calls.read_text().splitlines(),
+                         ["-remote", r'send 12345 tty-write "\033_Ga=d,d=I,i=424242,q=2\033\\"'])
 
     def test_preload_does_not_render_or_extract_any_image(self):
         for image in (self.jpeg, self.png, self.arw):
