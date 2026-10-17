@@ -45,6 +45,19 @@ case $image_type in
     image/*)
         # Preloading must not paint files that aren't selected yet.
         [[ ${6:-preview} == preload ]] && exit 1
+        if [[ $image_type == image/jpeg ]]; then
+            script_dir=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+            jpg_preview=$script_dir/jpg-preview/target/release/jpg-preview
+            [[ -x $jpg_preview ]] || jpg_preview=$(command -v jpg-preview)
+            if [[ ! -x $jpg_preview ]]; then
+                printf '[JPEG preview requires: make -C ~/.vim/jpg-preview]\n'
+                exit 1
+            fi
+            if ! image_error=$("$jpg_preview" "$1" "$2" "$3" "$4" "$5" 2>&1 >/dev/tty); then
+                printf '[JPEG preview failed] %s\n' "$image_error"
+            fi
+            exit 1 # Redraw on selection; do not cache a terminal image as text.
+        fi
         kitten=$(command -v kitten)
         if [[ -z $kitten && -x /Applications/kitty.app/Contents/MacOS/kitten ]]; then
             kitten=/Applications/kitty.app/Contents/MacOS/kitten

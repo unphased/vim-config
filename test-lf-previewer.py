@@ -34,10 +34,10 @@ class PreviewTests(unittest.TestCase):
         self.stub("kitten", 'printf "%s\\n" "$@" >> "$CALLS"; '
                   'case " $* " in *" --detect-support "*) exit 99;; esac; '
                   'for arg do image=$arg; done; cp "$image" "$RECEIVED"; '
-                  'if [ "${ICAT_STATUS:-0}" != 0 ] || [ -n "${ICAT_ERROR:-}" ]; then '
-                  'printf "icat decoder error\\n" >&2; exit "${ICAT_STATUS:-0}"; fi; '
-                  'printf "\\033_Ga=T;IMAGE\\033\\\\\\r\\033[38:2:6:121:50m\\0337"; '
-                  'printf "\\033[1;0H\\033[2CPLACEHOLDER\\033[2;0HROW2\\033[39m\\0338"')
+                  'printf "IMAGE"; '
+                  '[ "${ICAT_STATUS:-0}" = 0 ] && [ -z "${ICAT_ERROR:-}" ] || '
+                  'printf "icat decoder error\\n" >&2; '
+                  'exit "${ICAT_STATUS:-0}"')
         self.stub("bat", 'printf "text preview\\n"')
         self.stub("md5sum", 'printf "abc  -\\n"')
         for cmd in ("brotli", "zstd"):
@@ -103,12 +103,10 @@ class PreviewTests(unittest.TestCase):
     def test_image_uses_existing_icat_and_disables_lf_cache(self):
         result, tty = self.preview()
         self.assertEqual(result.returncode, 1)
-        self.assertEqual(result.stdout, b"\x1b[38;2;6;121;50m  PLACEHOLDER\nROW2\x1b[39m")
+        self.assertEqual(result.stdout, b"")
         self.assertIn(b"IMAGE", tty)
-        self.assertNotIn(b"PLACEHOLDER", tty)
         args = self.calls.read_text().splitlines()
-        self.assertIn("--place=40x20@0x0", args)
-        self.assertIn("--unicode-placeholder", args)
+        self.assertIn("--place=40x20@60x1", args)
         self.assertIn("--stdin=no", args)
         self.assertIn("--transfer-mode=stream", args)
         self.assertNotIn("--detect-support", args)
@@ -129,7 +127,7 @@ class PreviewTests(unittest.TestCase):
         cache.mkdir(parents=True)
         (cache / f"abc_{int(self.image.stat().st_mtime)}.preview").write_text("[bat warning]\n")
         result, tty = self.preview()
-        self.assertIn(b"PLACEHOLDER", result.stdout)
+        self.assertEqual(result.stdout, b"")
         self.assertIn(b"IMAGE", tty)
         self.assertEqual(result.returncode, 1)
 
@@ -146,12 +144,12 @@ class PreviewTests(unittest.TestCase):
         raw, jpeg = self.raw()
         result, tty = self.preview(raw)
         self.assertEqual(result.returncode, 1)
-        self.assertIn(b"PLACEHOLDER", result.stdout)
+        self.assertEqual(result.stdout, b"")
         self.assertIn(b"IMAGE", tty)
         self.assertEqual(self.received.read_bytes(), jpeg)
         passed_file = Path(self.calls.read_text().splitlines()[-1])
         self.assertNotEqual(passed_file, raw)
-        self.assertEqual(passed_file.parent.parent, self.scratch)
+        self.assertEqual(passed_file.parent, self.scratch)
         self.assertFalse(passed_file.exists())
         self.assertEqual(list(self.scratch.iterdir()), [])
         self.assertFalse((self.home / ".cache/lf-previewer").exists())
@@ -199,6 +197,35 @@ class PreviewTests(unittest.TestCase):
         self.assertIn(b"icat decoder error", result.stdout)
         self.assertEqual(result.returncode, 1)
 
+    def test_jpeg_uses_rust_renderer_without_kitten_or_perl(self):
+        jpeg = self.home / "phone 'quoted'.jpg"
+        jpeg.write_bytes(b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00" + b"\x00" * 16)
+        # Copy only the shell entrypoint so the test uses its PATH binary, not a local build.
+        previewer = self.bin / "previewer"
+        previewer.write_bytes((ROOT / "bat-lf-previewer").read_bytes())
+        previewer.chmod(0o755)
+        legacy = self.home / "legacy-called"
+        for name in ("kitten", "perl"):
+            self.stub(name, f"touch '{legacy}'; exit 99")
+        self.stub("jpg-preview", 'printf "%s\\n" "$@" > "$CALLS"; printf "RUST_IMAGE"')
+        result, tty = self.run_script(str(previewer), jpeg, 40, 20, 60, 1, "preview")
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(result.stdout, b"")
+        self.assertIn(b"RUST_IMAGE", tty)
+        self.assertFalse(legacy.exists())
+        self.assertEqual(self.calls.read_text().splitlines(), [str(jpeg), "40", "20", "60", "1"])
+        self.assertEqual(list(self.scratch.iterdir()), [])
+
+        self.stub("jpg-preview", 'printf "decoder failed\\n" >&2; exit 1')
+        result, _ = self.run_script(str(previewer), jpeg, 40, 20, 60, 1)
+        self.assertIn(b"JPEG preview failed", result.stdout)
+        self.assertFalse(legacy.exists())
+
+        (self.bin / "jpg-preview").unlink()
+        result, _ = self.run_script(str(previewer), jpeg, 40, 20, 60, 1)
+        self.assertIn(b"JPEG preview requires", result.stdout)
+        self.assertFalse(legacy.exists())
+
     def test_text_preview_is_unchanged(self):
         result, tty = self.preview(self.text)
         self.assertIn(b"text preview", result.stdout)
@@ -210,7 +237,7 @@ class PreviewTests(unittest.TestCase):
         self.env["TERM"] = "xterm-256color"
         self.env.pop("TERM_PROGRAM")
         result, tty = self.preview()
-        self.assertIn(b"PLACEHOLDER", result.stdout)
+        self.assertEqual(result.stdout, b"")
         self.assertIn(b"IMAGE", tty)
         self.assertEqual(result.returncode, 1)
         args = self.calls.read_text().splitlines()

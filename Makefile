@@ -4,8 +4,10 @@ HERDR_CONFIG_DIR ?= $(HOME)/.config/herdr
 .PHONY: all test bootstrap-herdr install-herdr-config install-herdr-plugins
 
 all: test
+	cargo build --release --locked --manifest-path jpg-preview/Cargo.toml
 
 test:
+	$(MAKE) -C jpg-preview test
 	bash -n bat-lf-previewer
 	sh -n lf-kitty-cleaner
 	perl -c sony-arw-preview
