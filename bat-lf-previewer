@@ -49,15 +49,9 @@ case $(file -Lb --mime-type -- "$1" 2>/dev/null) in
             printf '[Image preview requires kitten (included with Kitty)]\n'
             exit 1
         fi
-        # SSH often preserves only TERM=xterm-256color. Probe unidentified
-        # terminals instead of rejecting graphics-capable remote sessions.
-        if [[ ${TERM_PROGRAM:-} != ghostty && ${TERM_PROGRAM:-} != herdr &&
-              ${HERDR_ENV:-} != 1 && ${TERM:-} != xterm-kitty &&
-              ${TERM:-} != xterm-ghostty && -z ${KITTY_WINDOW_ID:-} ]] &&
-           ! "$kitten" icat --detect-support --detection-timeout=1 </dev/tty >/dev/tty 2>/dev/null; then
-            printf '[Image preview requires a terminal with Kitty graphics support]\n'
-            exit 1
-        fi
+        # SSH may preserve no graphics identity; don't gate on environment.
+        # Don't probe here either: lf also reads the tty and can steal replies.
+        # Stream directly; terminals without Kitty graphics ignore the output.
         # Capture stderr instead of silently falling through to bat on failure.
         if image_error=$("$kitten" icat --stdin=no --transfer-mode=stream \
             --image-id=424242 --place="${2}x${3}@${4}x${5}" -- "$1" \
