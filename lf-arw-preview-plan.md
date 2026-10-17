@@ -1,5 +1,9 @@
 # Selected-file Sony ARW previews in lf
 
+**Superseded for lf:** `jpg-preview/` now handles JPEG, PNG, and embedded ARW
+previews entirely in Rust. This records the original Perl implementation; the
+Perl helper remains only for Yazi. See `jpg-preview/README.md` for current usage.
+
 ## Verified findings
 
 - Existing implementation: `.config/yazi/plugins/raw-thumb.yazi/main.lua:8`.

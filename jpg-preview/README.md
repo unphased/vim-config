@@ -1,29 +1,40 @@
-# JPEG preview dogfood
+# Rust image preview dogfood
 
-Pure-Rust JPEG decode, EXIF orientation, SIMD resize, fast zlib compression,
-and direct Kitty graphics transmission. No kitten, Perl, Unicode placeholders,
-terminal-response queries, persistent cache, or background preloading on this path.
+Pure-Rust JPEG, PNG, and Sony ARW previews: orientation, SIMD resize, fast zlib
+compression, and direct Kitty graphics transmission. No kitten, Perl, Unicode
+placeholders, terminal-response queries, temporary JPEGs, persistent image cache,
+or background preloading on lf's image path. The executable keeps its original
+`jpg-preview` name for compatibility.
 
 ```sh
 make -C ~/.vim/jpg-preview
-~/.vim/jpg-preview/target/release/jpg-preview photo.jpg 40 20 60 1
+~/.vim/jpg-preview/target/release/jpg-preview photo.ARW 40 20 60 1
 ```
 
 Arguments are `IMAGE WIDTH HEIGHT X Y`, with dimensions/position in terminal
 cells. Output is a Kitty graphics stream on stdout. `bat-lf-previewer` selects
-this binary for `image/jpeg`; PNG and ARW retain their existing implementation.
-The binary must be built on each machine running lf (Rust 1.93+). It can also
-be installed as `jpg-preview` on PATH. Root `make all` builds it, and `make test`
-runs its tests.
+this binary for JPEG, PNG, and case-insensitive `.arw` paths. Other image formats
+report unsupported rather than implicitly falling back to legacy tools.
+
+Build on each machine running lf (Rust 1.93+). The binary can also be installed
+as `jpg-preview` on PATH. Root `make all` builds it; `make test` runs its tests.
+
+- **JPEG:** pure-Rust decoding and EXIF orientation, RGB protocol output.
+- **PNG:** pure-Rust decoding; alpha preserved as RGBA with alpha-aware resizing.
+  Grayscale and 16-bit input are converted to terminal RGB/RGBA.
+- **Sony ARW:** seek to classic TIFF IFD0 tags `0x0201`/`0x0202` and read only the
+  embedded JPEG. Valid outer TIFF orientation overrides embedded JPEG orientation
+  once. Missing/unsupported preview layouts fail explicitly; no full-RAW decode.
 
 Cell pixel dimensions use the controlling tty's `TIOCGWINSZ` values, falling back
 to 10×20 pixels when unavailable. `LF_IMAGE_CELL_PIXELS=10x20` overrides this for
 repeatable headless benchmarks. Aspect ratio is retained; images are not enlarged.
-JPEGs above 64 million pixels or 128 MiB encoded input are rejected. Encoded
-reads are bounded before decoder construction. The image ID remains 424242 so the
-existing lf cleaner works.
+Decoded images above 64 million pixels and encoded input above 128 MiB are
+rejected. The encoded bound applies to the embedded JPEG, not the entire ARW;
+large RAW pixel data is neither scanned nor loaded. Reads are bounded before
+decoder construction. Image ID remains 424242 so the existing lf cleaner works.
 
-## Initial measurements
+## Initial JPEG measurements
 
 NAS `/six_fourteen/SCREENCAPS/IMG_1795.jpg`: 800,048 bytes, 1512×2016.
 Release build, warm files, stdout redirected to a temporary file:
@@ -35,12 +46,8 @@ Release build, warm files, stdout redirected to a temporary file:
 
 The first Rust small-preview run was 77 ms. These numbers **exclude** SSH
 transport and terminal rendering. Large raw-RGB protocol payloads still matter;
-measure before claiming equivalent end-to-end speedups. A real NAS JPEG was
-visually checked in Ghostty → Herdr → SSH → lf.
+measure before claiming equivalent end-to-end speedups.
 
-This is a JPEG-first dogfood implementation, not a general image framework.
-Direct tty placements still share ordering with lf's UI clears; the rewrite does
-not claim to solve every initial-open/redraw race. Future work can address native
-lf presentation ordering and benchmark PNG payloads, PNG input, and direct ARW
-embedded-JPEG extraction. Do not reintroduce Unicode placeholder cells as a
-workaround.
+Direct tty placements still share ordering with lf's UI clears. Initial-open
+blanking was reproduced and remains a known issue: this format extension does
+not claim to fix it. No Unicode placeholders are used as a workaround.

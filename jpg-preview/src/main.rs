@@ -4,6 +4,8 @@ use std::fs::File;
 use std::io::{self, BufWriter, Cursor, Read, Write};
 use std::path::PathBuf;
 
+mod arw;
+
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
 use fast_image_resize as fir;
@@ -29,6 +31,7 @@ struct CliArgs {
 struct PreparedImage {
     width: u32,
     height: u32,
+    pixel_format: u8,
     compressed_rgb: Vec<u8>,
 }
 
@@ -133,68 +136,124 @@ fn prepare_path(
     max_width: usize,
     max_height: usize,
 ) -> Result<PreparedImage, Box<dyn Error>> {
-    // image's JPEG decoder buffers its input before checking decoded limits.
-    // Bound the actual read, not just metadata (which could change underneath us).
+    let is_arw = path
+        .extension()
+        .is_some_and(|extension| extension.to_string_lossy().eq_ignore_ascii_case("arw"));
+    if is_arw {
+        let extracted = arw::extract(&mut File::open(path)?)?;
+        let mut reader = ImageReader::new(Cursor::new(extracted.bytes)).with_guessed_format()?;
+        if reader.format() != Some(ImageFormat::Jpeg) {
+            return Err("ARW embedded payload is not a JPEG image".into());
+        }
+        reader.limits(decode_limits());
+        return prepare_with_orientation(
+            reader.into_decoder()?,
+            max_width,
+            max_height,
+            extracted.orientation,
+        );
+    }
+
+    // Bound actual reads because image decoders buffer input before checking limits.
     let encoded = read_bounded(File::open(path)?, MAX_ENCODED_BYTES)?;
     let mut reader = ImageReader::new(Cursor::new(encoded)).with_guessed_format()?;
-    if reader.format() != Some(ImageFormat::Jpeg) {
-        return Err("input is not a JPEG image".into());
+    if !matches!(reader.format(), Some(ImageFormat::Jpeg | ImageFormat::Png)) {
+        return Err("input is not a supported JPEG or PNG image".into());
     }
+    reader.limits(decode_limits());
+    prepare(reader.into_decoder()?, max_width, max_height)
+}
+
+fn decode_limits() -> Limits {
     let mut limits = Limits::default();
     limits.max_image_width = Some(u16::MAX.into());
     limits.max_image_height = Some(u16::MAX.into());
     limits.max_alloc = Some(MAX_DECODE_BYTES);
-    reader.limits(limits);
-    prepare(reader.into_decoder()?, max_width, max_height)
+    limits
 }
 
 fn read_bounded(input: impl Read, max_bytes: u64) -> io::Result<Vec<u8>> {
     let mut encoded = Vec::new();
     input.take(max_bytes + 1).read_to_end(&mut encoded)?;
     if encoded.len() as u64 > max_bytes {
-        return Err(io::Error::other("encoded JPEG exceeds input size limit"));
+        return Err(io::Error::other("encoded image exceeds input size limit"));
     }
     Ok(encoded)
 }
 
 fn prepare(
-    mut decoder: impl ImageDecoder,
+    decoder: impl ImageDecoder,
     max_width: usize,
     max_height: usize,
 ) -> Result<PreparedImage, Box<dyn Error>> {
+    prepare_with_orientation(decoder, max_width, max_height, None)
+}
+
+fn prepare_with_orientation(
+    mut decoder: impl ImageDecoder,
+    max_width: usize,
+    max_height: usize,
+    orientation_override: Option<image::metadata::Orientation>,
+) -> Result<PreparedImage, Box<dyn Error>> {
     let (source_width, source_height) = decoder.dimensions();
     if u64::from(source_width) * u64::from(source_height) > MAX_PIXELS {
-        return Err(format!("JPEG exceeds the {MAX_PIXELS}-pixel safety limit").into());
+        return Err(format!("image exceeds the {MAX_PIXELS}-pixel safety limit").into());
     }
     if max_width == 0 || max_height == 0 {
         return Err("target pixel dimensions must be greater than zero".into());
     }
 
-    let orientation = decoder.orientation()?;
+    let orientation = match orientation_override {
+        Some(orientation) => orientation,
+        None => decoder.orientation()?,
+    };
     let mut decoded = DynamicImage::from_decoder(decoder)?;
     decoded.apply_orientation(orientation);
-    let source = decoded.into_rgb8();
-    let (width, height) = fit_dimensions(source.width(), source.height(), max_width, max_height);
-    let pixels = if width == source.width() && height == source.height() {
-        source.into_raw()
+    let has_alpha = decoded.color().has_alpha();
+    let (width, height) = fit_dimensions(decoded.width(), decoded.height(), max_width, max_height);
+    let (pixels, pixel_format) = if has_alpha {
+        let source = decoded.into_rgba8();
+        let pixels = if width == source.width() && height == source.height() {
+            source.into_raw()
+        } else {
+            let src = fir::images::Image::from_vec_u8(
+                source.width(),
+                source.height(),
+                source.into_raw(),
+                fir::PixelType::U8x4,
+            )?;
+            let mut dst = fir::images::Image::new(width, height, fir::PixelType::U8x4);
+            let options = fir::ResizeOptions::new()
+                .resize_alg(fir::ResizeAlg::Convolution(fir::FilterType::Bilinear));
+            fir::Resizer::new().resize(&src, &mut dst, Some(&options))?;
+            dst.into_vec()
+        };
+        (pixels, 32)
     } else {
-        let src = fir::images::Image::from_vec_u8(
-            source.width(),
-            source.height(),
-            source.into_raw(),
-            fir::PixelType::U8x3,
-        )?;
-        let mut dst = fir::images::Image::new(width, height, fir::PixelType::U8x3);
-        let options = fir::ResizeOptions::new()
-            .resize_alg(fir::ResizeAlg::Convolution(fir::FilterType::Bilinear));
-        fir::Resizer::new().resize(&src, &mut dst, Some(&options))?;
-        dst.into_vec()
+        let source = decoded.into_rgb8();
+        let pixels = if width == source.width() && height == source.height() {
+            source.into_raw()
+        } else {
+            let src = fir::images::Image::from_vec_u8(
+                source.width(),
+                source.height(),
+                source.into_raw(),
+                fir::PixelType::U8x3,
+            )?;
+            let mut dst = fir::images::Image::new(width, height, fir::PixelType::U8x3);
+            let options = fir::ResizeOptions::new()
+                .resize_alg(fir::ResizeAlg::Convolution(fir::FilterType::Bilinear));
+            fir::Resizer::new().resize(&src, &mut dst, Some(&options))?;
+            dst.into_vec()
+        };
+        (pixels, 24)
     };
     let mut encoder = ZlibEncoder::new(Vec::new(), Compression::fast());
     encoder.write_all(&pixels)?;
     Ok(PreparedImage {
         width,
         height,
+        pixel_format,
         compressed_rgb: encoder.finish()?,
     })
 }
@@ -235,8 +294,8 @@ fn emit_kitty(
         if index == 0 {
             write!(
                 output,
-                "\x1b_Ga=T,f=24,s={},v={},i={},q=2,C=1,o=z,m={more};",
-                image.width, image.height, IMAGE_ID
+                "\x1b_Ga=T,f={},s={},v={},i={},q=2,C=1,o=z,m={more};",
+                image.pixel_format, image.width, image.height, IMAGE_ID
             )?;
         } else {
             write!(output, "\x1b_Gm={more};")?;
@@ -252,7 +311,8 @@ mod tests {
     use super::*;
     use flate2::read::ZlibDecoder;
     use image::codecs::jpeg::JpegEncoder;
-    use image::RgbImage;
+    use image::codecs::png::PngEncoder;
+    use image::{ColorType, ImageEncoder, RgbImage};
     use std::io::Cursor;
     use std::io::Read;
 
@@ -333,6 +393,150 @@ mod tests {
         output
     }
 
+    fn png(width: u32, height: u32, bytes: &[u8], color: ColorType) -> Vec<u8> {
+        let mut encoded = Vec::new();
+        PngEncoder::new(&mut encoded)
+            .write_image(bytes, width, height, color.into())
+            .unwrap();
+        encoded
+    }
+
+    fn decode_test_image(bytes: &[u8], max_width: usize, max_height: usize) -> PreparedImage {
+        let reader = ImageReader::new(Cursor::new(bytes))
+            .with_guessed_format()
+            .unwrap();
+        prepare(reader.into_decoder().unwrap(), max_width, max_height).unwrap()
+    }
+
+    #[test]
+    fn png_rgba_is_preserved_at_native_size_and_alpha_correct_when_resized() {
+        let rgba = [255, 0, 0, 0, 0, 0, 255, 255];
+        let encoded = png(2, 1, &rgba, ColorType::Rgba8);
+        let native = decode_test_image(&encoded, 2, 1);
+        assert_eq!(native.pixel_format, 32);
+        assert_eq!(inflate_zlib(&native.compressed_rgb), rgba);
+        let mut output = Vec::new();
+        emit_kitty(&mut output, &native, 0, 0).unwrap();
+        let (header, compressed) = parse_protocol(&output);
+        assert!(header.contains("f=32"));
+        assert_eq!(inflate_zlib(&compressed), rgba);
+
+        let resized = decode_test_image(&encoded, 1, 1);
+        let pixels = inflate_zlib(&resized.compressed_rgb);
+        assert_eq!(pixels.len(), 4);
+        assert!(
+            pixels[0] < 10,
+            "transparent red contaminated output: {pixels:?}"
+        );
+        assert!(pixels[2] > 240, "opaque blue was lost: {pixels:?}");
+        assert!(
+            (120..=136).contains(&pixels[3]),
+            "unexpected output alpha: {pixels:?}"
+        );
+    }
+
+    #[test]
+    fn decodes_png_grayscale_and_sixteen_bit_pixels() {
+        let gray = png(2, 1, &[32, 192], ColorType::L8);
+        let decoded = decode_test_image(&gray, 2, 1);
+        assert_eq!(
+            inflate_zlib(&decoded.compressed_rgb),
+            [32, 32, 32, 192, 192, 192]
+        );
+
+        let values = [0x1234u16, 0xabcd];
+        let raw = values
+            .iter()
+            .flat_map(|value| value.to_ne_bytes())
+            .collect::<Vec<_>>();
+        let sixteen = png(2, 1, &raw, ColorType::L16);
+        let decoded = decode_test_image(&sixteen, 2, 1);
+        let pixels = inflate_zlib(&decoded.compressed_rgb);
+        assert_eq!(pixels.len(), 6);
+        assert_eq!(&pixels[0..3], &[pixels[0]; 3]);
+        assert_eq!(&pixels[3..6], &[pixels[3]; 3]);
+        assert!(pixels[0] < pixels[3]);
+    }
+
+    #[test]
+    fn all_eight_orientation_overrides_match_reference_pixel_positions() {
+        let jpeg = jpeg_with_orientation(3, 2, 6);
+        let reader = ImageReader::new(Cursor::new(jpeg.clone()))
+            .with_guessed_format()
+            .unwrap();
+        let raw = DynamicImage::from_decoder(reader.into_decoder().unwrap())
+            .unwrap()
+            .into_rgb8();
+        for exif in 1..=8 {
+            let orientation = image::metadata::Orientation::from_exif(exif).unwrap();
+            let mut expected = DynamicImage::ImageRgb8(raw.clone());
+            expected.apply_orientation(orientation);
+            let reader = ImageReader::new(Cursor::new(jpeg.clone()))
+                .with_guessed_format()
+                .unwrap();
+            let prepared =
+                prepare_with_orientation(reader.into_decoder().unwrap(), 10, 10, Some(orientation))
+                    .unwrap();
+            assert_eq!(
+                (prepared.width, prepared.height),
+                (expected.width(), expected.height())
+            );
+            assert_eq!(
+                inflate_zlib(&prepared.compressed_rgb),
+                expected.into_rgb8().into_raw()
+            );
+        }
+    }
+
+    #[test]
+    fn arw_orientation_overrides_embedded_jpeg_orientation_once() {
+        let jpeg = jpeg_with_orientation(3, 2, 3);
+        let jpeg_reader = ImageReader::new(Cursor::new(jpeg.clone()))
+            .with_guessed_format()
+            .unwrap();
+        let mut expected = DynamicImage::from_decoder(jpeg_reader.into_decoder().unwrap()).unwrap();
+        expected.apply_orientation(image::metadata::Orientation::Rotate90);
+        let expected_pixels = expected.into_rgb8().into_raw();
+        let ifd_offset = 8usize;
+        let jpeg_offset = 64u32;
+        let mut arw = vec![0; ifd_offset];
+        arw[..2].copy_from_slice(b"II");
+        arw[2..4].copy_from_slice(&42u16.to_le_bytes());
+        arw[4..8].copy_from_slice(&(ifd_offset as u32).to_le_bytes());
+        arw.extend_from_slice(&3u16.to_le_bytes());
+        for (tag, kind, value) in [
+            (0x0201u16, 4u16, jpeg_offset),
+            (0x0202, 4, jpeg.len() as u32),
+            (0x0112, 3, 6),
+        ] {
+            arw.extend_from_slice(&tag.to_le_bytes());
+            arw.extend_from_slice(&kind.to_le_bytes());
+            arw.extend_from_slice(&1u32.to_le_bytes());
+            if kind == 3 {
+                arw.extend_from_slice(&(value as u16).to_le_bytes());
+                arw.extend_from_slice(&[0, 0]);
+            } else {
+                arw.extend_from_slice(&value.to_le_bytes());
+            }
+        }
+        arw.extend_from_slice(&[0; 4]);
+        arw.resize(jpeg_offset as usize, 0);
+        arw.extend_from_slice(&jpeg);
+        let extracted = arw::extract(&mut Cursor::new(arw)).unwrap();
+        let reader = ImageReader::new(Cursor::new(extracted.bytes))
+            .with_guessed_format()
+            .unwrap();
+        let prepared = prepare_with_orientation(
+            reader.into_decoder().unwrap(),
+            10,
+            10,
+            extracted.orientation,
+        )
+        .unwrap();
+        assert_eq!((prepared.width, prepared.height), (2, 3));
+        assert_eq!(inflate_zlib(&prepared.compressed_rgb), expected_pixels);
+    }
+
     #[test]
     fn applies_exif_orientation_and_resizes_to_cell_pixels() {
         let jpeg = jpeg_with_orientation(3, 2, 6);
@@ -361,6 +565,7 @@ mod tests {
         let image = PreparedImage {
             width: 4,
             height: 3,
+            pixel_format: 24,
             compressed_rgb,
         };
         let mut output = Vec::new();

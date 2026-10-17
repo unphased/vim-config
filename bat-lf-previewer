@@ -42,55 +42,26 @@ case "$1" in
     *) image_type=$(file -Lb --mime-type -- "$1" 2>/dev/null) ;;
 esac
 case $image_type in
-    image/*)
-        # Preloading must not paint files that aren't selected yet.
+    image/jpeg|image/png|image/x-sony-arw)
+        # Only selected files: no speculative decoding/extraction or text cache.
         [[ ${6:-preview} == preload ]] && exit 1
-        if [[ $image_type == image/jpeg ]]; then
-            script_dir=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-            jpg_preview=$script_dir/jpg-preview/target/release/jpg-preview
-            [[ -x $jpg_preview ]] || jpg_preview=$(command -v jpg-preview)
-            if [[ ! -x $jpg_preview ]]; then
-                printf '[JPEG preview requires: make -C ~/.vim/jpg-preview]\n'
-                exit 1
-            fi
-            if ! image_error=$("$jpg_preview" "$1" "$2" "$3" "$4" "$5" 2>&1 >/dev/tty); then
-                printf '[JPEG preview failed] %s\n' "$image_error"
-            fi
-            exit 1 # Redraw on selection; do not cache a terminal image as text.
-        fi
-        kitten=$(command -v kitten)
-        if [[ -z $kitten && -x /Applications/kitty.app/Contents/MacOS/kitten ]]; then
-            kitten=/Applications/kitty.app/Contents/MacOS/kitten
-        fi
-        if [[ -z $kitten ]]; then
-            printf '[Image preview requires kitten (included with Kitty)]\n'
+        script_dir=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+        image_preview=$script_dir/jpg-preview/target/release/jpg-preview
+        [[ -x $image_preview ]] || image_preview=$(command -v jpg-preview)
+        if [[ ! -x $image_preview ]]; then
+            printf '[Image preview requires: make -C ~/.vim/jpg-preview]\n'
             exit 1
         fi
-        image=$1
-        if [[ $image_type == image/x-sony-arw ]]; then
-            raw_preview=$(mktemp "${TMPDIR:-/tmp}/lf-arw-preview.XXXXXX") || {
-                printf '[ARW embedded preview unavailable: cannot create temporary file]\n'
-                exit 1
-            }
-            trap 'rm -f -- "$raw_preview"' EXIT
-            trap 'exit 1' HUP INT TERM
-            script_dir=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-            if ! image_error=$("$script_dir/sony-arw-preview" "$1" "$raw_preview" 2>&1); then
-                printf '[ARW embedded preview unavailable] %s\n' "$image_error"
-                exit 1
-            fi
-            image=$raw_preview
+        # Rust handles decode, orientation, resize and Kitty protocol output.
+        # Do not query the tty here: lf also reads it and can steal replies.
+        if ! image_error=$("$image_preview" "$1" "$2" "$3" "$4" "$5" 2>&1 >/dev/tty); then
+            printf '[Image preview failed] %s\n' "$image_error"
         fi
-        # SSH may preserve no graphics identity; don't gate on environment.
-        # Don't probe here either: lf also reads the tty and can steal replies.
-        # Stream directly; terminals without Kitty graphics ignore the output.
-        # Capture stderr instead of silently falling through to bat on failure.
-        if image_error=$("$kitten" icat --stdin=no --transfer-mode=stream \
-            --image-id=424242 --place="${2}x${3}@${4}x${5}" -- "$image" \
-            2>&1 > /dev/tty) && [[ -z $image_error ]]; then
-            exit 1 # Disable lf's text cache so revisiting redraws the image.
-        fi
-        printf '[Image preview failed] %s\n' "$image_error"
+        exit 1 # Redraw on selection; do not cache a terminal image as text.
+        ;;
+    image/*)
+        [[ ${6:-preview} == preload ]] && exit 1
+        printf '[Image preview supported formats: JPEG, PNG, Sony ARW]\n'
         exit 1
         ;;
 esac
