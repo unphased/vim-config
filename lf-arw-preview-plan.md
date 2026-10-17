@@ -39,7 +39,7 @@ latency. The JPEG is about 0.32% of the RAW's size. Temporary benchmark files
 were removed. Recovered July history also reported 5–6 ms extraction on a
 separate Mac sample.
 
-## Proposed minimal flow
+## Implemented flow
 
 ```mermaid
 flowchart LR
@@ -83,7 +83,15 @@ Normal JPEG/PNG and text handling stay unchanged.
    revisiting, resizing, portrait orientation, and quitting. Check for leftover
    children/temp files and confirm unselected RAWs are not extracted.
 
-No implementation or configuration changes are included in this plan. Embedded
-preview quality/resolution is camera-defined; not all ARWs necessarily use this
-IFD0 layout. Add optional fallback/caching only if actual files or measured
-latency justify it.
+Implemented with the shared Perl helper and kitten. The helper also carries the
+RAW's orientation into a small JPEG EXIF segment, without recompressing image
+data. Parser and PTY tests cover extraction, orientation, cleanup, and preload
+skipping. Real NAS ARW rendering was verified through Ghostty → Herdr → SSH → lf.
+
+Embedded preview quality/resolution is camera-defined; not all ARWs necessarily
+use this IFD0 layout. Add optional fallback/caching only if actual files or
+measured latency justify it. A future Rust optimization should combine extraction
+and image-to-Kitty-protocol encoding, eliminating kitten's larger overhead rather
+than merely replacing the ~3 ms Perl step. Direct tty rendering versus lf UI
+redraw ordering remains a separate reliability issue to investigate; cancellation
+cleanup runs after an active child exits, not necessarily immediately.

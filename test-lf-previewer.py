@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import pty
 import select
+import signal
 import struct
 import subprocess
 import tempfile
@@ -61,7 +62,7 @@ class PreviewTests(unittest.TestCase):
         script.write_text("#!/bin/sh\n" + body + "\n")
         script.chmod(0o755)
 
-    def run_script(self, script, *args):
+    def run_script(self, script, *args, terminate=False):
         args = [str(ROOT / script), *map(str, args)]
         with tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:
             pid, master = pty.fork()
@@ -73,6 +74,9 @@ class PreviewTests(unittest.TestCase):
             deadline = time.monotonic() + 5
             try:
                 while time.monotonic() < deadline:
+                    if terminate and self.calls.exists():
+                        os.kill(pid, signal.SIGTERM)
+                        terminate = False
                     if select.select([master], [], [], 0.05)[0]:
                         try:
                             output.extend(os.read(master, 4096))
@@ -177,6 +181,14 @@ class PreviewTests(unittest.TestCase):
         raw, _ = self.raw()
         result, _ = self.preview(raw)
         self.assertIn(b"Image preview failed", result.stdout)
+        self.assertEqual(list(self.scratch.iterdir()), [])
+
+    def test_arw_temp_is_removed_on_termination(self):
+        raw, _ = self.raw()
+        self.stub("kitten", 'printf "started\\n" > "$CALLS"; sleep 0.2')
+        result, _ = self.run_script("bat-lf-previewer", raw, 40, 20, 60, 1,
+                                    "preview", terminate=True)
+        self.assertEqual(result.returncode, 1)
         self.assertEqual(list(self.scratch.iterdir()), [])
 
     def test_kitten_error_is_reported_even_with_zero_exit(self):

@@ -1,0 +1,80 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+
+# A Rust rewrite alone is not worthwhile; combine extraction with image-to-Kitty
+# protocol encoding first to remove kitten overhead (~40ms vs Perl ~3ms).
+our ($created_output, $output_path) = (0, undef);
+END { unlink $output_path if $created_output && $? != 0; }
+
+@ARGV == 2 or die "usage: sony-arw-preview INPUT OUTPUT\n";
+my ($input, $output) = @ARGV;
+$output_path = $output;
+open my $in, '<:raw', $input or die "cannot open input: $!\n";
+my @input_stat = stat($in);
+@input_stat or die "cannot stat input: $!\n";
+my $size = $input_stat[7];
+$size >= 8 or die "truncated TIFF header\n";
+read($in, my $header, 8) == 8 or die "truncated TIFF header\n";
+my $little = substr($header, 0, 2) eq 'II' ? 1
+           : substr($header, 0, 2) eq 'MM' ? 0 : die "bad TIFF byte order\n";
+my $u16 = sub { unpack($little ? 'v' : 'n', $_[0]) };
+my $u32 = sub { unpack($little ? 'V' : 'N', $_[0]) };
+$u16->(substr($header, 2, 2)) == 42 or die "not classic TIFF\n";
+my $ifd = $u32->(substr($header, 4, 4));
+$ifd <= $size - 2 or die "IFD outside input\n";
+seek($in, $ifd, 0) or die "cannot seek to IFD\n";
+read($in, my $count_bytes, 2) == 2 or die "truncated IFD\n";
+my $count = $u16->($count_bytes);
+my $table_size = 12 * $count + 4; # entries plus next-IFD pointer
+$table_size <= $size - $ifd - 2 or die "truncated IFD table\n";
+read($in, my $table, $table_size) == $table_size or die "truncated IFD table\n";
+my ($start, $length);
+my $orientation = 1;
+for my $i (0 .. $count - 1) {
+    my $entry = substr($table, 12 * $i, 12);
+    my $tag = $u16->(substr($entry, 0, 2));
+    if ($tag == 0x0112 && $u16->(substr($entry, 2, 2)) == 3
+                       && $u32->(substr($entry, 4, 4)) == 1) {
+        $orientation = $u16->(substr($entry, 8, 2));
+    }
+    next unless $u16->(substr($entry, 2, 2)) == 4
+             && $u32->(substr($entry, 4, 4)) == 1;
+    my $value = $u32->(substr($entry, 8, 4));
+    $start = $value if $tag == 0x0201;
+    $length = $value if $tag == 0x0202;
+}
+defined $start && defined $length && $length > 2
+    or die "missing JPEG offset/length tags\n";
+$start <= $size && $length <= $size - $start
+    or die "JPEG preview outside input\n";
+seek($in, $start, 0) or die "cannot seek to JPEG preview\n";
+my $soi;
+read($in, $soi, 2) == 2 && $soi eq "\xff\xd8"
+    or die "preview is not a JPEG\n";
+
+my @output_stat = stat($output);
+if (@output_stat && $input_stat[0] == $output_stat[0]
+                 && $input_stat[1] == $output_stat[1]) {
+    die "input and output are the same file\n";
+}
+open my $out, '>:raw', $output or die "cannot open output: $!\n";
+$created_output = 1 unless @output_stat;
+print {$out} $soi or die "cannot write output: $!\n";
+if ($orientation >= 2 && $orientation <= 8) {
+    # The embedded JPEG lacks the RAW's orientation. Add a tiny EXIF segment;
+    # leave all compressed JPEG data untouched (no RAW decode or recompression).
+    my $exif = "Exif\0\0II" . pack('vVv', 42, 8, 1)
+             . pack('vvVVV', 0x0112, 3, 1, $orientation, 0);
+    print {$out} "\xff\xe1", pack('n', length($exif) + 2), $exif
+        or die "cannot write orientation: $!\n";
+}
+my $remaining = $length - 2;
+while ($remaining) {
+    my $chunk_size = $remaining > 65536 ? 65536 : $remaining;
+    read($in, my $chunk, $chunk_size) == $chunk_size
+        or die "truncated JPEG preview\n";
+    print {$out} $chunk or die "cannot write output: $!\n";
+    $remaining -= $chunk_size;
+}
+close $out or die "cannot close output: $!\n";

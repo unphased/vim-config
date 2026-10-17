@@ -37,7 +37,11 @@
 
 # Draw images directly on the tty; lf only understands text on stdout.
 # Handle images before the text cache, including old cached bat warnings.
-case $(file -Lb --mime-type -- "$1" 2>/dev/null) in
+case "$1" in
+    *.[aA][rR][wW]) image_type=image/x-sony-arw ;;
+    *) image_type=$(file -Lb --mime-type -- "$1" 2>/dev/null) ;;
+esac
+case $image_type in
     image/*)
         # Preloading must not paint files that aren't selected yet.
         [[ ${6:-preview} == preload ]] && exit 1
@@ -49,13 +53,28 @@ case $(file -Lb --mime-type -- "$1" 2>/dev/null) in
             printf '[Image preview requires kitten (included with Kitty)]\n'
             exit 1
         fi
+        image=$1
+        if [[ $image_type == image/x-sony-arw ]]; then
+            raw_preview=$(mktemp "${TMPDIR:-/tmp}/lf-arw-preview.XXXXXX") || {
+                printf '[ARW embedded preview unavailable: cannot create temporary file]\n'
+                exit 1
+            }
+            trap 'rm -f -- "$raw_preview"' EXIT
+            trap 'exit 1' HUP INT TERM
+            script_dir=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+            if ! image_error=$("$script_dir/sony-arw-preview" "$1" "$raw_preview" 2>&1); then
+                printf '[ARW embedded preview unavailable] %s\n' "$image_error"
+                exit 1
+            fi
+            image=$raw_preview
+        fi
         # SSH may preserve no graphics identity; don't gate on environment.
         # Don't probe here either: lf also reads the tty and can steal replies.
         # Stream directly; terminals without Kitty graphics ignore the output.
         # Capture stderr instead of silently falling through to bat on failure.
         if image_error=$("$kitten" icat --stdin=no --transfer-mode=stream \
-            --image-id=424242 --place="${2}x${3}@${4}x${5}" -- "$1" \
-            2>&1 > /dev/tty); then
+            --image-id=424242 --place="${2}x${3}@${4}x${5}" -- "$image" \
+            2>&1 > /dev/tty) && [[ -z $image_error ]]; then
             exit 1 # Disable lf's text cache so revisiting redraws the image.
         fi
         printf '[Image preview failed] %s\n' "$image_error"

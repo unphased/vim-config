@@ -53,6 +53,34 @@ class SonyArwPreviewTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(output.read_bytes(), JPEG)
 
+    def test_copies_preview_larger_than_one_chunk(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source, output = Path(temp) / "large.arw", Path(temp) / "out.jpg"
+            jpeg = b"\xff\xd8" + b"payload" * 20000 + b"\xff\xd9"
+            source.write_bytes(fixture(jpeg=jpeg))
+            result = self.invoke(source, output)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(output.read_bytes(), jpeg)
+
+    def test_carries_tiff_orientation_into_jpeg_without_reencoding(self):
+        for endian in ("<", ">"):
+            for orientation in range(2, 9):
+                with self.subTest(endian=endian, orientation=orientation):
+                    # SHORT values are inline in the entry's first two value bytes.
+                    value = orientation if endian == "<" else orientation << 16
+                    entries = [(0x0201, 4, 1, 50), (0x0202, 4, 1, len(JPEG)),
+                               (0x0112, 3, 1, value)]
+                    with tempfile.TemporaryDirectory() as temp:
+                        source, output = Path(temp) / "portrait.arw", Path(temp) / "out.jpg"
+                        source.write_bytes(fixture(endian, entries=entries))
+                        result = self.invoke(source, output)
+                        self.assertEqual(result.returncode, 0, result.stderr)
+                        data = output.read_bytes()
+                        self.assertEqual(data[:6], b"\xff\xd8\xff\xe1\x00\x22")
+                        self.assertEqual(data[6:14], b"Exif\x00\x00II")
+                        self.assertEqual(struct.unpack_from("<H", data, 30)[0], orientation)
+                        self.assertEqual(data[38:], JPEG[2:])
+
     def test_missing_tags_bad_types_and_bad_counts_are_rejected(self):
         valid_length = [(0x0202, 4, 1, len(JPEG))]
         for invalid in (valid_length,
