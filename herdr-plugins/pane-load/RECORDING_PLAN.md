@@ -87,7 +87,15 @@ The [scorecard](RECORDING_RESULTS.md) measures only the verified **8.5-hour pref
 of this run**, segments 0–50. At ~8h36m, a source system-CPU counter decreases while
 total CPU grows; the strict reference rejects it. Keep the anomaly unchanged.
 Use declared valid windows, not silently filtered records or a claim that all
-41 hours are monotone. Full-span quality/epoch handling remains an open decision.
+41 hours are monotone. Canonical quality/epoch handling remains an open decision.
+
+For the requested full-span **Python review**, `recording_review.py` caches verified
+fixed-1-ms/256-KiB PST1 blocks and flags original component decreases in the next
+block's header, starting a new baseline without dropping scans or changing identity.
+Rates across affected process intervals are unavailable, not zero or proof of
+restart. These flag bytes count in compression. The strict `recording_storage.py`
+reference is unchanged; this experiment does not settle the future Rust policy.
+Per-shard hashes/checkpoints make the computed cache reusable and resumable.
 
 ## Canonical Rust transform milestone
 

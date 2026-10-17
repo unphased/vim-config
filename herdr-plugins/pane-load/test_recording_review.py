@@ -1,3 +1,4 @@
+import fcntl
 import gzip
 import hashlib
 import json
@@ -75,8 +76,7 @@ def write_capture(root, shards, *, requests=None, run_id=RUN_ID, hz=HZ,
                            for item in ledger)
     (source / "segments.jsonl").write_bytes(ledger_data)
     run = {"pid": 123, "started_utc": "2026-10-14T00:00:00Z", "hz": hz,
-           "segment_samples": max(requests), "requested_hours": 1,
-           "capture_run_id": run_id}
+           "segment_samples": max(requests), "requested_hours": 1}
     run_bytes = json.dumps(run, sort_keys=True).encode() + b"\n"
     (root / "run.json").write_bytes(run_bytes)
     preserved.extend([
@@ -128,14 +128,20 @@ class RecordingReviewTests(unittest.TestCase):
             self.assertEqual(events[0]["current_user_ns"], ns(3))
             self.assertEqual(manifest["source"]["observations"], 4)
             self.assertEqual(manifest["source"]["points"], 4)
+            self.assertFalse(manifest["cpu"]["component_split"])
             all_rows = [r for _, _, _, decoded in blocks for r in decoded]
             self.assertEqual([r["seq"] for r in all_rows], [0, 1, 2, 3])
+            self.assertEqual([r["processes"][0][4] for r in all_rows],
+                             ["p4", "p4", "renamed", "renamed"])
+            self.assertEqual([r["scan_start_ns"] for r in all_rows],
+                             [r["scan_start_ns"] for r in rows])
             # Each block's shared CPU track has exact native endpoints.
             for _, _, cpu, _ in blocks:
                 values = cpu[(4, 1, 0)]
                 for seq, value, _stamp in (values[0], values[-1]):
                     source = rows[seq]["processes"][0]
-                    self.assertEqual(value, source[5] + source[6])
+                    self.assertEqual(value, recording_review.recording_storage.restore_native(source[5]) +
+                                     recording_review.recording_storage.restore_native(source[6]))
             loaded, _, _, _ = recording_compression._load_dataset(output)
             self.assertEqual(len(loaded), len(blocks))
             self.assertEqual(sum(item["row_count"] for item in manifest["blocks"]), 4)
@@ -158,7 +164,7 @@ class RecordingReviewTests(unittest.TestCase):
             self.assertEqual(manifest["cpu_component_discontinuity_count"], 2)
             # The full-identity global last-seen map isn't cleared by empty scans or shard boundaries.
             self.assertEqual(manifest["source"]["observations"], 4)
-            self.assertEqual(manifest["source"]["points"], 4)
+            self.assertEqual(manifest["source"]["points"], 6)
 
     def test_component_regressions_even_when_total_falls_and_first_row_baselines(self):
         rows = [row(5, [process(1, 100, 100)]),
@@ -169,7 +175,7 @@ class RecordingReviewTests(unittest.TestCase):
             manifest = recording_review.prepare_capture(root, Path(tmp) / "cache",
                                                           min_free_bytes=0)
             blocks = read_all_blocks(Path(tmp) / "cache", manifest)
-            self.assertEqual([item[0]["seq_range"] for item in blocks], [[5], [6], [7]])
+            self.assertEqual([item[0]["seq_range"] for item in blocks], [[5, 5], [6, 6], [7, 7]])
             events = [h["cpu_component_discontinuities_before"] for _, h, _, _ in blocks
                       if "cpu_component_discontinuities_before" in h]
             self.assertEqual([len(e) for e in events], [2, 2])
@@ -200,8 +206,8 @@ class RecordingReviewTests(unittest.TestCase):
                     with (root / "source/source-000000.jsonl").open("ab") as out:
                         out.write(b" ")
                 elif kind == "ledger":
-                    ledger = json.loads((root / "source/segments.jsonl").read_text())
-                    ledger[0]["count"] += 1
+                    ledger = json.loads((root / "source/segments.jsonl").read_text().splitlines()[0])
+                    ledger["count"] += 1
                     (root / "source/segments.jsonl").write_text(json.dumps(ledger) + "\n")
                 elif kind == "sequence":
                     data = (root / "source/source-000000.jsonl").read_text().splitlines()
@@ -225,18 +231,18 @@ class RecordingReviewTests(unittest.TestCase):
             source.write_bytes(compressed[:-1] + bytes([compressed[-1] ^ 1]))
             preserve_path = root / "PRESERVATION.json"
             preserved = json.loads(preserve_path.read_text())
-            entry = next(p for p in preserved["files"] if p["path"].startswith("source/source-"))
-            entry.update(bytes=source.stat().st_size, sha256=hashlib.sha256(source.read_bytes()).hexdigest())
-            preserve_path.write_text(json.dumps(preserved))
-            ledger = [{"path": source.name, "segment_index": 0, "count": 1,
-                       "requested_samples": 1, "seq_range": [0, 0],
-                       "time_range_ns": [0, 0], "complete": True,
-                       "capture_run_id": RUN_ID}]
-            (root / "source/segments.jsonl").write_text(json.dumps(ledger[0]) + "\n")
-            # Update the preserved ledger fingerprint too.
-            preserved["files"][-2].update(
-                bytes=(root / "source/segments.jsonl").stat().st_size,
-                sha256=hashlib.sha256((root / "source/segments.jsonl").read_bytes()).hexdigest())
+            preserved["files"].append({"path": "source/" + source.name,
+                "bytes": source.stat().st_size,
+                "sha256": hashlib.sha256(source.read_bytes()).hexdigest()})
+            ledger = {"path": source.name, "segment_index": 0, "count": 1,
+                      "requested_samples": 1, "seq_range": [0, 0],
+                      "time_range_ns": [0, 0], "complete": True,
+                      "capture_run_id": RUN_ID}
+            ledger_path = root / "source/segments.jsonl"
+            ledger_path.write_text(json.dumps(ledger) + "\n")
+            ledger_entry = next(p for p in preserved["files"] if p["path"] == "source/segments.jsonl")
+            ledger_entry.update(bytes=ledger_path.stat().st_size,
+                sha256=hashlib.sha256(ledger_path.read_bytes()).hexdigest())
             preserve_path.write_text(json.dumps(preserved))
             with self.assertRaises(ValueError):
                 recording_review.prepare_capture(root, Path(tmp) / "cache", min_free_bytes=0)
@@ -258,6 +264,10 @@ class RecordingReviewTests(unittest.TestCase):
             direct = prepare(source, Path(tmp) / "baseline", "256k", "mask")
             self.assertEqual(manifest["parts"][0]["source_json_sha256"], direct["input_sha256"])
             self.assertEqual(manifest["parts"][0]["source_json_bytes"], source.stat().st_size)
+            self.assertEqual(len(manifest["blocks"]), len(direct["blocks"]))
+            for got, expected in zip(manifest["blocks"], direct["blocks"]):
+                self.assertEqual((output / got["path"]).read_bytes(),
+                                 (Path(tmp) / "baseline" / expected["path"]).read_bytes())
 
     def test_resume_keeps_sealed_parts_and_does_not_reparse_them(self):
         shards = [[row(0, [process(1, 2, 2)]), row(1, [process(1, 3, 3)])],
@@ -317,6 +327,89 @@ class RecordingReviewTests(unittest.TestCase):
                 with self.assertRaises((ValueError, OSError)):
                     recording_review.prepare_capture(root, output, resume=True,
                                                       min_free_bytes=0)
+
+    def test_actual_run_metadata_omits_run_id_but_present_mismatch_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = write_capture(Path(tmp) / "capture", [[row(0)]])
+            run_path = root / "run.json"
+            run = json.loads(run_path.read_text())
+            self.assertNotIn("capture_run_id", run)
+            recording_review.prepare_capture(root, Path(tmp) / "good", min_free_bytes=0)
+            run["capture_run_id"] = "wrong"
+            run_path.write_text(json.dumps(run))
+            preservation_path = root / "PRESERVATION.json"
+            preservation = json.loads(preservation_path.read_text())
+            item = next(x for x in preservation["files"] if x["path"] == "run.json")
+            item.update(bytes=run_path.stat().st_size,
+                        sha256=hashlib.sha256(run_path.read_bytes()).hexdigest())
+            preservation_path.write_text(json.dumps(preservation))
+            with self.assertRaisesRegex(ValueError, "run ID"):
+                recording_review.prepare_capture(root, Path(tmp) / "bad", min_free_bytes=0)
+
+    def test_nonmonotone_source_with_matching_preservation_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = write_capture(Path(tmp) / "capture", [[row(0), row(2), row(1), row(3)]])
+            output = Path(tmp) / "cache"
+            with self.assertRaisesRegex(ValueError, "increase globally"):
+                recording_review.prepare_capture(root, output, min_free_bytes=0)
+            self.assertFalse((output / "manifest.json").exists())
+            self.assertFalse((output / "parts/part-000000").exists())
+
+    def test_finalization_faults_recover_from_sealed_parts_and_completed_resume_is_idempotent(self):
+        for fault in ("manifest", "status", "legacy_partial"):
+            with self.subTest(fault=fault), tempfile.TemporaryDirectory() as tmp:
+                root = write_capture(Path(tmp) / "capture", [[row(0, [process(1, 2, 3)])]])
+                output = Path(tmp) / "cache"
+                original = recording_review._write_json
+                def injected(path, value, *, replace=False):
+                    path = Path(path)
+                    if (fault in ("manifest", "legacy_partial") and path.name == "manifest.json") or (
+                            fault == "status" and path.name == "status.json" and
+                            value.get("status") == "complete"):
+                        raise OSError("publication fault")
+                    return original(path, value, replace=replace)
+                with patch.object(recording_review, "_write_json", injected):
+                    with self.assertRaisesRegex(OSError, "publication fault"):
+                        recording_review.prepare_capture(root, output, min_free_bytes=0)
+                if fault == "legacy_partial":
+                    path = output / "manifest.json"
+                    path.write_bytes(b'{"partial":')
+                    path.chmod(0o600)
+                with patch.object(recording_review, "_rows", side_effect=AssertionError("reparsed cache")):
+                    manifest = recording_review.prepare_capture(root, output, resume=True,
+                                                                 min_free_bytes=0)
+                    again = recording_review.prepare_capture(root, output, resume=True,
+                                                               min_free_bytes=0)
+                self.assertEqual(manifest, again)
+                self.assertEqual(json.loads((output / "status.json").read_text())["status"], "complete")
+                self.assertEqual(recording_compression._load_dataset(output)[3], manifest)
+
+    def test_atomic_manifest_rename_failure_leaves_no_partial_manifest(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = write_capture(Path(tmp) / "capture", [[row(0)]])
+            output = Path(tmp) / "cache"
+            original = os.replace
+            def fail_manifest(source, target):
+                if Path(target).name == "manifest.json":
+                    raise OSError("rename fault")
+                return original(source, target)
+            with patch.object(recording_review.os, "replace", fail_manifest):
+                with self.assertRaisesRegex(OSError, "rename fault"):
+                    recording_review.prepare_capture(root, output, min_free_bytes=0)
+            self.assertFalse((output / "manifest.json").exists())
+            recording_review.prepare_capture(root, output, resume=True, min_free_bytes=0)
+
+    def test_locked_cache_cannot_be_resumed_or_its_status_poisoned(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = write_capture(Path(tmp) / "capture", [[row(0)]])
+            output = Path(tmp) / "cache"
+            recording_review.prepare_capture(root, output, min_free_bytes=0)
+            old_status = (output / "status.json").read_bytes()
+            with (output / ".lock").open("rb") as lock:
+                fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                with self.assertRaises(BlockingIOError):
+                    recording_review.prepare_capture(root, output, resume=True, min_free_bytes=0)
+            self.assertEqual((output / "status.json").read_bytes(), old_status)
 
     def test_cli_exposes_focused_capture_arguments(self):
         with tempfile.TemporaryDirectory() as tmp:
