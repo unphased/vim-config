@@ -25,7 +25,9 @@ class PreviewTests(unittest.TestCase):
                         TERM="xterm-ghostty", TERM_PROGRAM="ghostty", CALLS=str(self.calls))
         for name in ("KITTY_WINDOW_ID", "HERDR_ENV", "TMUX", "lf_user_preview_command"):
             self.env.pop(name, None)
-        self.stub("kitten", 'printf "%s\\n" "$@" > "$CALLS"; printf "IMAGE"; '
+        self.stub("kitten", 'printf "%s\\n" "$@" > "$CALLS"; '
+                  'case " $* " in *" --detect-support "*) exit "${ICAT_SUPPORT:-0}";; esac; '
+                  'printf "IMAGE"; '
                   '[ "${ICAT_STATUS:-0}" = 0 ] || printf "icat decoder error\\n" >&2; '
                   'exit "${ICAT_STATUS:-0}"')
         self.stub("bat", 'printf "text preview\\n"')
@@ -124,12 +126,24 @@ class PreviewTests(unittest.TestCase):
         self.assertFalse(self.calls.exists())
         self.assertNotIn(b"IMAGE", tty)
 
+    def test_ssh_terminal_without_identifying_env_probes_support(self):
+        self.env["TERM"] = "xterm-256color"
+        self.env.pop("TERM_PROGRAM")
+        result, tty = self.preview()
+        self.assertEqual(result.stdout, b"")
+        self.assertIn(b"IMAGE", tty)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("--transfer-mode=stream", self.calls.read_text())
+
     def test_unsupported_terminal_does_not_send_image_to_bat(self):
-        self.env.update(TERM="xterm-256color", TERM_PROGRAM="Apple_Terminal")
-        result, _ = self.preview()
+        self.env.update(TERM="xterm-256color", TERM_PROGRAM="Apple_Terminal", ICAT_SUPPORT="1")
+        result, tty = self.preview()
         self.assertIn(b"Kitty graphics", result.stdout)
         self.assertNotIn(b"text preview", result.stdout)
-        self.assertFalse(self.calls.exists())
+        self.assertNotIn(b"IMAGE", tty)
+        args = self.calls.read_text().splitlines()
+        self.assertIn("--detect-support", args)
+        self.assertIn("--detection-timeout=1", args)
 
     def test_quit_clears_image_without_suspending_lf(self):
         # A $ shell command switches screens first, leaving the image behind.
