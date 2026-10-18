@@ -31,6 +31,8 @@ static STATUS_TEMP_ID: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct RunStats {
+    /// Provided source was orderly and completely verified; partial imports print false.
+    pub complete: bool,
     pub scans: u64,
     pub readings: u64,
     pub blocks: u64,
@@ -360,7 +362,7 @@ impl RawSegments {
             capacity: RootCapacity::new(
                 store_root,
                 archive_options_for_root(store_root, None, options, STATUS_CAPACITY_RESERVE)?,
-            )?,
+            ),
             writer: None,
             path: run_root.join("source-000000.jsonl.zst"),
             segment: 0,
@@ -546,12 +548,14 @@ struct RootCapacity {
 }
 
 impl RootCapacity {
-    fn new(root: &Path, options: StoreOptions) -> Result<Self> {
-        Ok(Self {
+    fn new(root: &Path, options: StoreOptions) -> Self {
+        // `options` is the remaining allocation: older root history and the
+        // status reserve were already subtracted by archive_options_for_root.
+        Self {
             root: root.to_path_buf(),
             options,
-            used: recording_tree_bytes(root)?,
-        })
+            used: 0,
+        }
     }
 
     fn check(&self, addition: u64) -> Result<()> {
@@ -1052,6 +1056,7 @@ pub fn consume_live(
         write_run_status(&run_dir, "partial.json", &stats, "live-native")?;
         return Err(error);
     }
+    stats.complete = true;
     write_run_status(&run_dir, "complete.json", &stats, "live-native")?;
     remove_partial_status(&run_dir)?;
     Ok(stats)
@@ -1559,6 +1564,7 @@ pub fn transform_sources(
     {
         write_run_status(&root, "partial.json", &stats, "source-import")?;
     } else {
+        stats.complete = true;
         write_run_status(&root, "complete.json", &stats, "source-import")?;
         remove_partial_status(&root)?;
     }

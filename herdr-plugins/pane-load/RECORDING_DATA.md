@@ -599,5 +599,6 @@ external standard.
 
 Native records declare the source clock/timebase; legacy inputs without a timebase
 require an explicit import argument (for the documented legacy source,
-`--timebase 125/3`). The [plan](RECORDING_PLAN.md) tracks implemented scope and the
-remaining full-capture/review closeout.
+`--timebase 125/3`). The [plan](RECORDING_PLAN.md) tracks implemented scope and
+completed review; the [scorecard](RECORDING_RESULTS.md) reports full-source adaptive
+validation, current byte/CPU costs and the different-fidelity historical controls.

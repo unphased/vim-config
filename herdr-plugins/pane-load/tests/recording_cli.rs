@@ -1185,6 +1185,36 @@ fn record_root_rejects_foreign_permissions_hardlinked_lock_and_prior_bytes_witho
 }
 
 #[test]
+fn raw_recording_uses_remaining_budget_without_counting_old_history_twice() {
+    use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
+    let temp = Temp::new();
+    let root = temp.path("raw-budget");
+    fs::create_dir(&root).unwrap();
+    fs::set_permissions(&root, fs::Permissions::from_mode(0o700)).unwrap();
+    let prior = std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .mode(0o600)
+        .open(root.join("prior-history"))
+        .unwrap();
+    prior.set_len(40 * 1024 * 1024).unwrap();
+    let config = options(root.clone(), OutputFormat::JsonlZstd);
+    let (tx, rx) = mpsc::channel();
+    tx.send(row(0, 100, vec![proc(10, 20)]).into()).unwrap();
+    tx.send(row(1, 100_000_100, vec![proc(11, 21)]).into())
+        .unwrap();
+    tx.send(LiveMessage::End {
+        quality: vec![],
+        error: None,
+    })
+    .unwrap();
+    drop(tx);
+    let stats = pipeline::consume_live(&config, &context("remaining-budget"), rx).unwrap();
+    assert_eq!(stats.scans, 2);
+    assert!(root.join("run-remaining-budget/complete.json").is_file());
+}
+
+#[test]
 fn startup_recovers_only_incomplete_archives_and_reports_old_corruption() {
     use std::os::unix::fs::PermissionsExt;
     let temp = Temp::new();

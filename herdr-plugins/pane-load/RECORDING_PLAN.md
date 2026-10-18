@@ -2,8 +2,9 @@
 
 **One current plan; no new design phase.** The user-approved buildout is implemented
 in the existing `pane-load` binary: native capture, shared Rust validation/encoding,
-archives, source transforms, inspection/export, and benchmarking. Final full-capture
-validation and the independent Opus architecture/design review are still pending.
+archives, source transforms, inspection/export, and benchmarking. Full 41-hour
+source-fidelity validation and the Opus 5.5/`work2` architecture/design review
+are complete; review findings are fixed and tested.
 The older Python codec work remains a measured reference, not the current recorder.
 
 ```mermaid
@@ -37,8 +38,9 @@ sampler remains separate; recording has not been wired into it.
   has no source timebase, import requires an explicit `--timebase NUM/DEN` and
   never guesses from the current host. For the known legacy source, use `125/3`.
 - `adaptive` is the default binary profile. It writes PST2 blocks with PSD1 sparse
-  metadata and CSH2 CPU layout version 2 (with version-1 read compatibility). Adaptive interval quantums target less
-  than 12.5% relative CPU-increment error, capped at 1 ms in source ticks; Q=1
+  metadata and CSH2 CPU layout version 2 (with version-1 read compatibility).
+  Adaptive interval quanta target less than 12.5% relative CPU-increment error,
+  capped at 1 ms in source ticks; Q=1
   intervals, including zero intervals, are exact. `legacy-1ms` is the PST1/CSH1
   comparison control; `fixed-100us` is another PST2/CSH2 control. All binary
   profiles keep total CPU only. RSS is floored to 256 KiB; observations and
@@ -47,7 +49,8 @@ sampler remains separate; recording has not been wired into it.
   Defaults are Brotli-5, a 1 MiB window (window log 20), 16 MiB frame input,
   300-row/approximately 30-second blocks and a one-hour source-time frame limit.
   Roots/run directories are private; defaults cap a root at 8 GiB and reserve
-  20 GiB free space. SIGTERM/normal shutdown sends the end marker and flushes the
+  20 GiB free space. Limits stop recording rather than deleting history; retention
+  policy remains operator-owned. SIGTERM/normal shutdown sends the end marker and flushes the
   current block/frame. Recovery validates journals/frames; partial runs are not
   presented as complete.
 - `transform`, `inspect`, and `bench` use the same Rust model and binary codecs.
@@ -117,18 +120,27 @@ acquisition, service packaging, UI/consumer adapters, and timeline/history UI re
 future work. In particular, there is no claim of shared sampling between the
 recorder and the current UI sampler.
 
-## Remaining closeout
+## Completed closeout and known limits
 
-The core, live capture path, and tools are feature-complete. The Rust first-shard
-verification is explicitly provisional in the [results](RECORDING_RESULTS.md).
-Still pending:
+- All 248 frozen source shards / 1,413,925,731 readings passed Rust verification;
+  all 14 component decreases remain flagged, no source observations dropped.
+  All 20 real first-shard fixed-control blocks matched Python bytes exactly.
+- Finite native churn, SIGTERM, SIGKILL recovery and actual-native-reference
+  live/replay byte-parity tests passed. Normal/optimized Python and Rust tests,
+  fmt, strict Clippy and release build passed. See the [scorecard](RECORDING_RESULTS.md)
+  for measured CPU/memory/bytes; adaptive archive payload is ~392.46 MiB/day on this
+  corpus, not the older fixed-profile ~100.84 MiB/day.
+- Opus 5.5/`work2` implementation review and follow-ups accepted the architecture
+  with no remaining blockers (session `94c67b86-05a8-4934-ad70-3043f7baa87a`). Live
+  block cuts, startup recovery, incomplete raw imports, capacity accounting and
+  endpoint layout findings were corrected with regressions.
 
-1. Run and verify the complete 41-hour source corpus with the final Rust code and
-   hardware/run settings; publish final same-source size, fidelity, wall/CPU/RSS,
-   and codec metrics in the scorecard. Do not project the historical fixed-profile
-   daily size onto adaptive output.
-2. Complete the Opus architecture/design review and record its outcome here and in
-   the scorecard. This is closeout review, not another generic design/approval phase.
+Minor deferred cleanup: old partial runs without a journal may still be verified
+at startup; numeric shard parsing relies on zero-padded lexical order; profiling
+helpers can be consolidated. A second-interrupt force-stop shortcut and importing
+only complete zstd frames from a torn raw tail are not implemented. Default raw
+imports remain integrity-checked and fail closed. No fuzzing/production assurance
+beyond the reported tests is claimed.
 
 The [data guide](RECORDING_DATA.md) keeps the measured Python prototype tutorial
 intact and adds the concise current Rust wire summary.

@@ -5,27 +5,98 @@ recording CLI is standalone and manual; no production sampler/config/startup or
 automatic deployment changes. Older rundowns remain in Git history.
 
 ```text
-real observations -> fixed representation -> independent byte-sized frames
+real observations -> named precision profile -> independent byte-sized frames
                   -> codec / level / match window / workers -> size vs CPU
 ```
 
 Rank storage against **compression CPU-seconds/input GiB**; wall time is separate.
 Read costs do not constrain frames. Decompression only verifies correctness.
 
-## Provisional Rust validation: first source shard only
+## Canonical Rust adaptive profile: full 41-hour validation
 
-**Not the full 41-hour run and not final performance evidence.** The first Rust
-`transform --verify` shard contained 6,000 scans, 6,431,392 process readings,
-20 PST2 blocks and 22,158,587 uncompressed block bytes. Verification reported
-8.886969917 s wall, 8.628273 s own CPU, 0 child CPU seconds, and peak RSS of
-213,909,504 bytes. Endpoint mismatches, point-precision violations, lost positive
-intervals and RSS-floor violations were all zero.
+Completed 2026-10-18: **all 248 shards, 1,487,845 scans and 1,413,925,731
+process readings**, producing 4,973 PST2 blocks. All source hashes/counts/ranges
+were checked against the frozen capture. Every decoded observation was compared
+with source identity/name/PPID/clocks/quality/RSS and native CPU values. Native
+track endpoints were exact; point/interval bounds, zero/positive classification
+and RSS-floor checks had **zero violations**. All **14 component decreases** remain
+flagged with unavailable-rate semantics, not a restart inference.
 
-This is an initial one-shard run; full-corpus validation and final hardware/code
-rerun remain pending. The preserved 41-hour source is 2,778,751,489 bytes of
-lossless zstd JSONL versus 109,018,766,562 expanded JSONL bytes. Do **not** project
-the historical fixed-profile 100.84 MiB/day result below onto adaptive Rust output.
-The full Rust pass will replace this provisional section or append final metrics.
+This is the finer **adaptive-v1 policy, CSH2 wire version 2**, total CPU and 256 KiB
+RSS. It preserves every positive observed CPU interval, unlike the fixed control's
+sub-quantum plateaus. It is not an equal-fidelity compression comparison with the
+historical fixed-1-ms profile below.
+
+| Stage | Exact bytes |
+| --- | ---: |
+| Lossless source zstd JSONL | 2,778,751,489 |
+| Expanded source JSONL, counted not stored | 109,018,766,562 |
+| Emitted PST2 blocks, stored inside compressed archive | 4,108,298,001 |
+| Archive PCR1 input, 265 frames (16 MiB target / 1-hour age bound) | 4,108,314,245 |
+| Archive Brotli-5 payload | 708,668,994 |
+| Whole frame files, including headers/checksums | 709,274,577 |
+
+The archive's Brotli payload projects to **392.46 MiB/day**; whole frame files to
+**392.80 MiB/day**, excluding catalog/status/filesystem overhead. The storage goal
+remains unmet. Do not substitute the old fixed-profile 100.84 MiB/day for this
+richer profile. Native CPU units are representation, not physical accuracy.
+
+### Replay/preparation cost versus codec-only cost
+
+`transform --verify` took **1,868.035 s wall (31m08s)** and **1,818.228 own CPU s**,
+0 child CPU, with peak RSS **882,704,384 B (841.81 MiB)**. This includes replay,
+quantization, retained-value decode verification and durable archive writing, not
+just encoding or compression. It excludes initial CLI capture-metadata preflight;
+the enclosing job took **1,891.399 s (31m31s)** end-to-end. Pipeline CPU is about
+**1.22% of one core per recorded hour** at this source rate, not a native live
+acquisition measurement. Offline all-history identity state grows; live state is
+bounded separately. The earlier Python fixed-profile preparation was ~4h37m;
+profiles and verification work differ, so this is not a pure-encoder speed ratio.
+
+A separate cached-binary pass decoded/verified the full archive, then measured
+Brotli-5/window-log-20 on actual PCR1 input, one worker, three sequential repeats
+per frame. It repacked by bytes alone: **252 frames**, retained tail, maximum
+actual input **16,772,263 B** against the 16 MiB target, no padding/repeated corpus.
+
+- Actual codec input: **4,108,314,180 B (3.826166 GiB)**.
+- Compressed payload: **708,297,357 B**, 5.8003× codec reduction.
+- Encoder-only CPU: **58.676 s**, or **15.335 CPU-s/input GiB**; encoder wall sum
+  **58.792 s**. These are sums of per-frame three-repeat medians, not a full-corpus
+  median. Packing, hashing, source preparation and decode checks are outside the
+  encoder timing. Total benchmark wall was 466.765 s, own CPU 464.643 s.
+- The archive's one-hour age cap explains its extra frames and slightly larger
+  payload. Backend: pure-Rust `brotli` 8.0.4; do not compare its CPU figure with
+  historical C Brotli on different encoded input as an implementation speed claim.
+
+### Independent controls and native closure
+
+All **20 real first-shard legacy PST1 blocks were byte-identical** to the preserved
+Python cache. On those same 6,431,392 readings, fixed-1-ms verification counted
+553,558 positive intervals quantized to zero; adaptive counted zero. First-shard
+CSH2 v2 used 18,450,076 B versus prototype v1's 22,158,587 B, saving 16.7% through
+exact endpoint deltas without changing fidelity; v1 remains readable.
+
+Finite native tests with process churn gave 30 scans / 28,235 readings in one block;
+raw output gave 30 / 28,203 in one block. SIGTERM flushed 7 scans / 6,580 readings.
+SIGKILL recovery preserved two durable scans and correctly remained incomplete.
+A 31-second default-cadence test recorded **310 scans / 296,642 readings in two
+blocks**, with a durable journal observed before clean completion. Its whole
+observer/writer pipeline used 1.948 CPU s over 31.040 s (~6.28% of one core),
+peak RSS 55,754,752 B; this short sample is not a long-run steady-state estimate.
+An explicitly run native-reference test proved common-core live/replay PST byte
+parity on actual native observations. These were finite tests, not a new campaign.
+
+Opus 5.5 on `work2` reviewed architecture/design and follow-up fixes: **no remaining
+production blockers**. Findings fixed include live new-PID block cuts, historical
+startup revalidation, upstream incomplete raw status, exact endpoint storage,
+publication capacity accounting and raw budget double-counting. Current validation:
+**141 Rust tests + 142 Python tests**, optimized Python, fmt and strict Clippy;
+the additional native-reference test is ignored by default and was run explicitly.
+
+Private job `.recordings/rust-full-41h-20261018T213049Z/` retains source/code/binary
+hashes, pinned `c38ff62` code, complete validation metrics, archive and codec results.
+Subsequent fixes affect raw-output budgeting/status diagnostics, not this binary
+profile. [Plan/status](RECORDING_PLAN.md) lists deployment boundaries.
 
 ## Historical Python prototype full-capture results: 41.33 hours
 
@@ -248,10 +319,9 @@ are outside these payload numbers. Native scans are not atomic and visibility
 is incomplete. More hours per frame will not close the measured budget gap;
 representation/precision is the next useful lever, not waiting for 72 hours.
 
-The Rust recorder now implements adaptive CPU precision. Its first-shard
-verification is provisional; full-corpus validation and the Opus closeout review
-remain pending as recorded in the [plan](RECORDING_PLAN.md). Historical prototype
-measurements above remain valid for their stated source and settings. See
+The Rust recorder's full-corpus adaptive validation and Opus closeout review are
+complete, as recorded above and in the [plan](RECORDING_PLAN.md). Historical
+prototype measurements remain valid for their stated source and settings. See
 [real data examples](RECORDING_DATA.md).
 
 43 frame/settings cases plus 20 neighboring-Brotli measurements (including two

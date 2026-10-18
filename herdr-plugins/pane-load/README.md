@@ -8,9 +8,9 @@ across every pane in each workspace and published in the workspace sidebar.
 
 Process-history recording is separate from this live plugin:
 
-- [Plan and status](RECORDING_PLAN.md): implemented standalone Rust recorder and pending closeout.
+- [Plan and status](RECORDING_PLAN.md): implemented, validated and architecture-reviewed Rust recorder.
 - [Data and binary format](RECORDING_DATA.md): measured Python prototype walkthrough plus current Rust layout.
-- [Measured results](RECORDING_RESULTS.md): provisional Rust first-shard validation and historical prototype comparisons.
+- [Measured results](RECORDING_RESULTS.md): full 41-hour Rust adaptive validation and historical prototype comparisons.
 
 Superseded proposals live in Git history. Experimental codecs are tested by
 `make test`; none changes the live plugin.
@@ -58,9 +58,14 @@ current host):
   --timebase 125/3 --profile adaptive --verify
 ```
 
+The full preserved 41-hour capture passed source-fidelity verification; Opus 5.5
+review findings are fixed. The adaptive archive measures ~392.46 MiB/day on that
+corpus—finer fidelity, not the old fixed-1-ms storage profile. Limits stop recording
+rather than deleting history; no service is installed or enabled automatically.
+
 Use `inspect --input ROOT --verify`, `inspect --input ARCHIVE --recover`, or
-`inspect --input ARCHIVE --jsonl`. `--blocks-out NEWPRIVATEdir` exports decoded,
-quantized PST blocks—not finer source truth. `bench --input SOURCE --profiles
+`inspect --input ARCHIVE --jsonl`. `--blocks-out NEWPRIVATEdir` exports original
+encoded, quantized PST blocks—not finer source truth. `bench --input SOURCE --profiles
 adaptive,legacy-1ms,fixed-100us --frame-bytes 16777216 --output DIR` compares
 profiles over one source; archive/cache input benchmarks only its stored profile.
 Full flags and current status are in the [plan](RECORDING_PLAN.md). Rust recording
