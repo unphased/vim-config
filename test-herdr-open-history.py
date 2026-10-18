@@ -4,6 +4,7 @@
 import json
 import os
 from pathlib import Path
+import pty
 import subprocess
 import sys
 import tempfile
@@ -212,6 +213,31 @@ os.execvp(args[0], args)
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.calls(), [{"argv": ["--select-session", selector], "cwd": str(self.root.resolve())}])
+
+    def test_real_recorder_creates_artifacts_for_direct_history_entrypoint(self):
+        recorder = Path.home() / "termplex/release/term-capture"
+        if not os.access(recorder, os.X_OK):
+            self.skipTest("local term-capture build not installed")
+        self.executable("agent-history", "print('direct history capture smoke')\n")
+        master, slave = pty.openpty()
+        try:
+            result = subprocess.run(
+                [str(PLUGIN / "open-history.py"), "--run"], cwd=self.root,
+                env={**self.env, "TERMPLEX_CAPTURE_BIN": str(recorder),
+                     "AGHIST_BIN_PATH": str(self.bin / "agent-history"),
+                     "AGHIST_SELECT_SESSION": "pi:path:smoke", "HERDR_ENV": "0"},
+                stdin=slave, stdout=slave, stderr=slave, timeout=10,
+            )
+        finally:
+            os.close(slave)
+            os.close(master)
+        self.assertEqual(result.returncode, 0)
+        captures = list(Path(self.env["TERMPLEX_CAPTURE_DIR"]).glob("*/capture.meta.json"))
+        self.assertEqual(len(captures), 1)
+        self.assertEqual(json.loads(captures[0].read_text())["initial_cwd"], str(self.root.resolve()))
+        self.assertTrue(captures[0].with_name("capture.input").exists())
+        self.assertTrue(captures[0].with_name("capture.output.idx").exists())
+        self.assertTrue(list(captures[0].parent.glob("capture.output.*.br")))
 
     def test_pane_entrypoint_keeps_empty_selector_argument(self):
         result = self.invoke("--run", AGHIST_SELECT_SESSION="", AGHIST_BIN_PATH=str(self.bin / "agent-history"))

@@ -65,7 +65,8 @@ def open_history():
 def main():
     if sys.argv[1:] == ["--run"]:
         binary = os.environ["AGHIST_BIN_PATH"]
-        os.execv(binary, [binary, "--select-session", os.environ["AGHIST_SELECT_SESSION"]])
+        capture = Path(__file__).resolve().parent.parent / "capture-command.sh"
+        os.execv("/bin/sh", ["sh", str(capture), binary, "--select-session", os.environ["AGHIST_SELECT_SESSION"]])
     elif sys.argv[1:]:
         raise RuntimeError("Unexpected arguments")
     else:

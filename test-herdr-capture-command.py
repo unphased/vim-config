@@ -75,12 +75,12 @@ os.execvp(args[0], args)
         env.pop("TERMPLEX_CAPTURE_BIN")
         env.pop("TERMPLEX_CAPTURE_DIR")
         result = subprocess.run(
-            ["/bin/sh", str(WRAPPER), "/bin/true"], cwd=self.root, env=env,
+            ["/bin/sh", str(WRAPPER), sys.executable, "-c", "pass"], cwd=self.root, env=env,
             capture_output=True, text=True, timeout=10,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(json.loads(self.log.read_text()),
-                         ["--pid-prefix-dir", str(self.root / ".termplex/captures"), "--", "/bin/true"])
+                         ["--pid-prefix-dir", str(self.root / ".termplex/captures"), "--", sys.executable, "-c", "pass"])
 
     def test_explicit_opt_out_runs_command_without_capture(self):
         self.command(TERMPLEX_CAPTURE="0")

@@ -25,6 +25,8 @@ test:
 	zsh test-git-log-args.zsh
 	./test-git-lg-full.sh
 	./test-herdr-copy-pane-id-plugin.sh
+	sh -n herdr-plugins/capture-command.sh herdr-plugins/reveal-location/open-editor.sh
+	python3 test-herdr-capture-command.py
 	python3 test-herdr-open-history.py
 	./test-herdr-focus.sh
 	./test-herdr-resize.sh

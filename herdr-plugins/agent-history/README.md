@@ -56,6 +56,13 @@ invalid or unmatched identities produce a visible error in history instead of
 silently ignoring the request. Active project/query/tag filters are not removed.
 Errors creating the split appear as a Herdr notification and in the plugin log.
 
+The split runs `term-capture → agent-history`, without an interactive shell.
+Recordings use `~/.termplex/captures`; `TERMPLEX_CAPTURE_BIN` and
+`TERMPLEX_CAPTURE_DIR` override the recorder and destination, as for automatic
+zsh capture. `TERMPLEX_CAPTURE=0` or a missing recorder launches history unrecorded.
+These settings must be present in the pane process environment (not just a source
+shell's local environment). No parentage metadata is added yet.
+
 Relationship indication is independent: aghist publishes a
 **bold cyan `[aghist]` badge** beside its selected session in Herdr's
 **Agents** and **Spaces** sidebars. Selection
