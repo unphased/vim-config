@@ -172,6 +172,27 @@ os.execvp(args[0], args)
             child = json.loads(captures[0].read_text())
             self.assertEqual(child["parent_recording_id"], parent_id)
             self.assertNotEqual(child["recording_id"], parent_id)
+            # A plain interactive zsh also picks up parentage when its existing
+            # startup hook bootstraps a new recorder from the forwarded env.
+            (self.root / ".zprofile").write_text(f'source "{ROOT}/zsh/termplex-capture.zsh"\n')
+            (self.root / ".zshrc").write_text('print -r -- "$TERMPLEX_RECORDING_ID" > "$HOME/shell-id"\nexit\n')
+            master, slave = pty.openpty()
+            try:
+                result = subprocess.run(
+                    ["zsh", "-il"], cwd=self.root,
+                    env={**self.env, **forwarded, "HERDR_ENV": "0", "ZDOTDIR": str(self.root),
+                         "TERMPLEX_CAPTURE_BIN": str(recorder),
+                         "TERMPLEX_CAPTURE_DIR": str(self.root / "shell-captures")},
+                    stdin=slave, stdout=slave, stderr=slave, timeout=10,
+                )
+            finally:
+                os.close(slave)
+                os.close(master)
+            self.assertEqual(result.returncode, 0)
+            shell_meta, = (self.root / "shell-captures").glob("*/capture.meta.json")
+            shell = json.loads(shell_meta.read_text())
+            self.assertEqual(shell["parent_recording_id"], parent_id)
+            self.assertEqual(shell["recording_id"], (self.root / "shell-id").read_text().strip())
         finally:
             source.terminate()
             try:

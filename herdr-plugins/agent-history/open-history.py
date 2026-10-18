@@ -8,6 +8,9 @@ import shutil
 import subprocess
 import sys
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from pane_recording import source_recording_id
+
 
 # GUI-launched Herdr may not inherit the interactive shell's PATH or aliases.
 home = Path.home()
@@ -59,6 +62,7 @@ def open_history():
         "--target-pane", source_pane,
         "--cwd", cwd, "--focus",
         "--env", f"AGHIST_BIN_PATH={binary}", "--env", f"AGHIST_SELECT_SESSION={selector}",
+        "--env", f"TERMPLEX_RECORDING_ID={source_recording_id(source_pane)}",
     ), end="")
 
 

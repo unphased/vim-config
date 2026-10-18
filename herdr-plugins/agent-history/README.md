@@ -61,7 +61,23 @@ Recordings use `~/.termplex/captures`; `TERMPLEX_CAPTURE_BIN` and
 `TERMPLEX_CAPTURE_DIR` override the recorder and destination, as for automatic
 zsh capture. `TERMPLEX_CAPTURE=0` or a missing recorder launches history unrecorded.
 These settings must be present in the pane process environment (not just a source
-shell's local environment). No parentage metadata is added yet.
+shell's local environment).
+
+For lineage, the action asks Herdr for the captured source pane's process ID,
+then finds its open capture sidecar using macOS `lsof` or Linux `/proc/PID/fd`.
+The adjacent metadata's `recorder_pid` must match that pane's root process;
+server inheritance is never used as a fallback. Reading metadata avoids
+macOS's hidden Apple-shell environments and works with custom capture prefixes.
+The ID is explicitly forwarded into the new pane, whose recorder writes
+`parent_recording_id`. Older recorders or unavailable metadata yield an unknown parent.
+
+```text
+source recorder → zsh [ID=A] → action resolves live capture ID
+                                      ↓ forwards ID=A
+                                new recorder [parent=A]
+                                      ↓ exports ID=B
+                                    history
+```
 
 Relationship indication is independent: aghist publishes a
 **bold cyan `[aghist]` badge** beside its selected session in Herdr's
