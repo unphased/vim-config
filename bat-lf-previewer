@@ -35,7 +35,7 @@
 # map J scroll-preview-down
 # map K scroll-preview-up
 
-# Draw images directly on the tty; lf only understands text on stdout.
+# Graphics use lf's UI thread; normal stdout carries the Rust timing row.
 # Handle images before the text cache, including old cached bat warnings.
 case "$1" in
     *.[aA][rR][wW]) image_type=image/x-sony-arw ;;
@@ -55,11 +55,18 @@ case $image_type in
         # In lf, queue complete image packets on its UI thread. Direct tty
         # writes race tcell redraws and can corrupt or erase a fast preview.
         image_args=()
-        [[ -n ${id:-} && ${lf_flag_single:-false} != true ]] && image_args=(--lf-id "$id")
-        # No tty response queries; standalone invocations still emit raw output.
-        if ! image_error=$("$image_preview" "${image_args[@]}" "$1" "$2" "$3" "$4" "$5" 2>&1 >/dev/tty); then
-            printf '[Image preview failed] %s\n' "$image_error"
+        image_stdout=/dev/tty
+        if [[ -n ${id:-} && ${lf_flag_single:-false} != true ]]; then
+            image_args=(--lf-id "$id")
+            image_stdout=/dev/fd/3
         fi
+        # FD 3 preserves lf stdout outside command substitution; only stderr is
+        # captured for failures. Raw standalone/single output still goes to tty.
+        {
+            if ! image_error=$("$image_preview" "${image_args[@]}" "$1" "$2" "$3" "$4" "$5" 2>&1 >"$image_stdout"); then
+                printf '[Image preview failed] %s\n' "$image_error"
+            fi
+        } 3>&1
         exit 1 # Redraw on selection; do not cache a terminal image as text.
         ;;
     image/*)

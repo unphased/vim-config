@@ -35,6 +35,40 @@ rejected. The encoded bound applies to the embedded JPEG, not the entire ARW;
 large RAW pixel data is neither scanned nor loaded. Reads are bounded before
 decoder construction. Image ID remains 424242 so the existing lf cleaner works.
 
+## Live lf timings
+
+Normal lf previews reserve the first preview row for one stdout diagnostic line;
+image sizing uses the remaining height and placement starts one row lower. For
+example (all stage values are rounded milliseconds):
+
+```text
+141ms LF97 D10 R0 O0 S6 Z14 B12 782k>2.7M 816x1088
+```
+
+- First value: elapsed Rust invocation time, including acknowledged delivery.
+- `LF`: command-file creation, lf queue/parsing, tty writes, and acknowledgement.
+- `D`: image decoding, including orientation metadata lookup.
+- `R`: file read / ARW JPEG extraction, format detection, decoder construction.
+- `O`: applying orientation; `S`: color conversion and resizing.
+- `Z`: zlib compression; `B`: base64/Kitty packet and lf command assembly.
+- `782k>2.7M`: encoded input bytes → actual Kitty-stream bytes (`k` = KiB,
+  `M` = MiB). For ARW, input size is the embedded JPEG, not the RAW file.
+- Final dimensions: resized image pixels. Narrow preview panes clip the line;
+  total, delivery, and decoding are first so the important costs remain visible.
+
+The row is finalized after lf acknowledges its writes, since delivery cannot be
+measured in advance. lf publishes preview stdout after the helper exits; text
+therefore appears above, without repainting over the image. `LF` is **not** a
+Ghostty display acknowledgement: SSH/terminal buffering and final rendering can
+continue afterward. Total excludes the shell's MIME detection/startup and lf's
+later stdout publication. Stage sums can differ slightly from total due to
+rounding and other overhead. A one-row pane reports insufficient image space.
+Standalone and `lf -single` keep their previous raw-output behavior.
+
+Photo JPEGs can expand substantially when converted to raw RGB and base64;
+flat-color screenshots often zlib-compress much better. The wire byte count
+helps distinguish this cost from decoding rather than inferring from file size.
+
 ## Initial JPEG measurements
 
 NAS `/six_fourteen/SCREENCAPS/IMG_1795.jpg`: 800,048 bytes, 1512×2016.

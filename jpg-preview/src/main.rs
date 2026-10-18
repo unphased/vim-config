@@ -3,6 +3,7 @@ use std::ffi::OsString;
 use std::fs::File;
 use std::io::{self, BufWriter, Cursor, Read, Write};
 use std::path::PathBuf;
+use std::time::{Duration, Instant};
 
 mod arw;
 mod lf;
@@ -35,6 +36,68 @@ struct PreparedImage {
     height: u32,
     pixel_format: u8,
     compressed_rgb: Vec<u8>,
+    timings: Timings,
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+struct Timings {
+    read: Duration,
+    decode: Duration,
+    orient: Duration,
+    resize: Duration,
+    compress: Duration,
+    encode: Duration,
+    delivery: Duration,
+    total: Duration,
+    input_bytes: usize,
+    wire_bytes: usize,
+}
+
+impl Timings {
+    fn line(&self, width: u32, height: u32) -> String {
+        let ms = |duration: Duration| (duration.as_secs_f64() * 1000.0).round() as u64;
+        format!(
+            "{}ms LF{} D{} R{} O{} S{} Z{} B{} {}>{} {}x{}",
+            ms(self.total),
+            ms(self.delivery),
+            ms(self.decode),
+            ms(self.read),
+            ms(self.orient),
+            ms(self.resize),
+            ms(self.compress),
+            ms(self.encode),
+            byte_size(self.input_bytes),
+            byte_size(self.wire_bytes),
+            width,
+            height,
+        )
+    }
+}
+
+fn byte_size(bytes: usize) -> String {
+    if bytes >= 1024 * 1024 {
+        format!("{:.1}M", bytes as f64 / (1024.0 * 1024.0))
+    } else if bytes >= 1024 {
+        format!("{}k", bytes.div_ceil(1024))
+    } else {
+        format!("{bytes}B")
+    }
+}
+
+impl CliArgs {
+    fn image_area(&self) -> Result<Option<(usize, usize)>, Box<dyn Error>> {
+        let reserved = usize::from(self.lf_id.is_some());
+        let height = self.height_cells.saturating_sub(reserved);
+        if height == 0 {
+            return Ok(None);
+        }
+        Ok(Some((
+            height,
+            self.y
+                .checked_add(reserved)
+                .ok_or("Y coordinate overflow")?,
+        )))
+    }
 }
 
 fn main() {
@@ -45,20 +108,29 @@ fn main() {
 }
 
 fn run() -> Result<(), Box<dyn Error>> {
+    let started = Instant::now();
     let args = parse_args(std::env::args_os().skip(1))?;
+    let Some((height_cells, image_y)) = args.image_area()? else {
+        println!("Image preview needs 2 rows (timing + image)");
+        return Ok(());
+    };
     let (cell_width, cell_height) = cell_pixels()?;
     let max_width = args
         .width_cells
         .checked_mul(cell_width)
         .ok_or("requested pixel width overflow")?;
-    let max_height = args
-        .height_cells
+    let max_height = height_cells
         .checked_mul(cell_height)
         .ok_or("requested pixel height overflow")?;
     let prepared = prepare_path(&args.image, max_width, max_height)?;
 
     if let Some(id) = args.lf_id {
-        lf::emit_kitty(&prepared, args.x, args.y, id)?;
+        let mut timings = prepared.timings;
+        lf::emit_kitty(&prepared, args.x, image_y, id, &mut timings)?;
+        timings.total = started.elapsed();
+        // lf publishes preview stdout after the child exits. Finalize this
+        // single reserved row after acknowledgement so delivery is measurable.
+        println!("{}", timings.line(prepared.width, prepared.height));
     } else {
         let mut output = BufWriter::with_capacity(64 * 1024, io::stdout().lock());
         emit_kitty(&mut output, &prepared, args.x, args.y)?;
@@ -156,32 +228,41 @@ fn prepare_path(
     max_width: usize,
     max_height: usize,
 ) -> Result<PreparedImage, Box<dyn Error>> {
+    let started = Instant::now();
     let is_arw = path
         .extension()
         .is_some_and(|extension| extension.to_string_lossy().eq_ignore_ascii_case("arw"));
     if is_arw {
         let extracted = arw::extract(&mut File::open(path)?)?;
+        let input_bytes = extracted.bytes.len();
         let mut reader = ImageReader::new(Cursor::new(extracted.bytes)).with_guessed_format()?;
         if reader.format() != Some(ImageFormat::Jpeg) {
             return Err("ARW embedded payload is not a JPEG image".into());
         }
         reader.limits(decode_limits());
-        return prepare_with_orientation(
-            reader.into_decoder()?,
-            max_width,
-            max_height,
-            extracted.orientation,
-        );
+        let decoder = reader.into_decoder()?;
+        let read = started.elapsed();
+        let mut prepared =
+            prepare_with_orientation(decoder, max_width, max_height, extracted.orientation)?;
+        prepared.timings.read = read;
+        prepared.timings.input_bytes = input_bytes;
+        return Ok(prepared);
     }
 
     // Bound actual reads because image decoders buffer input before checking limits.
     let encoded = read_bounded(File::open(path)?, MAX_ENCODED_BYTES)?;
+    let input_bytes = encoded.len();
     let mut reader = ImageReader::new(Cursor::new(encoded)).with_guessed_format()?;
     if !matches!(reader.format(), Some(ImageFormat::Jpeg | ImageFormat::Png)) {
         return Err("input is not a supported JPEG or PNG image".into());
     }
     reader.limits(decode_limits());
-    prepare(reader.into_decoder()?, max_width, max_height)
+    let decoder = reader.into_decoder()?;
+    let read = started.elapsed();
+    let mut prepared = prepare(decoder, max_width, max_height)?;
+    prepared.timings.read = read;
+    prepared.timings.input_bytes = input_bytes;
+    Ok(prepared)
 }
 
 fn decode_limits() -> Limits {
@@ -223,12 +304,18 @@ fn prepare_with_orientation(
         return Err("target pixel dimensions must be greater than zero".into());
     }
 
+    let mut timings = Timings::default();
+    let started = Instant::now();
     let orientation = match orientation_override {
         Some(orientation) => orientation,
         None => decoder.orientation()?,
     };
     let mut decoded = DynamicImage::from_decoder(decoder)?;
+    timings.decode = started.elapsed();
+    let started = Instant::now();
     decoded.apply_orientation(orientation);
+    timings.orient = started.elapsed();
+    let started = Instant::now();
     let has_alpha = decoded.color().has_alpha();
     let (width, height) = fit_dimensions(decoded.width(), decoded.height(), max_width, max_height);
     let (pixels, pixel_format) = if has_alpha {
@@ -268,13 +355,18 @@ fn prepare_with_orientation(
         };
         (pixels, 24)
     };
+    timings.resize = started.elapsed();
+    let started = Instant::now();
     let mut encoder = ZlibEncoder::new(Vec::new(), Compression::fast());
     encoder.write_all(&pixels)?;
+    let compressed_rgb = encoder.finish()?;
+    timings.compress = started.elapsed();
     Ok(PreparedImage {
         width,
         height,
         pixel_format,
-        compressed_rgb: encoder.finish()?,
+        compressed_rgb,
+        timings,
     })
 }
 
@@ -640,6 +732,7 @@ mod tests {
             height: 3,
             pixel_format: 24,
             compressed_rgb,
+            timings: Timings::default(),
         };
         let mut output = Vec::new();
         emit_kitty(&mut output, &image, 7, 2).unwrap();
@@ -679,6 +772,66 @@ mod tests {
         reassembled.extend_from_slice(b"\x1b8");
         let (_, reassembled_compressed) = parse_protocol(&reassembled);
         assert_eq!(inflate_zlib(&reassembled_compressed), raw);
+    }
+
+    #[test]
+    fn timing_row_reserves_exactly_one_cell_row_without_changing_raw_geometry() {
+        let parse = |args: &[&str]| parse_args(args.iter().map(OsString::from)).unwrap();
+        let raw = parse(&["image.jpg", "40", "20", "60", "1"]);
+        assert_eq!(raw.image_area().unwrap(), Some((20, 1)));
+        let mut native = parse(&["--lf-id", "17", "image.jpg", "40", "20", "60", "1"]);
+        assert_eq!(native.image_area().unwrap(), Some((19, 2)));
+        assert_eq!(fit_dimensions(800, 1000, 400, 19 * 20), (304, 380));
+        native.height_cells = 1;
+        assert_eq!(native.image_area().unwrap(), None);
+        native.height_cells = 2;
+        assert_eq!(native.image_area().unwrap(), Some((1, 2)));
+        native.y = usize::MAX;
+        assert!(native.image_area().is_err());
+    }
+
+    #[test]
+    fn timing_line_is_one_compact_ascii_row_with_pipeline_and_payload_sizes() {
+        let ms = Duration::from_millis;
+        let timings = Timings {
+            read: ms(1),
+            decode: ms(2),
+            orient: ms(3),
+            resize: ms(4),
+            compress: ms(5),
+            encode: ms(6),
+            delivery: ms(8),
+            total: ms(29),
+            input_bytes: 1024 * 1024,
+            wire_bytes: 2 * 1024 * 1024,
+        };
+        let line = timings.line(400, 300);
+        assert_eq!(line, "29ms LF8 D2 R1 O3 S4 Z5 B6 1.0M>2.0M 400x300");
+        assert!(line.len() <= 60);
+        assert!(line
+            .bytes()
+            .all(|byte| byte.is_ascii_graphic() || byte == b' '));
+        assert_eq!(byte_size(128), "128B");
+        assert_eq!(byte_size(1025), "2k");
+        assert_eq!(byte_size(1024 * 1024), "1.0M");
+    }
+
+    #[test]
+    fn path_preparation_records_actual_input_and_nonoverlapping_stage_timings() {
+        let path = std::env::temp_dir().join(format!("jpg-timing-{}.png", std::process::id()));
+        let bytes = png(2, 1, &[255, 0, 0, 0, 0, 0, 255, 255], ColorType::Rgba8);
+        std::fs::write(&path, &bytes).unwrap();
+        let started = Instant::now();
+        let result = prepare_path(&path, 1, 1);
+        std::fs::remove_file(path).unwrap();
+        let prepared = result.unwrap();
+        let timings = prepared.timings;
+        assert_eq!(timings.input_bytes, bytes.len());
+        assert!(
+            timings.read + timings.decode + timings.orient + timings.resize + timings.compress
+                <= started.elapsed()
+        );
+        assert_eq!((prepared.width, prepared.height), (1, 1));
     }
 
     #[test]

@@ -10,7 +10,7 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
-use crate::{emit_kitty as emit_protocol, PreparedImage};
+use crate::{emit_kitty as emit_protocol, PreparedImage, Timings};
 
 const MAX_COMMAND_BYTES: usize = 60_000; // lf's remote scanner has a 64 KiB limit.
 const TARGET_COMMAND_BYTES: usize = 48 * 1024;
@@ -20,10 +20,25 @@ const APC_END: &[u8] = b"\x1b\\";
 static NEXT_TRANSFER: AtomicU64 = AtomicU64::new(0);
 type KittyParts<'a> = (&'a [u8], Vec<&'a [u8]>, &'a [u8]);
 
-pub fn emit_kitty(image: &PreparedImage, x: usize, y: usize, id: u32) -> io::Result<()> {
+pub fn emit_kitty(
+    image: &PreparedImage,
+    x: usize,
+    y: usize,
+    id: u32,
+    timings: &mut Timings,
+) -> io::Result<()> {
+    let started = Instant::now();
     let mut protocol = Vec::new();
     emit_protocol(&mut protocol, image, x, y)?;
-    transfer(&command_lines(&protocol, id)?, &socket_path(), id, TIMEOUT)
+    let commands = command_lines(&protocol, id)?;
+    let (prefix, _, suffix) = split_protocol(&protocol)?;
+    timings.wire_bytes =
+        protocol.len() + commands.len().saturating_sub(1) * (prefix.len() + suffix.len());
+    timings.encode = started.elapsed();
+    let started = Instant::now();
+    transfer(&commands, &socket_path(), id, TIMEOUT)?;
+    timings.delivery = started.elapsed();
+    Ok(())
 }
 
 fn runtime_dir(runtime: Option<PathBuf>, temporary: Option<PathBuf>, uid: u32) -> PathBuf {
