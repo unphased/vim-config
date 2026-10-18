@@ -582,11 +582,12 @@ external standard.
   a uvarint block count and length-prefixed blocks. A current adaptive block is
   `PST2` followed by three length-prefixed sections: JSON header/context, `CSH2`
   CPU data and `PSD1` sparse metadata. `legacy-1ms` retains the PST1/CSH1 control.
-- CSH2 begins `CSH2`, version byte `1`, then row/identity/point counts. Each sorted
+- CSH2 begins `CSH2`, version byte `2`, then row/identity/point counts. The reader
+  also supports prototype version 1. Each sorted
   identity track stores its identity, observation count and row-index deltas, an
   exact first total, then maximal CPU-quantum runs. A run stores interval count,
   Q, quantized interior offsets from its exact starting anchor, and an exact end
-  total. Adaptive Q is interval-derived, capped at 1 ms in native ticks; Q=1
+  delta from that anchor (version 1 stored the absolute end total). Adaptive Q is interval-derived, capped at 1 ms in native ticks; Q=1
   covers zero/fine intervals exactly. This yields the implemented <12.5% relative
   positive interval target without rounding away positive intervals.
 - PSD1 carries row clocks, process identities/names/PPIDs, sparse presence and

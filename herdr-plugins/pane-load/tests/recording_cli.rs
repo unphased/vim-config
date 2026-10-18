@@ -184,6 +184,70 @@ fn channel_eof_commits_tail_and_raw_replay_has_binary_block_parity() {
 }
 
 #[test]
+fn fresh_live_identity_quality_does_not_split_blocks_and_replay_is_identical() {
+    let temp = Temp::new();
+    let context = context("new-identity-parity");
+    let mut new_process = proc(30, 40);
+    new_process.pid = 43;
+    let rows = vec![
+        row(0, 100, vec![proc(10, 20)]),
+        row(1, 200, vec![proc(20, 30)]),
+        row(2, 300, vec![new_process]),
+    ];
+
+    let live_root = temp.path("live-binary");
+    let (tx, rx) = mpsc::channel();
+    for row in rows.clone() {
+        tx.send(row.into()).unwrap();
+    }
+    tx.send(LiveMessage::End {
+        quality: vec![],
+        error: None,
+    })
+    .unwrap();
+    drop(tx);
+    let live = pipeline::consume_live(
+        &options(live_root.clone(), OutputFormat::Binary),
+        &context,
+        rx,
+    )
+    .unwrap();
+    assert_eq!(live.blocks, 1);
+
+    let raw_root = temp.path("live-raw");
+    let (tx, rx) = mpsc::channel();
+    for row in rows {
+        tx.send(row.into()).unwrap();
+    }
+    tx.send(LiveMessage::End {
+        quality: vec![],
+        error: None,
+    })
+    .unwrap();
+    drop(tx);
+    pipeline::consume_live(
+        &options(raw_root.clone(), OutputFormat::JsonlZstd),
+        &context,
+        rx,
+    )
+    .unwrap();
+    let files = pipeline::source_files(&raw_root.join("run-new-identity-parity")).unwrap();
+    let replay_root = temp.path("replayed");
+    let replay = pipeline::transform_sources(
+        &files,
+        &replay_root,
+        &options(replay_root.clone(), OutputFormat::Binary),
+        None,
+    )
+    .unwrap();
+    assert_eq!(replay.blocks, 1);
+    assert_eq!(
+        store::read_archive(&live_root.join("run-new-identity-parity/archive")).unwrap(),
+        store::read_archive(&replay_root.join("archive")).unwrap()
+    );
+}
+
+#[test]
 fn frozen_capture_ledger_is_verified_and_checked_ledger_is_source_ordered() {
     let temp = Temp::new();
     let capture = temp.path("capture");
@@ -726,6 +790,114 @@ fn capture_ledger_rejects_missing_segments_and_unclaimed_artifacts() {
 }
 
 #[test]
+fn raw_first_segment_numbering_rotates_and_replays_in_source_order() {
+    let temp = Temp::new();
+    let context = context("ordered-raw-rotation");
+    let mut live_options = options(temp.path("live-binary"), OutputFormat::Binary);
+    live_options.block_rows = 1;
+    live_options.frame_bytes = 1024;
+    let rows = vec![
+        row(0, 100, vec![proc(10, 20)]),
+        row(1, 200, vec![proc(20, 30)]),
+        row(2, 300, vec![proc(30, 40)]),
+    ];
+    let (tx, rx) = mpsc::channel();
+    for row in rows.clone() {
+        tx.send(row.into()).unwrap();
+    }
+    tx.send(LiveMessage::End {
+        quality: vec![],
+        error: None,
+    })
+    .unwrap();
+    drop(tx);
+    pipeline::consume_live(&live_options, &context, rx).unwrap();
+
+    let raw_root = temp.path("raw");
+    let mut raw_options = options(raw_root.clone(), OutputFormat::JsonlZstd);
+    raw_options.block_rows = 1;
+    raw_options.frame_bytes = 1;
+    let (tx, rx) = mpsc::channel();
+    for row in rows {
+        tx.send(row.into()).unwrap();
+    }
+    tx.send(LiveMessage::End {
+        quality: vec![],
+        error: None,
+    })
+    .unwrap();
+    drop(tx);
+    pipeline::consume_live(&raw_options, &context, rx).unwrap();
+
+    let raw_run = raw_root.join("run-ordered-raw-rotation");
+    let files = pipeline::source_files(&raw_run).unwrap();
+    assert_eq!(files.len(), 3);
+    assert!(files[0].ends_with("source-000000.jsonl.zst"));
+    assert!(files[1].ends_with("source-000001.jsonl.zst"));
+    assert!(files[2].ends_with("source-000002.jsonl.zst"));
+    let replay_root = temp.path("replayed");
+    let mut replay_options = options(replay_root.clone(), OutputFormat::Binary);
+    replay_options.block_rows = 1;
+    pipeline::transform_sources(&files, &replay_root, &replay_options, None).unwrap();
+    assert_eq!(
+        store::read_archive(&live_options.output.join("run-ordered-raw-rotation/archive")).unwrap(),
+        store::read_archive(&replay_root.join("archive")).unwrap()
+    );
+
+    let old_layout = temp.path("old-layout");
+    fs::create_dir(&old_layout).unwrap();
+    let mut legacy = RawWriter::create(&old_layout.join("source.jsonl"), &context).unwrap();
+    legacy.write(&row(0, 100, vec![proc(10, 20)])).unwrap();
+    legacy.finish().unwrap();
+    write_source(
+        &old_layout.join("source-000001.jsonl.zst"),
+        &context,
+        &[row(1, 200, vec![proc(20, 30)])],
+    );
+    let old_files = pipeline::source_files(&old_layout).unwrap();
+    assert!(old_files[0].ends_with("source.jsonl"));
+    assert!(old_files[1].ends_with("source-000001.jsonl.zst"));
+}
+
+#[test]
+fn size_flush_resets_frame_age_for_the_next_frame() {
+    let temp = Temp::new();
+    let mut options = options(temp.path("age-frames"), OutputFormat::Binary);
+    options.block_rows = 1;
+    options.frame_bytes = 2048;
+    let context = context("frame-age-reset");
+    let mut large = proc(10, 20);
+    large.name = "x".repeat(4000);
+    let rows = [
+        row(0, 100, vec![large]),
+        row(1, 3_599_999_999_900, vec![proc(20, 30)]),
+        row(2, 3_600_000_000_100, vec![proc(30, 40)]),
+    ];
+    let (tx, rx) = mpsc::channel();
+    for row in rows {
+        tx.send(row.into()).unwrap();
+    }
+    tx.send(LiveMessage::End {
+        quality: vec![],
+        error: None,
+    })
+    .unwrap();
+    drop(tx);
+    pipeline::consume_live(&options, &context, rx).unwrap();
+    let archive = options.output.join("run-frame-age-reset/archive");
+    let frames = fs::read_dir(archive)
+        .unwrap()
+        .filter_map(|entry| {
+            let path = entry.unwrap().path();
+            path.extension()
+                .is_some_and(|extension| extension == "pcr")
+                .then_some(path)
+        })
+        .count();
+    assert_eq!(frames, 2, "the two recent rows should share their frame");
+}
+
+#[test]
 fn regression_across_missing_scan_and_source_shard_is_cut_and_annotated() {
     let temp = Temp::new();
     let root = temp.path("capture/capture/source");
@@ -828,6 +1000,117 @@ fn regression_cuts_before_row_without_forcing_singleton_block() {
 }
 
 #[test]
+fn source_run_partial_and_end_quality_survive_transform_even_for_file_input() {
+    use std::os::unix::fs::PermissionsExt;
+    let temp = Temp::new();
+    let context = context("upstream-status");
+    let partial_run = temp.path("partial-raw-run");
+    fs::create_dir(&partial_run).unwrap();
+    fs::set_permissions(&partial_run, fs::Permissions::from_mode(0o700)).unwrap();
+    let partial_source = partial_run.join("source-000000.jsonl.zst");
+    write_source(
+        &partial_source,
+        &context,
+        &[row(0, 100, vec![proc(10, 20)])],
+    );
+    fs::write(
+        partial_run.join("partial.json"),
+        serde_json::to_vec(&serde_json::json!({
+            "kind":"live-native", "complete":false, "status":"failed",
+            "end_reason":"native producer failed after closed frame",
+            "end_quality":[{"kind":"producer-drop","count":2}]
+        }))
+        .unwrap(),
+    )
+    .unwrap();
+    fs::set_permissions(
+        partial_run.join("partial.json"),
+        fs::Permissions::from_mode(0o600),
+    )
+    .unwrap();
+    let partial_output = temp.path("partial-import");
+    let stats = pipeline::transform_sources(
+        std::slice::from_ref(&partial_source),
+        &partial_output,
+        &options(partial_output.clone(), OutputFormat::Binary),
+        None,
+    )
+    .unwrap();
+    assert_eq!(
+        stats.end_reason.as_deref(),
+        Some("native producer failed after closed frame")
+    );
+    assert_eq!(stats.end_quality[0]["kind"], "producer-drop");
+    assert_eq!(stats.flagged_events, 1);
+    assert!(!partial_output.join("complete.json").exists());
+    let partial: serde_json::Value =
+        serde_json::from_slice(&fs::read(partial_output.join("partial.json")).unwrap()).unwrap();
+    assert_eq!(
+        partial["end_reason"],
+        "native producer failed after closed frame"
+    );
+    assert_eq!(partial["end_quality"][0]["kind"], "producer-drop");
+
+    let complete_run = temp.path("complete-raw-run");
+    fs::create_dir(&complete_run).unwrap();
+    fs::set_permissions(&complete_run, fs::Permissions::from_mode(0o700)).unwrap();
+    let complete_source = complete_run.join("source-000000.jsonl.zst");
+    write_source(
+        &complete_source,
+        &context,
+        &[row(0, 100, vec![proc(10, 20)])],
+    );
+    fs::write(
+        complete_run.join("complete.json"),
+        serde_json::to_vec(&serde_json::json!({
+            "kind":"live-native", "complete":true, "status":"complete",
+            "end_quality":[{"kind":"orderly-stop"}]
+        }))
+        .unwrap(),
+    )
+    .unwrap();
+    fs::set_permissions(
+        complete_run.join("complete.json"),
+        fs::Permissions::from_mode(0o600),
+    )
+    .unwrap();
+    let complete_output = temp.path("complete-import");
+    let stats = pipeline::transform_sources(
+        &[complete_source],
+        &complete_output,
+        &options(complete_output.clone(), OutputFormat::Binary),
+        None,
+    )
+    .unwrap();
+    assert_eq!(stats.end_quality[0]["kind"], "orderly-stop");
+    assert_eq!(stats.flagged_events, 1);
+    assert!(complete_output.join("complete.json").is_file());
+
+    let legacy_root = temp.path("preserved-legacy/source");
+    fs::create_dir_all(&legacy_root).unwrap();
+    write_source(
+        &legacy_root.join("source-000000.jsonl.zst"),
+        &context,
+        &[row(0, 100, vec![proc(10, 20)])],
+    );
+    fs::write(
+        legacy_root.join("status.json"),
+        br#"{"status":"interrupted"}"#,
+    )
+    .unwrap();
+    let legacy_files = pipeline::source_files(&temp.path("preserved-legacy")).unwrap();
+    let legacy_output = temp.path("legacy-import");
+    pipeline::transform_sources(
+        &legacy_files,
+        &legacy_output,
+        &options(legacy_output.clone(), OutputFormat::Binary),
+        None,
+    )
+    .unwrap();
+    assert!(legacy_output.join("complete.json").is_file());
+}
+
+#[test]
 fn record_root_rejects_foreign_permissions_hardlinked_lock_and_prior_bytes_without_chmod() {
     use std::os::unix::fs::{MetadataExt, PermissionsExt};
     let temp = Temp::new();
@@ -877,7 +1160,13 @@ fn record_root_rejects_foreign_permissions_hardlinked_lock_and_prior_bytes_witho
     let oversized = temp.path("oversized-root");
     fs::create_dir(&oversized).unwrap();
     fs::set_permissions(&oversized, fs::Permissions::from_mode(0o700)).unwrap();
-    fs::write(oversized.join("prior-run-data"), vec![0u8; 4096]).unwrap();
+    for index in 0..32 {
+        let prior_run = oversized.join(format!("run-prior-{index:03}"));
+        fs::create_dir(&prior_run).unwrap();
+        fs::set_permissions(&prior_run, fs::Permissions::from_mode(0o700)).unwrap();
+        fs::write(prior_run.join("data"), vec![index as u8; 128]).unwrap();
+        fs::set_permissions(prior_run.join("data"), fs::Permissions::from_mode(0o600)).unwrap();
+    }
     let mut limited = options(oversized.clone(), OutputFormat::Binary);
     limited.max_bytes = 1024;
     let (tx, rx) = mpsc::channel();
@@ -893,6 +1182,146 @@ fn record_root_rejects_foreign_permissions_hardlinked_lock_and_prior_bytes_witho
             .contains("byte limit")
     );
     assert!(!oversized.join("run-private-root").exists());
+}
+
+#[test]
+fn startup_recovers_only_incomplete_archives_and_reports_old_corruption() {
+    use std::os::unix::fs::PermissionsExt;
+    let temp = Temp::new();
+    let root = temp.path("recovery-root");
+    let old_context = context("completed-corrupt");
+    let (tx, rx) = mpsc::channel();
+    tx.send(row(0, 100, vec![proc(10, 20)]).into()).unwrap();
+    tx.send(LiveMessage::End {
+        quality: vec![],
+        error: None,
+    })
+    .unwrap();
+    drop(tx);
+    pipeline::consume_live(
+        &options(root.clone(), OutputFormat::Binary),
+        &old_context,
+        rx,
+    )
+    .unwrap();
+    let completed_archive = root.join("run-completed-corrupt/archive");
+    let frame = fs::read_dir(&completed_archive)
+        .unwrap()
+        .map(|entry| entry.unwrap().path())
+        .find(|path| path.extension().is_some_and(|extension| extension == "pcr"))
+        .unwrap();
+    let mut bytes = fs::read(&frame).unwrap();
+    let middle = bytes.len() / 2;
+    bytes[middle] ^= 0x40;
+    fs::write(&frame, bytes).unwrap();
+
+    let (tx, rx) = mpsc::channel();
+    tx.send(LiveMessage::End {
+        quality: vec![],
+        error: None,
+    })
+    .unwrap();
+    drop(tx);
+    let fresh = pipeline::consume_live(
+        &options(root.clone(), OutputFormat::Binary),
+        &context("fresh-after-complete-corruption"),
+        rx,
+    )
+    .unwrap();
+    assert!(fresh.recovery.is_empty());
+
+    let incomplete = root.join("run-incomplete-corrupt");
+    fs::create_dir(&incomplete).unwrap();
+    fs::set_permissions(&incomplete, fs::Permissions::from_mode(0o700)).unwrap();
+    let mut writer = store::ArchiveWriter::open(
+        &incomplete.join("archive"),
+        &context("incomplete-corrupt"),
+        Profile::Adaptive,
+        store::StoreOptions::default(),
+    )
+    .unwrap();
+    writer.append(b"frame to corrupt").unwrap();
+    writer.finish().unwrap();
+    fs::write(
+        incomplete.join("partial.json"),
+        br#"{"kind":"live-native","complete":false,"end_reason":"killed"}"#,
+    )
+    .unwrap();
+    fs::set_permissions(
+        incomplete.join("partial.json"),
+        fs::Permissions::from_mode(0o600),
+    )
+    .unwrap();
+    let frame = fs::read_dir(incomplete.join("archive"))
+        .unwrap()
+        .map(|entry| entry.unwrap().path())
+        .find(|path| path.extension().is_some_and(|extension| extension == "pcr"))
+        .unwrap();
+    let mut bytes = fs::read(&frame).unwrap();
+    let middle = bytes.len() / 2;
+    bytes[middle] ^= 0x40;
+    fs::write(&frame, bytes).unwrap();
+
+    let (tx, rx) = mpsc::channel();
+    tx.send(LiveMessage::End {
+        quality: vec![],
+        error: None,
+    })
+    .unwrap();
+    drop(tx);
+    let after_bad_partial = pipeline::consume_live(
+        &options(root.clone(), OutputFormat::Binary),
+        &context("fresh-after-partial-corruption"),
+        rx,
+    )
+    .unwrap();
+    assert!(
+        after_bad_partial
+            .recovery
+            .iter()
+            .any(|report| report.contains("recovery warning"))
+    );
+
+    let journal_run = root.join("run-journal-recovery");
+    fs::create_dir(&journal_run).unwrap();
+    fs::set_permissions(&journal_run, fs::Permissions::from_mode(0o700)).unwrap();
+    let mut writer = store::ArchiveWriter::open(
+        &journal_run.join("archive"),
+        &context("journal-recovery"),
+        Profile::Adaptive,
+        store::StoreOptions::default(),
+    )
+    .unwrap();
+    writer.append(b"durable journal tail").unwrap();
+    drop(writer);
+    fs::write(
+        journal_run.join("partial.json"),
+        br#"{"kind":"live-native","complete":false,"end_reason":"killed"}"#,
+    )
+    .unwrap();
+    fs::set_permissions(
+        journal_run.join("partial.json"),
+        fs::Permissions::from_mode(0o600),
+    )
+    .unwrap();
+    let (tx, rx) = mpsc::channel();
+    tx.send(LiveMessage::End {
+        quality: vec![],
+        error: None,
+    })
+    .unwrap();
+    drop(tx);
+    pipeline::consume_live(
+        &options(root.clone(), OutputFormat::Binary),
+        &context("fresh-after-journal-recovery"),
+        rx,
+    )
+    .unwrap();
+    assert_eq!(
+        store::read_archive(&journal_run.join("archive")).unwrap(),
+        [b"durable journal tail".to_vec()]
+    );
+    assert!(!journal_run.join("archive/active.journal").exists());
 }
 
 #[test]
@@ -1107,6 +1536,47 @@ fn corrupt_source_never_publishes_success_manifest_and_marks_partial_output() {
         "--jsonl".into(),
     ]);
     assert!(inspect.unwrap_err().contains("partial recording"));
+}
+
+#[test]
+#[ignore = "requires an explicitly captured native reference in PROCSTATS_NATIVE_REFERENCE"]
+fn native_reference_live_and_replay_byte_parity() {
+    let source = PathBuf::from(
+        std::env::var_os("PROCSTATS_NATIVE_REFERENCE").expect("set native reference path"),
+    );
+    let mut rows = Vec::new();
+    let parsed = herdr_pane_load::recording::source::visit_source(&source, None, |_, row| {
+        rows.push(row);
+        Ok(())
+    })
+    .unwrap();
+    assert!(!rows.is_empty());
+    let temp = Temp::new();
+    let live = temp.path("live");
+    let config = options(live.clone(), OutputFormat::Binary);
+    let (tx, rx) = mpsc::channel();
+    for row in rows {
+        tx.send(LiveMessage::Observation(row)).unwrap();
+    }
+    tx.send(LiveMessage::End {
+        quality: vec![],
+        error: None,
+    })
+    .unwrap();
+    drop(tx);
+    let stats = pipeline::consume_live(&config, &parsed.context, rx).unwrap();
+    let replay = temp.path("replay");
+    let mut replay_config = options(replay.clone(), OutputFormat::Binary);
+    replay_config.verify = true;
+    let replayed = pipeline::transform_sources(&[source], &replay, &replay_config, None).unwrap();
+    assert_eq!(stats.scans, replayed.scans);
+    let live_archive = live
+        .join(format!("run-{}", parsed.context.capture_run_id.unwrap()))
+        .join("archive");
+    assert_eq!(
+        store::read_archive(&live_archive).unwrap(),
+        store::read_archive(&replay.join("archive")).unwrap()
+    );
 }
 
 #[test]

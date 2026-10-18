@@ -37,7 +37,7 @@ sampler remains separate; recording has not been wired into it.
   has no source timebase, import requires an explicit `--timebase NUM/DEN` and
   never guesses from the current host. For the known legacy source, use `125/3`.
 - `adaptive` is the default binary profile. It writes PST2 blocks with PSD1 sparse
-  metadata and CSH2 CPU layout version 1. Adaptive interval quantums target less
+  metadata and CSH2 CPU layout version 2 (with version-1 read compatibility). Adaptive interval quantums target less
   than 12.5% relative CPU-increment error, capped at 1 ms in source ticks; Q=1
   intervals, including zero intervals, are exact. `legacy-1ms` is the PST1/CSH1
   comparison control; `fixed-100us` is another PST2/CSH2 control. All binary

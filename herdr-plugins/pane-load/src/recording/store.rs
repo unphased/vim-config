@@ -243,6 +243,7 @@ pub struct ArchiveWriter {
     frames: Vec<FrameInfo>,
     active: Vec<StoredBlock>,
     active_wire_bytes: usize,
+    usage_bytes: u64,
     next_id: u64,
     poisoned: bool,
     recovery_report: Vec<String>,
@@ -295,6 +296,7 @@ impl ArchiveWriter {
 
         let frames = scan_frames(&root)?;
         validate_frame_sequence(&frames)?;
+        let usage_bytes = directory_bytes(&root)?;
         let mut writer = Self {
             root,
             options,
@@ -302,6 +304,7 @@ impl ArchiveWriter {
             frames,
             active: Vec::new(),
             active_wire_bytes: 0,
+            usage_bytes,
             next_id: 0,
             poisoned: false,
             recovery_report: Vec::new(),
@@ -355,7 +358,12 @@ impl ArchiveWriter {
             } else {
                 JOURNAL_MAGIC.len()
             };
-        ensure_capacity(&self.root, self.options, additional as u64)?;
+        ensure_capacity_at(
+            &self.root,
+            self.options,
+            self.usage_bytes,
+            additional as u64,
+        )?;
         let journal_path = self.root.join(JOURNAL_FILE);
         let result = (|| -> Result<()> {
             let mut file = if journal_exists {
@@ -382,6 +390,10 @@ impl ArchiveWriter {
             self.poisoned = true;
             return Err(e);
         }
+        self.usage_bytes = self
+            .usage_bytes
+            .checked_add(additional as u64)
+            .ok_or_else(|| "archive size overflow".to_string())?;
 
         self.active_wire_bytes = self
             .active_wire_bytes
@@ -399,6 +411,11 @@ impl ArchiveWriter {
             self.flush_frame()?;
         }
         Ok(())
+    }
+
+    /// Whether there are durable blocks waiting in the active frame.
+    pub fn has_active_frame(&self) -> bool {
+        !self.active.is_empty()
     }
 
     /// Publishes the current durable tail as an immutable partial frame.
@@ -461,7 +478,9 @@ impl ArchiveWriter {
         }
         if blocks.is_empty() {
             self.rebuild_manifest()?;
+            let journal_bytes = fs::metadata(&path).map_err(io_error("stat journal"))?.len();
             remove_owned_regular(&self.root, JOURNAL_FILE)?;
+            self.usage_bytes = self.usage_bytes.saturating_sub(journal_bytes);
             sync_directory(&self.root)?;
             return Ok(());
         }
@@ -524,7 +543,9 @@ impl ArchiveWriter {
         }
         if pending.is_empty() {
             self.rebuild_manifest()?;
+            let journal_bytes = fs::metadata(&path).map_err(io_error("stat journal"))?.len();
             remove_owned_regular(&self.root, JOURNAL_FILE)?;
+            self.usage_bytes = self.usage_bytes.saturating_sub(journal_bytes);
             sync_directory(&self.root)?;
         } else {
             self.publish_blocks(&pending, true)?;
@@ -733,6 +754,10 @@ impl ArchiveWriter {
             }
             rename_noreplace(&tmp_path, &final_path)
                 .map_err(io_error("publish immutable frame"))?;
+            self.usage_bytes = self
+                .usage_bytes
+                .checked_add(file_size)
+                .ok_or_else(|| "archive size overflow".to_string())?;
             sync_directory(&self.root)?;
             self.frames.push(proposed);
             self.frames.sort_by_key(|frame| frame.first);
@@ -740,7 +765,11 @@ impl ArchiveWriter {
         validate_frame_sequence(&self.frames)?;
         self.rebuild_manifest()?;
         if remove_journal && self.root.join(JOURNAL_FILE).exists() {
+            let journal_bytes = fs::metadata(self.root.join(JOURNAL_FILE))
+                .map_err(io_error("stat journal"))?
+                .len();
             remove_owned_regular(&self.root, JOURNAL_FILE)?;
+            self.usage_bytes = self.usage_bytes.saturating_sub(journal_bytes);
             sync_directory(&self.root)?;
         }
         Ok(())
@@ -790,10 +819,10 @@ impl ArchiveWriter {
         let additional = frame_bytes
             .checked_add(manifest.len() as u64)
             .ok_or_else(|| "archive publication size overflow".to_string())?;
-        ensure_capacity(&self.root, self.options, additional)
+        ensure_capacity_at(&self.root, self.options, self.usage_bytes, additional)
     }
 
-    fn rebuild_manifest(&self) -> Result<()> {
+    fn rebuild_manifest(&mut self) -> Result<()> {
         let bytes = encode_manifest(&self.frames)?;
         let current = self.root.join(MANIFEST_FILE);
         if let Ok(meta) = fs::symlink_metadata(&current) {
@@ -815,6 +844,7 @@ impl ArchiveWriter {
             MANIFEST_TEMP,
             &bytes,
             self.options,
+            &mut self.usage_bytes,
         )
     }
 }
@@ -1619,15 +1649,26 @@ fn atomic_replace(
     temp: &str,
     bytes: &[u8],
     options: StoreOptions,
+    usage_bytes: &mut u64,
 ) -> Result<()> {
     remove_owned_temp(root, temp)?;
-    ensure_capacity(root, options, bytes.len() as u64)?;
+    ensure_capacity_at(root, options, *usage_bytes, bytes.len() as u64)?;
     let path = root.join(temp);
     let mut file = create_private_new(&path)?;
     file.write_all(bytes)
         .map_err(io_error("write archive manifest"))?;
     file.sync_all().map_err(io_error("sync archive manifest"))?;
-    fs::rename(&path, root.join(target)).map_err(io_error("publish archive manifest"))?;
+    let target_path = root.join(target);
+    let old_bytes = match fs::symlink_metadata(&target_path) {
+        Ok(metadata) => metadata.len(),
+        Err(error) if error.kind() == io::ErrorKind::NotFound => 0,
+        Err(error) => return Err(format!("inspect old archive manifest: {error}")),
+    };
+    fs::rename(&path, &target_path).map_err(io_error("publish archive manifest"))?;
+    *usage_bytes = usage_bytes
+        .checked_sub(old_bytes)
+        .and_then(|used| used.checked_add(bytes.len() as u64))
+        .ok_or_else(|| "archive size accounting underflow or overflow".to_string())?;
     sync_directory(root)
 }
 
@@ -1684,7 +1725,14 @@ fn remove_owned_regular(root: &Path, name: &str) -> Result<()> {
 }
 
 fn ensure_capacity(root: &Path, options: StoreOptions, additional: u64) -> Result<()> {
-    let used = directory_bytes(root)?;
+    ensure_capacity_at(root, options, directory_bytes(root)?, additional)
+}
+fn ensure_capacity_at(
+    root: &Path,
+    options: StoreOptions,
+    used: u64,
+    additional: u64,
+) -> Result<()> {
     let projected = used
         .checked_add(additional)
         .ok_or_else(|| "archive size overflow".to_string())?;
@@ -2109,6 +2157,25 @@ mod tests {
                 .is_err()
         );
         assert!(!path.join(JOURNAL_FILE).exists());
+    }
+
+    #[test]
+    fn frame_publication_counts_journal_and_new_frame_peak_before_writing() {
+        let temp = Temp::new();
+        let path = temp.archive();
+        let mut writer =
+            ArchiveWriter::open(&path, &context(), Profile::Adaptive, options(4096)).unwrap();
+        writer.append(b"near-cap frame payload").unwrap();
+        let used_with_journal = directory_bytes(&path).unwrap();
+        writer.options.max_bytes = used_with_journal + 1;
+        assert!(writer.flush_frame().unwrap_err().contains("byte limit"));
+        assert!(directory_bytes(&path).unwrap() <= writer.options.max_bytes);
+        assert!(path.join(JOURNAL_FILE).is_file());
+        assert!(
+            !frame_paths(&path)
+                .iter()
+                .any(|frame| { fs::metadata(frame).is_ok_and(|meta| meta.len() > 0) })
+        );
     }
 
     #[test]

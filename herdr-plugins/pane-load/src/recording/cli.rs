@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::fs::{self, DirBuilder, OpenOptions};
-use std::io::{BufWriter, Write};
+use std::io::{BufWriter, Read, Write};
 use std::os::unix::fs::{DirBuilderExt, MetadataExt, OpenOptionsExt, PermissionsExt};
 use std::path::{Path, PathBuf};
 
@@ -18,7 +18,7 @@ const DEFAULT_BENCH_FRAME_BYTES: usize = 16 * 1024 * 1024;
 const USAGE: &str = "pane-load recording <record|transform|inspect|bench> ...\n\
 record: --output ROOT [--duration SEC] [--hz N] [--profile adaptive|legacy-1ms|fixed-100us] [--format binary|jsonl-zstd]\n\
 transform: --input FILE|CAPTUREROOT --output NEWARCHIVE [--timebase NUM/DEN] [--profile PROFILE] [--block-rows N] [--frame-bytes N] [--max-bytes N] [--min-free-bytes N] [--verify]\n\
-inspect: --input ARCHIVE|RECORDROOT|CACHE [--verify] [--jsonl|--blocks-out NEWPRIVATEdir] [--recover]\n\
+inspect: --input ARCHIVE|RECORDROOT|CACHE [--verify (archives are always fully verified)] [--jsonl|--blocks-out NEWPRIVATEdir] [--recover]\n\
 bench: --input RAWSOURCE|ARCHIVE/CACHE --profiles adaptive,legacy-1ms,fixed-100us [--timebase NUM/DEN] [--frame-bytes N] --output DIR|FILE.jsonl";
 
 /// Parse the flags following `record`. Unknown, duplicate, missing, and malformed flags fail.
@@ -100,26 +100,7 @@ pub fn parse_record_options(args: &[String]) -> Result<RecordOptions> {
     if let Some(value) = block_rows {
         options.block_rows = value;
     }
-    if options.hz == 0 || options.hz > 1000 {
-        return Err("--hz must be in 1..=1000".into());
-    }
-    if options.duration.is_some_and(|v| {
-        !v.is_finite() || v <= 0.0 || std::time::Duration::try_from_secs_f64(v).is_err()
-    }) {
-        return Err("--duration must be finite, positive, and representable".into());
-    }
-    if options.block_rows == 0 || options.block_rows > super::model::MAX_POINTS {
-        return Err("--block-rows must be in 1..=1000000".into());
-    }
-    if options.frame_bytes == 0 || options.frame_bytes > super::model::MAX_BLOCK_BYTES {
-        return Err(format!(
-            "--frame-bytes must be in 1..={}",
-            super::model::MAX_BLOCK_BYTES
-        ));
-    }
-    if options.max_bytes == 0 {
-        return Err("--max-bytes must be positive".into());
-    }
+    pipeline::validate_record_options(&options)?;
     Ok(options)
 }
 
@@ -697,6 +678,51 @@ fn inspect_archive(
     })
 }
 
+fn read_cached_block(path: &Path, require_owned: bool) -> Result<Vec<u8>> {
+    let before = fs::symlink_metadata(path)
+        .map_err(|e| format!("inspect cached block {}: {e}", path.display()))?;
+    if before.file_type().is_symlink()
+        || !before.is_file()
+        || before.len() > super::model::MAX_BLOCK_BYTES as u64
+        || (require_owned && before.uid() != unsafe { libc::geteuid() })
+    {
+        return Err(format!(
+            "unsafe or oversized cached block: {}",
+            path.display()
+        ));
+    }
+    let mut open = OpenOptions::new();
+    open.read(true)
+        .custom_flags(libc::O_NOFOLLOW | libc::O_CLOEXEC);
+    let file = open
+        .open(path)
+        .map_err(|e| format!("open cached block {}: {e}", path.display()))?;
+    let after = file
+        .metadata()
+        .map_err(|e| format!("stat cached block {}: {e}", path.display()))?;
+    if !after.is_file()
+        || after.dev() != before.dev()
+        || after.ino() != before.ino()
+        || after.len() > super::model::MAX_BLOCK_BYTES as u64
+    {
+        return Err(format!(
+            "cached block changed or is oversized: {}",
+            path.display()
+        ));
+    }
+    let mut bytes = Vec::with_capacity(after.len() as usize);
+    file.take(super::model::MAX_BLOCK_BYTES as u64 + 1)
+        .read_to_end(&mut bytes)
+        .map_err(|e| format!("read cached block {}: {e}", path.display()))?;
+    if bytes.len() > super::model::MAX_BLOCK_BYTES {
+        return Err(format!(
+            "cached block exceeds size limit: {}",
+            path.display()
+        ));
+    }
+    Ok(bytes)
+}
+
 fn inspect_pst_files(
     paths: &[PathBuf],
     summary: &mut Summary,
@@ -704,21 +730,7 @@ fn inspect_pst_files(
     mut blocks_export: Option<&mut BlocksExporter>,
 ) -> Result<()> {
     for path in paths {
-        if blocks_export.is_some() {
-            let metadata = fs::symlink_metadata(path)
-                .map_err(|error| format!("inspect cached block {}: {error}", path.display()))?;
-            if metadata.file_type().is_symlink()
-                || !metadata.is_file()
-                || metadata.uid() != unsafe { libc::geteuid() }
-            {
-                return Err(format!(
-                    "unsafe or unowned cached block: {}",
-                    path.display()
-                ));
-            }
-        }
-        let bytes =
-            fs::read(path).map_err(|e| format!("read cached block {}: {e}", path.display()))?;
+        let bytes = read_cached_block(path, blocks_export.is_some())?;
         let block = decode_block(&bytes)?;
         if export
             && (summary.blocks == 0 || !summary.profiles.contains(&format!("{:?}", block.profile)))
@@ -961,8 +973,7 @@ fn run_bench(args: &[String]) -> Result<()> {
                 }
             } else {
                 for path in &paths {
-                    let bytes = fs::read(path)
-                        .map_err(|e| format!("read cached block {}: {e}", path.display()))?;
+                    let bytes = read_cached_block(path, false)?;
                     consume(&bytes)?;
                 }
             }

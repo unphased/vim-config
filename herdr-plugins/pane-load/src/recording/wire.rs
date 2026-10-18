@@ -16,7 +16,8 @@ const PST2: &[u8; 4] = b"PST2";
 const PSD1: &[u8; 4] = b"PSD1";
 const CSH1: &[u8; 4] = b"CSH1";
 const CSH2: &[u8; 4] = b"CSH2";
-const CSH2_VERSION: u8 = 1;
+const CSH2_ABSOLUTE_ENDPOINT_VERSION: u8 = 1;
+const CSH2_VERSION: u8 = 2;
 const RSS_UNITS: u64 = RSS_QUANTUM;
 const MAX_DECODED_BYTES: usize = 256 * 1024 * 1024;
 const LEGACY_CPU_NS: u64 = 1_000_000;
@@ -1371,7 +1372,11 @@ fn encode_csh2(
                     / q;
                 put_uvarint(&mut out, quotient)?;
             }
-            put_uvarint(&mut out, samples[end_point].1)?;
+            let endpoint_delta = samples[end_point]
+                .1
+                .checked_sub(anchor)
+                .ok_or_else(|| "CPU anchor regression".to_string())?;
+            put_uvarint(&mut out, endpoint_delta)?;
         }
         check_wire_size(&out)?;
     }
@@ -1389,7 +1394,11 @@ fn decode_csh2(
     rows: &mut [DecodedObservation],
     expected_points: usize,
 ) -> Result<()> {
-    if bytes.len() < 5 || &bytes[..4] != CSH2 || bytes[4] != CSH2_VERSION {
+    if bytes.len() < 5 || &bytes[..4] != CSH2 {
+        return Err("unsupported CSH2 magic/version".into());
+    }
+    let wire_version = bytes[4];
+    if wire_version != CSH2_ABSOLUTE_ENDPOINT_VERSION && wire_version != CSH2_VERSION {
         return Err("unsupported CSH2 magic/version".into());
     }
     let mut offset = 5;
@@ -1510,7 +1519,14 @@ fn decode_csh2(
                 cpus.push(value);
                 bounds.push(q - 1);
             }
-            let endpoint = read_uvarint(bytes, &mut offset)?;
+            let encoded_endpoint = read_uvarint(bytes, &mut offset)?;
+            let endpoint = if wire_version == CSH2_ABSOLUTE_ENDPOINT_VERSION {
+                encoded_endpoint
+            } else {
+                anchor
+                    .checked_add(encoded_endpoint)
+                    .ok_or_else(|| "CSH2 run endpoint overflow".to_string())?
+            };
             if endpoint
                 < *cpus
                     .last()
@@ -2251,17 +2267,31 @@ mod tests {
         let encoded = encode_block(&context(), &rows, Profile::Adaptive).unwrap();
         let [header, encoded_cpu, metadata] = unpack_sections(&encoded).unwrap();
         let cpu = hex(concat!(
-            "4353483201",     // CSH2, version 1
+            "4353483202",     // CSH2, version 2
             "0a0107",         // ten rows, one identity, seven points
             "2a7b0407",       // identity (42, 123, 4), seven samples
             "00010201020102", // rows 0, 1, 3, 4, 6, 7, 9
             "e80704",         // first total 1000, four runs
-            "02100af80a",     // 2 x q16, interior quotient 10, endpoint 1400
-            "02200ce811",     // 2 x q32, interior quotient 12, endpoint 2280
-            "0101e811",       // exact zero interval; endpoint shared with next run
-            "01108813"        // q16 interval, endpoint 2440
+            "02100a9003",     // 2 x q16, interior quotient 10, endpoint delta 400
+            "02200cf006",     // 2 x q32, interior quotient 12, endpoint delta 880
+            "010100",         // exact zero interval; endpoint delta 0
+            "0110a001"        // q16 interval, endpoint delta 160
         ));
         assert_eq!(encoded_cpu, cpu);
+
+        let legacy_cpu = hex(concat!(
+            "4353483201",     // CSH2, version 1 absolute endpoints
+            "0a0107",         // ten rows, one identity, seven points
+            "2a7b0407",       // identity (42, 123, 4), seven samples
+            "00010201020102", // rows 0, 1, 3, 4, 6, 7, 9
+            "e80704",         // first total 1000, four runs
+            "02100af80a",     // 2 x q16, interior quotient 10, absolute endpoint 1400
+            "02200ce811",     // 2 x q32, interior quotient 12, absolute endpoint 2280
+            "0101e811",       // exact zero interval; absolute endpoint 2280
+            "01108813"        // q16 interval, absolute endpoint 2440
+        ));
+        let legacy_golden = pack_sections(PST2, header, &legacy_cpu, metadata).unwrap();
+        let legacy_decoded = decode_block(&legacy_golden).unwrap();
         let golden = pack_sections(PST2, header, &cpu, metadata).unwrap();
         let decoded = decode_block(&golden).unwrap();
         let expected = [
@@ -2276,9 +2306,48 @@ mod tests {
             (8, None),
             (9, Some(2_440)),
         ];
-        for (row, (seq, cpu)) in decoded.rows.iter().zip(expected) {
-            assert_eq!(row.seq, seq);
-            assert_eq!(row.processes.first().map(|process| process.cpu_total), cpu);
+        for block in [&decoded, &legacy_decoded] {
+            for (row, (seq, cpu)) in block.rows.iter().zip(expected) {
+                assert_eq!(row.seq, seq);
+                assert_eq!(row.processes.first().map(|process| process.cpu_total), cpu);
+            }
+        }
+    }
+
+    #[test]
+    fn csh2_delta_endpoints_shrink_large_native_counters_without_losing_fidelity() {
+        let mut values = vec![1_000_000_000_000_000u64];
+        for increment in [8, 80, 160, 0].into_iter().cycle().take(32) {
+            values.push(values.last().unwrap() + increment);
+        }
+        let rows: Vec<_> = values
+            .iter()
+            .enumerate()
+            .map(|(index, value)| row(index as u64, index as u64 * 100_000_000, *value))
+            .collect();
+        let encoded = encode_block(&context(), &rows, Profile::Adaptive).unwrap();
+        let [header, cpu, metadata] = unpack_sections(&encoded).unwrap();
+        let quanta: Vec<_> = values
+            .windows(2)
+            .map(|pair| adaptive_q(pair[1] - pair[0], context().cpu_timebase).unwrap())
+            .collect();
+        assert!(quanta.windows(2).any(|pair| pair[0] != pair[1]));
+
+        let legacy_cpu = manual_v1_single_track(&values);
+        assert!(cpu.len() * 2 < legacy_cpu.len());
+        let old_wire = pack_sections(PST2, header, &legacy_cpu, metadata).unwrap();
+        let old_decoded = decode_block(&old_wire).unwrap();
+        let decoded = decode_block(&encoded).unwrap();
+        for (expected, current, old) in values
+            .iter()
+            .zip(&decoded.rows)
+            .zip(&old_decoded.rows)
+            .map(|((expected, current), old)| (expected, current, old))
+        {
+            assert_eq!(current.processes[0].cpu_total, *expected);
+            assert_eq!(old.processes[0].cpu_total, *expected);
+            assert_eq!(current.processes[0].cpu_error_bound, 0);
+            assert_eq!(old.processes[0].cpu_error_bound, 0);
         }
     }
 
@@ -2303,7 +2372,7 @@ mod tests {
         }];
         let bytes = encode_block(&context(), &rows, Profile::Adaptive).unwrap();
         let [_, cpu, _] = unpack_sections(&bytes).unwrap();
-        assert_eq!(cpu, hex("435348320101010107020301007b00"));
+        assert_eq!(cpu, hex("435348320201010107020301007b00"));
         let decoded = decode_block(&bytes).unwrap();
         assert_eq!(decoded.rows[0].processes[0].cpu_total, 123);
     }
@@ -2386,6 +2455,21 @@ mod tests {
         bad_cpu[q_offset] = 1; // positive exact interval incorrectly tagged idle/exact
         let malformed = pack_sections(PST2, header, &bad_cpu, metadata).unwrap();
         assert!(decode_block(&malformed).is_err());
+    }
+
+    #[test]
+    fn csh2_delta_endpoint_overflow_is_rejected_without_panicking() {
+        let rows = [row(0, 0, u64::MAX - 1), row(1, 100_000_000, u64::MAX)];
+        let encoded = encode_block(&context(), &rows, Profile::Adaptive).unwrap();
+        let [header, _, metadata] = unpack_sections(&encoded).unwrap();
+        let mut cpu = CSH2.to_vec();
+        cpu.push(CSH2_VERSION);
+        for value in [2, 1, 2, 42, 123, 4, 2, 0, 1, u64::MAX, 1, 1, 1, 1] {
+            put_uvarint(&mut cpu, value).unwrap();
+        }
+        let malformed = pack_sections(PST2, header, &cpu, metadata).unwrap();
+        let error = decode_block(&malformed).unwrap_err();
+        assert!(error.contains("endpoint overflow"), "{error}");
     }
 
     #[test]
@@ -2585,6 +2669,53 @@ mod tests {
         read_uvarint(cpu, &mut offset).unwrap(); // run count
         read_uvarint(cpu, &mut offset).unwrap(); // run interval count
         offset
+    }
+
+    fn manual_v1_single_track(values: &[u64]) -> Vec<u8> {
+        let mut out = CSH2.to_vec();
+        out.push(CSH2_ABSOLUTE_ENDPOINT_VERSION);
+        for value in [
+            values.len() as u64,
+            1,
+            values.len() as u64,
+            42,
+            123,
+            4,
+            values.len() as u64,
+        ] {
+            put_uvarint(&mut out, value).unwrap();
+        }
+        for index in 0..values.len() {
+            put_uvarint(&mut out, u64::from(index != 0)).unwrap();
+        }
+        put_uvarint(&mut out, values[0]).unwrap();
+
+        let quanta: Vec<_> = values
+            .windows(2)
+            .map(|pair| adaptive_q(pair[1] - pair[0], context().cpu_timebase).unwrap())
+            .collect();
+        let mut runs = Vec::new();
+        let mut start = 0;
+        while start < quanta.len() {
+            let mut end = start + 1;
+            while end < quanta.len() && quanta[end] == quanta[start] {
+                end += 1;
+            }
+            runs.push((start, end - start, quanta[start]));
+            start = end;
+        }
+        put_uvarint(&mut out, runs.len() as u64).unwrap();
+        for (start, length, quantum) in runs {
+            put_uvarint(&mut out, length as u64).unwrap();
+            put_uvarint(&mut out, quantum).unwrap();
+            let end = start + length;
+            let anchor = values[start];
+            for value in values.iter().take(end).skip(start + 1) {
+                put_uvarint(&mut out, (value - anchor) / quantum).unwrap();
+            }
+            put_uvarint(&mut out, values[end]).unwrap();
+        }
+        out
     }
 
     fn adaptive_q(delta: u64, timebase: Timebase) -> Result<u64> {

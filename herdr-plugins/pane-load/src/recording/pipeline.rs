@@ -229,15 +229,23 @@ impl Validator {
                     }
                 }
             } else if self.bounded {
-                // An unseen live identity may be new or may have expired. Marking every
-                // fresh baseline avoids an unbounded tombstone set while never claiming a rate.
-                let event = json!({"kind":"cpu-continuity-unknown","reason":"new-or-expired-live-baseline",
-                    "identity":{"pid":process.pid,"start_sec":process.start_sec,"start_usec":process.start_usec},
-                    "seq":row.seq,"scan_start_ns":row.scan_start_ns,"unavailable_rate":true});
+                // A fresh baseline has no rate to report, but is not a component-regression
+                // boundary. If the state cap prevents tracking it, make that loss explicit and
+                // cut so bounded state never hides a counter discontinuity inside a block.
+                let can_track = self.previous.len() < MAX_LIVE_IDENTITIES;
+                let event = if can_track {
+                    json!({"kind":"cpu-continuity-unknown","reason":"new-or-expired-live-baseline",
+                        "identity":{"pid":process.pid,"start_sec":process.start_sec,"start_usec":process.start_usec},
+                        "seq":row.seq,"scan_start_ns":row.scan_start_ns,"unavailable_rate":true})
+                } else {
+                    boundary = true;
+                    json!({"kind":"cpu-continuity-unknown","reason":"live-baseline-state-capacity",
+                        "identity":{"pid":process.pid,"start_sec":process.start_sec,"start_usec":process.start_usec},
+                        "seq":row.seq,"scan_start_ns":row.scan_start_ns,"unavailable_rate":true})
+                };
                 if !row.quality.iter().any(|quality| quality == &event) {
                     row.quality.push(event);
                 }
-                boundary = true;
             }
             if !self.bounded
                 || self.previous.contains_key(&id)
@@ -330,9 +338,9 @@ enum Sink {
 }
 struct RawSegments {
     root: PathBuf,
-    store_root: PathBuf,
     context: Context,
     options: StoreOptions,
+    capacity: RootCapacity,
     writer: Option<RawWriter>,
     path: PathBuf,
     segment: u64,
@@ -347,11 +355,14 @@ impl RawSegments {
     ) -> Result<Self> {
         Ok(Self {
             root: run_root.to_path_buf(),
-            store_root: store_root.to_path_buf(),
             context: context.clone(),
             options,
+            capacity: RootCapacity::new(
+                store_root,
+                archive_options_for_root(store_root, None, options, STATUS_CAPACITY_RESERVE)?,
+            )?,
             writer: None,
-            path: run_root.join("source.jsonl.zst"),
+            path: run_root.join("source-000000.jsonl.zst"),
             segment: 0,
             segment_start_ns: None,
         })
@@ -367,11 +378,16 @@ impl RawSegments {
                 .checked_add(bytes.len() as u64)
                 .ok_or_else(|| "raw input size overflow".to_string())?;
         }
-        guard_capacity(
-            &self.store_root,
-            self.options,
-            estimate.saturating_add(4096),
-        )?;
+        let compression_bound = estimate
+            .saturating_add(estimate >> 8)
+            .saturating_add(if estimate < 128 * 1024 {
+                (128 * 1024 - estimate) >> 11
+            } else {
+                0
+            })
+            .saturating_add(4096);
+        self.capacity.check(compression_bound)?;
+        let old_size = fs::metadata(&self.path).map_or(0, |metadata| metadata.len());
         if self.writer.is_none() {
             self.writer = Some(RawWriter::create(&self.path, &self.context)?);
         }
@@ -383,6 +399,11 @@ impl RawSegments {
             writer.write(row)?;
         }
         writer.checkpoint()?;
+        let new_size = fs::metadata(&self.path)
+            .map_err(|e| format!("stat raw segment after write: {e}"))?
+            .len();
+        self.capacity
+            .record_growth(new_size.saturating_sub(old_size))?;
         if self.segment_start_ns.is_none() {
             self.segment_start_ns = rows.first().map(|r| r.scan_start_ns);
         }
@@ -397,7 +418,13 @@ impl RawSegments {
                 .writer
                 .take()
                 .ok_or_else(|| "raw source writer is closed".to_string())?;
+            self.capacity.check(4096)?;
             old.finish()?;
+            let finished_size = fs::metadata(&self.path)
+                .map_err(|e| format!("stat completed raw segment: {e}"))?
+                .len();
+            self.capacity
+                .record_growth(finished_size.saturating_sub(new_size))?;
             self.segment = self
                 .segment
                 .checked_add(1)
@@ -411,48 +438,45 @@ impl RawSegments {
     }
     fn finish(mut self) -> Result<()> {
         if let Some(writer) = self.writer.take() {
+            self.capacity.check(4096)?;
+            let before = fs::metadata(&self.path)
+                .map_err(|e| format!("stat raw segment before finish: {e}"))?
+                .len();
             writer.finish()?;
+            let after = fs::metadata(&self.path)
+                .map_err(|e| format!("stat raw segment after finish: {e}"))?
+                .len();
+            self.capacity.record_growth(after.saturating_sub(before))?;
         }
         Ok(())
     }
 }
 
-fn guard_capacity(root: &Path, options: StoreOptions, addition: u64) -> Result<()> {
-    fn measure(path: &Path) -> Result<u64> {
-        let root_meta =
-            fs::symlink_metadata(path).map_err(|e| format!("inspect recording store root: {e}"))?;
-        if root_meta.file_type().is_symlink() || !root_meta.is_dir() {
-            return Err("recording store root is not a safe directory".into());
-        }
-        let mut used = root_meta.len();
-        for entry in fs::read_dir(path).map_err(|e| format!("measure recording store: {e}"))? {
-            let entry = entry.map_err(|e| format!("read recording store entry: {e}"))?;
-            let child = entry.path();
-            let meta = fs::symlink_metadata(&child)
-                .map_err(|e| format!("inspect recording store entry: {e}"))?;
-            if meta.file_type().is_symlink() {
-                return Err("unsafe symlink in recording store".into());
-            }
-            let bytes = if meta.is_dir() {
-                measure(&child)?
-            } else if meta.is_file() {
-                meta.len()
-            } else {
-                return Err("unsafe entry in recording store".into());
-            };
-            used = used
-                .checked_add(bytes)
-                .ok_or_else(|| "recording store size overflow".to_string())?;
-        }
-        Ok(used)
+const STATUS_CAPACITY_RESERVE: u64 = 64 * 1024;
+
+fn recording_tree_bytes(path: &Path) -> Result<u64> {
+    let metadata = fs::symlink_metadata(path)
+        .map_err(|e| format!("inspect recording store path {}: {e}", path.display()))?;
+    if metadata.file_type().is_symlink() {
+        return Err("unsafe symlink in recording store".into());
     }
-    let used = measure(root)?;
-    if used
-        .checked_add(addition)
-        .is_none_or(|n| n > options.max_bytes)
-    {
-        return Err("recording store byte limit reached".into());
+    if metadata.is_file() {
+        return Ok(metadata.len());
     }
+    if !metadata.is_dir() {
+        return Err("unsafe entry in recording store".into());
+    }
+    let mut used = 0_u64;
+    for entry in fs::read_dir(path).map_err(|e| format!("measure recording store: {e}"))? {
+        let entry = entry.map_err(|e| format!("read recording store entry: {e}"))?;
+        used = used
+            .checked_add(recording_tree_bytes(&entry.path())?)
+            .ok_or_else(|| "recording store size overflow".to_string())?;
+    }
+    Ok(used)
+}
+
+fn check_free_space(root: &Path, options: StoreOptions, addition: u64) -> Result<()> {
     let path = std::ffi::CString::new(root.as_os_str().as_encoded_bytes())
         .map_err(|_| "recording path contains NUL")?;
     let mut stat = std::mem::MaybeUninit::<libc::statvfs>::uninit();
@@ -473,6 +497,81 @@ fn guard_capacity(root: &Path, options: StoreOptions, addition: u64) -> Result<(
         return Err("recording store free-space reserve reached".into());
     }
     Ok(())
+}
+
+fn guard_capacity(root: &Path, options: StoreOptions, addition: u64) -> Result<()> {
+    let used = recording_tree_bytes(root)?;
+    if used
+        .checked_add(addition)
+        .is_none_or(|n| n > options.max_bytes)
+    {
+        return Err("recording store byte limit reached".into());
+    }
+    check_free_space(root, options, addition)
+}
+
+fn archive_options_for_root(
+    root: &Path,
+    archive: Option<&Path>,
+    options: StoreOptions,
+    reserve: u64,
+) -> Result<StoreOptions> {
+    let root_used = recording_tree_bytes(root)?;
+    let outside_archive = if let Some(archive) = archive {
+        root_used.saturating_sub(recording_tree_bytes(archive)?)
+    } else {
+        root_used
+    };
+    let max_bytes = options
+        .max_bytes
+        .checked_sub(outside_archive)
+        .and_then(|remaining| remaining.checked_sub(reserve))
+        .filter(|remaining| *remaining > 0)
+        .ok_or_else(|| "recording store byte limit reached".to_string())?;
+    let min_free_bytes = options
+        .min_free_bytes
+        .checked_add(reserve)
+        .ok_or_else(|| "recording free-space reserve overflow".to_string())?;
+    Ok(StoreOptions {
+        max_bytes,
+        min_free_bytes,
+        ..options
+    })
+}
+
+struct RootCapacity {
+    root: PathBuf,
+    options: StoreOptions,
+    used: u64,
+}
+
+impl RootCapacity {
+    fn new(root: &Path, options: StoreOptions) -> Result<Self> {
+        Ok(Self {
+            root: root.to_path_buf(),
+            options,
+            used: recording_tree_bytes(root)?,
+        })
+    }
+
+    fn check(&self, addition: u64) -> Result<()> {
+        if self
+            .used
+            .checked_add(addition)
+            .is_none_or(|projected| projected > self.options.max_bytes)
+        {
+            return Err("recording store byte limit reached".into());
+        }
+        check_free_space(&self.root, self.options, addition)
+    }
+
+    fn record_growth(&mut self, growth: u64) -> Result<()> {
+        self.used = self
+            .used
+            .checked_add(growth)
+            .ok_or_else(|| "recording store size overflow".to_string())?;
+        Ok(())
+    }
 }
 
 fn open_sink(
@@ -511,7 +610,9 @@ fn open_sink(
     let sink = match options.format {
         OutputFormat::Binary => {
             let archive = run_dir.join("archive");
-            let writer = ArchiveWriter::open(&archive, context, options.profile, store_options)?;
+            let archive_options =
+                archive_options_for_root(root, None, store_options, STATUS_CAPACITY_RESERVE)?;
+            let writer = ArchiveWriter::open(&archive, context, options.profile, archive_options)?;
             recovery.extend_from_slice(writer.recovery_report());
             Sink::Binary(writer)
         }
@@ -633,11 +734,10 @@ fn create_private_dirs(path: &Path) -> Result<()> {
 fn recover_owned_archives(root: &Path, options: &RecordOptions) -> Result<Vec<String>> {
     let mut reports = Vec::new();
     let entries = fs::read_dir(root).map_err(|e| format!("list recording root: {e}"))?;
-    let mut runs = Vec::new();
+    let mut active = Vec::new();
     for entry in entries {
         let entry = entry.map_err(|e| format!("read recording root entry: {e}"))?;
-        let name = entry.file_name();
-        if !name.to_string_lossy().starts_with("run-") {
+        if !entry.file_name().to_string_lossy().starts_with("run-") {
             continue;
         }
         let run_path = entry.path();
@@ -649,8 +749,16 @@ fn recover_owned_archives(root: &Path, options: &RecordOptions) -> Result<Vec<St
         if meta.uid() != unsafe { libc::geteuid() } || meta.mode() & 0o077 != 0 {
             return Err("recording run is not an owned private directory".into());
         }
+
+        let complete = recovery_status(&run_path.join("complete.json"), "complete", &mut reports)?
+            .is_some_and(|value| value.get("complete").and_then(Value::as_bool) == Some(true));
+        if complete {
+            continue;
+        }
+        let partial_exists =
+            recovery_status(&run_path.join("partial.json"), "partial", &mut reports)?.is_some();
         let archive = run_path.join("archive");
-        match fs::symlink_metadata(&archive) {
+        let archive_meta = match fs::symlink_metadata(&archive) {
             Ok(meta) if meta.file_type().is_symlink() || !meta.is_dir() => {
                 return Err("unsafe archive entry in recording run".into());
             }
@@ -659,46 +767,114 @@ fn recover_owned_archives(root: &Path, options: &RecordOptions) -> Result<Vec<St
                 if meta.uid() != unsafe { libc::geteuid() } || meta.mode() & 0o077 != 0 {
                     return Err("recording archive is not an owned private directory".into());
                 }
-                runs.push(archive);
+                Some(meta)
             }
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
             Err(error) => return Err(format!("inspect old archive: {error}")),
+        };
+        let Some(_) = archive_meta else {
+            continue;
+        };
+        let journal = archive.join("active.journal");
+        let has_journal = match fs::symlink_metadata(&journal) {
+            Ok(meta) => {
+                if meta.file_type().is_symlink() || !meta.is_file() {
+                    return Err("unsafe active journal in recording archive".into());
+                }
+                #[cfg(unix)]
+                if meta.uid() != unsafe { libc::geteuid() } || meta.mode() & 0o077 != 0 {
+                    return Err("active journal is not an owned private file".into());
+                }
+                true
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => false,
+            Err(error) => return Err(format!("inspect active journal: {error}")),
+        };
+        if partial_exists || has_journal {
+            validate_owned_archive_entries(&archive)?;
+            active.push(archive);
         }
     }
-    runs.sort();
-    for archive in runs {
-        let meta_path = archive.join("archive.json");
-        let metadata = read_owned_metadata(&meta_path, 1024 * 1024)?;
-        #[derive(Deserialize)]
-        struct Metadata {
-            context: Context,
-            profile: Profile,
-        }
-        let metadata: Metadata = serde_json::from_slice(&metadata)
-            .map_err(|e| format!("decode archive recovery metadata: {e}"))?;
-        let store_options = StoreOptions {
-            frame_bytes: options.frame_bytes,
-            max_bytes: options.max_bytes,
-            min_free_bytes: options.min_free_bytes,
-        };
-        let writer =
-            ArchiveWriter::open(&archive, &metadata.context, metadata.profile, store_options)?;
-        let repair_messages = writer.recovery_report().to_vec();
-        if repair_messages.is_empty() {
-            reports.push(format!(
-                "{}: prior binary archive verified/recovery checked",
+    active.sort();
+    for archive in active {
+        let recovery = (|| -> Result<Vec<String>> {
+            let meta_path = archive.join("archive.json");
+            let bytes = read_owned_metadata(&meta_path, 1024 * 1024)?;
+            #[derive(Deserialize)]
+            struct Metadata {
+                context: Context,
+                profile: Profile,
+            }
+            let metadata: Metadata = serde_json::from_slice(&bytes)
+                .map_err(|e| format!("decode archive recovery metadata: {e}"))?;
+            let store_options = StoreOptions {
+                frame_bytes: options.frame_bytes,
+                max_bytes: options.max_bytes,
+                min_free_bytes: options.min_free_bytes,
+            };
+            let store_options = archive_options_for_root(
+                root,
+                Some(&archive),
+                store_options,
+                STATUS_CAPACITY_RESERVE,
+            )?;
+            let writer =
+                ArchiveWriter::open(&archive, &metadata.context, metadata.profile, store_options)?;
+            let messages = writer.recovery_report().to_vec();
+            writer.finish()?;
+            Ok(messages)
+        })();
+        match recovery {
+            Ok(messages) if messages.is_empty() => reports.push(format!(
+                "{}: active archive recovery checked",
                 archive.display()
-            ));
-        } else {
-            reports.extend(
-                repair_messages
+            )),
+            Ok(messages) => reports.extend(
+                messages
                     .into_iter()
                     .map(|message| format!("{}: {message}", archive.display())),
-            );
+            ),
+            Err(error) => reports.push(format!(
+                "{}: recovery warning; continuing without repair: {error}",
+                archive.display()
+            )),
         }
-        writer.finish()?;
     }
     Ok(reports)
+}
+
+fn recovery_status(path: &Path, label: &str, reports: &mut Vec<String>) -> Result<Option<Value>> {
+    if fs::symlink_metadata(path).is_err_and(|error| error.kind() == std::io::ErrorKind::NotFound) {
+        return Ok(None);
+    }
+    let bytes = read_owned_metadata(path, 64 * 1024)?;
+    match serde_json::from_slice(&bytes) {
+        Ok(value) => Ok(Some(value)),
+        Err(error) => {
+            reports.push(format!(
+                "{}: ignoring malformed {label} status: {error}",
+                path.display()
+            ));
+            // A malformed partial marker still means the run is not known complete.
+            Ok(Some(Value::Null))
+        }
+    }
+}
+
+fn validate_owned_archive_entries(archive: &Path) -> Result<()> {
+    for entry in fs::read_dir(archive).map_err(|e| format!("list active archive: {e}"))? {
+        let entry = entry.map_err(|e| format!("read active archive entry: {e}"))?;
+        let meta = fs::symlink_metadata(entry.path())
+            .map_err(|e| format!("inspect active archive entry: {e}"))?;
+        if meta.file_type().is_symlink() || !meta.is_file() {
+            return Err("unsafe entry in active recording archive".into());
+        }
+        #[cfg(unix)]
+        if meta.uid() != unsafe { libc::geteuid() } || meta.mode() & 0o077 != 0 {
+            return Err("active archive entry is not an owned private file".into());
+        }
+    }
+    Ok(())
 }
 
 fn read_owned_metadata(path: &Path, limit: u64) -> Result<Vec<u8>> {
@@ -753,7 +929,7 @@ fn read_owned_metadata(path: &Path, limit: u64) -> Result<Vec<u8>> {
     Ok(bytes)
 }
 
-fn validate_record_options(options: &RecordOptions) -> Result<()> {
+pub(crate) fn validate_record_options(options: &RecordOptions) -> Result<()> {
     if options.hz == 0 || options.hz > 1000 {
         return Err("--hz must be in 1..=1000".into());
     }
@@ -800,11 +976,6 @@ pub fn consume_live(
         return Err("capture_run_id is not a safe run directory name".into());
     }
     let (root, _lock) = prepare_root(&options.output)?;
-    let store_options = StoreOptions {
-        frame_bytes: options.frame_bytes,
-        max_bytes: options.max_bytes,
-        min_free_bytes: options.min_free_bytes,
-    };
     let mut recovery = recover_owned_archives(&root, options)?;
     let (mut sink, run_dir, opened_recovery) = open_sink(&root, run_id, context, options)?;
     recovery.extend(opened_recovery);
@@ -836,8 +1007,6 @@ pub fn consume_live(
                             &mut stats,
                             &mut frame_start,
                             options,
-                            &root,
-                            store_options,
                         )?;
                     }
                     builder.push(row);
@@ -871,8 +1040,6 @@ pub fn consume_live(
         &mut stats,
         &mut frame_start,
         options,
-        &root,
-        store_options,
     ) {
         failure.get_or_insert(error);
     }
@@ -896,8 +1063,6 @@ fn append_block(
     stats: &mut RunStats,
     frame_start: &mut Option<u64>,
     options: &RecordOptions,
-    store_root: &Path,
-    store_options: StoreOptions,
 ) -> Result<()> {
     if builder.is_empty() {
         return Ok(());
@@ -927,21 +1092,32 @@ fn append_block(
     }
     match sink {
         Sink::Binary(writer) => {
-            guard_capacity(store_root, store_options, bytes.len() as u64 + 256)?;
+            if !writer.has_active_frame() {
+                *frame_start = None;
+            }
+            if let (Some(start), Some(first)) = (
+                *frame_start,
+                builder.rows.first().map(|row| row.scan_start_ns),
+            ) && first.saturating_sub(start) >= MAX_FRAME_AGE_NS
+            {
+                writer.flush_frame()?;
+                *frame_start = None;
+            }
             writer.append(&bytes)?;
-            if let Some(start) = *frame_start {
-                let end = builder
-                    .rows
-                    .last()
-                    .map(|r| r.scan_start_ns)
-                    .unwrap_or(start);
-                if end.saturating_sub(start) >= MAX_FRAME_AGE_NS {
+            if writer.has_active_frame() {
+                if frame_start.is_none() {
+                    *frame_start = builder.rows.first().map(|row| row.scan_start_ns);
+                }
+                if let (Some(start), Some(end)) = (
+                    *frame_start,
+                    builder.rows.last().map(|row| row.scan_start_ns),
+                ) && end.saturating_sub(start) >= MAX_FRAME_AGE_NS
+                {
                     writer.flush_frame()?;
                     *frame_start = None;
                 }
-            }
-            if frame_start.is_none() {
-                *frame_start = builder.rows.first().map(|r| r.scan_start_ns);
+            } else {
+                *frame_start = None;
             }
         }
         Sink::Raw(writer) => {
@@ -1078,6 +1254,7 @@ pub fn transform_sources(
     if inputs.is_empty() {
         return Err("transform needs at least one source file".into());
     }
+    let upstream_status = source_run_status(inputs)?;
     for input in inputs {
         let meta =
             fs::symlink_metadata(input).map_err(|e| format!("inspect transform source: {e}"))?;
@@ -1169,11 +1346,40 @@ pub fn transform_sources(
     let mut builder: Option<BlockBuilder> = None;
     let mut validator = Validator::new(false);
     let mut frame_start = None;
-    let store_options = StoreOptions {
+    let base_store_options = StoreOptions {
         frame_bytes: options.frame_bytes,
         max_bytes: options.max_bytes,
         min_free_bytes: options.min_free_bytes,
     };
+    let ledger_reserve = if let Some(ledger) = &capture_ledger {
+        inputs.iter().try_fold(0_u64, |reserve, input| {
+            let relative = relative_to_capture(&ledger.root, input)?;
+            reserve
+                .checked_add(1024 + (relative.len() as u64).saturating_mul(6))
+                .ok_or_else(|| "checked segment ledger reserve overflow".to_string())
+        })?
+    } else {
+        0
+    };
+    let source_status_reserve = inputs.iter().try_fold(0_u64, |reserve, input| {
+        reserve
+            .checked_add(
+                1024 + (input.as_os_str().as_encoded_bytes().len() as u64).saturating_mul(6),
+            )
+            .ok_or_else(|| "source status reserve overflow".to_string())
+    })?;
+    let end_quality_reserve = upstream_status
+        .as_ref()
+        .map(|status| serde_json::to_vec(&status.end_quality).map(|bytes| bytes.len() as u64))
+        .transpose()
+        .map_err(|error| format!("size upstream end quality: {error}"))?
+        .unwrap_or(0);
+    let output_reserve = STATUS_CAPACITY_RESERVE
+        .checked_add(ledger_reserve)
+        .and_then(|reserve| reserve.checked_add(source_status_reserve))
+        .and_then(|reserve| reserve.checked_add(end_quality_reserve))
+        .ok_or_else(|| "transform output reserve overflow".to_string())?;
+    let store_options = archive_options_for_root(&root, None, base_store_options, output_reserve)?;
     let mut failure: Option<String> = None;
     for (input_index, input) in inputs.iter().enumerate() {
         if let Some(ledger) = &capture_ledger
@@ -1215,15 +1421,7 @@ pub fn transform_sources(
             }
             if active_context.as_ref() != Some(context) {
                 if let (Some(builder), Some(sink)) = (builder.as_mut(), sink.as_mut()) {
-                    append_block(
-                        builder,
-                        sink,
-                        &mut stats,
-                        &mut frame_start,
-                        options,
-                        &root,
-                        store_options,
-                    )?;
+                    append_block(builder, sink, &mut stats, &mut frame_start, options)?;
                 }
                 active_context = Some(context.clone());
                 builder = Some(BlockBuilder::new(context));
@@ -1245,8 +1443,6 @@ pub fn transform_sources(
                     &mut stats,
                     &mut frame_start,
                     options,
-                    &root,
-                    store_options,
                 )?;
             }
             builder_ref.push(row);
@@ -1331,15 +1527,7 @@ pub fn transform_sources(
         failure.get_or_insert_with(|| format!("sync checked segment ledger: {error}"));
     }
     if let (Some(builder), Some(sink)) = (builder.as_mut(), sink.as_mut())
-        && let Err(error) = append_block(
-            builder,
-            sink,
-            &mut stats,
-            &mut frame_start,
-            options,
-            &root,
-            store_options,
-        )
+        && let Err(error) = append_block(builder, sink, &mut stats, &mut frame_start, options)
     {
         failure.get_or_insert(error);
     }
@@ -1357,10 +1545,104 @@ pub fn transform_sources(
         write_failure_marker(&root, message)?;
         return Err(message.into());
     }
+    if let Some(status) = &upstream_status {
+        stats.end_quality = status.end_quality.clone();
+        stats.flagged_events = stats
+            .flagged_events
+            .saturating_add(stats.end_quality.len() as u64);
+        stats.end_reason = status.end_reason.clone();
+    }
     finish_metrics(&mut stats, start, before);
-    write_run_status(&root, "complete.json", &stats, "source-import")?;
-    remove_partial_status(&root)?;
+    if upstream_status
+        .as_ref()
+        .is_some_and(|status| status.partial)
+    {
+        write_run_status(&root, "partial.json", &stats, "source-import")?;
+    } else {
+        write_run_status(&root, "complete.json", &stats, "source-import")?;
+        remove_partial_status(&root)?;
+    }
     Ok(stats)
+}
+
+#[derive(Clone, Debug)]
+struct UpstreamStatus {
+    partial: bool,
+    end_quality: Vec<Value>,
+    end_reason: Option<String>,
+}
+
+fn source_run_status(inputs: &[PathBuf]) -> Result<Option<UpstreamStatus>> {
+    let mut parents = inputs
+        .iter()
+        .filter_map(|path| path.parent().map(Path::to_path_buf))
+        .collect::<Vec<_>>();
+    parents.sort();
+    parents.dedup();
+    let mut found = None;
+    for parent in parents {
+        let complete_path = parent.join("complete.json");
+        let complete = read_upstream_status_file(&complete_path)?;
+        let known_complete = complete.as_ref().is_some_and(|value| {
+            value.get("kind").and_then(Value::as_str) == Some("live-native")
+                && value.get("complete").and_then(Value::as_bool) == Some(true)
+        });
+        let selected = if known_complete {
+            complete
+        } else {
+            let partial = read_upstream_status_file(&parent.join("partial.json"))?;
+            partial.filter(|value| {
+                value.get("kind").and_then(Value::as_str) == Some("live-native")
+                    && value.get("complete").and_then(Value::as_bool) != Some(true)
+            })
+        };
+        let Some(value) = selected else {
+            continue;
+        };
+        let partial = value.get("complete").and_then(Value::as_bool) != Some(true);
+        let end_quality = value
+            .get("end_quality")
+            .and_then(Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        let end_reason = value
+            .get("end_reason")
+            .or_else(|| value.get("error"))
+            .and_then(Value::as_str)
+            .map(str::to_owned)
+            .or_else(|| {
+                partial.then(|| {
+                    "upstream live recording did not publish an orderly complete status".into()
+                })
+            });
+        let status = UpstreamStatus {
+            partial,
+            end_quality,
+            end_reason,
+        };
+        if found.as_ref().is_some_and(|old: &UpstreamStatus| {
+            old.partial != status.partial
+                || old.end_quality != status.end_quality
+                || old.end_reason != status.end_reason
+        }) {
+            return Err("source files have conflicting live-run status metadata".into());
+        }
+        found = Some(status);
+    }
+    Ok(found)
+}
+
+fn read_upstream_status_file(path: &Path) -> Result<Option<Value>> {
+    match fs::symlink_metadata(path) {
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(error) => Err(format!("inspect upstream run status: {error}")),
+        Ok(_) => {
+            let bytes = read_owned_metadata(path, 64 * 1024)?;
+            let value = serde_json::from_slice(&bytes)
+                .map_err(|e| format!("decode upstream run status {}: {e}", path.display()))?;
+            Ok(Some(value))
+        }
+    }
 }
 
 fn write_failure_marker(root: &Path, message: &str) -> Result<()> {
@@ -1919,17 +2201,19 @@ pub fn source_files(input: &Path) -> Result<Vec<PathBuf>> {
     let mut files = Vec::new();
     collect_sources(&source_root, &mut files)?;
     files.sort_by(|a, b| {
-        let rank = |path: &Path| {
-            if path
-                .file_name()
-                .is_some_and(|n| n == "source.jsonl" || n == "source.jsonl.zst")
-            {
-                0
-            } else {
-                1
+        let index = |path: &Path| {
+            let Some(name) = path.file_name().and_then(|name| name.to_str()) else {
+                return u64::MAX;
+            };
+            if name == "source.jsonl" || name == "source.jsonl.zst" {
+                return 0;
             }
+            name.strip_prefix("source-")
+                .and_then(|name| name.split('-').next())
+                .and_then(|digits| digits.parse::<u64>().ok())
+                .unwrap_or(u64::MAX)
         };
-        rank(a).cmp(&rank(b)).then_with(|| a.cmp(b))
+        index(a).cmp(&index(b)).then_with(|| a.cmp(b))
     });
     files.dedup();
     if files.is_empty() {
