@@ -108,14 +108,23 @@ class PreviewTests(unittest.TestCase):
 
     def test_lf_client_uses_synchronized_renderer_mode(self):
         self.env["id"] = "12345"
-        # In native mode the helper uses lf's socket, not terminal stdout.
-        self.stub("jpg-preview", 'printf "%s\\n" "$@" > "$CALLS"')
+        # Graphics use lf's socket; the timing row must remain on preview stdout.
+        self.stub("jpg-preview", 'printf "%s\\n" "$@" > "$CALLS"; printf "R1 D22 LF150 =180ms\\n"')
         result, tty = self.preview()
         self.assertEqual(result.returncode, 1)
-        self.assertEqual(result.stdout, b"")
+        self.assertEqual(result.stdout, b"R1 D22 LF150 =180ms\n")
         self.assertEqual(tty, b"")
         self.assertEqual(self.calls.read_text().splitlines(),
                          ["--lf-id", "12345", str(self.png), "40", "20", "60", "1"])
+
+    def test_native_timing_stdout_and_failure_stderr_stay_separate(self):
+        self.env["id"] = "12345"
+        self.stub("jpg-preview", 'printf "partial timing\\n"; printf "decoder error\\n" >&2; exit 1')
+        result, tty = self.preview()
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(result.stdout, b"partial timing\n[Image preview failed] decoder error\n")
+        self.assertEqual(tty, b"")
+        self.assertEqual(result.stderr, b"")
 
     def test_cleaner_in_lf_uses_synchronized_tty_write(self):
         self.env["id"] = "12345"
