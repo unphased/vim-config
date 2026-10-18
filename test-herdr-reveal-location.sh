@@ -3,16 +3,20 @@ set -eu
 root=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT HUP INT TERM
-printf '%s\n' '#!/bin/sh' 'printf "%s\n" "$@" > "$REVEAL_TEST_LOG"' > "$tmp/handler"
-printf '%s\n' '#!/bin/sh' 'printf "%s\n" "$@" > "$REVEAL_TEST_NOTIFY"' > "$tmp/herdr"
+printf '%s\n' '#!/bin/sh' 'printf "%s\n" "$@" > "$REVEAL_TEST_LOG"' \
+  'printf "%s" "${TERMPLEX_RECORDING_ID-missing}" > "$REVEAL_TEST_PARENT"' > "$tmp/handler"
+printf '%s\n' '#!/bin/sh' 'if [ "$1 $2" = "pane process-info" ]; then printf "{}"; exit 0; fi' \
+  'printf "%s\n" "$@" > "$REVEAL_TEST_NOTIFY"' > "$tmp/herdr"
 chmod +x "$tmp/handler" "$tmp/herdr"
-export REVEAL_TEST_LOG="$tmp/args" REVEAL_TEST_NOTIFY="$tmp/notice"
+export REVEAL_TEST_LOG="$tmp/args" REVEAL_TEST_NOTIFY="$tmp/notice" REVEAL_TEST_PARENT="$tmp/parent"
+export HERDR_PANE_ID=clicked:pane TERMPLEX_RECORDING_ID=aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa
 export REVEAL_LOCATION="$tmp/handler" HERDR_BIN_PATH="$tmp/herdr"
 export HERDR_PLUGIN_CLICKED_URL='file:///tmp/name%20with%20spaces%27%3B%24%28x%29.md#L7C3'
 sh "$root/herdr-plugins/reveal-location/reveal-location.sh"
 printf '%s\n' -- "$HERDR_PLUGIN_CLICKED_URL" > "$tmp/expected"
 cmp "$tmp/args" "$tmp/expected"
 test ! -e "$tmp/notice"
+test ! -s "$tmp/parent" # Unknown source must clear the stale server ID.
 printf '%s\n' '#!/bin/sh' 'printf "%s\n" "$@" > "$REVEAL_TEST_CAPTURE"' \
   'shift 3' 'exec "$@"' > "$tmp/term-capture"
 chmod +x "$tmp/term-capture"

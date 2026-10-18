@@ -8,6 +8,7 @@ import pty
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 
 
@@ -55,6 +56,9 @@ if args[:2] == ['pane', 'get']:
     print(json.dumps({'result': {'pane': json.loads(os.environ['TEST_PANE'])}}))
 elif args[:2] == ['pane', 'layout']:
     print(json.dumps({'result': {'layout': json.loads(os.environ['TEST_LAYOUT'])}}))
+elif args[:2] == ['pane', 'process-info']:
+    print(json.dumps({'result': {'process_info': {'pane_id': 'clicked:pane',
+          'shell_pid': int(os.environ.get('SOURCE_RECORDER_PID', '0'))}}}))
 elif args[:3] == ['plugin', 'pane', 'open']:
     print(json.dumps({'result': {'type': 'plugin_pane_opened'}}))
 elif args[:2] == ['notification', 'show']:
@@ -86,6 +90,7 @@ os.execvp(args[0], args)
             "CALL_LOG": str(self.log),
             "CAPTURE_LOG": str(self.capture_log),
             "TERMPLEX_CAPTURE": "1",
+            "TERMPLEX_RECORDING_ID": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
             "TERMPLEX_CAPTURE_BIN": str(self.bin / "term-capture"),
             "TERMPLEX_CAPTURE_DIR": str(self.root / "captures with spaces"),
         }
@@ -106,12 +111,13 @@ os.execvp(args[0], args)
     def calls(self):
         return [json.loads(line) for line in self.log.read_text().splitlines()]
 
-    def launch(self, direction="right"):
-        result = self.invoke()
+    def launch(self, direction="right", **env):
+        result = self.invoke(**env)
         self.assertEqual(result.returncode, 0, result.stderr)
-        get, layout, launch = self.calls()
+        get, layout, process_info, launch = self.calls()
         self.assertEqual(get, ["pane", "get", "clicked:pane"])
         self.assertEqual(layout, ["pane", "layout", "--pane", "clicked:pane"])
+        self.assertEqual(process_info, ["pane", "process-info", "--pane", "clicked:pane"])
         self.assertEqual(launch[:3], ["plugin", "pane", "open"])
         self.assertIn("--focus", launch)
         self.assertNotIn("--no-focus", launch)
@@ -133,6 +139,46 @@ os.execvp(args[0], args)
             self.launch_env(launch)["AGHIST_SELECT_SESSION"],
             "pi:path:" + self.pane["agent_session"]["value"],
         )
+
+    def test_uncaptured_source_explicitly_clears_stale_server_recording_id(self):
+        launch = self.launch()
+        self.assertEqual(self.launch_env(launch)["TERMPLEX_RECORDING_ID"], "")
+
+    def test_real_source_recording_is_forwarded_and_written_in_child_metadata(self):
+        recorder = Path.home() / "termplex/release/term-capture"
+        if not os.access(recorder, os.X_OK):
+            self.skipTest("local term-capture build not installed")
+        ready = self.root / "source-ready"
+        prefix = self.root / "source"
+        source = subprocess.Popen(
+            [str(recorder), str(prefix), sys.executable, "-c",
+             "from pathlib import Path; import time; Path(" + repr(str(ready)) + ").touch(); time.sleep(30)"],
+            env={**self.env, "TERMPLEX_RECORDING_ID": "", "HERDR_ENV": "0"},
+            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
+        )
+        try:
+            deadline = time.monotonic() + 5
+            while not ready.exists() and source.poll() is None and time.monotonic() < deadline:
+                time.sleep(.02)
+            self.assertTrue(ready.exists(), "source recorder did not launch child")
+            parent_id = json.loads(prefix.with_suffix(".meta.json").read_text())["recording_id"]
+            launch = self.launch(SOURCE_RECORDER_PID=str(source.pid))
+            forwarded = self.launch_env(launch)
+            self.assertEqual(forwarded["TERMPLEX_RECORDING_ID"], parent_id)
+            result = self.invoke("--run", **{**forwarded, "TERMPLEX_CAPTURE_BIN": str(recorder), "HERDR_ENV": "0"})
+            self.assertEqual(result.returncode, 0, result.stderr)
+            captures = list(Path(self.env["TERMPLEX_CAPTURE_DIR"]).glob("*/capture.meta.json"))
+            self.assertEqual(len(captures), 1)
+            child = json.loads(captures[0].read_text())
+            self.assertEqual(child["parent_recording_id"], parent_id)
+            self.assertNotEqual(child["recording_id"], parent_id)
+        finally:
+            source.terminate()
+            try:
+                source.communicate(timeout=5)
+            except subprocess.TimeoutExpired:
+                source.kill()
+                source.communicate(timeout=5)
 
     def test_split_direction_uses_source_shape_and_terminal_cell_aspect(self):
         for width, height, direction in [(120, 40, "right"), (60, 40, "down"), (80, 40, "right")]:
