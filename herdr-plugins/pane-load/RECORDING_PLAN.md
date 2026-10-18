@@ -77,17 +77,19 @@ Local source is under:
 
 It is gitignored, with private directories/files (0700/0600). Source zstd files
 occupy 2,778,751,489 bytes (~2.59 GiB). All copied files were hash-checked;
-`PRESERVATION.json` records coverage and SHA-256 digests. This is **preservation,
-not full semantic validation**. An earlier independent backup of the first 247
+`PRESERVATION.json` records coverage and SHA-256 digests. Preservation alone is not
+semantic validation; the separate completed Python review now verifies full
+observation/representation coverage with explicit quality flags. An earlier
+independent backup of the first 247
 full segments, without the final tail, is at
 `~/.local/state/procstats-experiments/preserved-20261016T140759Z/`.
 No additional acquisition is planned for this milestone.
 
-The [scorecard](RECORDING_RESULTS.md) measures only the verified **8.5-hour prefix
-of this run**, segments 0–50. At ~8h36m, a source system-CPU counter decreases while
-total CPU grows; the strict reference rejects it. Keep the anomaly unchanged.
-Use declared valid windows, not silently filtered records or a claim that all
-41 hours are monotone. Canonical quality/epoch handling remains an open decision.
+The [scorecard](RECORDING_RESULTS.md) now reports the **full 41-hour review** and
+retains complementary sweeps on the earlier strict **8.5-hour prefix**, segments
+0–50. The full review found 14 component decreases, beginning at ~8h36m, and kept
+all observations with explicit quality flags. It does not claim globally monotone
+counters. Canonical Rust quality/epoch handling remains an open decision.
 
 For the requested full-span **Python review**, `recording_review.py` caches verified
 fixed-1-ms/256-KiB PST1 blocks and flags original component decreases in the next
@@ -95,6 +97,7 @@ block's header, starting a new baseline without dropping scans or changing ident
 Rates across affected process intervals are unavailable, not zero or proof of
 restart. These flag bytes count in compression. The strict `recording_storage.py`
 reference is unchanged; this experiment does not settle the future Rust policy.
+The completed cache and report are under `.recordings/review-41h-python/`.
 Per-shard hashes/checkpoints make the computed cache reusable and resumable.
 
 ## Canonical Rust transform milestone

@@ -3,9 +3,10 @@
 This explains **the experimental format actually benchmarked**, not a proposed
 standard or a production protocol. Start with the size table and source example;
 read the wire-layout sections when you want to understand the bytes themselves.
-[RECORDING_RESULTS.md](RECORDING_RESULTS.md) contains the codec/CPU comparisons.
+[RECORDING_RESULTS.md](RECORDING_RESULTS.md) contains the latest **full 41-hour**
+codec/CPU comparisons, including explicitly flagged component discontinuities.
 
-The size measurements use the verified 8.5-hour corpus: 306,000 scans,
+This guide's size example uses the earlier verified 8.5-hour corpus: 306,000 scans,
 326,450,656 process readings and 886,984 identities. The worked source examples
 come from the earlier ten-minute capture, SHA256
 `033d51988cc605a51d57a8d893e0bed71fbe3cb7747849790466e5daa95809b2`, using the same

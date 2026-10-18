@@ -11,7 +11,79 @@ real observations -> fixed representation -> independent byte-sized frames
 Rank storage against **compression CPU-seconds/input GiB**; wall time is separate.
 Read costs do not constrain frames. Decompression only verifies correctness.
 
-## Corpus and fidelity
+## Current full-capture results: 41.33 hours
+
+Completed 2026-10-17: **all 248 source shards**, 1,487,845 scans,
+**1,413,925,731 process readings**, 4,300,060 identities and 4,973 cached blocks.
+Scan-clock duration is 148,784.400128417s. No source records were dropped.
+This remains **fixed 1 ms total CPU / 256 KiB RSS**, not adaptive precision.
+
+There were **14 observed component decreases**. The review ends a block before
+each affected row, starts a native-exact baseline, and embeds original before/after
+counters and unavailable-rate semantics in the following PST1 header. Those flag
+bytes count in compression. This preserves observations, not a claim that counters
+are globally monotone; rates across affected process intervals are unknown. The
+strict reference preparer is unchanged. Extra cuts also create exact endpoints.
+
+| Stage | Exact bytes | Size |
+| --- | ---: | ---: |
+| Expanded source JSONL, counted not stored | 109,018,766,562 | 101.532 GiB |
+| Cached PST1 blocks, including quality flags | 643,849,941 | 614.023 MiB |
+| PCR1 input, 16 MiB frame target | 643,865,082 | 614.038 MiB |
+| Brotli-5 output, 1 MiB window | 182,080,781 | **173.646 MiB** |
+
+That is **169.32× representation reduction**, then **3.536× codec compression**,
+**598.74× overall**. Representation includes the declared precision/content losses.
+Source acquisition files occupy 2,778,751,489 bytes of lossless zstd JSONL.
+
+### Brotli-5 frame sweep
+
+Same full cache, 1 MiB match window, one compression worker, three-repeat medians.
+CPU is encoder-child seconds per actual uncompressed compact-input GiB.
+
+| Frame input target | Frames | MiB/day | CPU s/input GiB |
+| --- | ---: | ---: | ---: |
+| 1 MiB | 655 | 107.908 | 21.72 |
+| 4 MiB | 156 | 102.179 | 19.20 |
+| 16 MiB | 39 | **100.837** | **18.43** |
+| 64 MiB | 10 | 100.503 | 17.86 |
+| 256 MiB | 3 | 100.425 | 17.88 |
+| Whole actual 614.037 MiB | 1 | 100.400 | 17.92 |
+
+The 256 MiB case now has **two near-target full frames plus a retained tail**
+(maximum actual input 255.987 MiB). No repeated/padded data. At 16 MiB, maximum
+observed frame coverage is 68.5 minutes; at 256 MiB, 17.42 hours. Whole covers all
+41.33 hours. **16 MiB -> whole saves only 0.433%**; 4–16 MiB captures most benefit.
+The preferred 16 MiB case is ~0.52% larger per day than the earlier 8.5-hour result.
+
+At the same 16 MiB frame target:
+
+| Codec / match window | MiB/day | CPU s/input GiB |
+| --- | ---: | ---: |
+| Brotli-6 / 1 MiB | 99.868 | 20.87 |
+| zstd-3 / 16 MiB | 114.745 | 5.22 |
+| zstd-9 / 16 MiB | 107.511 | 15.57 |
+
+Brotli-6 saves **0.96%** versus 5 for **13.25% more encoder CPU**. All nine cases
+round-tripped exactly; each repeated output size was identical.
+
+### Preparation, not compression, is the CPU bottleneck
+
+Python validation/encoding/verification took **4h37m16s wall**, ~4h37m14s total
+CPU and **1.99 GiB peak self RSS**. That is 402.49 CPU-seconds per recorded hour
+(~11.18% of one core at this data rate), not a production recorder benchmark.
+The global identity-validation map grows with churn; bounded blocks do not imply
+bounded total state. Brotli-5 at 16 MiB used only **11.05 encoder CPU-seconds** per
+complete corpus pass. This supports prioritizing the Rust transform over codec tuning.
+
+The complete finite job took ~4h47m, including nine codec cases with three repeats.
+Cache, manifests, checkpoints, raw-source hashes, metrics and results are retained
+under private, gitignored `.recordings/review-41h-python/` (`REPORT.md`,
+`comparison.jsonl`, `cache/manifest.json`). Binary blocks are reusable without
+reparsing the 101.5 GiB JSONL. Payload projections exclude catalogs/diagnostic
+duplicates/filesystem overhead; quality flags themselves are included.
+
+## Reference corpus for complementary sweeps: 8.5 hours
 
 Measured 2026-10-15: **8.5 scan-clock hours**, 306,000 scans at nominal 10 Hz,
 326,450,656 process readings, 886,984 identities; 51 continuous source segments.
@@ -53,7 +125,7 @@ Encoding blocks remain fixed while compression frames change. Codec versions:
 zstd 1.5.7 / Brotli 1.2.0. Three-repeat medians, except expensive zstd-19/Brotli-11
 cases: one complete corpus pass each. All compressed frames round-trip exactly.
 
-## How large do frames need to be?
+## Complementary 8.5-hour frame/strong-codec sweep
 
 Same entire corpus, one compression worker, requested match window 16 MiB (log 24).
 All codec columns are projected **MiB/day**; — means not measured.
@@ -85,7 +157,7 @@ are not necessary for the bulk saving. Longer frames remain legitimate when the
 last fraction of storage matters. This is not a read-cost cutoff or a universal
 plateau across representations/workloads.
 
-## Storage / compression-CPU tradeoffs
+## Complementary 8.5-hour codec CPU/window/thread tradeoffs
 
 Whole-corpus frames; window log 24 unless marked. Ratio = codec input / output.
 
@@ -117,7 +189,7 @@ A frame's length and its **match window** are separate:
 - Brotli's 128 MiB window used its explicitly nonstandard large-window extension.
   Requested limits are not allocation or effective-match-distance measurements.
 
-## Neighboring Brotli levels and windows
+## Complementary 8.5-hour Brotli levels and windows
 
 20 additional measurements: same corpus, **16 MiB frames**, one worker, three-run
 medians. Each cell is **projected MiB/day / encoder CPU s/input GiB**.
@@ -136,8 +208,8 @@ barely help 4–6. Levels 7/8 gain a little at 4 MiB, at sharply higher CPU; 16 
 is worse than 4 MiB on both objectives for every tested level. These CPU ratios
 remain small absolute costs: level 5/6/7 at 1 MiB use 0.28/0.32/0.56 CPU-seconds
 per recorded hour. Acquisition and representation preparation remain excluded.
-**Brotli-5's window sweep is complete at 16 MiB frames; its frame-size sweep has
-not been run.** The frame-size plateau above was measured with 6/11 and zstd.
+Brotli-5's window sweep here uses 16 MiB frames. Its **full 41-hour frame-size
+sweep is now above**; this older frame/strong-codec table uses 6/11 and zstd.
 
 ## Integrity, limitations, next lever
 
@@ -149,9 +221,9 @@ remain private/intact. Within that 8.5-hour prefix, all tested source/block hash
 coverage and cross-segment component monotonicity passed; all 326 million retained
 readings were verified in preparation. No fidelity rule was relaxed.
 
-The longer diagnostic was stopped by request at 41h19m44s and preserved compressed
-locally. This scorecard and its semantic-validation claims have not been extended
-to that full span.
+The full 41-hour review above is a separate, explicitly flagged profile: it retains
+the anomalous observations and marks unavailable-rate intervals rather than
+silently weakening the strict checks or claiming global component monotonicity.
 
 Encoded input still projects to **376.85 MiB/day**, compressed best **81.82**.
 Indexes/catalogs, persisted health diagnostics, retention and filesystem overhead
