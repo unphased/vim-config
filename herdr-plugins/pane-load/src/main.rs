@@ -16,6 +16,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
+mod recording_native;
+
 const PLUGIN_ID: &str = "local.pane-load";
 const SOURCE: &str = "plugin:local.pane-load";
 const AGHIST_SOURCE: &str = "plugin:local.pane-load.aghist";
@@ -2772,9 +2774,19 @@ fn main() {
             Err(_) => 1,
         },
         Some("benchmark") => benchmark(&args[2..]),
+        Some("recording") if args.get(2).map(String::as_str) == Some("record") => {
+            recording_native::run(&args[3..])
+        }
+        Some("recording") => match herdr_pane_load::recording::cli::run(&args[2..]) {
+            Ok(()) => 0,
+            Err(error) => {
+                eprintln!("recording: {error}");
+                1
+            }
+        },
         _ => {
             eprintln!(
-                "usage: pane-load <start|stop|worker --lock-fd N|format-title CPU MEMORY TREE|benchmark [--duration SECONDS] [--sid PID] [--discovery-ms MS] [--sample-ms MS]>"
+                "usage: pane-load <start|stop|worker --lock-fd N|format-title CPU MEMORY TREE|benchmark [--duration SECONDS] [--sid PID] [--discovery-ms MS] [--sample-ms MS]|recording record|transform|inspect|bench>"
             );
             1
         }

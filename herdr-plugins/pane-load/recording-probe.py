@@ -133,7 +133,8 @@ def _summarize_capture(capture_path, timings_path, samples, interval, process_su
 @contextlib.contextmanager
 def _native_build(capture):
     """Build the same embedded sampler once and share it across capture modes."""
-    source = Path(__file__).resolve().parent / "src/main.rs"
+    project = Path(__file__).resolve().parent
+    source = project / "src/main.rs"
     rust = r'''
 #[allow(dead_code)]
 mod existing { include!(SOURCE_PATH); pub fn probe(samples:u64,interval:f64) {
@@ -152,7 +153,11 @@ fn main(){let a:Vec<String>=std::env::args().collect();existing::probe(a[1].pars
         root = Path(directory)
         (root / "src").mkdir()
         (root / "src/main.rs").write_text(rust)
-        (root / "Cargo.toml").write_text('[package]\nname="procstats-recording-probe"\nversion="0.0.0"\nedition="2024"\n[dependencies]\nlibc="0.2"\nserde_json="1"\nsha2="0.10"\n')
+        (root / "Cargo.toml").write_text(
+            '[package]\nname="procstats-recording-probe"\nversion="0.0.0"\nedition="2024"\n'
+            '[dependencies]\nlibc="0.2"\nserde_json="1"\nsha2="0.10"\n'
+            f'herdr-pane-load={{path={json.dumps(str(project))}}}\n'
+        )
         subprocess.run(["cargo", "build", "--offline", "--release", "--manifest-path",
                         str(root / "Cargo.toml")], check=True,
                        stdout=subprocess.DEVNULL if capture else None)
