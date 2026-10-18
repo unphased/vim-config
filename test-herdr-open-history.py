@@ -66,6 +66,14 @@ import json, os, sys
 with open(os.environ['CALL_LOG'], 'a') as log:
     log.write(json.dumps({'argv': sys.argv[1:], 'cwd': os.getcwd()}) + '\\n')
 """)
+        self.capture_log = self.root / "capture.json"
+        self.executable("term-capture", """
+import json, os, sys
+from pathlib import Path
+Path(os.environ['CAPTURE_LOG']).write_text(json.dumps(sys.argv[1:]))
+args = sys.argv[sys.argv.index('--') + 1:]
+os.execvp(args[0], args)
+""")
         self.env = {
             **os.environ,
             "HOME": str(self.root),
@@ -75,6 +83,10 @@ with open(os.environ['CALL_LOG'], 'a') as log:
             # These must not replace the clicked pane's authoritative metadata.
             "HERDR_WORKSPACE_ID": "stale:workspace",
             "CALL_LOG": str(self.log),
+            "CAPTURE_LOG": str(self.capture_log),
+            "TERMPLEX_CAPTURE": "1",
+            "TERMPLEX_CAPTURE_BIN": str(self.bin / "term-capture"),
+            "TERMPLEX_CAPTURE_DIR": str(self.root / "captures with spaces"),
         }
 
     def executable(self, name, body):
@@ -185,6 +197,10 @@ with open(os.environ['CALL_LOG'], 'a') as log:
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.calls(), [{"argv": ["--select-session", selector], "cwd": str(ROOT)}])
+        self.assertEqual(json.loads(self.capture_log.read_text()), [
+            "--pid-prefix-dir", self.env["TERMPLEX_CAPTURE_DIR"], "--",
+            str(self.bin / "agent-history"), "--select-session", selector,
+        ])
 
     def test_direct_entrypoint_keeps_project_cwd_outside_plugin_directory(self):
         selector = "codex:id:target"
