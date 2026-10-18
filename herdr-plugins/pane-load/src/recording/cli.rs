@@ -8,17 +8,18 @@ use super::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
 use std::fs::{self, DirBuilder, OpenOptions};
 use std::io::{BufWriter, Write};
-use std::os::unix::fs::{DirBuilderExt, MetadataExt, OpenOptionsExt};
+use std::os::unix::fs::{DirBuilderExt, MetadataExt, OpenOptionsExt, PermissionsExt};
 use std::path::{Path, PathBuf};
 
-const CODEC_FRAME_INPUT_LIMIT: usize = 16 * 1024 * 1024;
+const DEFAULT_BENCH_FRAME_BYTES: usize = 16 * 1024 * 1024;
 const USAGE: &str = "pane-load recording <record|transform|inspect|bench> ...\n\
 record: --output ROOT [--duration SEC] [--hz N] [--profile adaptive|legacy-1ms|fixed-100us] [--format binary|jsonl-zstd]\n\
-transform: --input FILE|CAPTUREROOT --output NEWARCHIVE [--timebase NUM/DEN] [--profile PROFILE] [--block-rows N] [--frame-bytes N] [--max-bytes N] [--min-free-bytes N]\n\
-inspect: --input ARCHIVE|RECORDROOT|CACHE [--verify] [--jsonl] [--recover]\n\
-bench: --input RAWSOURCE|ARCHIVE/CACHE --profiles adaptive,legacy-1ms,fixed-100us [--timebase NUM/DEN] --output DIR|FILE.jsonl";
+transform: --input FILE|CAPTUREROOT --output NEWARCHIVE [--timebase NUM/DEN] [--profile PROFILE] [--block-rows N] [--frame-bytes N] [--max-bytes N] [--min-free-bytes N] [--verify]\n\
+inspect: --input ARCHIVE|RECORDROOT|CACHE [--verify] [--jsonl|--blocks-out NEWPRIVATEdir] [--recover]\n\
+bench: --input RAWSOURCE|ARCHIVE/CACHE --profiles adaptive,legacy-1ms,fixed-100us [--timebase NUM/DEN] [--frame-bytes N] --output DIR|FILE.jsonl";
 
 /// Parse the flags following `record`. Unknown, duplicate, missing, and malformed flags fail.
 pub fn parse_record_options(args: &[String]) -> Result<RecordOptions> {
@@ -160,6 +161,7 @@ struct Parsed {
     verify: bool,
     jsonl: bool,
     recover: bool,
+    blocks_out: Option<PathBuf>,
 }
 
 fn parse_flags(args: &[String], allowed: &[&str], booleans: &[&str]) -> Result<Parsed> {
@@ -190,6 +192,7 @@ fn parse_flags(args: &[String], allowed: &[&str], booleans: &[&str]) -> Result<P
         index += 1;
         match flag {
             "--input" => parsed.input = Some(PathBuf::from(value)),
+            "--blocks-out" => parsed.blocks_out = Some(PathBuf::from(value)),
             "--output" => parsed.output = Some(PathBuf::from(value)),
             "--timebase" => parsed.timebase = Some(parse_timebase(value)?),
             "--profile" => parsed.profile = Some(parse_named_profile(value)?),
@@ -235,7 +238,7 @@ fn run_transform(args: &[String]) -> Result<()> {
             "--max-bytes",
             "--min-free-bytes",
         ],
-        &[],
+        &["--verify"],
     )?;
     let input = parsed
         .input
@@ -261,6 +264,7 @@ fn run_transform(args: &[String]) -> Result<()> {
     if let Some(value) = parsed.min_free_bytes {
         options.min_free_bytes = value;
     }
+    options.verify = parsed.verify;
     let stats = pipeline::transform_sources(&files, &output, &options, parsed.timebase)?;
     println!(
         "{}",
@@ -396,16 +400,25 @@ fn run_inspect(args: &[String]) -> Result<()> {
     let cpu_before = get_cpu();
     let parsed = parse_flags(
         args,
-        &["--input", "--timebase"],
+        &["--input", "--timebase", "--blocks-out"],
         &["--verify", "--jsonl", "--recover"],
     )?;
+    if parsed.jsonl && parsed.blocks_out.is_some() {
+        return Err("--jsonl and --blocks-out are mutually exclusive".into());
+    }
     let input = parsed
         .input
         .ok_or_else(|| "inspect requires --input".to_string())?;
     let mut summary = Summary::default();
     let archives = archive_paths(&input)?;
+    let is_pst = input.extension().and_then(|x| x.to_str()) == Some("pst");
+    let mut cached = Vec::new();
+    if archives.is_empty() && !is_pst && input.is_dir() {
+        collect_pst(&input, &mut cached)?;
+        cached.sort();
+    }
     if let Some(error) = partial_recording_error(&input, &archives)? {
-        if parsed.jsonl {
+        if parsed.jsonl || parsed.blocks_out.is_some() {
             return Err(format!(
                 "cannot export an explicitly partial recording: {error}"
             ));
@@ -413,30 +426,42 @@ fn run_inspect(args: &[String]) -> Result<()> {
         summary.incomplete = true;
         summary.partial_error = Some(error);
     }
-    if !archives.is_empty() {
-        for archive in archives {
-            if parsed.recover {
-                summary.recovery.extend(
-                    maybe_recover(&archive)?
-                        .into_iter()
-                        .map(|m| format!("{}: {m}", archive.display())),
-                );
-            }
-            inspect_archive(&archive, &mut summary, parsed.jsonl, parsed.verify)?;
-        }
-    } else if input.extension().and_then(|x| x.to_str()) == Some("pst") {
-        inspect_pst_files(std::slice::from_ref(&input), &mut summary, parsed.jsonl)?;
+    if parsed.blocks_out.is_some() && archives.is_empty() && !is_pst && cached.is_empty() {
+        return Err("--blocks-out requires a validated archive or PST cache input".into());
+    }
+    let mut blocks_export = if let Some(path) = &parsed.blocks_out {
+        ensure_no_overlap(&input, path)?;
+        Some(BlocksExporter::create(path)?)
     } else {
-        let cached = if input.is_dir() {
-            let mut paths = Vec::new();
-            collect_pst(&input, &mut paths)?;
-            paths.sort();
-            paths
-        } else {
-            Vec::new()
-        };
-        if !cached.is_empty() {
-            inspect_pst_files(&cached, &mut summary, parsed.jsonl)?;
+        None
+    };
+    let inspected = (|| -> Result<()> {
+        if !archives.is_empty() {
+            for archive in &archives {
+                if parsed.recover {
+                    summary.recovery.extend(
+                        maybe_recover(archive)?
+                            .into_iter()
+                            .map(|m| format!("{}: {m}", archive.display())),
+                    );
+                }
+                inspect_archive(
+                    archive,
+                    &mut summary,
+                    parsed.jsonl,
+                    parsed.verify,
+                    blocks_export.as_mut(),
+                )?;
+            }
+        } else if is_pst {
+            inspect_pst_files(
+                std::slice::from_ref(&input),
+                &mut summary,
+                parsed.jsonl,
+                blocks_export.as_mut(),
+            )?;
+        } else if !cached.is_empty() {
+            inspect_pst_files(&cached, &mut summary, parsed.jsonl, blocks_export.as_mut())?;
         } else {
             let files = if input.is_file() {
                 vec![input.clone()]
@@ -447,6 +472,14 @@ fn run_inspect(args: &[String]) -> Result<()> {
                 inspect_source_file(&path, &mut summary, parsed.jsonl, parsed.timebase)?;
             }
         }
+        Ok(())
+    })();
+    if let Err(error) = inspected {
+        drop(blocks_export);
+        return Err(error);
+    }
+    if let Some(export) = blocks_export {
+        export.finish()?;
     }
     if !parsed.jsonl {
         let value = json!({"format":"pane-load-inspection","incomplete":summary.incomplete,"partial_error":summary.partial_error,
@@ -463,45 +496,167 @@ fn run_inspect(args: &[String]) -> Result<()> {
 }
 
 fn partial_recording_error(input: &Path, archives: &[PathBuf]) -> Result<Option<String>> {
-    let mut candidates = if fs::symlink_metadata(input).is_ok_and(|metadata| metadata.is_dir()) {
-        vec![input.join("partial.json")]
+    let mut runs = if fs::symlink_metadata(input).is_ok_and(|metadata| metadata.is_dir()) {
+        vec![input.to_path_buf()]
     } else {
         Vec::new()
     };
     for archive in archives {
-        if let Some(run) = archive.parent() {
-            candidates.push(run.join("partial.json"));
+        if let Some(run) = archive.parent()
+            && !runs.iter().any(|candidate| candidate == run)
+        {
+            runs.push(run.to_path_buf());
         }
     }
-    for path in candidates {
-        let metadata = match fs::symlink_metadata(&path) {
-            Ok(metadata) => metadata,
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
-            Err(error) => {
-                return Err(format!(
-                    "inspect partial status {}: {error}",
-                    path.display()
-                ));
-            }
+    for run in runs {
+        let Some(partial) = read_recording_status(&run.join("partial.json"), "partial")? else {
+            continue;
         };
-        if metadata.file_type().is_symlink() || !metadata.is_file() || metadata.len() > 64 * 1024 {
-            return Err(format!("unsafe partial status: {}", path.display()));
+        if let Some(complete) = read_recording_status(&run.join("complete.json"), "complete")?
+            && is_complete_status(&complete)
+        {
+            // Completion is durably published before the stale in-progress marker is removed.
+            continue;
         }
-        let bytes = fs::read(&path).map_err(|error| format!("read partial status: {error}"))?;
-        let value: Value = serde_json::from_slice(&bytes)
-            .map_err(|error| format!("decode partial status: {error}"))?;
-        let reason = value
+        let reason = partial
             .get("end_reason")
-            .or_else(|| value.get("error"))
+            .or_else(|| partial.get("error"))
             .and_then(Value::as_str)
-            .unwrap_or("recording did not complete")
+            .unwrap_or("recording did not complete; orderly end and trailing-data availability are unknown")
             .to_owned();
         return Ok(Some(reason));
     }
     Ok(None)
 }
 
-fn inspect_archive(path: &Path, summary: &mut Summary, export: bool, _verify: bool) -> Result<()> {
+fn read_recording_status(path: &Path, label: &str) -> Result<Option<Value>> {
+    let metadata = match fs::symlink_metadata(path) {
+        Ok(metadata) => metadata,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+        Err(error) => {
+            return Err(format!(
+                "inspect {label} status {}: {error}",
+                path.display()
+            ));
+        }
+    };
+    if metadata.file_type().is_symlink() || !metadata.is_file() || metadata.len() > 64 * 1024 {
+        return Err(format!("unsafe {label} status: {}", path.display()));
+    }
+    let bytes = fs::read(path).map_err(|error| format!("read {label} status: {error}"))?;
+    let value = serde_json::from_slice(&bytes)
+        .map_err(|error| format!("decode {label} status: {error}"))?;
+    Ok(Some(value))
+}
+
+fn is_complete_status(value: &Value) -> bool {
+    let Some(status) = value.as_object() else {
+        return false;
+    };
+    status.get("complete").and_then(Value::as_bool) == Some(true)
+        || (!status.contains_key("complete") && !status.contains_key("kind"))
+}
+
+struct BlocksExporter {
+    root: PathBuf,
+    entries: Vec<Value>,
+    committed: bool,
+}
+
+impl BlocksExporter {
+    fn create(path: &Path) -> Result<Self> {
+        let mut builder = DirBuilder::new();
+        #[cfg(unix)]
+        builder.mode(0o700);
+        builder
+            .create(path)
+            .map_err(|error| format!("create PST block export directory: {error}"))?;
+        #[cfg(unix)]
+        if let Err(error) = fs::set_permissions(path, fs::Permissions::from_mode(0o700)) {
+            let _ = fs::remove_dir(path);
+            return Err(format!("protect PST block export directory: {error}"));
+        }
+        Ok(Self {
+            root: path.to_path_buf(),
+            entries: Vec::new(),
+            committed: false,
+        })
+    }
+
+    fn write_block(&mut self, bytes: &[u8], profile: Profile, context: &Context) -> Result<()> {
+        let name = format!("block-{:06}.pst", self.entries.len());
+        let mut options = OpenOptions::new();
+        options.write(true).create_new(true);
+        #[cfg(unix)]
+        options.mode(0o600);
+        let mut file = options
+            .open(self.root.join(&name))
+            .map_err(|error| format!("create exported PST block: {error}"))?;
+        file.write_all(bytes)
+            .map_err(|error| format!("write exported PST block: {error}"))?;
+        file.sync_all()
+            .map_err(|error| format!("sync exported PST block: {error}"))?;
+        self.entries.push(json!({
+            "file": name,
+            "profile": profile,
+            "context": context,
+            "sha256": format!("{:x}", Sha256::digest(bytes)),
+            "bytes": bytes.len()
+        }));
+        Ok(())
+    }
+
+    fn finish(mut self) -> Result<()> {
+        let result = (|| -> Result<()> {
+            let manifest = json!({
+                "format": "pane-load-pst-block-export",
+                "version": 1,
+                "quantized": true,
+                "raw_source_lossless": false,
+                "cpu_scheme": "profile-quantized native CPU totals with per-value error bounds",
+                "rss_scheme": "floored to 262144-byte units",
+                "blocks": std::mem::take(&mut self.entries)
+            });
+            let mut options = OpenOptions::new();
+            options.write(true).create_new(true);
+            #[cfg(unix)]
+            options.mode(0o600);
+            let mut file = options
+                .open(self.root.join("manifest.json"))
+                .map_err(|error| format!("create PST block export manifest: {error}"))?;
+            serde_json::to_writer(&mut file, &manifest)
+                .map_err(|error| format!("encode PST block export manifest: {error}"))?;
+            file.write_all(b"\n")
+                .map_err(|error| format!("write PST block export manifest: {error}"))?;
+            file.sync_all()
+                .map_err(|error| format!("sync PST block export manifest: {error}"))?;
+            fs::File::open(&self.root)
+                .and_then(|directory| directory.sync_all())
+                .map_err(|error| format!("sync PST block export directory: {error}"))?;
+            Ok(())
+        })();
+        if result.is_ok() {
+            self.committed = true;
+        }
+        result
+    }
+}
+
+impl Drop for BlocksExporter {
+    fn drop(&mut self) {
+        if !self.committed {
+            let _ = fs::remove_dir_all(&self.root);
+        }
+    }
+}
+
+fn inspect_archive(
+    path: &Path,
+    summary: &mut Summary,
+    export: bool,
+    _verify: bool,
+    mut blocks_export: Option<&mut BlocksExporter>,
+) -> Result<()> {
     let metadata_bytes =
         fs::read(path.join("archive.json")).map_err(|e| format!("read archive metadata: {e}"))?;
     let metadata: ArchiveMetadata = serde_json::from_slice(&metadata_bytes)
@@ -523,6 +678,17 @@ fn inspect_archive(path: &Path, summary: &mut Summary, export: bool, _verify: bo
         if block.profile != metadata.profile {
             return Err("archive block profile disagrees with archive metadata".into());
         }
+        // PST1 stores only timebase; PST2 additionally preserves stream context.
+        // Per-source header provenance can legitimately change at shard boundaries.
+        if block.context.cpu_timebase != metadata.context.cpu_timebase
+            || (block.profile != Profile::Legacy1ms
+                && !block.context.same_stream(&metadata.context))
+        {
+            return Err("archive block context disagrees with archive metadata".into());
+        }
+        if let Some(exporter) = blocks_export.as_deref_mut() {
+            exporter.write_block(bytes, block.profile, &metadata.context)?;
+        }
         if export {
             write_decoded_rows(&block)?;
         }
@@ -531,8 +697,26 @@ fn inspect_archive(path: &Path, summary: &mut Summary, export: bool, _verify: bo
     })
 }
 
-fn inspect_pst_files(paths: &[PathBuf], summary: &mut Summary, export: bool) -> Result<()> {
+fn inspect_pst_files(
+    paths: &[PathBuf],
+    summary: &mut Summary,
+    export: bool,
+    mut blocks_export: Option<&mut BlocksExporter>,
+) -> Result<()> {
     for path in paths {
+        if blocks_export.is_some() {
+            let metadata = fs::symlink_metadata(path)
+                .map_err(|error| format!("inspect cached block {}: {error}", path.display()))?;
+            if metadata.file_type().is_symlink()
+                || !metadata.is_file()
+                || metadata.uid() != unsafe { libc::geteuid() }
+            {
+                return Err(format!(
+                    "unsafe or unowned cached block: {}",
+                    path.display()
+                ));
+            }
+        }
         let bytes =
             fs::read(path).map_err(|e| format!("read cached block {}: {e}", path.display()))?;
         let block = decode_block(&bytes)?;
@@ -542,6 +726,9 @@ fn inspect_pst_files(paths: &[PathBuf], summary: &mut Summary, export: bool) -> 
             print_export_header("decoded-binary-cache", block.profile, &block.context)?;
         }
         summary.profiles.push(format!("{:?}", block.profile));
+        if let Some(exporter) = blocks_export.as_deref_mut() {
+            exporter.write_block(&bytes, block.profile, &block.context)?;
+        }
         summary.contexts.push(
             serde_json::to_value(&block.context)
                 .map_err(|e| format!("encode cached context: {e}"))?,
@@ -648,52 +835,6 @@ fn accumulate_block(summary: &mut Summary, block: &DecodedBlock, bytes: u64) {
     summary.encoded_bytes = summary.encoded_bytes.saturating_add(bytes);
 }
 
-#[derive(Default)]
-struct CodecTotals {
-    pending: Vec<Vec<u8>>,
-    pending_bytes: usize,
-    input_bytes: u64,
-    compressed_bytes: u64,
-    encoder_cpu_seconds: f64,
-    encoder_wall_seconds: f64,
-    frames: u64,
-    repeats: u64,
-}
-impl CodecTotals {
-    fn push(&mut self, block: &[u8]) -> Result<()> {
-        let cost = block.len().saturating_add(11);
-        if !self.pending.is_empty()
-            && (self.pending_bytes.saturating_add(cost) > CODEC_FRAME_INPUT_LIMIT
-                || self.pending.len() >= 16_000)
-        {
-            self.flush()?;
-        }
-        self.pending.push(block.to_vec());
-        self.pending_bytes = self.pending_bytes.saturating_add(cost);
-        if self.pending_bytes >= CODEC_FRAME_INPUT_LIMIT || self.pending.len() >= 16_000 {
-            self.flush()?;
-        }
-        Ok(())
-    }
-    fn flush(&mut self) -> Result<()> {
-        if self.pending.is_empty() {
-            return Ok(());
-        }
-        let result = store::benchmark_frame(&self.pending)?;
-        self.input_bytes = self.input_bytes.saturating_add(result.input_bytes);
-        self.compressed_bytes = self
-            .compressed_bytes
-            .saturating_add(result.compressed_bytes);
-        self.encoder_cpu_seconds += result.encoder_cpu_seconds;
-        self.encoder_wall_seconds += result.encoder_wall_seconds;
-        self.frames = self.frames.saturating_add(1);
-        self.repeats = self.repeats.saturating_add(result.repeats as u64);
-        self.pending.clear();
-        self.pending_bytes = 0;
-        Ok(())
-    }
-}
-
 #[derive(Serialize)]
 struct BenchResult {
     format: &'static str,
@@ -719,6 +860,9 @@ struct BenchResult {
     codec_encoder_wall_seconds: f64,
     codec_frames: u64,
     codec_repeats: u64,
+    frame_target_bytes: usize,
+    actual_max_input_bytes: u64,
+    repeats_per_frame: u32,
     flagged_events: u64,
     endpoint_mismatches: u64,
     positive_intervals_lost: u64,
@@ -730,7 +874,13 @@ struct BenchResult {
 fn run_bench(args: &[String]) -> Result<()> {
     let parsed = parse_flags(
         args,
-        &["--input", "--profiles", "--timebase", "--output"],
+        &[
+            "--input",
+            "--profiles",
+            "--timebase",
+            "--frame-bytes",
+            "--output",
+        ],
         &[],
     )?;
     let input = parsed
@@ -742,6 +892,13 @@ fn run_bench(args: &[String]) -> Result<()> {
     let profiles = parsed
         .profiles
         .ok_or_else(|| "bench requires --profiles".to_string())?;
+    let frame_bytes = parsed.frame_bytes.unwrap_or(DEFAULT_BENCH_FRAME_BYTES);
+    if frame_bytes == 0 || frame_bytes > super::model::MAX_BLOCK_BYTES {
+        return Err(format!(
+            "--frame-bytes must be in 1..={}",
+            super::model::MAX_BLOCK_BYTES
+        ));
+    }
     let archives = archive_paths(&input)?;
     let mut results = Vec::new();
     let mut cached_files = Vec::new();
@@ -770,7 +927,7 @@ fn run_bench(args: &[String]) -> Result<()> {
         let mut readings = 0u64;
         let mut flags = 0u64;
         let mut blocks = 0u64;
-        let mut codec = CodecTotals::default();
+        let mut codec = store::CodecFrameAccumulator::new(frame_bytes)?;
         {
             let mut consume = |bytes: &[u8]| -> Result<()> {
                 let block = decode_block(bytes)?;
@@ -810,7 +967,7 @@ fn run_bench(args: &[String]) -> Result<()> {
                 }
             }
         }
-        codec.flush()?;
+        codec.finish()?;
         let source_profile =
             source_profile.ok_or_else(|| "cached input contains no binary blocks".to_string())?;
         if profiles.len() != 1 || profiles[0] != source_profile {
@@ -829,7 +986,7 @@ fn run_bench(args: &[String]) -> Result<()> {
             own_cpu_seconds: cpu,
             child_cpu_seconds: 0.0,
             peak_rss_bytes: peak,
-            timing_scope: "cached decode/validation plus separate codec encoder repeats".into(),
+            timing_scope: "total includes cached decode/validation and codec preparation; encoder CPU/wall covers Brotli only (not PCR1 packing, hashing or decode verification) and is the sum of per-frame median across three repeats per frame".into(),
             codec: "brotli",
             codec_quality: 5,
             codec_window_log: 20,
@@ -841,6 +998,9 @@ fn run_bench(args: &[String]) -> Result<()> {
             codec_encoder_wall_seconds: codec.encoder_wall_seconds,
             codec_frames: codec.frames,
             codec_repeats: codec.repeats,
+            frame_target_bytes: frame_bytes,
+            actual_max_input_bytes: codec.max_input_bytes,
+            repeats_per_frame: 3,
             flagged_events: flags,
             endpoint_mismatches: 0,
             positive_intervals_lost: 0,
@@ -881,7 +1041,7 @@ fn run_bench(args: &[String]) -> Result<()> {
             }
         }
         for profile in profiles {
-            let stats = pipeline::benchmark_sources(&files, profile, parsed.timebase)?;
+            let stats = pipeline::benchmark_sources(&files, profile, parsed.timebase, frame_bytes)?;
             results.push(BenchResult {
                 format: "pane-load-recording-bench",
                 profile: format!("{profile:?}"),
@@ -894,7 +1054,7 @@ fn run_bench(args: &[String]) -> Result<()> {
                 own_cpu_seconds: stats.own_cpu_seconds,
                 child_cpu_seconds: stats.child_cpu_seconds,
                 peak_rss_bytes: stats.peak_rss_bytes,
-                timing_scope: "includes source decode, profile transform, and decode verification; codec encoder timing is separate".into(),
+                timing_scope: "total includes source decode, profile transform, block audit and codec preparation; encoder CPU/wall covers Brotli only (not source work, PCR1 packing, hashing or decode verification) and is the sum of per-frame median across three repeats per frame".into(),
                 codec: "brotli",
                 codec_quality: 5,
                 codec_window_log: 20,
@@ -906,6 +1066,9 @@ fn run_bench(args: &[String]) -> Result<()> {
                 codec_encoder_wall_seconds: stats.codec_encoder_wall_seconds,
                 codec_frames: stats.codec_frames,
                 codec_repeats: stats.codec_repeats,
+                frame_target_bytes: frame_bytes,
+                actual_max_input_bytes: stats.codec_max_input_bytes,
+                repeats_per_frame: 3,
                 flagged_events: stats.flagged_events,
                 endpoint_mismatches: stats.endpoint_mismatches,
                 positive_intervals_lost: stats.positive_intervals_lost,

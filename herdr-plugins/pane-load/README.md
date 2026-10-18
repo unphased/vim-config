@@ -6,11 +6,11 @@ resident memory through macOS `libproc`, then reports a short-lived pane title
 plus `$cpu`, `$cpu_tree`, and `$memory` pane tokens. The same sample is summed
 across every pane in each workspace and published in the workspace sidebar.
 
-Process-history research is separate from this live plugin:
+Process-history recording is separate from this live plugin:
 
-- [Plan and scope](RECORDING_PLAN.md): the single current plan; Rust buildout awaits approval.
-- [Data and binary format](RECORDING_DATA.md): the benchmarked prototype, with worked examples.
-- [Measured results](RECORDING_RESULTS.md): storage/CPU comparisons and limitations.
+- [Plan and status](RECORDING_PLAN.md): implemented standalone Rust recorder and pending closeout.
+- [Data and binary format](RECORDING_DATA.md): measured Python prototype walkthrough plus current Rust layout.
+- [Measured results](RECORDING_RESULTS.md): provisional Rust first-shard validation and historical prototype comparisons.
 
 Superseded proposals live in Git history. Experimental codecs are tested by
 `make test`; none changes the live plugin.
@@ -32,6 +32,40 @@ flowchart LR
   Override --> Chrome
   WorkspaceMetadata --> Sidebar[Workspace sidebar CPU + memory]
 ```
+
+## Standalone process-history recording
+
+The existing `pane-load` binary also provides foreground `recording record`,
+`transform`, `inspect`, and `bench` commands. Build it before use; these commands
+are not invoked by the plugin manifest and do not change plugin startup, UI
+sampling, or deployment defaults. The recorder is a separate native 10 Hz sampler;
+the existing Herdr UI sampler still runs independently.
+
+```sh
+cd ~/.vim/herdr-plugins/pane-load
+cargo build --release
+./target/release/pane-load recording record \
+  --output .recordings --duration 10 --format binary
+```
+
+`record` defaults to the adaptive profile. For legacy normalized-nanosecond source
+without a declared source timebase, provide it explicitly (never inferred from the
+current host):
+
+```sh
+./target/release/pane-load recording transform \
+  --input /path/to/legacy.jsonl.zst --output /path/to/new-recording \
+  --timebase 125/3 --profile adaptive --verify
+```
+
+Use `inspect --input ROOT --verify`, `inspect --input ARCHIVE --recover`, or
+`inspect --input ARCHIVE --jsonl`. `--blocks-out NEWPRIVATEdir` exports decoded,
+quantized PST blocks—not finer source truth. `bench --input SOURCE --profiles
+adaptive,legacy-1ms,fixed-100us --frame-bytes 16777216 --output DIR` compares
+profiles over one source; archive/cache input benchmarks only its stored profile.
+Full flags and current status are in the [plan](RECORDING_PLAN.md). Rust recording
+has no Python or external codec-CLI runtime dependency. The old Python capture
+shim remains supported through the project-library path dependency.
 
 ## Install, link, and start
 

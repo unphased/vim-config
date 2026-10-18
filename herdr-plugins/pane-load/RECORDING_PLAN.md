@@ -1,246 +1,134 @@
-# Rust process history: buildout plan
+# Rust process-history recorder: implementation plan and status
 
-**For review before implementation.** Build the complete Rust recording path,
-not only an offline accelerator: canonical observations, adaptive binary encoding,
-native live recording, compressed JSONL compatibility and evaluation tools. Rust
-owns supported formats/decoders; Python remains an experiment and independent
-reference tool. This is the single plan; historical proposals stay in Git.
-
-## One core, live and replay inputs
+**One current plan; no new design phase.** The user-approved buildout is implemented
+in the existing `pane-load` binary: native capture, shared Rust validation/encoding,
+archives, source transforms, inspection/export, and benchmarking. Final full-capture
+validation and the independent Opus architecture/design review are still pending.
+The older Python codec work remains a measured reference, not the current recorder.
 
 ```mermaid
 flowchart LR
-  OS[Existing Rust/libproc acquisition] --> Q[Checked adapter + bounded live queue]
-  Q --> O[Accepted exact observations + quality]
-  J[Compressed reference JSONL] --> O
-  O --> E[Versioned Rust encoder profiles]
-  O --> R[Optional lossless JSONL.zst reference]
-  E --> B[Checksummed binary blocks/frames]
-  B --> D[Rust decoder and verification]
-  D --> I[Inspect/export]
-  O --> V[Same-source fidelity and cost evaluation]
-  D --> V
+  OS[Native macOS observer] --> Q[Bounded live queue]
+  Q --> C[Validator + Rust recording core]
+  J[Raw JSONL or JSONL.zst] --> C
+  C --> R[Optional lossless native-tick source]
+  C --> B[Versioned PST blocks + durable archive]
+  B --> I[Inspect, verify, export]
+  J --> T[Same-source transform / bench]
+  T --> B
+  T --> I
+  UI[Existing Herdr UI sampler] -. independent today .-> Herdr[Pane/workspace telemetry]
 ```
 
-**Canonical observations are the logical model, not one compressed byte layout.**
-Retain sequence, actual wall/monotonic scan bounds, run/boot/process identity,
-name/PPID, separate native user/system counters, RSS bytes, units and quality before
-applying precision. The existing UI `Process` stores normalized ns; the recording
-adapter must retain raw task counters plus the timebase before that conversion.
-Different named encoder profiles consume the same observations; no plugin registry
-or general serialization framework is needed.
+The standalone recording path does not depend on Herdr or terminal capture. The UI
+sampler remains separate; recording has not been wired into it.
 
-- Live input goes straight from native observations to the encoder: **no JSONL or
-  Python round trip in the default production path**.
-- Keep existing JSONL/`.jsonl.zst` captures readable. Offer compressed JSONL as an
-  optional source/reference recording format, preserving raw fields and declaring
-  schema/units/quality explicitly. Check native-counter round trips; never silently
-  change legacy tuple units or infer a foreign capture's timebase from the current
-  host. Use source metadata or an explicit legacy-import setting. Uncompressed
-  JSONL is for pipes/small tests, not the default disk format. Start from the measured zstd-3 reference setting. Select
-  binary or compressed JSONL output; production dual-writing is not required.
-  Any debug/test mirroring uses the same accepted observations after queue/gap
-  handling. After a crash compare only the common committed prefix of two outputs.
-- Compressed JSONL is the lossless comparison source. The existing 1-ms/256-KiB
-  binary cache is already quantized: use it for **codec/framing** experiments, not
-  as ground truth for finer precision or exact RSS. No additional raw binary-cache
-  format is required initially; fast Rust replay can reread compressed JSONL.
-- Decoded binary observations describe their precision and unavailable fields.
-  Do not invent user/system components or label JSONL exported from lossy binary
-  as an original lossless source capture.
+## Implemented scope
 
-## Extend pane-load without coupling recording to Herdr
+- `pane-load recording record` samples native process CPU components and RSS at
+  10 Hz by default, directly from the macOS acquisition path. CPU stays in native
+  ticks with an explicit timebase. Capture context records the `mach_continuous_time`
+  origin/timebase, wall anchors, run/boot identity, and non-atomic scan method.
+  There is no JSONL or Python round trip in this path.
+- Raw-reference output uses `recording_source: 1`, declares `cpu_unit: native_ticks`,
+  and retains accepted observations, separate user/system CPU counters, RSS and
+  quality information. It is lossless relative to those accepted observations.
+  Existing legacy `probe_capture: 1` JSONL/`.jsonl.zst` is readable; if its header
+  has no source timebase, import requires an explicit `--timebase NUM/DEN` and
+  never guesses from the current host. For the known legacy source, use `125/3`.
+- `adaptive` is the default binary profile. It writes PST2 blocks with PSD1 sparse
+  metadata and CSH2 CPU layout version 1. Adaptive interval quantums target less
+  than 12.5% relative CPU-increment error, capped at 1 ms in source ticks; Q=1
+  intervals, including zero intervals, are exact. `legacy-1ms` is the PST1/CSH1
+  comparison control; `fixed-100us` is another PST2/CSH2 control. All binary
+  profiles keep total CPU only. RSS is floored to 256 KiB; observations and
+  quality flags are retained.
+- Binary archives journal private blocks atomically before frame publication.
+  Defaults are Brotli-5, a 1 MiB window (window log 20), 16 MiB frame input,
+  300-row/approximately 30-second blocks and a one-hour source-time frame limit.
+  Roots/run directories are private; defaults cap a root at 8 GiB and reserve
+  20 GiB free space. SIGTERM/normal shutdown sends the end marker and flushes the
+  current block/frame. Recovery validates journals/frames; partial runs are not
+  presented as complete.
+- `transform`, `inspect`, and `bench` use the same Rust model and binary codecs.
+  Inspect JSONL from binary is explicitly decoded/quantized: `cpu_components` is
+  `null`, components are unavailable, and CPU error bounds are included.
+  `--blocks-out` exports quantized PST blocks, not finer source truth. Raw-source
+  JSONL export remains distinct. Bench compares profiles over the same raw source
+  or benchmarks the stored profile from a binary archive/cache using shared source
+  and frame geometry.
+- The existing include-based Python capture shim remains supported through the
+  project-library path dependency. Python and external codec CLIs are not runtime
+  dependencies of the Rust recording commands.
 
-Use the existing Rust crate/executable, adding a `recording` command namespace
-alongside `start`, `stop`, `worker` and `benchmark`. Keep the current Cargo startup
-and plugin manifest behavior intact; another binary/separate crate is unnecessary.
-Put codec/model logic in testable modules, with a narrow native-input adapter.
-Reuse libproc FFI rather than copying the sampler or rewriting the UI subsystem.
+## CLI entry points
 
-| Proposed command | Required purpose |
-| --- | --- |
-| `pane-load recording record` | Foreground native recording; binary default, compressed JSONL option; finite duration for tests. |
-| `pane-load recording transform` | Stream existing compressed/plain JSONL files or capture sets through a chosen Rust profile. |
-| `pane-load recording inspect` | Validate archive/cache, summarize coverage/quality/precision, and export explicitly labelled decoded observations. |
-| `pane-load recording bench` | Same-source named profile/codec settings and cached-binary inputs; machine-readable metrics. |
+Build before running; the foreground recorder is not a plugin startup hook:
 
-These are small entry points into the same core, not four independent pipelines.
-Keep profiles finite: the legacy fixed-1-ms parity control and the new adaptive
-layout, whose policy can also use a constant quantum for controls. Do not build a
-separate encoder for each precision setting or port every Python experiment.
-Rust owns binary packing/framing as well as encoding/decoding; Python is not needed
-to assemble a production recording.
-Use `brotli` (pure Rust), `zstd` (libzstd bindings), existing `sha2`, and `serde`
-derive with `serde_json` for typed streaming input. No codec CLI subprocesses at
-runtime. Pin/review dependency versions; one CLI interop test checks decoding and
-cost/size against current measurements, not identical compressed bits. Brotli-5,
-~1 MiB window and 16 MiB frame input are the starting control. `bench` evaluates
-named profiles and emits metrics; do not port the Python sweep orchestration.
+```sh
+cd ~/.vim/herdr-plugins/pane-load
+cargo build --release
+./target/release/pane-load recording record \
+  --output .recordings --duration 10 --format binary
+```
 
-## CPU, RSS and quality contract
-
-- **Adaptive CPU is required**, not a follow-up after a fixed-only port. Base its
-  precision on interval CPU/rate, not lifetime CPU. Use actual observed elapsed
-  time; a singleton has no interval rate and gaps are not invented 100 ms buckets.
-- Proposed adaptive-v1 policy: derive a native-tick quantum from powers of two,
-  no larger than **1/8 of the observed interval increment**, with an explicit 1 ms
-  cap (the cap need not be a power of two) and a one-native-tick floor. In symbols:
-  `Q = max(1, min(Q_1ms, pow2_floor(delta_ticks / 8)))`.
-  Increments below eight ticks use Q=1 and are exact. This targets <12.5% interval
-  CPU error while retaining fine detail near zero; 1 ms is the maximum step where
-  source units permit, not a sampling interval. A coarser source unit uses exact
-  native counters and declares that limitation rather than claiming 1 ms resolution. Define integer rounding explicitly. Fixed 1 ms / 100 us and
-  the previously discussed bands remain comparison controls, not more required
-  production formats. These are source-relative bounds, not physical accuracy.
-- Form runs from **maximal consecutive intervals with the same selected Q_i**.
-  Zero intervals select Q_i=1; do not take a whole block's minimum positive Q and
-  silently keep coarse idle intervals. For run intervals a..b, A=C[a-1] and C[b]
-  are exact shared anchors; decode interiors as `A + floor((C[i]-A)/Q) * Q`.
-  The anchor appears once as an observation. Q_1ms is 1 ms converted to stream ticks,
-  rounded down; supported minimum units/rounding are explicit.
-- Thus every valid interval has absolute CPU-increment error <Q_i (Q_i=1 is exact)
-  and positive intervals have <12.5% relative error. Observed zero must decode zero;
-  positive increments must not disappear. A busy-to-idle switch creates an exact
-  shared boundary before the idle interval. Extra zero/nonzero anchors are not
-  needed under this per-interval run rule. The buffered block permits a two-pass
-  encoding decision; no rewriting published observations or accumulating debt.
-- A block cut ends every run; each process track begins/ends the block at exact
-  native anchors. An ordinary cross-block interval joins two exact observations
-  and belongs to no run. A first lifetime observation has no preceding interval;
-  quality cuts/state expiry mark continuity unavailable, even with exact counters.
-- Store each run's Q explicitly. Any later merging/hysteresis must use a run Q no
-  larger than every interval's Q_i, **zeros included**; a run containing zero must
-  use Q=1. Specify/test point and interval bounds before freezing adaptive-v1 bytes.
-  No independently rounded increments or accumulating drift. Version the CPU
-  layout/policy, not old fixed-Q CSH1 labels.
-- CPU binary profiles remain total-only; raw observations/reference retain user and
-  system separately for validation. RSS remains **256 KiB floor precision on the
-  same nominal 10 Hz scan cadence**. Sparse changes omit unchanged values, not
-  observation times. RSS is a point reading, not a 100 ms average.
-- Adopt the full-review anomaly behavior: preserve observed component decreases,
-  cut continuity at an exact baseline before selecting Q, and record original
-  before/after values and unavailable-rate intervals. Negative deltas are never
-  quantized. This is not proof of restart; do not clamp, drop
-  records or hide component regression behind a growing sum. Include quality
-  metadata in payload sizes. A strict verification mode may reject flagged input.
-- Recording acquisition must distinguish failed/truncated enumeration from a true
-  empty scan, and unreadable/raced processes from zero usage. Keep a checked
-  recording adapter separate from the existing UI trait. Start with the tested
-  BSD/task/BSD identity bracket; evaluate `PROC_PIDTASKALLINFO` only after verifying
-  its ABI/lifetime guarantees, not assuming one call makes all metrics atomic.
-- New macOS recording uses a named `mach_continuous_time` elapsed clock (includes
-  suspend), explicit origin/timebase and wall anchors. Import legacy clock metadata
-  as recorded, not as this new clock. Preserve scan uncertainty and wall steps;
-  no promise of observing every short-lived process.
-
-## Live daemon and storage design
+The default profile is adaptive; default frequency is 10 Hz. Main options are:
 
 ```text
-one native observer -> bounded observation queue -> Rust encoder/writer -> history
-                    -> latest in-memory observations (future consumer adapter)
+record   --output ROOT [--duration SEC] [--hz N]
+         [--profile adaptive|legacy-1ms|fixed-100us]
+         [--format binary|jsonl-zstd]
+transform --input FILE|CAPTUREROOT --output NEWROOT
+          [--timebase NUM/DEN] [--profile PROFILE] [--verify]
+inspect  --input ARCHIVE|RECORDROOT|CACHE [--verify] [--recover]
+         [--jsonl | --blocks-out NEWPRIVATEdir]
+bench    --input RAWSOURCE|ARCHIVE/CACHE
+         --profiles adaptive,legacy-1ms,fixed-100us
+         [--timebase NUM/DEN] [--frame-bytes N] --output DIR|FILE.jsonl
 ```
 
-The independent `record` mode is the foreground daemon; it must work with no Herdr
-socket or terminal capture. Consumers do not own its lifecycle and terminal
-recording never waits for telemetry. The existing UI worker is unchanged initially;
-it may still sample separately until migrated to the recorder's latest-observation
-adapter. Do not claim single acquisition across both modes before that integration.
+For example, legacy normalized-nanosecond source without a declared timebase:
 
-- One encoder/compression worker by default; no async framework or worker pool.
-  Bound scan size, queue, active tail, codec expansion, disk growth and state.
-  Overrun/full-disk behavior reports health and explicit gaps, not unbounded
-  catch-up, fabricated zero samples or a blocked terminal-byte path. When a full
-  queue cannot accept a gap marker either, accumulate dropped-scan counts/ranges
-  and attach them to the next accepted observation or final run-status record.
-- Block/frame cuts and live-state expiry use source sequence/timestamps, not writer
-  scheduling time. Raw reference preserves run context, gaps and quality so replay
-  can reproduce identical uncompressed blocks/framing. Cut frames at 16 MiB,
-  one hour of source time, clean shutdown, or run end; never span recorder runs.
-- A 16 MiB frame can span an hour: **do not buffer that hour solely in RAM**.
-  Proposed default: append complete ~30s encoding blocks to a checksummed active
-  journal and sync at that boundary. Target recoverable checkpoint age is ~30s
-  during healthy operation, not a hard zero-loss guarantee through writer/OS stalls.
-  Finalize frames from durable blocks. Give blocks run-scoped sequence numbers;
-  frames include their block ranges/hashes so recovery cannot duplicate data.
-  Derive final names from run/profile/block range. Reuse an existing frame only
-  after verifying matching content; never overwrite a conflicting immutable frame.
-- Commit order: write frame.tmp -> sync file -> rename -> sync directory -> update
-  rebuildable manifest -> remove the committed journal. Frame publication after
-  directory sync is authoritative, not manifest presence. Recovery verifies frames,
-  deduplicates journal blocks already committed, then publishes the remainder.
-  Use one journal per frame-in-progress, removed whole; no in-place prefix truncation.
-  SIGTERM flushes/syncs the current block and publishes a valid partial frame.
-- Use explicit boundaries, lengths, checksums, versions and units; recover only a
-  verified active prefix and report discarded tails. Keep file counts/backlog
-  bounded. No database or historical query daemon.
-- Raw JSONL writes a closed zstd frame per encoding block, synced, with header only
-  at the physical segment's start; concatenation decompresses to one JSONL stream.
-  Rotate physical segments by the same age/size policy. A torn compressed tail is
-  not a valid source frame. Source/import data is immutable.
-- Keep stores private (0700/0600), enforce byte/free-space limits and exclusive
-  writer ownership, and handle SIGTERM without confusing it with process exits.
-  Full disk stops writes, reports health/gaps and **never deletes history by default**.
-  Bound live identity state to current/recent identities (about one block of grace);
-  expiry marks continuity unavailable, not falsely fully validated. Offline audit
-  may retain longer history; measure that state growth separately.
-- OS supervision is the eventual packaging direction. **No auto-install, enable,
-  restart automation or change to existing Herdr startup** as part of buildout.
-  Finite live smoke captures are tests, not a new unattended recording campaign.
+```sh
+./target/release/pane-load recording transform \
+  --input /path/to/legacy.jsonl.zst --output /path/to/new-recording \
+  --timebase 125/3 --profile adaptive --verify
+```
 
-## Tracer bullets and acceptance
+Transform also accepts block/frame/storage-limit options; inspect verifies and
+summarizes archives, source files and PST caches, can recover an archive, or export
+JSONL. `--blocks-out` requires a new private directory. Bench uses 16 MiB frames
+by default; cached binary input supports codec-only comparison of its stored
+profile, while raw source supports profile comparisons. See the CLI's `--help` for
+its exact option bounds.
 
-1. **Tests/core/replay:** commit red golden/model tests, then implement the model,
-   selected fixed-profile Rust control, decoder and compressed-JSONL input. Prove
-   a real shard agrees with Python in retained values and canonical bytes where
-   the old profile is unchanged. Existing plugin tests remain green. Do not let
-   the encoder infer units, boot identity or original components absent from legacy
-   metadata; make unavailable context explicit.
-2. **Adaptive/full capture:** implement precision runs and quality flags; independent
-   expected values/model tests validate boundaries and error bounds. Python remains
-   a legacy oracle; no second full adaptive encoder/decoder is required. Process
-   all 41 hours without dropping any source observations, retaining the 14 known
-   flagged intervals. Freeze versioned golden vectors for adaptive-v1.
-3. **Live/storage/tools:** connect native observations to the same core. Finite
-   fake/native input, raw-reference replay and live binary tests close the loop;
-   exercise signal shutdown, torn writes, recovery, blocked/failed compression,
-   queue overflow, full disk, permissions and competing writers. Finish inspect
-   and bench through these same paths, not separate ad hoc implementations.
-   Keep the include-based Python capture shim working, or migrate its launcher to
-   the new Rust entry point; module/dependency changes must not silently break it.
-   Corrupt imported input must not produce a success manifest; identify partial
-   outputs explicitly rather than promoting an unverified source prefix.
+## Fidelity and deployment boundaries
 
-Across these bullets, test deterministic generated histories, PID reuse, missing/
-returning identities, tiny/zero CPU, Unicode/name/PPID/RSS changes, backward wall
-clocks, units/overflows, truncated prefixes and malicious expansion/length fields.
-Cross-language agreement alone is not an independent oracle. Require uncompressed
-block/framing parity for identical profiles/source partitions, not compressed-byte
-parity across codec libraries. Readers must reject unsupported versions, corruption
-and inconsistent counts/units without panic or unbounded allocation. Export must preserve availability/error semantics.
+Raw reference observations preserve user and system components separately. Binary
+CSH2 stores their total; a decoder cannot recreate the original split or recover
+raw counters from quantized values. It reports the per-reading CPU error bound.
+The CPU counters are observed snapshots, not utilization percentages; scans are
+non-atomic and cannot guarantee seeing every short-lived process. RSS is a point
+reading, not a poll-interval average.
 
-Measure wall time, total CPU per recorded hour/readings, peak RSS/state growth,
-bytes and low-rate/false-idle/false-busy fidelity on identical source. Distinguish
-codec CPU/input GiB from complete recorder cost; compare fixed controls fairly.
-Larger data volume is acceptable for meaningful execution visibility.
+Recording is manual and standalone. This work does not enable deployment, automount,
+service installation/restart, change plugin startup, or alter UI defaults. Linux
+acquisition, service packaging, UI/consumer adapters, and timeline/history UI remain
+future work. In particular, there is no claim of shared sampling between the
+recorder and the current UI sampler.
 
-## Existing evidence and remaining approval
+## Remaining closeout
 
-The [scorecard](RECORDING_RESULTS.md) reports the completed 41h19m44s review:
-1,487,845 scans / 1,413,925,731 readings; fixed-profile Brotli-5 ~100.84 MiB/day.
-Python preparation cost ~4h37m / 1.99 GiB versus ~11 encoder CPU-seconds for Brotli-5.
-Source/reference data stays private and gitignored under
-`.recordings/2026-10-14-process-history/`; verified binary cache, quality evidence,
-metrics and pinned code are under `.recordings/review-41h-python/`.
-The [format guide](RECORDING_DATA.md) describes the measured Python prototype,
-not an already built adaptive Rust implementation.
+The core, live capture path, and tools are feature-complete. The Rust first-shard
+verification is explicitly provisional in the [results](RECORDING_RESULTS.md).
+Still pending:
 
-This replaces the narrower offline-only proposal. Opus 5.5 on `work2` reviewed it,
-including a follow-up on adaptive-run math and recovery: no remaining blockers.
-The adaptive contract was additionally checked against 61,049 deterministic
-histories, including zero transitions and large lifetime baselines. This is plan
-validation, not a claim that Rust code already exists. Ready for user approval of
-the three tracer bullets; no further generic framework/design phase is needed.
+1. Run and verify the complete 41-hour source corpus with the final Rust code and
+   hardware/run settings; publish final same-source size, fidelity, wall/CPU/RSS,
+   and codec metrics in the scorecard. Do not project the historical fixed-profile
+   daily size onto adaptive output.
+2. Complete the Opus architecture/design review and record its outcome here and in
+   the scorecard. This is closeout review, not another generic design/approval phase.
 
-Linux acquisition, Herdr/Strands/termplex adapters, timeline UI, filesystem history
-and automatic service installation remain later work. Historical storage goals
-remain unmet but are not a veto on richer-fidelity research.
+The [data guide](RECORDING_DATA.md) keeps the measured Python prototype tutorial
+intact and adds the concise current Rust wire summary.

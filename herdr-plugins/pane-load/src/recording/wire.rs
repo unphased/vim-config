@@ -80,6 +80,7 @@ fn validate_rows(context: &Context, rows: &[Observation]) -> Result<usize> {
         return Err("recording row limit exceeded".into());
     }
     let mut points = 0usize;
+    let mut expanded_bytes = 0usize;
     let mut previous_seq = None;
     let mut previous_scan = None;
     let mut counters: HashMap<(u32, u64, u32), (u64, u64)> = HashMap::new();
@@ -98,6 +99,10 @@ fn validate_rows(context: &Context, rows: &[Observation]) -> Result<usize> {
         if points > MAX_POINTS {
             return Err("recording point limit exceeded".into());
         }
+        expanded_bytes = add_psd1_row_expansion(
+            expanded_bytes,
+            row.processes.iter().map(|process| Ok(process.name.len())),
+        )?;
         for process in &row.processes {
             let key = process.identity();
             if let Some((user, system)) = counters.get(&key)
@@ -224,6 +229,7 @@ fn encode_legacy(context: &Context, rows: &[Observation], point_count: usize) ->
         quality,
     };
     let header = json_bytes(&header, MAX_BLOCK_BYTES)?;
+    json_expansion_cost(&header)?;
     let cpu = encode_csh1(rows, q, context.cpu_timebase, point_count)?;
     let metadata = encode_psd1(rows, point_count)?;
     pack_sections(PST1, &header, &cpu, &metadata)
@@ -279,6 +285,7 @@ fn encode_v2(
         quality,
     };
     let header = json_bytes(&header, MAX_BLOCK_BYTES)?;
+    json_expansion_cost(&header)?;
     let cpu = encode_csh2(rows, profile, context.cpu_timebase, point_count)?;
     let metadata = encode_psd1(rows, point_count)?;
     pack_sections(PST2, &header, &cpu, &metadata)
@@ -512,6 +519,28 @@ struct MetaRow {
     scan_end_ns: u64,
     processes: Vec<MetaProcess>,
     quality: Vec<Value>,
+}
+
+fn add_psd1_row_expansion(
+    expanded_bytes: usize,
+    name_lengths: impl IntoIterator<Item = Result<usize>>,
+) -> Result<usize> {
+    let row_bytes =
+        name_lengths
+            .into_iter()
+            .try_fold(std::mem::size_of::<MetaRow>(), |size, name_len| {
+                let name_len = name_len?;
+                size.checked_add(std::mem::size_of::<MetaProcess>())
+                    .and_then(|n| n.checked_add(name_len))
+                    .ok_or_else(|| "PSD1 decoded-size estimate overflow".to_string())
+            })?;
+    let expanded_bytes = expanded_bytes
+        .checked_add(row_bytes)
+        .ok_or_else(|| "PSD1 decoded-size estimate overflow".to_string())?;
+    if expanded_bytes > MAX_DECODED_BYTES {
+        return Err("PSD1 decoded expansion exceeds the bounded output limit".into());
+    }
+    Ok(expanded_bytes)
 }
 
 fn encode_psd1(rows: &[Observation], point_count: usize) -> Result<Vec<u8>> {
@@ -833,22 +862,15 @@ fn decode_psd1(bytes: &[u8]) -> Result<Vec<MetaRow>> {
         if total_points > MAX_POINTS {
             return Err("PSD1 point limit exceeded".into());
         }
-        let row_bytes = active
-            .iter()
-            .try_fold(std::mem::size_of::<MetaRow>(), |size, slot| {
-                let process = slots
+        expanded_bytes = add_psd1_row_expansion(
+            expanded_bytes,
+            active.iter().map(|slot| {
+                slots
                     .get(*slot)
-                    .ok_or_else(|| "PSD1 active slot out of range".to_string())?;
-                size.checked_add(std::mem::size_of::<MetaProcess>())
-                    .and_then(|n| n.checked_add(process.name.len()))
-                    .ok_or_else(|| "PSD1 decoded-size estimate overflow".to_string())
-            })?;
-        expanded_bytes = expanded_bytes
-            .checked_add(row_bytes)
-            .ok_or_else(|| "PSD1 decoded-size estimate overflow".to_string())?;
-        if expanded_bytes > MAX_DECODED_BYTES {
-            return Err("PSD1 decoded expansion exceeds the bounded output limit".into());
-        }
+                    .map(|process| process.name.len())
+                    .ok_or_else(|| "PSD1 active slot out of range".to_string())
+            }),
+        )?;
         let mut processes: Vec<_> = active
             .iter()
             .map(|slot| {
@@ -2205,6 +2227,62 @@ mod tests {
     }
 
     #[test]
+    fn csh2_multirun_golden_covers_quotients_shared_anchors_and_return_gaps() {
+        let cpu_values = [
+            (0, 1_000),
+            (1, 1_160),
+            (3, 1_400),
+            (4, 1_800),
+            (6, 2_280),
+            (7, 2_280),
+            (9, 2_440),
+        ];
+        let rows: Vec<_> = (0..10)
+            .map(|seq| {
+                let mut observation = row(seq, seq * 100, 0);
+                if let Some((_, cpu)) = cpu_values.iter().find(|(index, _)| *index == seq) {
+                    observation.processes[0].user = *cpu;
+                } else {
+                    observation.processes.clear();
+                }
+                observation
+            })
+            .collect();
+        let encoded = encode_block(&context(), &rows, Profile::Adaptive).unwrap();
+        let [header, encoded_cpu, metadata] = unpack_sections(&encoded).unwrap();
+        let cpu = hex(concat!(
+            "4353483201",     // CSH2, version 1
+            "0a0107",         // ten rows, one identity, seven points
+            "2a7b0407",       // identity (42, 123, 4), seven samples
+            "00010201020102", // rows 0, 1, 3, 4, 6, 7, 9
+            "e80704",         // first total 1000, four runs
+            "02100af80a",     // 2 x q16, interior quotient 10, endpoint 1400
+            "02200ce811",     // 2 x q32, interior quotient 12, endpoint 2280
+            "0101e811",       // exact zero interval; endpoint shared with next run
+            "01108813"        // q16 interval, endpoint 2440
+        ));
+        assert_eq!(encoded_cpu, cpu);
+        let golden = pack_sections(PST2, header, &cpu, metadata).unwrap();
+        let decoded = decode_block(&golden).unwrap();
+        let expected = [
+            (0, Some(1_000)),
+            (1, Some(1_160)),
+            (2, None),
+            (3, Some(1_400)),
+            (4, Some(1_784)),
+            (5, None),
+            (6, Some(2_280)),
+            (7, Some(2_280)),
+            (8, None),
+            (9, Some(2_440)),
+        ];
+        for (row, (seq, cpu)) in decoded.rows.iter().zip(expected) {
+            assert_eq!(row.seq, seq);
+            assert_eq!(row.processes.first().map(|process| process.cpu_total), cpu);
+        }
+    }
+
+    #[test]
     fn csh2_singleton_matches_independent_handwritten_golden() {
         let rows = [Observation {
             seq: 0,
@@ -2368,6 +2446,31 @@ mod tests {
     }
 
     #[test]
+    fn encode_and_decode_share_the_psd1_expansion_boundary() {
+        let name = "x".repeat(MAX_NAME_BYTES);
+        let row_cost =
+            std::mem::size_of::<MetaRow>() + std::mem::size_of::<MetaProcess>() + name.len();
+        let allowed_rows = MAX_DECODED_BYTES / row_cost;
+        assert!(allowed_rows < MAX_POINTS);
+        let rows: Vec<_> = (0..=allowed_rows)
+            .map(|seq| {
+                let mut observation = row(seq as u64, seq as u64 * 2, 0);
+                observation.processes[0].name = name.clone();
+                observation
+            })
+            .collect();
+
+        for profile in [Profile::Legacy1ms, Profile::Adaptive] {
+            let error = encode_block(&context(), &rows, profile).unwrap_err();
+            assert!(error.contains("PSD1 decoded expansion"), "{error}");
+        }
+        let boundary = encode_block(&context(), &rows[..allowed_rows], Profile::Adaptive).unwrap();
+        assert!(boundary.len() < 1_000_000);
+        drop(rows);
+        assert_eq!(decode_block(&boundary).unwrap().rows.len(), allowed_rows);
+    }
+
+    #[test]
     fn every_truncated_prefix_and_malformed_varint_is_rejected() {
         let bytes = encode_block(
             &context(),
@@ -2377,6 +2480,21 @@ mod tests {
         .unwrap();
         for end in 0..bytes.len() {
             assert!(decode_block(&bytes[..end]).is_err(), "accepted {end}");
+        }
+        let [header, cpu, metadata] = unpack_sections(&bytes).unwrap();
+        for end in 0..cpu.len() {
+            let truncated = pack_sections(PST2, header, &cpu[..end], metadata).unwrap();
+            assert!(
+                decode_block(&truncated).is_err(),
+                "accepted CPU prefix {end}"
+            );
+        }
+        for end in 0..metadata.len() {
+            let truncated = pack_sections(PST2, header, cpu, &metadata[..end]).unwrap();
+            assert!(
+                decode_block(&truncated).is_err(),
+                "accepted PSD1 prefix {end}"
+            );
         }
         assert!(read_uvarint(&[0x80, 0], &mut 0usize).is_err());
         assert!(read_uvarint(&[0xff; 11], &mut 0usize).is_err());

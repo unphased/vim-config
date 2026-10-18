@@ -145,6 +145,89 @@ pub struct FrameBenchmark {
     pub repeats: u32,
 }
 
+/// Bounded accumulator shared by source and cached codec benchmarks.
+pub(crate) struct CodecFrameAccumulator {
+    frame_bytes: usize,
+    pending: Vec<Vec<u8>>,
+    pending_block_bytes: usize,
+    pub(crate) input_bytes: u64,
+    pub(crate) compressed_bytes: u64,
+    pub(crate) encoder_cpu_seconds: f64,
+    pub(crate) encoder_wall_seconds: f64,
+    pub(crate) frames: u64,
+    pub(crate) repeats: u64,
+    pub(crate) max_input_bytes: u64,
+}
+
+impl CodecFrameAccumulator {
+    pub(crate) fn new(frame_bytes: usize) -> Result<Self> {
+        if frame_bytes == 0 || frame_bytes > MAX_BLOCK_BYTES {
+            return Err(format!("frame_bytes must be in 1..={MAX_BLOCK_BYTES}"));
+        }
+        Ok(Self {
+            frame_bytes,
+            pending: Vec::new(),
+            pending_block_bytes: 0,
+            input_bytes: 0,
+            compressed_bytes: 0,
+            encoder_cpu_seconds: 0.0,
+            encoder_wall_seconds: 0.0,
+            frames: 0,
+            repeats: 0,
+            max_input_bytes: 0,
+        })
+    }
+
+    pub(crate) fn push(&mut self, block: &[u8]) -> Result<()> {
+        if block.is_empty() || block.len() > MAX_BLOCK_BYTES {
+            return Err(format!("block length must be in 1..={MAX_BLOCK_BYTES}"));
+        }
+        let next_block_bytes = self
+            .pending_block_bytes
+            .checked_add(varint_len(block.len() as u64) + block.len())
+            .ok_or_else(|| "codec frame input size overflow".to_string())?;
+        let projected = 4 + varint_len((self.pending.len() + 1) as u64) + next_block_bytes;
+        if !self.pending.is_empty()
+            && (projected > self.frame_bytes || self.pending.len() >= MAX_BLOCKS_PER_FRAME)
+        {
+            self.flush()?;
+        }
+        self.pending_block_bytes = self
+            .pending_block_bytes
+            .checked_add(varint_len(block.len() as u64) + block.len())
+            .ok_or_else(|| "codec frame input size overflow".to_string())?;
+        self.pending.push(block.to_vec());
+        let input_bytes = 4 + varint_len(self.pending.len() as u64) + self.pending_block_bytes;
+        if input_bytes >= self.frame_bytes || self.pending.len() >= MAX_BLOCKS_PER_FRAME {
+            self.flush()?;
+        }
+        Ok(())
+    }
+
+    pub(crate) fn finish(&mut self) -> Result<()> {
+        self.flush()
+    }
+
+    fn flush(&mut self) -> Result<()> {
+        if self.pending.is_empty() {
+            return Ok(());
+        }
+        let result = benchmark_frame(&self.pending)?;
+        self.input_bytes = self.input_bytes.saturating_add(result.input_bytes);
+        self.compressed_bytes = self
+            .compressed_bytes
+            .saturating_add(result.compressed_bytes);
+        self.encoder_cpu_seconds += result.encoder_cpu_seconds;
+        self.encoder_wall_seconds += result.encoder_wall_seconds;
+        self.frames = self.frames.saturating_add(1);
+        self.repeats = self.repeats.saturating_add(result.repeats as u64);
+        self.max_input_bytes = self.max_input_bytes.max(result.input_bytes);
+        self.pending.clear();
+        self.pending_block_bytes = 0;
+        Ok(())
+    }
+}
+
 #[derive(Clone)]
 struct StoredBlock {
     id: u64,

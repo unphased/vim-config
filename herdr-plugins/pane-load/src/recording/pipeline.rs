@@ -4,7 +4,7 @@ use super::model::{
     RecordOptions, Result, Timebase,
 };
 use super::source::{self, RawWriter};
-use super::store::{ArchiveWriter, StoreOptions};
+use super::store::{ArchiveWriter, CodecFrameAccumulator, StoreOptions};
 use super::wire::encode_block;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -15,6 +15,7 @@ use std::io::{BufRead, BufReader, Read, Write};
 use std::os::fd::AsRawFd;
 use std::os::unix::fs::{DirBuilderExt, MetadataExt, OpenOptionsExt, PermissionsExt};
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::mpsc::Receiver;
 use std::time::{Duration, Instant};
 
@@ -26,6 +27,7 @@ const MAX_LIVE_IDENTITIES: usize = 100_000;
 const LIVE_STATE_GRACE_NS: u64 = 30_000_000_000;
 const MAX_BLOCK_AGE_NS: u64 = 30_000_000_000;
 const MAX_FRAME_AGE_NS: u64 = 3_600_000_000_000;
+static STATUS_TEMP_ID: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct RunStats {
@@ -46,6 +48,8 @@ pub struct RunStats {
     pub codec_frames: u64,
     #[serde(default)]
     pub codec_repeats: u64,
+    #[serde(default)]
+    pub codec_max_input_bytes: u64,
     pub wall_seconds: f64,
     pub own_cpu_seconds: f64,
     pub child_cpu_seconds: f64,
@@ -62,6 +66,8 @@ pub struct RunStats {
     pub end_quality: Vec<Value>,
     #[serde(default)]
     pub end_reason: Option<String>,
+    #[serde(default)]
+    pub verification_enabled: bool,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -262,20 +268,13 @@ fn regression_event(
 ) -> Value {
     let identity =
         json!({"pid":process.pid,"start_sec":process.start_sec,"start_usec":process.start_usec});
-    let before = if component == "user" {
-        previous.user
-    } else {
-        previous.system
-    };
-    let after = if component == "user" {
-        process.user
-    } else {
-        process.system
-    };
     json!({"kind":"cpu-component-regression","component":component,"identity":identity,
-        "before":{"identity":identity,"seq":previous.seq,"scan_start_ns":previous.stamp,"value":before},
-        "after":{"identity":identity,"seq":row.seq,"scan_start_ns":row.scan_start_ns,"value":after},
-        "unavailable_rate":true,"restart":"not_restart"})
+        "before":{"identity":identity,"seq":previous.seq,"scan_start_ns":previous.stamp,
+            "cpu_unit":"native_ticks","user":previous.user,"system":previous.system},
+        "after":{"identity":identity,"seq":row.seq,"scan_start_ns":row.scan_start_ns,
+            "cpu_unit":"native_ticks","user":process.user,"system":process.system},
+        "unavailable_rate":true,
+        "restart_inference":"unknown; counter decrease is not proof of process restart"})
 }
 
 fn same_regression(existing: &Value, expected: &Value) -> bool {
@@ -503,6 +502,11 @@ fn open_sink(
     builder
         .create(&run_dir)
         .map_err(|e| format!("create recording run directory: {e}"))?;
+    write_initial_status(
+        &run_dir,
+        "live-native",
+        "live capture has not recorded an orderly end; trailing observations may be unavailable",
+    )?;
     let mut recovery = Vec::new();
     let sink = match options.format {
         OutputFormat::Binary => {
@@ -831,7 +835,7 @@ pub fn consume_live(
                             &mut sink,
                             &mut stats,
                             &mut frame_start,
-                            options.profile,
+                            options,
                             &root,
                             store_options,
                         )?;
@@ -866,7 +870,7 @@ pub fn consume_live(
         &mut sink,
         &mut stats,
         &mut frame_start,
-        options.profile,
+        options,
         &root,
         store_options,
     ) {
@@ -878,10 +882,11 @@ pub fn consume_live(
     finish_metrics(&mut stats, start, before);
     if let Some(error) = failure {
         stats.end_reason = Some(error.clone());
-        write_run_status(&run_dir, "partial.json", &stats)?;
+        write_run_status(&run_dir, "partial.json", &stats, "live-native")?;
         return Err(error);
     }
-    write_run_status(&run_dir, "complete.json", &stats)?;
+    write_run_status(&run_dir, "complete.json", &stats, "live-native")?;
+    remove_partial_status(&run_dir)?;
     Ok(stats)
 }
 
@@ -890,14 +895,36 @@ fn append_block(
     sink: &mut Sink,
     stats: &mut RunStats,
     frame_start: &mut Option<u64>,
-    profile: Profile,
+    options: &RecordOptions,
     store_root: &Path,
     store_options: StoreOptions,
 ) -> Result<()> {
     if builder.is_empty() {
         return Ok(());
     }
-    let bytes = encode_block(&builder.context, &builder.rows, profile)?;
+    let bytes = encode_block(&builder.context, &builder.rows, options.profile)?;
+    if options.verify {
+        let before = (
+            stats.endpoint_mismatches,
+            stats.positive_intervals_lost,
+            stats.precision_violations,
+            stats.rss_floor_violations,
+        );
+        audit_source_block(
+            &builder.context,
+            &builder.rows,
+            options.profile,
+            &bytes,
+            stats,
+        )?;
+        let has_errors = stats.endpoint_mismatches != before.0
+            || stats.precision_violations != before.2
+            || stats.rss_floor_violations != before.3
+            || options.profile == Profile::Adaptive && stats.positive_intervals_lost != before.1;
+        if has_errors {
+            return Err("source fidelity verification failed".into());
+        }
+    }
     match sink {
         Sink::Binary(writer) => {
             guard_capacity(store_root, store_options, bytes.len() as u64 + 256)?;
@@ -939,26 +966,103 @@ fn finish_sink(sink: Sink) -> Result<()> {
     }
 }
 
-fn write_run_status(run: &Path, name: &str, stats: &RunStats) -> Result<()> {
+fn write_initial_status(run: &Path, kind: &str, reason: &str) -> Result<()> {
+    let value = json!({"kind":kind,"complete":false,"status":"in-progress","end_reason":reason});
+    let bytes =
+        serde_json::to_vec_pretty(&value).map_err(|e| format!("encode initial run status: {e}"))?;
+    publish_status(run, "partial.json", &bytes, false)
+}
+
+fn write_run_status(run: &Path, name: &str, stats: &RunStats, kind: &str) -> Result<()> {
+    let mut value = serde_json::to_value(stats).map_err(|e| format!("encode run status: {e}"))?;
+    let status = value
+        .as_object_mut()
+        .ok_or_else(|| "run status is not a JSON object".to_string())?;
+    let complete = name == "complete.json";
+    status.insert("kind".into(), json!(kind));
+    status.insert("complete".into(), json!(complete));
+    status.insert(
+        "status".into(),
+        json!(if complete { "complete" } else { "failed" }),
+    );
+    let bytes = serde_json::to_vec_pretty(&value).map_err(|e| format!("encode run status: {e}"))?;
+    publish_status(run, name, &bytes, !complete)
+}
+
+fn publish_status(run: &Path, name: &str, bytes: &[u8], replace: bool) -> Result<()> {
     let path = run.join(name);
-    let bytes = serde_json::to_vec_pretty(stats).map_err(|e| format!("encode run status: {e}"))?;
-    let temp = run.join(format!(".{name}.tmp"));
-    let mut opts = OpenOptions::new();
-    opts.write(true).create_new(true);
+    if replace {
+        validate_owned_status(&path, true)?;
+    }
+    let (temp, mut file) = loop {
+        let id = STATUS_TEMP_ID.fetch_add(1, Ordering::Relaxed);
+        let temp = run.join(format!(".{name}.{}.{}.tmp", std::process::id(), id));
+        let mut options = OpenOptions::new();
+        options.write(true).create_new(true);
+        #[cfg(unix)]
+        options.mode(0o600);
+        match options.open(&temp) {
+            Ok(file) => break (temp, file),
+            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
+            Err(error) => return Err(format!("create run status temp: {error}")),
+        }
+    };
+    let result = (|| -> Result<()> {
+        file.write_all(bytes)
+            .map_err(|e| format!("write run status: {e}"))?;
+        file.sync_all()
+            .map_err(|e| format!("sync run status: {e}"))?;
+        drop(file);
+        if replace {
+            validate_owned_status(&path, true)?;
+            fs::rename(&temp, &path).map_err(|e| format!("replace run status: {e}"))?;
+        } else {
+            fs::hard_link(&temp, &path).map_err(|e| format!("publish run status: {e}"))?;
+            fs::remove_file(&temp).map_err(|e| format!("remove run status temp: {e}"))?;
+        }
+        File::open(run)
+            .and_then(|directory| directory.sync_all())
+            .map_err(|e| format!("sync run directory: {e}"))?;
+        Ok(())
+    })();
+    if result.is_err() {
+        let _ = fs::remove_file(&temp);
+    }
+    result
+}
+
+fn validate_owned_status(path: &Path, required: bool) -> Result<()> {
+    let metadata = match fs::symlink_metadata(path) {
+        Ok(metadata) => metadata,
+        Err(error) if !required && error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(error) => return Err(format!("inspect run status {}: {error}", path.display())),
+    };
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        return Err(format!("unsafe run status: {}", path.display()));
+    }
     #[cfg(unix)]
-    opts.mode(0o600);
-    let mut file = opts
-        .open(&temp)
-        .map_err(|e| format!("create run status: {e}"))?;
-    file.write_all(&bytes)
-        .map_err(|e| format!("write run status: {e}"))?;
-    file.sync_all()
-        .map_err(|e| format!("sync run status: {e}"))?;
-    fs::rename(&temp, &path).map_err(|e| format!("publish run status: {e}"))?;
-    File::open(run)
-        .and_then(|f| f.sync_all())
-        .map_err(|e| format!("sync run directory: {e}"))?;
+    if metadata.uid() != unsafe { libc::geteuid() }
+        || metadata.nlink() != 1
+        || metadata.mode() & 0o077 != 0
+    {
+        return Err(format!(
+            "run status is not an owned private file: {}",
+            path.display()
+        ));
+    }
     Ok(())
+}
+
+fn remove_partial_status(run: &Path) -> Result<()> {
+    let path = run.join("partial.json");
+    validate_owned_status(&path, false)?;
+    match fs::remove_file(&path) {
+        Ok(()) => File::open(run)
+            .and_then(|directory| directory.sync_all())
+            .map_err(|e| format!("sync run directory after status cleanup: {e}")),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(error) => Err(format!("remove partial run status: {error}")),
+    }
 }
 
 /// Import ordered JSONL files through the exact live validator/encoder. Output is a
@@ -1037,6 +1141,11 @@ pub fn transform_sources(
             return Err("transform output must be a new or empty directory".into());
         }
     }
+    write_initial_status(
+        &root,
+        "source-import",
+        "source EOF and integrity verification are pending; imported data is not yet trusted",
+    )?;
     let archive_path = root.join("archive");
     let mut checked_segments = if capture_ledger.is_some() {
         let mut open = OpenOptions::new();
@@ -1050,7 +1159,10 @@ pub fn transform_sources(
     } else {
         None
     };
-    let mut stats = RunStats::default();
+    let mut stats = RunStats {
+        verification_enabled: options.verify,
+        ..RunStats::default()
+    };
     let mut first_context: Option<Context> = None;
     let mut active_context: Option<Context> = None;
     let mut sink: Option<Sink> = None;
@@ -1080,7 +1192,7 @@ pub fn transform_sources(
                 file_context = Some(context.clone());
             }
             if let Some(first) = &first_context {
-                if !stable_context(first, context) {
+                if !first.same_stream(context) {
                     return Err(
                         "source hz/timebase/run/boot context is not stable across files".into(),
                     );
@@ -1108,7 +1220,7 @@ pub fn transform_sources(
                         sink,
                         &mut stats,
                         &mut frame_start,
-                        options.profile,
+                        options,
                         &root,
                         store_options,
                     )?;
@@ -1132,7 +1244,7 @@ pub fn transform_sources(
                         .ok_or_else(|| "transform writer not initialized".to_string())?,
                     &mut stats,
                     &mut frame_start,
-                    options.profile,
+                    options,
                     &root,
                     store_options,
                 )?;
@@ -1154,7 +1266,7 @@ pub fn transform_sources(
                     None
                 };
                 if let Some(first) = &first_context {
-                    if !stable_context(first, &source_stats.context) {
+                    if !first.same_stream(&source_stats.context) {
                         failure = Some(format!(
                             "{}: source context is not stable across files",
                             input.display()
@@ -1224,7 +1336,7 @@ pub fn transform_sources(
             sink,
             &mut stats,
             &mut frame_start,
-            options.profile,
+            options,
             &root,
             store_options,
         )
@@ -1246,33 +1358,15 @@ pub fn transform_sources(
         return Err(message.into());
     }
     finish_metrics(&mut stats, start, before);
-    write_run_status(&root, "complete.json", &stats)?;
+    write_run_status(&root, "complete.json", &stats, "source-import")?;
+    remove_partial_status(&root)?;
     Ok(stats)
 }
 
-fn stable_context(a: &Context, b: &Context) -> bool {
-    a.hz == b.hz
-        && a.cpu_timebase == b.cpu_timebase
-        && a.capture_run_id == b.capture_run_id
-        && (a.boot_id.is_none() || b.boot_id.is_none() || a.boot_id == b.boot_id)
-        && a.clock == b.clock
-}
-
 fn write_failure_marker(root: &Path, message: &str) -> Result<()> {
-    let path = root.join("partial.json");
-    let bytes = serde_json::to_vec(&json!({"complete":false,"error":message}))
-        .map_err(|e| format!("encode partial marker: {e}"))?;
-    let mut options = OpenOptions::new();
-    options.write(true).create_new(true);
-    #[cfg(unix)]
-    options.mode(0o600);
-    let mut file = options
-        .open(path)
-        .map_err(|e| format!("write partial marker: {e}"))?;
-    file.write_all(&bytes)
-        .map_err(|e| format!("write partial marker: {e}"))?;
-    file.sync_all()
-        .map_err(|e| format!("sync partial marker: {e}"))
+    let value = json!({"kind":"source-import","complete":false,"status":"failed","error":message});
+    let bytes = serde_json::to_vec(&value).map_err(|e| format!("encode partial marker: {e}"))?;
+    publish_status(root, "partial.json", &bytes, true)
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -1700,7 +1794,7 @@ fn capture_ledger_for_inputs(inputs: &[PathBuf]) -> Result<Option<CaptureLedger>
     if !parent.join("segments.jsonl").exists() {
         return Ok(None);
     }
-    let Some(ledger) = load_capture_ledger(parent)? else {
+    let Some(mut ledger) = load_capture_ledger(parent)? else {
         return Ok(None);
     };
     let expected = ledger
@@ -1708,9 +1802,14 @@ fn capture_ledger_for_inputs(inputs: &[PathBuf]) -> Result<Option<CaptureLedger>
         .iter()
         .map(|part| ledger.source_root.join(&part.path))
         .collect::<Vec<_>>();
-    if inputs != expected {
-        return Err("transform inputs do not match source order in capture ledger".into());
-    }
+    let offset = expected
+        .windows(inputs.len())
+        .position(|window| window == inputs)
+        .ok_or_else(|| {
+            "transform inputs must be a contiguous ordered capture-ledger subset".to_string()
+        })?;
+    let end = offset + inputs.len();
+    ledger.segments = ledger.segments[offset..end].to_vec();
     Ok(Some(ledger))
 }
 fn verify_capture_source_hash(ledger: &CaptureLedger, index: usize, path: &Path) -> Result<()> {
@@ -1879,6 +1978,7 @@ pub fn default_record_options(output: PathBuf) -> RecordOptions {
         max_bytes: DEFAULT_MAX_BYTES,
         min_free_bytes: DEFAULT_MIN_FREE_BYTES,
         block_rows: DEFAULT_BLOCK_ROWS,
+        verify: false,
     }
 }
 
@@ -1887,6 +1987,7 @@ pub fn benchmark_sources(
     inputs: &[PathBuf],
     profile: Profile,
     legacy_timebase: Option<Timebase>,
+    frame_bytes: usize,
 ) -> Result<RunStats> {
     if inputs.is_empty() {
         return Err("benchmark needs at least one source file".into());
@@ -1895,15 +1996,19 @@ pub fn benchmark_sources(
     let before = usage();
     let mut options = default_record_options(PathBuf::new());
     options.profile = profile;
-    let mut stats = RunStats::default();
+    let mut stats = RunStats {
+        verification_enabled: true,
+        ..RunStats::default()
+    };
     let mut validator = Validator::new(false);
+    let mut codec = CodecFrameAccumulator::new(frame_bytes)?;
     let mut current_context: Option<Context> = None;
     let mut builder: Option<BlockBuilder> = None;
     for input in inputs {
         let source_stats = source::visit_source(input, legacy_timebase, |context, mut row| {
             if current_context.as_ref() != Some(context) {
                 if let Some(old) = builder.as_mut() {
-                    benchmark_block(old, profile, &mut stats)?;
+                    benchmark_block(old, profile, &mut stats, &mut codec)?;
                 }
                 current_context = Some(context.clone());
                 builder = Some(BlockBuilder::new(context));
@@ -1918,7 +2023,7 @@ pub fn benchmark_sources(
                 .as_mut()
                 .ok_or_else(|| "benchmark block not initialized".to_string())?;
             if block.should_cut(context, &row, &options) || flagged {
-                benchmark_block(block, profile, &mut stats)?;
+                benchmark_block(block, profile, &mut stats, &mut codec)?;
             }
             block.push(row);
             Ok(())
@@ -1937,8 +2042,16 @@ pub fn benchmark_sources(
         });
     }
     if let Some(block) = builder.as_mut() {
-        benchmark_block(block, profile, &mut stats)?;
+        benchmark_block(block, profile, &mut stats, &mut codec)?;
     }
+    codec.finish()?;
+    stats.codec_input_bytes = codec.input_bytes;
+    stats.codec_compressed_bytes = codec.compressed_bytes;
+    stats.codec_encoder_cpu_seconds = codec.encoder_cpu_seconds;
+    stats.codec_encoder_wall_seconds = codec.encoder_wall_seconds;
+    stats.codec_frames = codec.frames;
+    stats.codec_repeats = codec.repeats;
+    stats.codec_max_input_bytes = codec.max_input_bytes;
     finish_metrics(&mut stats, start, before);
     Ok(stats)
 }
@@ -1947,30 +2060,43 @@ fn benchmark_block(
     builder: &mut BlockBuilder,
     profile: Profile,
     stats: &mut RunStats,
+    codec: &mut CodecFrameAccumulator,
 ) -> Result<()> {
     if builder.is_empty() {
         return Ok(());
     }
     let bytes = encode_block(&builder.context, &builder.rows, profile)?;
-    let decoded = super::wire::decode_block(&bytes)?;
-    let codec = super::store::benchmark_frame(std::slice::from_ref(&bytes))?;
-    stats.codec_input_bytes = stats.codec_input_bytes.saturating_add(codec.input_bytes);
-    stats.codec_compressed_bytes = stats
-        .codec_compressed_bytes
-        .saturating_add(codec.compressed_bytes);
-    stats.codec_encoder_cpu_seconds += codec.encoder_cpu_seconds;
-    stats.codec_encoder_wall_seconds += codec.encoder_wall_seconds;
-    stats.codec_frames = stats.codec_frames.saturating_add(1);
-    stats.codec_repeats = stats.codec_repeats.saturating_add(codec.repeats as u64);
-    if decoded.rows.len() != builder.rows.len() {
+    audit_source_block(&builder.context, &builder.rows, profile, &bytes, stats)?;
+    codec.push(&bytes)?;
+    stats.blocks = stats.blocks.saturating_add(1);
+    stats.raw_encoded_bytes = stats.raw_encoded_bytes.saturating_add(bytes.len() as u64);
+    builder.rows.clear();
+    builder.points = 0;
+    Ok(())
+}
+
+fn audit_source_block(
+    context: &Context,
+    rows: &[Observation],
+    profile: Profile,
+    bytes: &[u8],
+    stats: &mut RunStats,
+) -> Result<()> {
+    let decoded = super::wire::decode_block(bytes)?;
+    // PST1 predates run/header provenance; that context belongs to the archive,
+    // not the byte-parity control block. Its CPU timebase is still retained.
+    if decoded.profile != profile
+        || decoded.context.cpu_timebase != context.cpu_timebase
+        || (profile != Profile::Legacy1ms && decoded.context != *context)
+    {
+        stats.precision_violations += 1;
+    }
+    if decoded.rows.len() != rows.len() {
         stats.precision_violations += 1;
     }
     let mut prior: HashMap<super::model::Identity, (u64, u64)> = HashMap::new();
-    let mut endpoints: HashMap<super::model::Identity, (usize, u64, usize, u64)> = HashMap::new();
-    for (index, row) in builder.rows.iter().enumerate() {
-        let Some(decoded_row) = decoded.rows.get(index) else {
-            continue;
-        };
+    let mut endpoints: HashMap<super::model::Identity, (u64, u64, u64, u64)> = HashMap::new();
+    for (row, decoded_row) in rows.iter().zip(&decoded.rows) {
         if row.seq != decoded_row.seq
             || row.wall_start_ns != decoded_row.wall_start_ns
             || row.scan_start_ns != decoded_row.scan_start_ns
@@ -1980,69 +2106,88 @@ fn benchmark_block(
         {
             stats.precision_violations += 1;
         }
-        let mut current = HashMap::new();
-        for process in &row.processes {
+        let mut actuals: Vec<_> = row.processes.iter().collect();
+        let mut restored: Vec<_> = decoded_row.processes.iter().collect();
+        if !actuals
+            .windows(2)
+            .all(|pair| pair[0].identity() <= pair[1].identity())
+        {
+            actuals.sort_by_key(|process| process.identity());
+        }
+        if !restored
+            .windows(2)
+            .all(|pair| pair[0].identity() <= pair[1].identity())
+        {
+            restored.sort_by_key(|process| process.identity());
+        }
+        for (process, decoded_process) in actuals.into_iter().zip(restored) {
             let id = process.identity();
-            let actual = process.total()?;
-            let Some(restored) = decoded_row.processes.iter().find(|p| p.identity() == id) else {
+            if id != decoded_process.identity() {
                 stats.precision_violations += 1;
                 continue;
-            };
-            if actual.abs_diff(restored.cpu_total) > restored.cpu_error_bound {
+            }
+            if process.name != decoded_process.name || process.ppid != decoded_process.ppid {
                 stats.precision_violations += 1;
             }
-            if restored.rss != process.rss / super::model::RSS_QUANTUM * super::model::RSS_QUANTUM {
+            let actual = process.total()?;
+            let decoded_total = decoded_process.cpu_total;
+            if actual < decoded_total
+                || actual.abs_diff(decoded_total) > decoded_process.cpu_error_bound
+            {
+                stats.precision_violations += 1;
+            }
+            let expected_rss = process.rss / super::model::RSS_QUANTUM * super::model::RSS_QUANTUM;
+            if decoded_process.rss != expected_rss {
                 stats.rss_floor_violations += 1;
             }
-            if restored.components.is_some() {
+            if decoded_process.components.is_some() {
                 stats.precision_violations += 1;
             }
-            if let Some((previous_raw, previous_decoded)) = prior.get(&id) {
-                let raw_delta = actual.saturating_sub(*previous_raw);
-                let decoded_delta = restored.cpu_total.saturating_sub(*previous_decoded);
-                if raw_delta > 0 && decoded_delta == 0 {
+            if let Some((previous_actual, previous_decoded)) = prior.get(&id) {
+                let actual_delta = actual.checked_sub(*previous_actual);
+                let decoded_delta = decoded_total.checked_sub(*previous_decoded);
+                let (Some(actual_delta), Some(decoded_delta)) = (actual_delta, decoded_delta)
+                else {
+                    stats.precision_violations += 1;
+                    prior.insert(id, (actual, decoded_total));
+                    endpoints
+                        .entry(id)
+                        .and_modify(|state| {
+                            state.2 = actual;
+                            state.3 = decoded_total;
+                        })
+                        .or_insert((actual, decoded_total, actual, decoded_total));
+                    continue;
+                };
+                if actual_delta > 0 && decoded_delta == 0 {
                     stats.positive_intervals_lost += 1;
                 }
-                if (raw_delta == 0) != (decoded_delta == 0) {
-                    stats.precision_violations += 1;
-                }
                 if profile == Profile::Adaptive
-                    && raw_delta > 0
-                    && 8u128 * u128::from(raw_delta.abs_diff(decoded_delta))
-                        >= u128::from(raw_delta)
+                    && ((actual_delta == 0) != (decoded_delta == 0)
+                        || actual_delta > 0
+                            && 8u128 * u128::from(actual_delta.abs_diff(decoded_delta))
+                                >= u128::from(actual_delta))
                 {
                     stats.precision_violations += 1;
                 }
             }
-            current.insert(id, (actual, restored.cpu_total));
+            prior.insert(id, (actual, decoded_total));
             endpoints
                 .entry(id)
                 .and_modify(|state| {
-                    state.2 = index;
-                    state.3 = actual;
+                    state.2 = actual;
+                    state.3 = decoded_total;
                 })
-                .or_insert((index, actual, index, actual));
-        }
-        prior = current;
-    }
-    for (id, (first_index, first, last_index, last)) in endpoints {
-        for (index, expected) in [(first_index, first), (last_index, last)] {
-            let Some(row) = decoded.rows.get(index) else {
-                stats.endpoint_mismatches += 1;
-                continue;
-            };
-            let Some(process) = row.processes.iter().find(|p| p.identity() == id) else {
-                stats.endpoint_mismatches += 1;
-                continue;
-            };
-            if process.cpu_total != expected {
-                stats.endpoint_mismatches += 1;
-            }
+                .or_insert((actual, decoded_total, actual, decoded_total));
         }
     }
-    stats.blocks = stats.blocks.saturating_add(1);
-    stats.raw_encoded_bytes = stats.raw_encoded_bytes.saturating_add(bytes.len() as u64);
-    builder.rows.clear();
-    builder.points = 0;
+    for (first_actual, first_decoded, last_actual, last_decoded) in endpoints.values() {
+        if first_actual != first_decoded {
+            stats.endpoint_mismatches += 1;
+        }
+        if last_actual != last_decoded {
+            stats.endpoint_mismatches += 1;
+        }
+    }
     Ok(())
 }

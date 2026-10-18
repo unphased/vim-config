@@ -49,7 +49,10 @@ fn install_record_signal_handlers() {
 
 /// Entry point called only for the independent foreground `record` command.
 pub fn run(args: &[String]) -> i32 {
-    if args.iter().any(|arg| arg == "--help" || arg == "-h") {
+    if args
+        .chunks(2)
+        .any(|option| option[0] == "--help" || option[0] == "-h")
+    {
         println!(
             "pane-load recording record --output ROOT [--duration SEC] [--hz N] [--profile adaptive|legacy-1ms|fixed-100us] [--format binary|jsonl-zstd]"
         );
@@ -139,13 +142,16 @@ fn run_macos(options: RecordOptions) -> Result<(), String> {
     };
     let end_result = send_end(&tx, quality, source_error.clone());
     drop(tx);
-    let encoded = encoder.join();
+    // A producer disconnect may be a consequence of an earlier storage failure.
+    // Preserve the actionable writer/panic diagnostic before consequential errors.
+    let encoded = encoder
+        .join()
+        .map_err(|_| "recording encoder thread panicked".to_string())?;
+    encoded.map_err(|error| format!("recording writer: {error}"))?;
     if let Some(error) = source_error {
         return Err(error);
     }
     end_result?;
-    let encoded = encoded.map_err(|_| "recording encoder thread panicked".to_string())?;
-    encoded.map_err(|error| format!("recording writer: {error}"))?;
     Ok(())
 }
 
@@ -574,11 +580,15 @@ fn checked_pids() -> Result<(Vec<i32>, bool), String> {
     let mut size = 4096_usize.min(PID_BUFFER_LIMIT * size_of::<u32>());
     loop {
         let mut pids = vec![0_u32; size / size_of::<u32>()];
-        // PROC_ALL_PIDS returns bytes written, or a negative value on failure.
+        // PROC_ALL_PIDS returns bytes written, or zero on failure. This
+        // process itself exists, so zero cannot mean a genuinely empty host.
         let bytes =
             unsafe { super::proc_listpids(1, 0, pids.as_mut_ptr().cast(), size as libc::c_int) };
-        if bytes < 0 {
-            return Err(std::io::Error::last_os_error().to_string());
+        if bytes <= 0 {
+            return Err(format!(
+                "proc_listpids returned {bytes}: {}",
+                std::io::Error::last_os_error()
+            ));
         }
         let bytes = bytes as usize;
         if bytes > size || !bytes.is_multiple_of(size_of::<u32>()) {

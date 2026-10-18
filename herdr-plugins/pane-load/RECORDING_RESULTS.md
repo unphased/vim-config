@@ -1,7 +1,8 @@
 # Process-history storage: current scorecard
 
-Goal: ~10 MB/day encoded, ideally ~1 MB/day compressed. **Not met.** No
-production sampler/config/startup changes. Older rundowns remain in Git history.
+Goal: ~10 MB/day encoded, ideally ~1 MB/day compressed. **Not met.** The Rust
+recording CLI is standalone and manual; no production sampler/config/startup or
+automatic deployment changes. Older rundowns remain in Git history.
 
 ```text
 real observations -> fixed representation -> independent byte-sized frames
@@ -11,10 +12,26 @@ real observations -> fixed representation -> independent byte-sized frames
 Rank storage against **compression CPU-seconds/input GiB**; wall time is separate.
 Read costs do not constrain frames. Decompression only verifies correctness.
 
-## Current full-capture results: 41.33 hours
+## Provisional Rust validation: first source shard only
 
-Completed 2026-10-17: **all 248 source shards**, 1,487,845 scans,
-**1,413,925,731 process readings**, 4,300,060 identities and 4,973 cached blocks.
+**Not the full 41-hour run and not final performance evidence.** The first Rust
+`transform --verify` shard contained 6,000 scans, 6,431,392 process readings,
+20 PST2 blocks and 22,158,587 uncompressed block bytes. Verification reported
+8.886969917 s wall, 8.628273 s own CPU, 0 child CPU seconds, and peak RSS of
+213,909,504 bytes. Endpoint mismatches, point-precision violations, lost positive
+intervals and RSS-floor violations were all zero.
+
+This is an initial one-shard run; full-corpus validation and final hardware/code
+rerun remain pending. The preserved 41-hour source is 2,778,751,489 bytes of
+lossless zstd JSONL versus 109,018,766,562 expanded JSONL bytes. Do **not** project
+the historical fixed-profile 100.84 MiB/day result below onto adaptive Rust output.
+The full Rust pass will replace this provisional section or append final metrics.
+
+## Historical Python prototype full-capture results: 41.33 hours
+
+Completed 2026-10-17 in the fixed-profile prototype: **all 248 source shards**,
+1,487,845 scans, **1,413,925,731 process readings**, 4,300,060 identities and
+4,973 cached blocks.
 Scan-clock duration is 148,784.400128417s. No source records were dropped.
 This remains **fixed 1 ms total CPU / 256 KiB RSS**, not adaptive precision.
 
@@ -231,10 +248,11 @@ are outside these payload numbers. Native scans are not atomic and visibility
 is incomplete. More hours per frame will not close the measured budget gap;
 representation/precision is the next useful lever, not waiting for 72 hours.
 
-Next-work scope and approval questions live only in the [plan](RECORDING_PLAN.md).
-The planned canonical Rust transform must include adaptive CPU precision; it is
-not implemented or measured here. Remaining boundaries await final scope approval.
-See [real data examples](RECORDING_DATA.md).
+The Rust recorder now implements adaptive CPU precision. Its first-shard
+verification is provisional; full-corpus validation and the Opus closeout review
+remain pending as recorded in the [plan](RECORDING_PLAN.md). Historical prototype
+measurements above remain valid for their stated source and settings. See
+[real data examples](RECORDING_DATA.md).
 
 43 frame/settings cases plus 20 neighboring-Brotli measurements (including two
 control rechecks) and fixed source/block manifests are private under

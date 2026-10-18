@@ -75,6 +75,7 @@ fn options(output: PathBuf, format: OutputFormat) -> RecordOptions {
         max_bytes: 64 * 1024 * 1024,
         min_free_bytes: 0,
         block_rows: 300,
+        verify: false,
     }
 }
 fn write_source(path: &Path, context: &Context, rows: &[Observation]) {
@@ -107,6 +108,7 @@ fn record_options_reject_unknown_and_duplicate_flags_and_apply_defaults() {
     assert_eq!(options.max_bytes, 8 * 1024 * 1024 * 1024);
     assert_eq!(options.min_free_bytes, 20 * 1024 * 1024 * 1024);
     assert_eq!(options.format, OutputFormat::Binary);
+    assert!(!options.verify);
 }
 
 #[test]
@@ -176,6 +178,7 @@ fn channel_eof_commits_tail_and_raw_replay_has_binary_block_parity() {
     .unwrap();
     assert_eq!(replay_stats.scans, 2);
     assert!(replay_root.join("complete.json").is_file());
+    assert!(!replay_root.join("partial.json").exists());
     let replay_blocks = store::read_archive(&replay_root.join("archive")).unwrap();
     assert_eq!(live_blocks, replay_blocks);
 }
@@ -240,10 +243,156 @@ fn frozen_capture_ledger_is_verified_and_checked_ledger_is_source_ordered() {
     )
     .unwrap();
     assert_eq!(checked["capture_run_id"], "frozen-capture");
+    assert_eq!(checked["segment_index"], 0);
     assert_eq!(checked["source_sha256"], sha256(&source_bytes));
     assert_eq!(checked["scans"], 2);
     assert_eq!(checked["seq_range"][0], 10);
     assert_eq!(checked["seq_range"][1], 11);
+}
+
+#[test]
+fn capture_ledger_accepts_ordered_subsets_and_rejects_reordering_or_missing_sources() {
+    let temp = Temp::new();
+    let capture = temp.path("subset-capture");
+    let source_root = capture.join("source");
+    fs::create_dir_all(&source_root).unwrap();
+    let ctx = context("subset-capture");
+    for index in 0..3_u64 {
+        let path = source_root.join(format!("source-{index:06}.jsonl.zst"));
+        write_source(
+            &path,
+            &ctx,
+            &[row(index, (index + 1) * 100, vec![proc(10 + index, 20)])],
+        );
+        let segment = serde_json::json!({
+            "path":format!("source-{index:06}.jsonl.zst"), "segment_index":index,
+            "count":1, "requested_samples":1, "seq_range":[index,index],
+            "time_range_ns":[(index + 1) * 100,(index + 1) * 100],
+            "complete":true, "capture_run_id":"subset-capture"
+        });
+        let mut file = fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(source_root.join("segments.jsonl"))
+            .unwrap();
+        serde_json::to_writer(&mut file, &segment).unwrap();
+        use std::io::Write;
+        file.write_all(b"\n").unwrap();
+    }
+    let files = pipeline::source_files(&capture).unwrap();
+    let output = temp.path("middle-only");
+    let stats = pipeline::transform_sources(
+        &[files[1].clone()],
+        &output,
+        &options(output.clone(), OutputFormat::Binary),
+        None,
+    )
+    .unwrap();
+    assert_eq!(stats.scans, 1);
+    assert_eq!(stats.source_hashes.len(), 1);
+    let checked: serde_json::Value = serde_json::from_slice(
+        fs::read(output.join("checkedsegments.jsonl"))
+            .unwrap()
+            .split(|byte| *byte == b'\n')
+            .next()
+            .unwrap(),
+    )
+    .unwrap();
+    assert_eq!(checked["segment_index"], 1);
+    assert_eq!(checked["capture_run_id"], "subset-capture");
+    assert_eq!(checked["scans"], 1);
+
+    let reordered_output = temp.path("reordered-subset");
+    let error = pipeline::transform_sources(
+        &[files[1].clone(), files[0].clone()],
+        &reordered_output,
+        &options(reordered_output.clone(), OutputFormat::Binary),
+        None,
+    )
+    .unwrap_err();
+    assert!(error.contains("contiguous ordered capture-ledger subset"));
+    assert!(!reordered_output.exists());
+
+    fs::remove_file(&files[2]).unwrap();
+    assert!(
+        pipeline::source_files(&capture)
+            .unwrap_err()
+            .contains("missing or unclaimed source segments")
+    );
+}
+
+#[test]
+fn transform_verify_flag_audits_and_labels_cpu_scope() {
+    let temp = Temp::new();
+    let source = temp.path("verify-source.jsonl.zst");
+    write_source(
+        &source,
+        &context("verify"),
+        &[row(0, 100, vec![proc(50, 25)])],
+    );
+    let output = temp.path("verified-transform");
+    herdr_pane_load::recording::cli::run(&[
+        "transform".into(),
+        "--input".into(),
+        source.to_string_lossy().into_owned(),
+        "--output".into(),
+        output.to_string_lossy().into_owned(),
+        "--verify".into(),
+    ])
+    .unwrap();
+    let status: serde_json::Value =
+        serde_json::from_slice(&fs::read(output.join("complete.json")).unwrap()).unwrap();
+    assert_eq!(status["verification_enabled"], true);
+    assert_eq!(status["precision_violations"], 0);
+    assert_eq!(status["rss_floor_violations"], 0);
+    assert_eq!(status["endpoint_mismatches"], 0);
+}
+
+#[test]
+fn source_audit_handles_empty_rows_metadata_changes_and_gaps() {
+    let temp = Temp::new();
+    let source = temp.path("audit-source.jsonl.zst");
+    let mut changed = proc(1, 0);
+    changed.name = "renamed".into();
+    changed.ppid = 9;
+    let mut last = proc(100_000, 0);
+    last.name = changed.name.clone();
+    last.ppid = changed.ppid;
+    write_source(
+        &source,
+        &context("audit"),
+        &[
+            row(0, 100, vec![proc(0, 0)]),
+            row(1, 200, vec![]),
+            row(2, 300, vec![changed.clone()]),
+            row(3, 400, vec![last]),
+        ],
+    );
+    let adaptive = pipeline::benchmark_sources(
+        std::slice::from_ref(&source),
+        Profile::Adaptive,
+        None,
+        16 * 1024 * 1024,
+    )
+    .unwrap();
+    assert_eq!(adaptive.precision_violations, 0);
+    assert_eq!(adaptive.endpoint_mismatches, 0);
+    assert_eq!(adaptive.rss_floor_violations, 0);
+
+    let fixed = pipeline::benchmark_sources(
+        std::slice::from_ref(&source),
+        Profile::Fixed100us,
+        None,
+        16 * 1024 * 1024,
+    )
+    .unwrap();
+    assert_eq!(fixed.precision_violations, 0);
+    assert_eq!(fixed.endpoint_mismatches, 0);
+
+    let legacy =
+        pipeline::benchmark_sources(&[source], Profile::Legacy1ms, None, 16 * 1024 * 1024).unwrap();
+    assert!(legacy.positive_intervals_lost > 0);
+    assert_eq!(legacy.endpoint_mismatches, 0);
 }
 
 #[test]
@@ -325,6 +474,225 @@ fn bench_reports_encoder_metrics_separately_from_decode_verification() {
 }
 
 #[test]
+fn source_and_cached_benchmarks_share_frame_geometry_across_eight_blocks() {
+    let temp = Temp::new();
+    let raw = temp.path("eight-block-source.jsonl.zst");
+    let ctx = context("eight-blocks");
+    let rows: Vec<_> = (0..8)
+        .map(|index| row(index, (index + 1) * 100, vec![proc(100 - index, 20)]))
+        .collect();
+    write_source(&raw, &ctx, &rows);
+    let archive = temp.path("eight-block-archive");
+    let transformed = pipeline::transform_sources(
+        std::slice::from_ref(&raw),
+        &archive,
+        &options(archive.clone(), OutputFormat::Binary),
+        None,
+    )
+    .unwrap();
+    assert_eq!(transformed.blocks, 8);
+
+    let run_bench = |input: &Path, target: usize, name: &str| {
+        let output = temp.path(name);
+        herdr_pane_load::recording::cli::run(&[
+            "bench".into(),
+            "--input".into(),
+            input.to_string_lossy().into_owned(),
+            "--profiles".into(),
+            "adaptive".into(),
+            "--frame-bytes".into(),
+            target.to_string(),
+            "--output".into(),
+            output.to_string_lossy().into_owned(),
+        ])
+        .unwrap();
+        serde_json::from_slice::<serde_json::Value>(
+            fs::read(output)
+                .unwrap()
+                .split(|byte| *byte == b'\n')
+                .next()
+                .unwrap(),
+        )
+        .unwrap()
+    };
+    let raw_full = run_bench(&raw, 16 * 1024 * 1024, "raw-full.jsonl");
+    let cache_full = run_bench(
+        &archive.join("archive"),
+        16 * 1024 * 1024,
+        "cache-full.jsonl",
+    );
+    for key in [
+        "codec_input_bytes",
+        "codec_compressed_bytes",
+        "codec_frames",
+        "actual_max_input_bytes",
+        "codec_repeats",
+    ] {
+        assert_eq!(raw_full[key], cache_full[key], "{key}");
+    }
+    assert_eq!(raw_full["codec_frames"], 1);
+    assert_eq!(raw_full["codec_repeats"], 3);
+    assert_eq!(raw_full["repeats_per_frame"], 3);
+    assert_eq!(
+        raw_full["actual_max_input_bytes"],
+        raw_full["codec_input_bytes"]
+    );
+
+    let tail_target = raw_full["codec_input_bytes"].as_u64().unwrap() as usize / 2;
+    let raw_tail = run_bench(&raw, tail_target, "raw-tail.jsonl");
+    let cache_tail = run_bench(&archive.join("archive"), tail_target, "cache-tail.jsonl");
+    for key in [
+        "codec_input_bytes",
+        "codec_compressed_bytes",
+        "codec_frames",
+        "actual_max_input_bytes",
+        "codec_repeats",
+    ] {
+        assert_eq!(raw_tail[key], cache_tail[key], "{key}");
+    }
+    assert!(raw_tail["codec_frames"].as_u64().unwrap() > 1);
+    assert!(raw_tail["codec_frames"].as_u64().unwrap() < 8);
+    assert!(raw_tail["actual_max_input_bytes"].as_u64().unwrap() <= tail_target as u64);
+    assert_eq!(raw_tail["frame_target_bytes"], tail_target);
+
+    let raw_oversized = run_bench(&raw, 1, "raw-oversized.jsonl");
+    let cache_oversized = run_bench(&archive.join("archive"), 1, "cache-oversized.jsonl");
+    assert_eq!(raw_oversized["codec_frames"], 8);
+    assert_eq!(
+        raw_oversized["codec_frames"],
+        cache_oversized["codec_frames"]
+    );
+    assert_eq!(
+        raw_oversized["codec_input_bytes"],
+        cache_oversized["codec_input_bytes"]
+    );
+    assert_eq!(
+        raw_oversized["codec_compressed_bytes"],
+        cache_oversized["codec_compressed_bytes"]
+    );
+    assert!(raw_oversized["actual_max_input_bytes"].as_u64().unwrap() > 1);
+}
+
+#[test]
+fn inspect_exports_validated_private_pst_blocks_and_rejects_partial_data() {
+    let temp = Temp::new();
+    let raw = temp.path("export-source.jsonl.zst");
+    write_source(&raw, &context("export"), &[row(0, 100, vec![proc(10, 20)])]);
+    let output = temp.path("export-transform");
+    pipeline::transform_sources(
+        std::slice::from_ref(&raw),
+        &output,
+        &options(output.clone(), OutputFormat::Binary),
+        None,
+    )
+    .unwrap();
+    let original = store::read_archive(&output.join("archive"))
+        .unwrap()
+        .remove(0);
+    let export = temp.path("pst-export");
+    herdr_pane_load::recording::cli::run(&[
+        "inspect".into(),
+        "--input".into(),
+        output.join("archive").to_string_lossy().into_owned(),
+        "--blocks-out".into(),
+        export.to_string_lossy().into_owned(),
+    ])
+    .unwrap();
+    assert_eq!(fs::read(export.join("block-000000.pst")).unwrap(), original);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        assert_eq!(
+            fs::metadata(&export).unwrap().permissions().mode() & 0o777,
+            0o700
+        );
+        assert_eq!(
+            fs::metadata(export.join("block-000000.pst"))
+                .unwrap()
+                .permissions()
+                .mode()
+                & 0o777,
+            0o600
+        );
+    }
+    let manifest: serde_json::Value =
+        serde_json::from_slice(&fs::read(export.join("manifest.json")).unwrap()).unwrap();
+    assert_eq!(manifest["quantized"], true);
+    assert_eq!(manifest["raw_source_lossless"], false);
+    assert_eq!(manifest["blocks"][0]["bytes"], original.len());
+    assert_eq!(manifest["blocks"][0]["sha256"], sha256(&original));
+
+    let cache = temp.path("pst-cache");
+    fs::create_dir(&cache).unwrap();
+    fs::write(cache.join("one.pst"), &original).unwrap();
+    let cache_export = temp.path("cache-export");
+    herdr_pane_load::recording::cli::run(&[
+        "inspect".into(),
+        "--input".into(),
+        cache.to_string_lossy().into_owned(),
+        "--blocks-out".into(),
+        cache_export.to_string_lossy().into_owned(),
+    ])
+    .unwrap();
+    assert_eq!(
+        fs::read(cache_export.join("block-000000.pst")).unwrap(),
+        original
+    );
+    assert!(
+        herdr_pane_load::recording::cli::run(&[
+            "inspect".into(),
+            "--input".into(),
+            output.join("archive").to_string_lossy().into_owned(),
+            "--jsonl".into(),
+            "--blocks-out".into(),
+            temp.path("conflicting-export")
+                .to_string_lossy()
+                .into_owned(),
+        ])
+        .unwrap_err()
+        .contains("mutually exclusive")
+    );
+    assert!(
+        herdr_pane_load::recording::cli::run(&[
+            "inspect".into(),
+            "--input".into(),
+            output.join("archive").to_string_lossy().into_owned(),
+            "--blocks-out".into(),
+            export.to_string_lossy().into_owned(),
+        ])
+        .is_err()
+    );
+    assert_eq!(fs::read(export.join("block-000000.pst")).unwrap(), original);
+
+    let partial = output.join("partial.json");
+    fs::write(&partial, br#"{"end_reason":"fixture partial"}"#).unwrap();
+    let completion_wins = temp.path("completion-wins");
+    herdr_pane_load::recording::cli::run(&[
+        "inspect".into(),
+        "--input".into(),
+        output.join("archive").to_string_lossy().into_owned(),
+        "--blocks-out".into(),
+        completion_wins.to_string_lossy().into_owned(),
+    ])
+    .unwrap();
+    assert!(completion_wins.join("manifest.json").is_file());
+    fs::remove_file(output.join("complete.json")).unwrap();
+    let rejected = temp.path("partial-export");
+    assert!(
+        herdr_pane_load::recording::cli::run(&[
+            "inspect".into(),
+            "--input".into(),
+            output.join("archive").to_string_lossy().into_owned(),
+            "--blocks-out".into(),
+            rejected.to_string_lossy().into_owned(),
+        ])
+        .unwrap_err()
+        .contains("partial")
+    );
+    assert!(!rejected.exists());
+}
+
+#[test]
 fn capture_ledger_rejects_missing_segments_and_unclaimed_artifacts() {
     let temp = Temp::new();
     let capture = temp.path("capture-ledger");
@@ -398,11 +766,17 @@ fn regression_across_missing_scan_and_source_shard_is_cut_and_annotated() {
             .count(),
         2
     );
-    assert!(
-        events
-            .iter()
-            .all(|v| v["unavailable_rate"] == true && v["restart"] == "not_restart")
-    );
+    assert!(events.iter().all(|event| {
+        event["unavailable_rate"] == true
+            && event["restart_inference"]
+                == "unknown; counter decrease is not proof of process restart"
+            && event["before"]["cpu_unit"] == "native_ticks"
+            && event["after"]["cpu_unit"] == "native_ticks"
+            && event["before"]["user"] == 100
+            && event["before"]["system"] == 200
+            && event["after"]["user"] == 90
+            && event["after"]["system"] == 150
+    }));
     assert_eq!(decoded.iter().flat_map(|b| &b.rows).count(), 3);
 }
 
@@ -535,8 +909,29 @@ fn missing_or_failed_end_never_publishes_complete_and_end_quality_is_counted() {
     );
     let run = root.join("run-end-state");
     assert!(!run.join("complete.json").exists());
-    assert!(run.join("partial.json").is_file());
+    let partial: serde_json::Value =
+        serde_json::from_slice(&fs::read(run.join("partial.json")).unwrap()).unwrap();
+    assert_eq!(partial["kind"], "live-native");
+    assert_eq!(partial["complete"], false);
     assert_eq!(store::read_archive(&run.join("archive")).unwrap().len(), 1);
+    herdr_pane_load::recording::cli::run(&[
+        "inspect".into(),
+        "--input".into(),
+        run.to_string_lossy().into_owned(),
+        "--recover".into(),
+    ])
+    .unwrap();
+    assert!(run.join("partial.json").is_file());
+    assert!(
+        herdr_pane_load::recording::cli::run(&[
+            "inspect".into(),
+            "--input".into(),
+            run.to_string_lossy().into_owned(),
+            "--jsonl".into(),
+        ])
+        .unwrap_err()
+        .contains("partial recording")
+    );
 
     let root = temp.path("failed-end");
     let (tx, rx) = mpsc::channel();
@@ -558,6 +953,51 @@ fn missing_or_failed_end_never_publishes_complete_and_end_quality_is_counted() {
     assert_eq!(partial["end_quality"][0]["kind"], "producer-drop");
     assert_eq!(partial["end_reason"], "sampler failed");
     assert!(!root.join("run-end-state/complete.json").exists());
+}
+
+#[test]
+fn native_run_publishes_in_progress_status_before_receiving_data() {
+    let temp = Temp::new();
+    let root = temp.path("in-progress");
+    let run = root.join("run-before-data");
+    let (tx, rx) = mpsc::channel();
+    let worker = std::thread::spawn({
+        let root = root.clone();
+        move || {
+            pipeline::consume_live(
+                &options(root, OutputFormat::Binary),
+                &context("before-data"),
+                rx,
+            )
+        }
+    });
+    for _ in 0..200 {
+        if run.join("partial.json").is_file() {
+            break;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(10));
+    }
+    let status: serde_json::Value =
+        serde_json::from_slice(&fs::read(run.join("partial.json")).unwrap()).unwrap();
+    assert_eq!(status["kind"], "live-native");
+    assert_eq!(status["status"], "in-progress");
+    assert_eq!(status["complete"], false);
+    assert!(
+        status["end_reason"]
+            .as_str()
+            .unwrap()
+            .contains("trailing observations")
+    );
+
+    tx.send(LiveMessage::End {
+        quality: vec![],
+        error: None,
+    })
+    .unwrap();
+    drop(tx);
+    worker.join().unwrap().unwrap();
+    assert!(run.join("complete.json").is_file());
+    assert!(!run.join("partial.json").exists());
 }
 
 #[test]
@@ -653,9 +1093,13 @@ fn corrupt_source_never_publishes_success_manifest_and_marks_partial_output() {
         &options(output.clone(), OutputFormat::Binary),
         None,
     );
-    assert!(result.is_err());
+    let error = result.unwrap_err();
     assert!(!output.join("complete.json").exists());
-    assert!(output.join("partial.json").is_file());
+    let partial: serde_json::Value =
+        serde_json::from_slice(&fs::read(output.join("partial.json")).unwrap()).unwrap();
+    assert_eq!(partial["kind"], "source-import");
+    assert_eq!(partial["complete"], false);
+    assert_eq!(partial["error"], error);
     let inspect = herdr_pane_load::recording::cli::run(&[
         "inspect".into(),
         "--input".into(),
@@ -663,4 +1107,52 @@ fn corrupt_source_never_publishes_success_manifest_and_marks_partial_output() {
         "--jsonl".into(),
     ]);
     assert!(inspect.unwrap_err().contains("partial recording"));
+}
+
+#[test]
+fn real_capture_context_survives_legacy_control_and_per_shard_provenance() {
+    let temp = Temp::new();
+    for profile in [Profile::Legacy1ms, Profile::Adaptive] {
+        let mut first = context("context-parity");
+        first
+            .source_headers
+            .push(serde_json::json!({"segment_index":0}));
+        let mut second = first.clone();
+        second.source_headers = vec![serde_json::json!({"segment_index":1})];
+        let label = format!("{profile:?}");
+        let a = temp.path(&format!("{label}-0.jsonl.zst"));
+        let b = temp.path(&format!("{label}-1.jsonl.zst"));
+        write_source(
+            &a,
+            &first,
+            &[
+                row(0, 10, vec![proc(0, 0)]),
+                row(1, 100_000_010, vec![proc(101, 0)]),
+            ],
+        );
+        write_source(
+            &b,
+            &second,
+            &[
+                row(2, 200_000_010, vec![proc(202, 0)]),
+                row(3, 300_000_010, vec![proc(303, 0)]),
+            ],
+        );
+        let output = temp.path(&format!("{label}-archive"));
+        let mut config = options(output.clone(), OutputFormat::Binary);
+        config.profile = profile;
+        config.verify = true;
+        let stats = pipeline::transform_sources(&[a, b], &output, &config, None).unwrap();
+        assert_eq!(stats.precision_violations, 0);
+        let exported = temp.path(&format!("{label}-blocks"));
+        herdr_pane_load::recording::cli::run(&[
+            "inspect".into(),
+            "--input".into(),
+            output.to_string_lossy().into(),
+            "--blocks-out".into(),
+            exported.to_string_lossy().into(),
+        ])
+        .unwrap();
+        assert!(exported.join("manifest.json").exists());
+    }
 }

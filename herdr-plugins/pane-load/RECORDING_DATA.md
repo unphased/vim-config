@@ -1,10 +1,11 @@
 # Process-history bytes: from source records to compressed frames
 
-This explains **the experimental format actually benchmarked**, not a proposed
-standard or a production protocol. Start with the size table and source example;
-read the wire-layout sections when you want to understand the bytes themselves.
-[RECORDING_RESULTS.md](RECORDING_RESULTS.md) contains the latest **full 41-hour**
-codec/CPU comparisons, including explicitly flagged component discontinuities.
+The long worked tutorial below remains the measured **Python fixed-profile
+prototype** reference; it is not the current Rust adaptive layout or a proposed
+standard. Its original examples and measurements are retained. The concise Rust
+wire summary at the end describes the implemented format. See
+[RECORDING_RESULTS.md](RECORDING_RESULTS.md) for provisional Rust first-shard
+validation and the separate historical full 41-hour prototype comparison.
 
 This guide's size example uses the earlier verified 8.5-hour corpus: 306,000 scans,
 326,450,656 process readings and 886,984 identities. The worked source examples
@@ -564,6 +565,38 @@ baselines; can native endpoint corrections be stored less redundantly; can clock
 prediction expose smaller exact residuals? Huge compression frames alone do not
 implement any of these changes. No production format has been selected.
 
-The planned canonical Rust transform includes adaptive CPU precision, not the
-fixed-Q encoding described above. The [plan](RECORDING_PLAN.md) owns future scope
-and approval questions; this guide describes only the benchmarked prototype.
+## Current Rust recorder format (concise wire summary)
+
+This section describes the implemented Rust format; the tutorial above stays the
+historical prototype reference. These versioned bytes are project formats, not an
+external standard.
+
+- Raw reference output is JSONL (optionally zstd-compressed), headed by
+  `recording_source: 1` and `cpu_unit: "native_ticks"`. Its `context` declares
+  clock/timebase and run metadata; source metadata retains clock origin/acquisition
+  details. Rows retain accepted native user and
+  system CPU counters separately, RSS, scan bounds and quality: this is the
+  lossless reference for those observations.
+- A binary archive frame is `HFR1`, a little-endian JSON-header length and frame
+  metadata, Brotli-5 bytes, then a SHA-256 digest. Decompression yields `PCR1`,
+  a uvarint block count and length-prefixed blocks. A current adaptive block is
+  `PST2` followed by three length-prefixed sections: JSON header/context, `CSH2`
+  CPU data and `PSD1` sparse metadata. `legacy-1ms` retains the PST1/CSH1 control.
+- CSH2 begins `CSH2`, version byte `1`, then row/identity/point counts. Each sorted
+  identity track stores its identity, observation count and row-index deltas, an
+  exact first total, then maximal CPU-quantum runs. A run stores interval count,
+  Q, quantized interior offsets from its exact starting anchor, and an exact end
+  total. Adaptive Q is interval-derived, capped at 1 ms in native ticks; Q=1
+  covers zero/fine intervals exactly. This yields the implemented <12.5% relative
+  positive interval target without rounding away positive intervals.
+- PSD1 carries row clocks, process identities/names/PPIDs, sparse presence and
+  changes, and RSS in floored 256 KiB units. Binary CPU is user+system total only:
+  decoded JSON marks `cpu_components: null` and includes per-reading CPU error
+  bounds; it cannot reconstruct the original raw component split or finer source
+  values. Binary block export is quantized and is not a replacement for the raw
+  reference.
+
+Native records declare the source clock/timebase; legacy inputs without a timebase
+require an explicit import argument (for the documented legacy source,
+`--timebase 125/3`). The [plan](RECORDING_PLAN.md) tracks implemented scope and the
+remaining full-capture/review closeout.

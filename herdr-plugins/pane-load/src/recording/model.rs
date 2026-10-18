@@ -66,6 +66,14 @@ impl Context {
             source_headers: vec![],
         }
     }
+    /// Source-file provenance may differ between shards of one logical stream.
+    pub fn same_stream(&self, other: &Self) -> bool {
+        self.hz == other.hz
+            && self.capture_run_id == other.capture_run_id
+            && self.boot_id == other.boot_id
+            && self.clock == other.clock
+            && self.cpu_timebase == other.cpu_timebase
+    }
     pub fn validate(&self) -> Result<()> {
         self.cpu_timebase.validate()?;
         if self.hz == 0 || self.hz > 1000 {
@@ -214,4 +222,6 @@ pub struct RecordOptions {
     pub max_bytes: u64,
     pub min_free_bytes: u64,
     pub block_rows: usize,
+    /// Offline source fidelity verification; independent of codec round-trip checks.
+    pub verify: bool,
 }
