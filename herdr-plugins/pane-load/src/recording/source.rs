@@ -52,7 +52,51 @@ struct RawRow {
 struct LegacyProcess(u32, u32, u64, u32, String, u64, u64, u64);
 
 #[derive(Deserialize)]
-struct RawProcess(u32, u32, u64, u32, String, u64, u64, u64);
+#[serde(untagged)]
+#[allow(clippy::type_complexity)] // Positional raw JSONL wire tuples.
+enum RawProcess {
+    Plain((u32, u32, u64, u32, String, u64, u64, u64)),
+    Memory(
+        (
+            u32,
+            u32,
+            u64,
+            u32,
+            String,
+            u64,
+            u64,
+            u64,
+            Option<u64>,
+            Option<u64>,
+            Option<u64>,
+        ),
+    ),
+}
+
+impl RawProcess {
+    fn into_process(self) -> Process {
+        let (pid, ppid, start_sec, start_usec, name, user, system, rss, owned, peak, evicted) =
+            match self {
+                Self::Plain((pid, ppid, sec, usec, name, user, system, rss)) => (
+                    pid, ppid, sec, usec, name, user, system, rss, None, None, None,
+                ),
+                Self::Memory(fields) => fields,
+            };
+        Process {
+            pid,
+            ppid,
+            start_sec,
+            start_usec,
+            name,
+            user,
+            system,
+            rss,
+            owned,
+            peak,
+            evicted,
+        }
+    }
+}
 
 struct BoundedVec<T>(Vec<T>);
 
@@ -377,6 +421,9 @@ fn parse_legacy_row(line: &[u8], timebase: Timebase) -> Result<Observation> {
             user: timebase.restore_ns(user_ns)?,
             system: timebase.restore_ns(system_ns)?,
             rss,
+            owned: None,
+            peak: None,
+            evicted: None,
         });
     }
     Ok(Observation {
@@ -396,18 +443,7 @@ fn parse_raw_row(line: &[u8]) -> Result<Observation> {
         .processes
         .0
         .into_iter()
-        .map(
-            |RawProcess(pid, ppid, start_sec, start_usec, name, user, system, rss)| Process {
-                pid,
-                ppid,
-                start_sec,
-                start_usec,
-                name,
-                user,
-                system,
-                rss,
-            },
-        )
+        .map(RawProcess::into_process)
         .collect();
     Ok(Observation {
         seq: row.seq,
@@ -488,7 +524,7 @@ pub fn row_to_value(row: &Observation) -> Result<Value> {
     let processes = processes
         .into_iter()
         .map(|process| {
-            Value::Array(vec![
+            let mut fields = vec![
                 Value::from(process.pid),
                 Value::from(process.ppid),
                 Value::from(process.start_sec),
@@ -497,7 +533,15 @@ pub fn row_to_value(row: &Observation) -> Result<Value> {
                 Value::from(process.user),
                 Value::from(process.system),
                 Value::from(process.rss),
-            ])
+            ];
+            if process.owned.is_some() || process.peak.is_some() || process.evicted.is_some() {
+                fields.extend([
+                    Value::from(process.owned),
+                    Value::from(process.peak),
+                    Value::from(process.evicted),
+                ]);
+            }
+            Value::Array(fields)
         })
         .collect();
     let mut object = Map::new();
@@ -778,6 +822,9 @@ mod tests {
             user,
             system,
             rss: 4096,
+            owned: None,
+            peak: None,
+            evicted: None,
         }
     }
 

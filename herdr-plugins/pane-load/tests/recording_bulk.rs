@@ -45,6 +45,9 @@ fn process(user: u64, system: u64) -> Process {
         user,
         system,
         rss: 999_936,
+        owned: None,
+        peak: None,
+        evicted: None,
     }
 }
 

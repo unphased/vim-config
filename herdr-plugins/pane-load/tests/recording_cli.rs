@@ -62,6 +62,9 @@ fn proc(user: u64, system: u64) -> Process {
         user,
         system,
         rss: 900_000,
+        owned: None,
+        peak: None,
+        evicted: None,
     }
 }
 fn options(output: PathBuf, format: OutputFormat) -> RecordOptions {
@@ -76,6 +79,7 @@ fn options(output: PathBuf, format: OutputFormat) -> RecordOptions {
         min_free_bytes: 0,
         block_rows: 300,
         verify: false,
+        memory: Default::default(),
     }
 }
 fn write_source(path: &Path, context: &Context, rows: &[Observation]) {

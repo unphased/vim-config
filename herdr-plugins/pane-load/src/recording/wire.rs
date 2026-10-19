@@ -4,7 +4,8 @@
 //! sparse metadata, adds context and row quality, and uses independently versioned CSH2 CPU runs.
 use super::model::{
     Context, DecodedBlock, DecodedObservation, DecodedProcess, MAX_BLOCK_BYTES, MAX_NAME_BYTES,
-    MAX_POINTS, Observation, Process, Profile, RSS_QUANTUM, Result, Timebase,
+    MAX_POINTS, MemoryColumn, MemoryEncoding, Observation, Process, Profile, RSS_QUANTUM, Result,
+    Timebase,
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use serde_json::Value;
@@ -14,6 +15,7 @@ use std::io::{self, Write};
 const PST1: &[u8; 4] = b"PST1";
 const PST2: &[u8; 4] = b"PST2";
 const PSD1: &[u8; 4] = b"PSD1";
+const PMM1: &[u8; 4] = b"PMM1";
 const CSH1: &[u8; 4] = b"CSH1";
 const CSH2: &[u8; 4] = b"CSH2";
 const CSH2_ABSOLUTE_ENDPOINT_VERSION: u8 = 1;
@@ -32,13 +34,27 @@ const RSS: u64 = 64;
 const RETURN: u64 = 128;
 const KNOWN_MASK: u64 = NEW | MISSING | NAME | PPID | USER | SYSTEM | RSS | RETURN;
 
-/// Encode one bounded block in the selected named profile.
+/// Encode one bounded block in the selected named profile without memory columns.
 pub fn encode_block(context: &Context, rows: &[Observation], profile: Profile) -> Result<Vec<u8>> {
+    encode_block_with_memory(context, rows, profile, MemoryEncoding::NONE)
+}
+
+/// Encode a PST2 block with the requested optional memory columns.
+/// PST1 remains the byte-compatible legacy format and ignores memory values.
+pub fn encode_block_with_memory(
+    context: &Context,
+    rows: &[Observation],
+    profile: Profile,
+    memory: MemoryEncoding,
+) -> Result<Vec<u8>> {
+    memory.validate()?;
     validate_context(context)?;
     let point_count = validate_rows(context, rows)?;
     match profile {
         Profile::Legacy1ms => encode_legacy(context, rows, point_count),
-        Profile::Fixed100us | Profile::Adaptive => encode_v2(context, rows, profile, point_count),
+        Profile::Fixed100us | Profile::Adaptive => {
+            encode_v2(context, rows, profile, point_count, &memory)
+        }
     }
 }
 
@@ -195,6 +211,8 @@ struct V2HeaderRef<'a> {
     version: u64,
     #[serde(skip_serializing_if = "Option::is_none")]
     quality: Option<Vec<&'a [Value]>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    memory: Option<&'a MemoryEncoding>,
 }
 
 #[derive(Deserialize)]
@@ -212,6 +230,17 @@ struct V2Header {
     version: u64,
     #[serde(default)]
     quality: Option<Vec<Vec<Value>>>,
+    #[serde(default, deserialize_with = "deserialize_memory_encoding")]
+    memory: Option<MemoryEncoding>,
+}
+
+fn deserialize_memory_encoding<'de, D>(
+    deserializer: D,
+) -> std::result::Result<Option<MemoryEncoding>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    MemoryEncoding::deserialize(deserializer).map(Some)
 }
 
 fn encode_legacy(context: &Context, rows: &[Observation], point_count: usize) -> Result<Vec<u8>> {
@@ -257,11 +286,107 @@ fn is_cpu_component_decrease(value: &Value) -> bool {
     value.get("kind").and_then(Value::as_str) == Some("cpu_component_decrease")
 }
 
+fn selected_memory(memory: &MemoryEncoding, rows: &[Observation]) -> Option<MemoryEncoding> {
+    let columns: Vec<_> = memory
+        .columns
+        .iter()
+        .copied()
+        .filter(|column| {
+            rows.iter()
+                .flat_map(|row| &row.processes)
+                .any(|process| process_memory_value(process, *column).is_some())
+        })
+        .collect();
+    (!columns.is_empty()).then_some(MemoryEncoding {
+        columns,
+        unit_bytes: memory.unit_bytes,
+    })
+}
+
+fn process_memory_value(process: &Process, column: MemoryColumn) -> Option<u64> {
+    match column {
+        MemoryColumn::Owned => process.owned,
+        MemoryColumn::Peak => process.peak,
+        MemoryColumn::Evicted => process.evicted,
+    }
+}
+
+fn encode_pmm1(rows: &[Observation], memory: &MemoryEncoding) -> Result<Vec<u8>> {
+    let mut out = PMM1.to_vec();
+    for column in &memory.columns {
+        let mut previous_values = BTreeMap::<(u32, u64, u32), i128>::new();
+        for row in rows {
+            let processes = sorted_processes(&row.processes);
+            let absent: Vec<_> = processes
+                .iter()
+                .enumerate()
+                .filter_map(|(index, process)| {
+                    process_memory_value(process, *column)
+                        .is_none()
+                        .then_some(index)
+                })
+                .collect();
+            put_uvarint(
+                &mut out,
+                u64::try_from(absent.len()).map_err(|_| "PMM1 absent count overflow")?,
+            )?;
+            let mut previous_index: Option<usize> = None;
+            for index in absent {
+                let gap = match previous_index {
+                    Some(previous) => index
+                        .checked_sub(previous)
+                        .and_then(|delta| delta.checked_sub(1))
+                        .ok_or_else(|| "PMM1 absent index order error".to_string())?,
+                    None => index,
+                };
+                put_uvarint(
+                    &mut out,
+                    u64::try_from(gap).map_err(|_| "PMM1 absent index overflow")?,
+                )?;
+                previous_index = Some(index);
+            }
+            for process in processes {
+                let Some(value) = process_memory_value(process, *column) else {
+                    continue;
+                };
+                let units = value / memory.unit_bytes;
+                let units = if *column == MemoryColumn::Peak
+                    && memory.columns.contains(&MemoryColumn::Owned)
+                {
+                    if let Some(owned) = process.owned {
+                        i128::from(units)
+                            .checked_sub(i128::from(owned / memory.unit_bytes))
+                            .ok_or_else(|| "PMM1 peak excess overflow".to_string())?
+                    } else {
+                        i128::from(units)
+                    }
+                } else {
+                    i128::from(units)
+                };
+                let previous = previous_values
+                    .get(&process.identity())
+                    .copied()
+                    .unwrap_or(0);
+                put_svarint(
+                    &mut out,
+                    units
+                        .checked_sub(previous)
+                        .ok_or_else(|| "memory delta overflow".to_string())?,
+                )?;
+                previous_values.insert(process.identity(), units);
+            }
+            check_wire_size(&out)?;
+        }
+    }
+    Ok(out)
+}
+
 fn encode_v2(
     context: &Context,
     rows: &[Observation],
     profile: Profile,
     point_count: usize,
+    memory: &MemoryEncoding,
 ) -> Result<Vec<u8>> {
     let profile_name = match profile {
         Profile::Adaptive => "adaptive-v1",
@@ -272,6 +397,11 @@ fn encode_v2(
         .iter()
         .any(|row| !row.quality.is_empty())
         .then(|| rows.iter().map(|row| row.quality.as_slice()).collect());
+    let memory = selected_memory(memory, rows);
+    let memory_section = memory
+        .as_ref()
+        .map(|encoding| encode_pmm1(rows, encoding))
+        .transpose()?;
     let header = V2HeaderRef {
         all_observations_kept: true,
         context: WireContextRef::from(context),
@@ -284,24 +414,39 @@ fn encode_v2(
         timestamp_unit_ns: 1,
         version: 2,
         quality,
+        memory: memory.as_ref(),
     };
     let header = json_bytes(&header, MAX_BLOCK_BYTES)?;
     json_expansion_cost(&header)?;
     let cpu = encode_csh2(rows, profile, context.cpu_timebase, point_count)?;
     let metadata = encode_psd1(rows, point_count)?;
-    pack_sections(PST2, &header, &cpu, &metadata)
+    pack_sections_with_optional_fourth(PST2, &header, &cpu, &metadata, memory_section.as_deref())
 }
 
 fn pack_sections(magic: &[u8; 4], header: &[u8], cpu: &[u8], metadata: &[u8]) -> Result<Vec<u8>> {
+    pack_sections_with_optional_fourth(magic, header, cpu, metadata, None)
+}
+
+fn pack_sections_with_optional_fourth(
+    magic: &[u8; 4],
+    header: &[u8],
+    cpu: &[u8],
+    metadata: &[u8],
+    fourth: Option<&[u8]>,
+) -> Result<Vec<u8>> {
     let mut out = Vec::with_capacity(
         4usize
             .saturating_add(header.len())
             .saturating_add(cpu.len())
             .saturating_add(metadata.len())
+            .saturating_add(fourth.map_or(0, |section| section.len()))
             .min(MAX_BLOCK_BYTES),
     );
     out.extend_from_slice(magic);
-    for section in [header, cpu, metadata] {
+    for section in [Some(header), Some(cpu), Some(metadata), fourth]
+        .into_iter()
+        .flatten()
+    {
         put_uvarint(
             &mut out,
             u64::try_from(section.len()).map_err(|_| "section length overflow")?,
@@ -315,21 +460,42 @@ fn unpack_sections(bytes: &[u8]) -> Result<[&[u8]; 3]> {
     let mut offset = 4usize;
     let mut sections = [&[][..]; 3];
     for section in &mut sections {
-        let length = usize::try_from(read_uvarint(bytes, &mut offset)?)
-            .map_err(|_| "section length does not fit this platform")?;
-        let end = offset
-            .checked_add(length)
-            .ok_or_else(|| "section length overflow".to_string())?;
-        if end > bytes.len() {
-            return Err("truncated recording block section".into());
-        }
-        *section = &bytes[offset..end];
-        offset = end;
+        *section = read_section(bytes, &mut offset)?;
     }
     if offset != bytes.len() {
         return Err("trailing recording block bytes".into());
     }
     Ok(sections)
+}
+
+#[allow(clippy::type_complexity)] // Three required wire sections and one optional section.
+fn unpack_v2_sections(bytes: &[u8]) -> Result<(&[u8], &[u8], &[u8], Option<&[u8]>)> {
+    let mut offset = 4usize;
+    let header = read_section(bytes, &mut offset)?;
+    let cpu = read_section(bytes, &mut offset)?;
+    let metadata = read_section(bytes, &mut offset)?;
+    let memory = if offset < bytes.len() {
+        Some(read_section(bytes, &mut offset)?)
+    } else {
+        None
+    };
+    if offset != bytes.len() {
+        return Err("trailing recording block bytes".into());
+    }
+    Ok((header, cpu, metadata, memory))
+}
+
+fn read_section<'a>(bytes: &'a [u8], offset: &mut usize) -> Result<&'a [u8]> {
+    let length = usize::try_from(read_uvarint(bytes, offset)?)
+        .map_err(|_| "section length does not fit this platform")?;
+    let end = offset
+        .checked_add(length)
+        .ok_or_else(|| "section length overflow".to_string())?;
+    let section = bytes
+        .get(*offset..end)
+        .ok_or_else(|| "truncated recording block section".to_string())?;
+    *offset = end;
+    Ok(section)
 }
 
 fn decode_legacy(bytes: &[u8]) -> Result<DecodedBlock> {
@@ -390,8 +556,18 @@ fn decode_legacy(bytes: &[u8]) -> Result<DecodedBlock> {
 }
 
 fn decode_v2(bytes: &[u8]) -> Result<DecodedBlock> {
-    let [header_bytes, cpu_bytes, metadata_bytes] = unpack_sections(bytes)?;
+    let (header_bytes, cpu_bytes, metadata_bytes, memory_bytes) = unpack_v2_sections(bytes)?;
     let header: V2Header = parse_json(header_bytes)?;
+    let memory = header.memory;
+    if memory.is_some() != memory_bytes.is_some() {
+        return Err("PST2 memory header and PMM1 section must appear together".into());
+    }
+    if let Some(memory) = &memory {
+        memory.validate()?;
+        if memory.columns.is_empty() {
+            return Err("PST2 memory header must declare at least one column".into());
+        }
+    }
     let context = Context::from(header.context);
     validate_context(&context)?;
     if !header.all_observations_kept
@@ -456,11 +632,101 @@ fn decode_v2(bytes: &[u8]) -> Result<DecodedBlock> {
         &mut decoded,
         total_points,
     )?;
+    if let (Some(memory), Some(memory_bytes)) = (&memory, memory_bytes) {
+        decode_pmm1(memory_bytes, memory, &mut decoded)?;
+    }
     Ok(DecodedBlock {
         context,
         profile,
         rows: decoded,
+        memory,
     })
+}
+
+fn decode_pmm1(
+    bytes: &[u8],
+    memory: &MemoryEncoding,
+    rows: &mut [DecodedObservation],
+) -> Result<()> {
+    if bytes.len() < PMM1.len() || &bytes[..PMM1.len()] != PMM1 {
+        return Err("invalid PMM1 memory section magic".into());
+    }
+    let mut offset = PMM1.len();
+    for column in &memory.columns {
+        let mut previous_values = BTreeMap::<(u32, u64, u32), i128>::new();
+        let mut any_present = false;
+        for row in rows.iter_mut() {
+            let process_count = row.processes.len();
+            let absent_count = usize::try_from(read_uvarint(bytes, &mut offset)?)
+                .map_err(|_| "PMM1 absent count overflow")?;
+            if absent_count > process_count {
+                return Err("PMM1 absent count exceeds row process count".into());
+            }
+            let mut absent = vec![false; process_count];
+            let mut previous_index: Option<usize> = None;
+            for _ in 0..absent_count {
+                let gap = usize::try_from(read_uvarint(bytes, &mut offset)?)
+                    .map_err(|_| "PMM1 absent index overflow")?;
+                let index = match previous_index {
+                    Some(previous) => previous
+                        .checked_add(gap)
+                        .and_then(|n| n.checked_add(1))
+                        .ok_or_else(|| "PMM1 absent index overflow".to_string())?,
+                    None => gap,
+                };
+                if index >= process_count {
+                    return Err("PMM1 absent process index is out of range".into());
+                }
+                absent[index] = true;
+                previous_index = Some(index);
+            }
+            for (index, process) in row.processes.iter_mut().enumerate() {
+                if absent[index] {
+                    continue;
+                }
+                any_present = true;
+                let delta = read_svarint(bytes, &mut offset)?;
+                let previous = previous_values
+                    .get(&process.identity())
+                    .copied()
+                    .unwrap_or(0);
+                let encoded_units = previous
+                    .checked_add(delta)
+                    .ok_or_else(|| "PMM1 memory delta overflow".to_string())?;
+                previous_values.insert(process.identity(), encoded_units);
+                let units = if *column == MemoryColumn::Peak
+                    && memory.columns.contains(&MemoryColumn::Owned)
+                {
+                    if let Some(owned) = process.owned {
+                        encoded_units
+                            .checked_add(i128::from(owned / memory.unit_bytes))
+                            .ok_or_else(|| "PMM1 peak unit overflow".to_string())?
+                    } else {
+                        encoded_units
+                    }
+                } else {
+                    encoded_units
+                };
+                let units =
+                    u64::try_from(units).map_err(|_| "PMM1 memory units outside u64 range")?;
+                let value = units
+                    .checked_mul(memory.unit_bytes)
+                    .ok_or_else(|| "PMM1 memory byte value overflow".to_string())?;
+                match column {
+                    MemoryColumn::Owned => process.owned = Some(value),
+                    MemoryColumn::Peak => process.peak = Some(value),
+                    MemoryColumn::Evicted => process.evicted = Some(value),
+                }
+            }
+        }
+        if !any_present {
+            return Err("PMM1 declares a column with no present values".into());
+        }
+    }
+    if offset != bytes.len() {
+        return Err("trailing PMM1 memory bytes".into());
+    }
+    Ok(())
 }
 
 #[derive(Clone)]
@@ -491,6 +757,9 @@ impl MetaProcess {
                 .ok_or_else(|| "RSS decode overflow".to_string())?,
             components: None,
             cpu_error_bound: u64::MAX,
+            owned: None,
+            peak: None,
+            evicted: None,
         })
     }
     fn decoded(self) -> Result<DecodedProcess> {
@@ -510,6 +779,9 @@ impl MetaProcess {
                 .ok_or_else(|| "RSS decode overflow".to_string())?,
             components: None,
             cpu_error_bound,
+            owned: None,
+            peak: None,
+            evicted: None,
         })
     }
 }
@@ -1698,6 +1970,7 @@ fn finish_decoded_rows(
         context,
         profile,
         rows: output,
+        memory: None,
     })
 }
 
@@ -1995,6 +2268,9 @@ mod tests {
                 user: cpu,
                 system: 0,
                 rss: 1_048_575,
+                owned: None,
+                peak: None,
+                evicted: None,
             }],
             quality: vec![],
         }
@@ -2016,6 +2292,9 @@ mod tests {
                 user: 100,
                 system: 20,
                 rss: 1_048_575,
+                owned: None,
+                peak: None,
+                evicted: None,
             }],
             quality: vec![],
         }];
@@ -2367,6 +2646,9 @@ mod tests {
                 user: 123,
                 system: 0,
                 rss: 262_144,
+                owned: None,
+                peak: None,
+                evicted: None,
             }],
             quality: vec![],
         }];

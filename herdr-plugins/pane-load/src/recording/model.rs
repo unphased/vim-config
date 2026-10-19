@@ -83,6 +83,49 @@ impl Context {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum MemoryColumn {
+    Owned,
+    Peak,
+    Evicted,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct MemoryEncoding {
+    pub columns: Vec<MemoryColumn>,
+    pub unit_bytes: u64,
+}
+impl MemoryEncoding {
+    pub const NONE: Self = Self {
+        columns: Vec::new(),
+        unit_bytes: RSS_QUANTUM,
+    };
+
+    pub fn validate(&self) -> Result<()> {
+        if self.unit_bytes == 0 {
+            return Err("memory unit must be at least one byte".into());
+        }
+        if self.columns.windows(2).any(|pair| pair[0] >= pair[1]) {
+            return Err("memory columns must be unique and in canonical order".into());
+        }
+        Ok(())
+    }
+}
+impl Default for MemoryEncoding {
+    fn default() -> Self {
+        Self {
+            columns: vec![
+                MemoryColumn::Owned,
+                MemoryColumn::Peak,
+                MemoryColumn::Evicted,
+            ],
+            unit_bytes: RSS_QUANTUM,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Process {
     pub pid: u32,
@@ -93,6 +136,12 @@ pub struct Process {
     pub user: u64,
     pub system: u64,
     pub rss: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owned: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub peak: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub evicted: Option<u64>,
 }
 impl Process {
     pub fn identity(&self) -> Identity {
@@ -167,6 +216,12 @@ pub struct DecodedProcess {
     pub rss: u64,
     pub components: Option<[u64; 2]>,
     pub cpu_error_bound: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owned: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub peak: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub evicted: Option<u64>,
 }
 impl DecodedProcess {
     pub fn identity(&self) -> Identity {
@@ -188,6 +243,7 @@ pub struct DecodedBlock {
     pub context: Context,
     pub profile: Profile,
     pub rows: Vec<DecodedObservation>,
+    pub memory: Option<MemoryEncoding>,
 }
 
 /// A producer must explicitly confirm orderly completion; channel loss is not proof
@@ -222,6 +278,7 @@ pub struct RecordOptions {
     pub max_bytes: u64,
     pub min_free_bytes: u64,
     pub block_rows: usize,
+    pub memory: MemoryEncoding,
     /// Offline source fidelity verification; independent of codec round-trip checks.
     pub verify: bool,
 }

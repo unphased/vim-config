@@ -17,6 +17,9 @@ fn row(seq: u64, total: u64) -> Observation {
             user: total,
             system: 0,
             rss: 1_048_575,
+            owned: None,
+            peak: None,
+            evicted: None,
         }],
         quality: vec![],
     }

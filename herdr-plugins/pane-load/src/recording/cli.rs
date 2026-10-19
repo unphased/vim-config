@@ -1,6 +1,7 @@
 //! Small offline command handlers for transform, inspect, export, and profile checks.
 use super::model::{
-    Context, DecodedBlock, Observation, OutputFormat, Profile, RecordOptions, Result, Timebase,
+    Context, DecodedBlock, MemoryColumn, MemoryEncoding, Observation, OutputFormat, Profile,
+    RecordOptions, Result, Timebase,
 };
 use super::{
     decode_block, pipeline, source,
@@ -16,10 +17,10 @@ use std::path::{Path, PathBuf};
 
 const DEFAULT_BENCH_FRAME_BYTES: usize = 16 * 1024 * 1024;
 const USAGE: &str = "pane-load recording <record|transform|inspect|bench> ...\n\
-record: --output ROOT [--duration SEC] [--hz N] [--profile adaptive|legacy-1ms|fixed-100us] [--format binary|jsonl-zstd]\n\
-transform: --input FILE|CAPTUREROOT --output NEWARCHIVE [--timebase NUM/DEN] [--profile PROFILE] [--workers auto|N] [--block-rows N] [--frame-bytes N] [--max-bytes N] [--min-free-bytes N] [--verify]\n\
+record: --output ROOT [--duration SEC] [--hz N] [--profile adaptive|legacy-1ms|fixed-100us] [--format binary|jsonl-zstd] [--memory-columns owned,peak,evicted|none] [--memory-unit-bytes N]\n\
+transform: --input FILE|CAPTUREROOT --output NEWARCHIVE [--timebase NUM/DEN] [--profile PROFILE] [--workers auto|N] [--block-rows N] [--frame-bytes N] [--max-bytes N] [--min-free-bytes N] [--memory-columns owned,peak,evicted|none] [--memory-unit-bytes N] [--verify]\n\
 inspect: --input ARCHIVE|RECORDROOT|CACHE [--verify (archives are always fully verified)] [--jsonl|--blocks-out NEWPRIVATEdir] [--recover]\n\
-bench: --input RAWSOURCE|ARCHIVE/CACHE --profiles adaptive,legacy-1ms,fixed-100us [--timebase NUM/DEN] [--frame-bytes N] --output DIR|FILE.jsonl";
+bench: --input RAWSOURCE|ARCHIVE/CACHE --profiles adaptive,legacy-1ms,fixed-100us [--timebase NUM/DEN] [--frame-bytes N] [--memory-columns owned,peak,evicted|none] [--memory-unit-bytes N] --output DIR|FILE.jsonl";
 
 /// Parse the flags following `record`. Unknown, duplicate, missing, and malformed flags fail.
 pub fn parse_record_options(args: &[String]) -> Result<RecordOptions> {
@@ -32,6 +33,7 @@ pub fn parse_record_options(args: &[String]) -> Result<RecordOptions> {
     let mut max_bytes = None;
     let mut min_free_bytes = None;
     let mut block_rows = None;
+    let mut memory = MemoryEncoding::default();
     let mut seen = std::collections::HashSet::new();
     let mut index = 0;
     while index < args.len() {
@@ -54,6 +56,8 @@ pub fn parse_record_options(args: &[String]) -> Result<RecordOptions> {
                 | "--max-bytes"
                 | "--min-free-bytes"
                 | "--block-rows"
+                | "--memory-columns"
+                | "--memory-unit-bytes"
         ) {
             return Err(format!("unknown record option: {flag}"));
         }
@@ -71,6 +75,8 @@ pub fn parse_record_options(args: &[String]) -> Result<RecordOptions> {
             "--max-bytes" => max_bytes = Some(parse_u64(value, "--max-bytes")?),
             "--min-free-bytes" => min_free_bytes = Some(parse_u64(value, "--min-free-bytes")?),
             "--block-rows" => block_rows = Some(parse_usize(value, "--block-rows")?),
+            "--memory-columns" => memory.columns = parse_memory_columns(value)?,
+            "--memory-unit-bytes" => memory.unit_bytes = parse_u64(value, "--memory-unit-bytes")?,
             _ => return Err(format!("unknown record option: {flag}")),
         }
     }
@@ -100,6 +106,7 @@ pub fn parse_record_options(args: &[String]) -> Result<RecordOptions> {
     if let Some(value) = block_rows {
         options.block_rows = value;
     }
+    options.memory = memory;
     pipeline::validate_record_options(&options)?;
     Ok(options)
 }
@@ -144,6 +151,7 @@ struct Parsed {
     recover: bool,
     blocks_out: Option<PathBuf>,
     workers: Option<WorkerSetting>,
+    memory: MemoryEncoding,
 }
 
 #[derive(Clone, Copy)]
@@ -188,6 +196,8 @@ fn parse_flags(args: &[String], allowed: &[&str], booleans: &[&str]) -> Result<P
             "--frame-bytes" => parsed.frame_bytes = Some(parse_usize(value, flag)?),
             "--max-bytes" => parsed.max_bytes = Some(parse_u64(value, flag)?),
             "--min-free-bytes" => parsed.min_free_bytes = Some(parse_u64(value, flag)?),
+            "--memory-columns" => parsed.memory.columns = parse_memory_columns(value)?,
+            "--memory-unit-bytes" => parsed.memory.unit_bytes = parse_u64(value, flag)?,
             "--workers" => {
                 parsed.workers = Some(if value == "auto" {
                     WorkerSetting::Auto
@@ -221,6 +231,7 @@ fn parse_flags(args: &[String], allowed: &[&str], booleans: &[&str]) -> Result<P
             _ => return Err(format!("unsupported option: {flag}")),
         }
     }
+    parsed.memory.validate()?;
     Ok(parsed)
 }
 
@@ -237,6 +248,8 @@ fn run_transform(args: &[String]) -> Result<()> {
             "--max-bytes",
             "--min-free-bytes",
             "--workers",
+            "--memory-columns",
+            "--memory-unit-bytes",
         ],
         &["--verify"],
     )?;
@@ -265,6 +278,8 @@ fn run_transform(args: &[String]) -> Result<()> {
         options.min_free_bytes = value;
     }
     options.verify = parsed.verify;
+    options.memory = parsed.memory;
+    options.memory.validate()?;
     let stats = if let Some(setting) = parsed.workers {
         let workers = match setting {
             WorkerSetting::Auto => std::thread::available_parallelism()
@@ -841,11 +856,30 @@ fn print_export_header(kind: &str, profile: Profile, context: &Context) -> Resul
 }
 fn write_decoded_rows(block: &DecodedBlock) -> Result<()> {
     for row in &block.rows {
-        let value = json!({"kind":"decoded-observation","seq":row.seq,"wall_start_ns":row.wall_start_ns,
-            "scan_start_ns":row.scan_start_ns,"scan_end_ns":row.scan_end_ns,"quality":row.quality,
-            "processes":row.processes.iter().map(|p| json!({"pid":p.pid,"ppid":p.ppid,"start_sec":p.start_sec,"start_usec":p.start_usec,
-                "name":p.name,"cpu_total_native_ticks":p.cpu_total,"cpu_error_bound_native_ticks":p.cpu_error_bound,
-                "cpu_components":null,"components_available":false,"rss_bytes":p.rss,"rss_precision_bytes":262144})).collect::<Vec<_>>()});
+        let processes = row
+            .processes
+            .iter()
+            .map(|p| {
+                let mut process = json!({"pid":p.pid,"ppid":p.ppid,"start_sec":p.start_sec,"start_usec":p.start_usec,
+                    "name":p.name,"cpu_total_native_ticks":p.cpu_total,"cpu_error_bound_native_ticks":p.cpu_error_bound,
+                    "cpu_components":null,"components_available":false,"rss_bytes":p.rss,"rss_precision_bytes":262144});
+                if let Some(value) = p.owned {
+                    process["owned_bytes"] = json!(value);
+                }
+                if let Some(value) = p.peak {
+                    process["peak_bytes"] = json!(value);
+                }
+                if let Some(value) = p.evicted {
+                    process["evicted_bytes"] = json!(value);
+                }
+                process
+            })
+            .collect::<Vec<_>>();
+        let mut value = json!({"kind":"decoded-observation","seq":row.seq,"wall_start_ns":row.wall_start_ns,
+            "scan_start_ns":row.scan_start_ns,"scan_end_ns":row.scan_end_ns,"quality":row.quality,"processes":processes});
+        if let Some(memory) = &block.memory {
+            value["memory_unit_bytes"] = json!(memory.unit_bytes);
+        }
         println!(
             "{}",
             serde_json::to_string(&value).map_err(|e| format!("encode decoded export: {e}"))?
@@ -927,6 +961,8 @@ fn run_bench(args: &[String]) -> Result<()> {
             "--profiles",
             "--timebase",
             "--frame-bytes",
+            "--memory-columns",
+            "--memory-unit-bytes",
             "--output",
         ],
         &[],
@@ -958,6 +994,12 @@ fn run_bench(args: &[String]) -> Result<()> {
         || input.extension().and_then(|x| x.to_str()) == Some("pst")
         || !cached_files.is_empty();
     if is_cached {
+        if args
+            .iter()
+            .any(|arg| matches!(arg.as_str(), "--memory-columns" | "--memory-unit-bytes"))
+        {
+            return Err("cached binary benchmarking is codec-only; use raw source to select memory columns or units".into());
+        }
         let paths = if archives.is_empty() {
             if input.extension().and_then(|x| x.to_str()) == Some("pst") {
                 vec![input.clone()]
@@ -1089,7 +1131,13 @@ fn run_bench(args: &[String]) -> Result<()> {
             }
         }
         for profile in profiles {
-            let stats = pipeline::benchmark_sources(&files, profile, parsed.timebase, frame_bytes)?;
+            let stats = pipeline::benchmark_sources_with_memory(
+                &files,
+                profile,
+                parsed.timebase,
+                frame_bytes,
+                parsed.memory.clone(),
+            )?;
             results.push(BenchResult {
                 format: "pane-load-recording-bench",
                 profile: format!("{profile:?}"),
@@ -1223,6 +1271,35 @@ fn get_cpu() -> (f64, u64) {
 fn get_cpu_delta(before: (f64, u64)) -> (f64, u64) {
     let after = get_cpu();
     ((after.0 - before.0).max(0.0), after.1)
+}
+
+fn parse_memory_columns(value: &str) -> Result<Vec<MemoryColumn>> {
+    if value == "none" {
+        return Ok(Vec::new());
+    }
+    let mut selected = Vec::new();
+    for name in value.split(',') {
+        let column = match name {
+            "owned" => MemoryColumn::Owned,
+            "peak" => MemoryColumn::Peak,
+            "evicted" => MemoryColumn::Evicted,
+            "none" => return Err("--memory-columns none cannot be combined with columns".into()),
+            _ => return Err(format!("unknown memory column: {name}")),
+        };
+        if selected.contains(&column) {
+            return Err(format!("duplicate memory column: {name}"));
+        }
+        selected.push(column);
+    }
+    let canonical = [
+        MemoryColumn::Owned,
+        MemoryColumn::Peak,
+        MemoryColumn::Evicted,
+    ];
+    Ok(canonical
+        .into_iter()
+        .filter(|column| selected.contains(column))
+        .collect())
 }
 
 fn parse_named_profile(value: &str) -> Result<Profile> {

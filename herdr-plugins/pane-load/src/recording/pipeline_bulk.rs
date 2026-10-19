@@ -518,6 +518,9 @@ mod tests {
             user,
             system,
             rss: 1024 * 1024,
+            owned: None,
+            peak: None,
+            evicted: None,
         }
     }
 

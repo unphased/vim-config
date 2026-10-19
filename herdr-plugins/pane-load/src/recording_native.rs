@@ -3,7 +3,9 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 
 #[cfg(target_os = "macos")]
-use herdr_pane_load::recording::{Context, Process as RecordedProcess, RecordOptions, Timebase};
+use herdr_pane_load::recording::{
+    Context, MemoryColumn, MemoryEncoding, Process as RecordedProcess, RecordOptions, Timebase,
+};
 #[cfg(any(target_os = "macos", test))]
 use herdr_pane_load::recording::{LiveMessage, Observation};
 #[cfg(any(target_os = "macos", test))]
@@ -54,7 +56,7 @@ pub fn run(args: &[String]) -> i32 {
         .any(|option| option[0] == "--help" || option[0] == "-h")
     {
         println!(
-            "pane-load recording record --output ROOT [--duration SEC] [--hz N] [--profile adaptive|legacy-1ms|fixed-100us] [--format binary|jsonl-zstd]"
+            "pane-load recording record --output ROOT [--duration SEC] [--hz N] [--profile adaptive|legacy-1ms|fixed-100us] [--format binary|jsonl-zstd] [--memory-columns owned,peak,evicted|none] [--memory-unit-bytes N]"
         );
         return 0;
     }
@@ -101,17 +103,45 @@ fn run_macos(options: RecordOptions) -> Result<(), String> {
     context.capture_run_id = Some(format!("{}-{}", wall_time_ns()?, std::process::id()));
     context.boot_id = Some(boot_session_uuid()?);
     context.clock = "mach_continuous_time".into();
+    let mut acquisition = json!({
+        "method": "proc_listpids + BSD/task/BSD identity bracket",
+        "atomicity": "non-atomic process scan",
+        "scan_bounds": "continuous clock before enumeration through after process reads",
+        "pid_limit": PID_BUFFER_LIMIT
+    });
+    if !options.memory.columns.is_empty() {
+        let mut memory = serde_json::Map::new();
+        if options.memory.columns.contains(&MemoryColumn::Owned) {
+            memory.insert(
+                "owned".into(),
+                json!({ "source": "proc_pid_rusage(RUSAGE_INFO_V6).ri_phys_footprint" }),
+            );
+        }
+        if options.memory.columns.contains(&MemoryColumn::Peak) {
+            memory.insert(
+                "peak".into(),
+                json!({
+                    "source": "proc_pid_rusage(RUSAGE_INFO_V6).ri_interval_max_phys_footprint",
+                    "reset": "proc_reset_footprint_interval",
+                    "reset_api": "private libproc export",
+                    "first_sample": "since process start or the last external reset"
+                }),
+            );
+        }
+        if options.memory.columns.contains(&MemoryColumn::Evicted) {
+            memory.insert(
+                "evicted".into(),
+                json!({ "source": "task_name_for_pid + task_info(TASK_VM_INFO).compressed" }),
+            );
+        }
+        acquisition["memory"] = Value::Object(memory);
+    }
     context.source_headers.push(json!({
         "clock": "mach_continuous_time",
         "origin_ticks": origin_ticks,
         "timebase": { "numer": timebase.numer, "denom": timebase.denom },
         "unit": "ticks",
-        "acquisition": {
-            "method": "proc_listpids + BSD/task/BSD identity bracket",
-            "atomicity": "non-atomic process scan",
-            "scan_bounds": "continuous clock before enumeration through after process reads",
-            "pid_limit": PID_BUFFER_LIMIT
-        }
+        "acquisition": acquisition
     }));
 
     let (tx, rx) = sync_channel::<LiveMessage>(LIVE_QUEUE_SCANS);
@@ -231,7 +261,7 @@ fn observe(
                 break;
             }
 
-            let mut row = sample_scan(sampler, next_seq, timebase, origin_ticks)?;
+            let mut row = sample_scan(sampler, next_seq, timebase, origin_ticks, &options.memory)?;
             if let Some(previous) = previous_scan_start_ns
                 && let Some(gap) = clock_gap_quality(previous, row.scan_start_ns, interval)
             {
@@ -484,11 +514,237 @@ fn clock_gap_quality(previous_ns: u64, current_ns: u64, interval: Duration) -> O
 }
 
 #[cfg(target_os = "macos")]
+#[derive(Default)]
+struct MemoryMetrics {
+    owned: Option<u64>,
+    peak: Option<u64>,
+    evicted: Option<u64>,
+    read_failures: u64,
+    peak_reset_failures: u64,
+    evicted_read_failures: u64,
+}
+
+#[cfg(target_os = "macos")]
+#[repr(C)]
+#[derive(Default)]
+#[allow(dead_code)]
+struct RusageInfoV6 {
+    uuid: [u8; 16],
+    user_time: u64,
+    system_time: u64,
+    pkg_idle_wkups: u64,
+    interrupt_wkups: u64,
+    pageins: u64,
+    wired_size: u64,
+    resident_size: u64,
+    phys_footprint: u64,
+    proc_start_abstime: u64,
+    proc_exit_abstime: u64,
+    child_user_time: u64,
+    child_system_time: u64,
+    child_pkg_idle_wkups: u64,
+    child_interrupt_wkups: u64,
+    child_pageins: u64,
+    child_elapsed_abstime: u64,
+    diskio_bytesread: u64,
+    diskio_byteswritten: u64,
+    cpu_time_qos_default: u64,
+    cpu_time_qos_maintenance: u64,
+    cpu_time_qos_background: u64,
+    cpu_time_qos_utility: u64,
+    cpu_time_qos_legacy: u64,
+    cpu_time_qos_user_initiated: u64,
+    cpu_time_qos_user_interactive: u64,
+    billed_system_time: u64,
+    serviced_system_time: u64,
+    logical_writes: u64,
+    lifetime_max_phys_footprint: u64,
+    instructions: u64,
+    cycles: u64,
+    billed_energy: u64,
+    serviced_energy: u64,
+    interval_max_phys_footprint: u64,
+    _remaining_v6_fields: [u64; 22],
+}
+
+// Verified against the macOS 26.2 SDK's sys/resource.h rusage_info_v6.
+#[cfg(target_os = "macos")]
+const _: () = {
+    assert!(std::mem::size_of::<RusageInfoV6>() == 464);
+    assert!(std::mem::offset_of!(RusageInfoV6, phys_footprint) == 72);
+    assert!(std::mem::offset_of!(RusageInfoV6, interval_max_phys_footprint) == 280);
+};
+
+#[cfg(target_os = "macos")]
+#[repr(C)]
+#[derive(Default)]
+#[allow(dead_code)]
+struct TaskVmInfoPrefix {
+    virtual_size: libc::mach_vm_size_t,
+    region_count: libc::integer_t,
+    page_size: libc::integer_t,
+    resident_size: libc::mach_vm_size_t,
+    resident_size_peak: libc::mach_vm_size_t,
+    device: libc::mach_vm_size_t,
+    device_peak: libc::mach_vm_size_t,
+    internal: libc::mach_vm_size_t,
+    internal_peak: libc::mach_vm_size_t,
+    external: libc::mach_vm_size_t,
+    external_peak: libc::mach_vm_size_t,
+    reusable: libc::mach_vm_size_t,
+    reusable_peak: libc::mach_vm_size_t,
+    purgeable_volatile_pmap: libc::mach_vm_size_t,
+    purgeable_volatile_resident: libc::mach_vm_size_t,
+    purgeable_volatile_virtual: libc::mach_vm_size_t,
+    compressed: libc::mach_vm_size_t,
+}
+
+// TASK_VM_INFO is 22; these SDK-verified ABI values cover the full current reply.
+#[cfg(target_os = "macos")]
+const RUSAGE_INFO_V6: libc::c_int = 6;
+#[cfg(target_os = "macos")]
+const TASK_VM_INFO: libc::task_flavor_t = 22;
+// macOS 26.2 SDK: sizeof(task_vm_info_data_t) == 372, TASK_VM_INFO_COUNT == 93.
+#[cfg(target_os = "macos")]
+const TASK_VM_INFO_COUNT: usize = 93;
+#[cfg(target_os = "macos")]
+const TASK_VM_INFO_COMPRESSED_END_COUNT: u32 = 32;
+#[cfg(target_os = "macos")]
+const TASK_VM_INFO_COMPRESSED_OFFSET: usize = 120;
+#[cfg(target_os = "macos")]
+#[repr(C)]
+struct TaskVmInfoBuffer([libc::natural_t; TASK_VM_INFO_COUNT]);
+
+#[cfg(target_os = "macos")]
+const _: () = {
+    assert!(std::mem::size_of::<TaskVmInfoPrefix>() == 128);
+    assert!(std::mem::offset_of!(TaskVmInfoPrefix, compressed) == TASK_VM_INFO_COMPRESSED_OFFSET);
+    assert!(std::mem::size_of::<TaskVmInfoBuffer>() == 372);
+    assert!(std::mem::align_of::<TaskVmInfoBuffer>() == 4);
+};
+
+#[cfg(target_os = "macos")]
+unsafe extern "C" {
+    fn task_name_for_pid(
+        host: libc::mach_port_t,
+        pid: libc::pid_t,
+        task: *mut libc::mach_port_t,
+    ) -> libc::kern_return_t;
+    fn mach_port_deallocate(
+        task: libc::mach_port_t,
+        name: libc::mach_port_t,
+    ) -> libc::kern_return_t;
+    // Private libproc export; available from macOS 10.14.
+    fn proc_reset_footprint_interval(pid: libc::pid_t) -> libc::c_int;
+}
+
+#[cfg(target_os = "macos")]
+fn read_rusage_v6(pid: i32) -> Option<(u64, u64)> {
+    let mut info = RusageInfoV6::default();
+    // SAFETY: the SDK's RUSAGE_INFO_V6 output is exactly the checked 464-byte layout above.
+    let result = unsafe {
+        libc::proc_pid_rusage(
+            pid,
+            RUSAGE_INFO_V6,
+            (&mut info as *mut RusageInfoV6).cast::<libc::rusage_info_t>(),
+        )
+    };
+    (result == 0).then_some((info.phys_footprint, info.interval_max_phys_footprint))
+}
+
+#[cfg(target_os = "macos")]
+fn read_evicted(pid: i32) -> Option<u64> {
+    let mut task = 0;
+    // SAFETY: task_name_for_pid writes one Mach port name to the provided pointer.
+    let name_result = unsafe {
+        #[allow(deprecated)]
+        let host = libc::mach_task_self();
+        task_name_for_pid(host, pid, &mut task)
+    };
+    if name_result != 0 {
+        if task != 0 {
+            // SAFETY: task_name_for_pid returned a port name even though it reported failure.
+            unsafe {
+                #[allow(deprecated)]
+                let host = libc::mach_task_self();
+                mach_port_deallocate(host, task);
+            }
+        }
+        return None;
+    }
+
+    let mut info = TaskVmInfoBuffer([0; TASK_VM_INFO_COUNT]);
+    let mut count = TASK_VM_INFO_COUNT as libc::mach_msg_type_number_t;
+    // SAFETY: storage is natural_t-aligned and covers the complete SDK TASK_VM_INFO reply.
+    let info_result = unsafe {
+        libc::task_info(
+            task,
+            TASK_VM_INFO,
+            info.0.as_mut_ptr().cast::<libc::integer_t>(),
+            &mut count,
+        )
+    };
+    let compressed = if info_result == 0 && count >= TASK_VM_INFO_COMPRESSED_END_COUNT {
+        // SAFETY: successful TASK_VM_INFO returned enough words to include compressed at byte 120.
+        Some(unsafe {
+            std::ptr::read_unaligned(
+                info.0
+                    .as_ptr()
+                    .cast::<u8>()
+                    .add(TASK_VM_INFO_COMPRESSED_OFFSET)
+                    .cast::<u64>(),
+            )
+        })
+    } else {
+        None
+    };
+    // SAFETY: task_name_for_pid created one send right, deallocated on every info result.
+    let deallocate_result = unsafe {
+        #[allow(deprecated)]
+        let host = libc::mach_task_self();
+        mach_port_deallocate(host, task)
+    };
+    (deallocate_result == 0).then_some(compressed).flatten()
+}
+
+#[cfg(target_os = "macos")]
+fn acquire_memory(pid: i32, encoding: &MemoryEncoding) -> MemoryMetrics {
+    let owned_selected = encoding.columns.contains(&MemoryColumn::Owned);
+    let peak_selected = encoding.columns.contains(&MemoryColumn::Peak);
+    let evicted_selected = encoding.columns.contains(&MemoryColumn::Evicted);
+    let mut metrics = MemoryMetrics::default();
+
+    if owned_selected || peak_selected {
+        match read_rusage_v6(pid) {
+            Some((owned, peak)) => {
+                metrics.owned = owned_selected.then_some(owned);
+                metrics.peak = peak_selected.then_some(peak);
+            }
+            None => metrics.read_failures = 1,
+        }
+    }
+    if peak_selected
+        // SAFETY: proc_reset_footprint_interval is the private libproc export documented above.
+        && unsafe { proc_reset_footprint_interval(pid) } != 0
+    {
+        metrics.peak_reset_failures = 1;
+    }
+    if evicted_selected {
+        metrics.evicted = read_evicted(pid);
+        if metrics.evicted.is_none() {
+            metrics.evicted_read_failures = 1;
+        }
+    }
+    metrics
+}
+
+#[cfg(target_os = "macos")]
 fn sample_scan(
     sampler: &mut super::MacProcessSampler,
     seq: u64,
     timebase: Timebase,
     origin_ticks: u64,
+    memory: &MemoryEncoding,
 ) -> Result<Observation, String> {
     let start_ticks = continuous_ticks();
     let scan_start_ns = relative_ns(start_ticks, origin_ticks, timebase)?;
@@ -507,6 +763,9 @@ fn sample_scan(
             }
             let mut bsd_failures = 0_u64;
             let mut task_failures = 0_u64;
+            let mut memory_failures = 0_u64;
+            let mut peak_reset_failures = 0_u64;
+            let mut evicted_failures = 0_u64;
             let mut raced = 0_u64;
             for pid in pids {
                 let Some(before) = sampler.bsd_info(pid) else {
@@ -517,6 +776,10 @@ fn sample_scan(
                     task_failures += 1;
                     continue;
                 };
+                let metrics = acquire_memory(pid, memory);
+                memory_failures += metrics.read_failures;
+                peak_reset_failures += metrics.peak_reset_failures;
+                evicted_failures += metrics.evicted_read_failures;
                 let Some(after) = sampler.bsd_info(pid) else {
                     bsd_failures += 1;
                     continue;
@@ -545,10 +808,16 @@ fn sample_scan(
                     user: task.total_user,
                     system: task.total_system,
                     rss: task.resident_size,
+                    owned: metrics.owned,
+                    peak: metrics.peak,
+                    evicted: metrics.evicted,
                 });
             }
             push_count(&mut quality, "bsd-read-failures", bsd_failures);
             push_count(&mut quality, "task-read-failures", task_failures);
+            push_count(&mut quality, "memory-read-failures", memory_failures);
+            push_count(&mut quality, "peak-reset-failures", peak_reset_failures);
+            push_count(&mut quality, "evicted-read-failures", evicted_failures);
             push_count(&mut quality, "identity-races", raced);
         }
         Err(error) => quality.push(json!({
@@ -818,6 +1087,28 @@ mod tests {
 mod memory_tests {
     use super::*;
     use herdr_pane_load::recording::MemoryEncoding;
+
+    #[test]
+    fn failed_memory_reads_are_reported_without_memory_values() {
+        let metrics = acquire_memory(
+            -1,
+            &MemoryEncoding {
+                columns: vec![MemoryColumn::Owned, MemoryColumn::Evicted],
+                unit_bytes: 1,
+            },
+        );
+        assert_eq!(metrics.owned, None);
+        assert_eq!(metrics.peak, None);
+        assert_eq!(metrics.evicted, None);
+        assert_eq!(metrics.read_failures, 1);
+        assert_eq!(metrics.peak_reset_failures, 0);
+        assert_eq!(metrics.evicted_read_failures, 1);
+
+        let disabled = acquire_memory(-1, &MemoryEncoding::NONE);
+        assert_eq!(disabled.read_failures, 0);
+        assert_eq!(disabled.peak_reset_failures, 0);
+        assert_eq!(disabled.evicted_read_failures, 0);
+    }
 
     #[test]
     fn two_scans_capture_an_unmapped_64_mib_spike() {

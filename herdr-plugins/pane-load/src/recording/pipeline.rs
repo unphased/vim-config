@@ -1,11 +1,11 @@
 //! Shared validated streaming pipeline for live observations and imported JSONL sources.
 use super::model::{
-    Context, Identity, LiveMessage, MAX_BLOCK_BYTES, MAX_POINTS, Observation, OutputFormat,
-    Process, Profile, RecordOptions, Result, Timebase,
+    Context, Identity, LiveMessage, MAX_BLOCK_BYTES, MAX_POINTS, MemoryColumn, MemoryEncoding,
+    Observation, OutputFormat, Process, Profile, RecordOptions, Result, Timebase,
 };
 use super::source::{self, RawWriter};
 use super::store::{ArchiveWriter, CodecFrameAccumulator, StoreOptions};
-use super::wire::encode_block;
+use super::wire::encode_block_with_memory;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -984,6 +984,7 @@ pub(crate) fn validate_record_options(options: &RecordOptions) -> Result<()> {
     if options.max_bytes == 0 {
         return Err("--max-bytes must be positive".into());
     }
+    options.memory.validate()?;
     Ok(())
 }
 
@@ -1127,13 +1128,19 @@ fn append_block(
 }
 
 fn encode_finished_block(builder: &BlockBuilder, options: &RecordOptions) -> Result<EncodedBlock> {
-    let bytes = encode_block(&builder.context, &builder.rows, options.profile)?;
+    let bytes = encode_block_with_memory(
+        &builder.context,
+        &builder.rows,
+        options.profile,
+        options.memory.clone(),
+    )?;
     let mut audit = RunStats::default();
     if options.verify {
         audit_source_block(
             &builder.context,
             &builder.rows,
             options.profile,
+            &options.memory,
             &bytes,
             &mut audit,
         )?;
@@ -2651,6 +2658,7 @@ pub fn default_record_options(output: PathBuf) -> RecordOptions {
         min_free_bytes: DEFAULT_MIN_FREE_BYTES,
         block_rows: DEFAULT_BLOCK_ROWS,
         verify: false,
+        memory: MemoryEncoding::default(),
     }
 }
 
@@ -2661,13 +2669,32 @@ pub fn benchmark_sources(
     legacy_timebase: Option<Timebase>,
     frame_bytes: usize,
 ) -> Result<RunStats> {
+    benchmark_sources_with_memory(
+        inputs,
+        profile,
+        legacy_timebase,
+        frame_bytes,
+        MemoryEncoding::default(),
+    )
+}
+
+/// Benchmark source transformation with the selected memory columns and precision.
+pub fn benchmark_sources_with_memory(
+    inputs: &[PathBuf],
+    profile: Profile,
+    legacy_timebase: Option<Timebase>,
+    frame_bytes: usize,
+    memory: MemoryEncoding,
+) -> Result<RunStats> {
     if inputs.is_empty() {
         return Err("benchmark needs at least one source file".into());
     }
+    memory.validate()?;
     let start = Instant::now();
     let before = usage();
     let mut options = default_record_options(PathBuf::new());
     options.profile = profile;
+    options.memory = memory;
     let mut stats = RunStats {
         verification_enabled: true,
         ..RunStats::default()
@@ -2680,7 +2707,7 @@ pub fn benchmark_sources(
         let source_stats = source::visit_source(input, legacy_timebase, |context, mut row| {
             if current_context.as_ref() != Some(context) {
                 if let Some(old) = builder.as_mut() {
-                    benchmark_block(old, profile, &mut stats, &mut codec)?;
+                    benchmark_block(old, profile, &options.memory, &mut stats, &mut codec)?;
                 }
                 current_context = Some(context.clone());
                 builder = Some(BlockBuilder::new(context));
@@ -2695,7 +2722,7 @@ pub fn benchmark_sources(
                 .as_mut()
                 .ok_or_else(|| "benchmark block not initialized".to_string())?;
             if block.should_cut(context, &row, &options) || flagged {
-                benchmark_block(block, profile, &mut stats, &mut codec)?;
+                benchmark_block(block, profile, &options.memory, &mut stats, &mut codec)?;
             }
             block.push(row);
             Ok(())
@@ -2714,7 +2741,7 @@ pub fn benchmark_sources(
         });
     }
     if let Some(block) = builder.as_mut() {
-        benchmark_block(block, profile, &mut stats, &mut codec)?;
+        benchmark_block(block, profile, &options.memory, &mut stats, &mut codec)?;
     }
     codec.finish()?;
     stats.codec_input_bytes = codec.input_bytes;
@@ -2731,14 +2758,22 @@ pub fn benchmark_sources(
 fn benchmark_block(
     builder: &mut BlockBuilder,
     profile: Profile,
+    memory: &MemoryEncoding,
     stats: &mut RunStats,
     codec: &mut CodecFrameAccumulator,
 ) -> Result<()> {
     if builder.is_empty() {
         return Ok(());
     }
-    let bytes = encode_block(&builder.context, &builder.rows, profile)?;
-    audit_source_block(&builder.context, &builder.rows, profile, &bytes, stats)?;
+    let bytes = encode_block_with_memory(&builder.context, &builder.rows, profile, memory.clone())?;
+    audit_source_block(
+        &builder.context,
+        &builder.rows,
+        profile,
+        memory,
+        &bytes,
+        stats,
+    )?;
     codec.push(&bytes)?;
     stats.blocks = stats.blocks.saturating_add(1);
     stats.raw_encoded_bytes = stats.raw_encoded_bytes.saturating_add(bytes.len() as u64);
@@ -2751,6 +2786,7 @@ fn audit_source_block(
     context: &Context,
     rows: &[Observation],
     profile: Profile,
+    memory: &MemoryEncoding,
     bytes: &[u8],
     stats: &mut RunStats,
 ) -> Result<()> {
@@ -2765,6 +2801,33 @@ fn audit_source_block(
     }
     if decoded.rows.len() != rows.len() {
         stats.precision_violations += 1;
+    }
+    if profile != Profile::Legacy1ms {
+        let available_columns = [
+            MemoryColumn::Owned,
+            MemoryColumn::Peak,
+            MemoryColumn::Evicted,
+        ]
+        .into_iter()
+        .filter(|column| {
+            memory.columns.contains(column)
+                && rows
+                    .iter()
+                    .flat_map(|row| &row.processes)
+                    .any(|process| match column {
+                        MemoryColumn::Owned => process.owned.is_some(),
+                        MemoryColumn::Peak => process.peak.is_some(),
+                        MemoryColumn::Evicted => process.evicted.is_some(),
+                    })
+        })
+        .collect::<Vec<_>>();
+        let expected_memory = (!available_columns.is_empty()).then_some(MemoryEncoding {
+            columns: available_columns,
+            unit_bytes: memory.unit_bytes,
+        });
+        if decoded.memory != expected_memory {
+            stats.precision_violations += 1;
+        }
     }
     let mut prior: HashMap<super::model::Identity, (u64, u64)> = HashMap::new();
     let mut endpoints: HashMap<super::model::Identity, (u64, u64, u64, u64)> = HashMap::new();
@@ -2800,6 +2863,21 @@ fn audit_source_block(
             }
             if process.name != decoded_process.name || process.ppid != decoded_process.ppid {
                 stats.precision_violations += 1;
+            }
+            if profile != Profile::Legacy1ms {
+                let expected = |column, value: Option<u64>| {
+                    if memory.columns.contains(&column) {
+                        value.map(|bytes| bytes / memory.unit_bytes * memory.unit_bytes)
+                    } else {
+                        None
+                    }
+                };
+                if decoded_process.owned != expected(MemoryColumn::Owned, process.owned)
+                    || decoded_process.peak != expected(MemoryColumn::Peak, process.peak)
+                    || decoded_process.evicted != expected(MemoryColumn::Evicted, process.evicted)
+                {
+                    stats.precision_violations += 1;
+                }
             }
             let actual = process.total()?;
             let decoded_total = decoded_process.cpu_total;
