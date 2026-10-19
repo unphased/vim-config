@@ -145,10 +145,10 @@ fn rich_rows() -> Vec<Observation> {
     ]
 }
 
-fn decoded_process<'a>(
-    row: &'a herdr_pane_load::recording::DecodedObservation,
+fn decoded_process(
+    row: &herdr_pane_load::recording::DecodedObservation,
     pid: u32,
-) -> &'a herdr_pane_load::recording::DecodedProcess {
+) -> &herdr_pane_load::recording::DecodedProcess {
     row.processes
         .iter()
         .find(|process| process.pid == pid)
@@ -648,6 +648,12 @@ fn decoder_rejects_bad_absent_indices_count_mismatch_trailing_data_and_overflow(
     let malformed = with_memory_section(&base, header.clone(), pmm_column(2, &[], &[]));
     assert!(decode_block(&malformed).is_err());
 
+    // Valid counts, but their promised indices / present deltas are truncated.
+    for section in [pmm_column(1, &[], &[]), pmm_column(0, &[], &[])] {
+        let malformed = with_memory_section(&base, header.clone(), section);
+        assert!(decode_block(&malformed).is_err());
+    }
+
     let mut trailing = pmm_column(0, &[], &[2]);
     trailing.push(0);
     let malformed = with_memory_section(&base, header.clone(), trailing);
@@ -656,6 +662,41 @@ fn decoder_rejects_bad_absent_indices_count_mismatch_trailing_data_and_overflow(
     // The signed delta is a valid u64 unit count, but multiplying by unit_bytes=2 overflows.
     let malformed = with_memory_section(&base, header, pmm_column(0, &[], &[i128::from(u64::MAX)]));
     assert!(decode_block(&malformed).is_err());
+}
+
+#[test]
+fn cached_binary_bench_rejects_memory_reencoding_options() {
+    let temp = TempDir::new();
+    let path = temp.path("memory.pst");
+    let block = encode_block_with_memory(
+        &context(),
+        &rich_rows(),
+        Profile::Adaptive,
+        MemoryEncoding::default(),
+    )
+    .unwrap();
+    fs::write(&path, block).unwrap();
+    for flag in ["--memory-columns", "--memory-unit-bytes"] {
+        let output = Command::new(env!("CARGO_BIN_EXE_pane-load"))
+            .args(["recording", "bench", "--input"])
+            .arg(&path)
+            .args([
+                "--profiles",
+                "adaptive",
+                flag,
+                if flag == "--memory-columns" {
+                    "none"
+                } else {
+                    "1"
+                },
+                "--output",
+            ])
+            .arg(temp.path("bench.jsonl"))
+            .output()
+            .unwrap();
+        assert!(!output.status.success(), "silently ignored {flag}");
+        assert!(String::from_utf8_lossy(&output.stderr).contains("raw source"));
+    }
 }
 
 fn rewrite_memory_header(bytes: &[u8], memory: Value) -> Vec<u8> {
