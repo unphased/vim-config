@@ -581,7 +581,9 @@ external standard.
   metadata, Brotli-5 bytes, then a SHA-256 digest. Decompression yields `PCR1`,
   a uvarint block count and length-prefixed blocks. A current adaptive block is
   `PST2` followed by three length-prefixed sections: JSON header/context, `CSH2`
-  CPU data and `PSD1` sparse metadata. `legacy-1ms` retains the PST1/CSH1 control.
+  CPU data and `PSD1` sparse metadata. If memory values are present, a fourth
+  `PMM1` section is added and declared by the header's `memory` object. `legacy-1ms`
+  retains the PST1/CSH1 control and ignores memory.
 - CSH2 begins `CSH2`, version byte `2`, then row/identity/point counts. The reader
   also supports prototype version 1. Each sorted
   identity track stores its identity, observation count and row-index deltas, an
@@ -591,14 +593,81 @@ external standard.
   covers zero/fine intervals exactly. This yields the implemented <12.5% relative
   positive interval target without rounding away positive intervals.
 - PSD1 carries row clocks, process identities/names/PPIDs, sparse presence and
-  changes, and RSS in floored 256 KiB units. Binary CPU is user+system total only:
-  decoded JSON marks `cpu_components: null` and includes per-reading CPU error
-  bounds; it cannot reconstruct the original raw component split or finer source
-  values. Binary block export is quantized and is not a replacement for the raw
-  reference.
+  changes, and RSS in floored 256 KiB units. Optional memory metadata has the shape
+  `{"columns":["owned","peak","evicted"],"unit_bytes":262144}` (the columns
+  list may be a canonical subset). For each declared column and row, PMM1 uses the
+  processes in identity order, writes an absent count and gap-coded absent process
+  indices, then signed deltas of present `floor(bytes / unit_bytes)` values from
+  that identity's previous present value in the column within the block (or zero).
+  `peak` is encoded as a signed `peak_units - owned_units` when owned is declared and
+  present at that point; otherwise it is absolute peak units. This preserves even
+  a negative excess. Header metadata and PMM1 appear together; if no selected values
+  exist, both are omitted and the usual three-section PST2 bytes are retained.
+- Raw-source process rows retain the 8-field tuple when all memory values are
+  absent. If any is present, the row is an 11-field tuple in the order
+  `[pid,ppid,start_sec,start_usec,name,user,system,rss,owned,peak,evicted]`, with
+  `null` for absent memory values; both shapes parse. Decoded binary JSONL exports
+  memory as `owned_bytes`, `peak_bytes`, `evicted_bytes` and `memory_unit_bytes`
+  when available. Binary CPU is user+system total only: decoded JSON marks
+  `cpu_components: null` and includes per-reading CPU error bounds; it cannot
+  reconstruct the original raw component split or finer source values. Binary
+  block export is quantized and is not a replacement for the raw reference.
 
 Native records declare the source clock/timebase; legacy inputs without a timebase
 require an explicit import argument (for the documented legacy source,
 `--timebase 125/3`). The [plan](RECORDING_PLAN.md) tracks implemented scope and
 completed review; the [scorecard](RECORDING_RESULTS.md) reports full-source adaptive
 validation, current byte/CPU costs and the different-fidelity historical controls.
+
+## Synthetic CPU-window design example (not implemented)
+
+Protocol design is fluid; these alternatives introduce no compatibility requirement.
+Research artifacts are private under `.recordings/window-design-example-v2/`:
+`model.py`, exact synthetic input, actual Rust baseline, assumptions/summary JSON,
+and `window-rules.svg.png` / `burst-guard.svg.png`. No production source was changed.
+
+Each case is 20 seconds at 10 Hz, with average CPU 0.005%, 0.05%, 0.5% or 5% of one
+core. Four patterns have identical totals at each intensity: steady, evenly spaced
+30 events/sec, uneven 30 events/sec (100ms-bin event counts `[2,5,1,4,3,2,6,1,4,2]`),
+and one burst every 2 seconds. User/system counters split 80/20; their sum drives
+this experiment. All models retain exact case totals. Current CSH2 reconstruction
+uses the pinned Rust binary from `rust-legacy1ms-bulk-20261019T013315Z`, not a
+second implementation. The two window alternatives are Python design models.
+
+Window decisions reference the **original 100ms CPU increment**, avoiding feedback
+between a growing interval and Q. Let `Qb=2048` native ticks (the Q at nominal 1%
+CPU), `R=max(1,Qb/Q)`, minimum tick `Qmin=1`, and `T0=0.1s`. Candidate windows,
+rounded up to the 100ms grid:
+
+- Linear in precision gain: `T=min(5s,T0*R)` (inverse in Q, not direct `T∝Q`).
+- Log-inverse: `T=T0+(5s-T0)*log2(R)/log2(Qb/Qmin)`.
+- A pending deadline may shorten but never extend. Stored-counter Q references
+  the completed window's average normalized back to 100ms, not its larger raw
+  accumulated amount. Displayed long spans are interval averages, not recovered
+  subinterval execution timing. RSS/process observation cadence remains 10 Hz.
+
+| Steady mean | Current spacing | Inverse-Q target | Log-inverse target |
+| ---: | ---: | ---: | ---: |
+| 0.005% | 0.1s | 5s | 3.7s |
+| 0.05% | 0.1s | 1.6s | 1.9s |
+| 0.5% | 0.1s | 0.2s | 0.6s |
+| 5% | 0.1s | 0.1s | 0.1s |
+
+At steady 0.005%, retained CPU intervals fall from 200 to 4 / 6 over 20 seconds,
+while the reconstructed average stays 0.005%. Evenly spaced 30Hz events produce
+**identical source counters** to steady work here: 10Hz cannot recover those
+individual events. Uneven 30Hz events do produce visible 100ms variability;
+coalescing largely removes it even though CPU totals remain exact.
+
+The isolated-burst result is more important. At average 0.005%, each 2s burst
+consumes 100us CPU and appears as 0.1% over its source 100ms interval. Window rules
+alone reduce peak displayed interval averages to 0.00769% / 0.00667%, nearly hiding
+the pulse. Even a target that shortens to 100ms **after** a larger burst arrives
+cannot undo the preceding accumulated quiet interval.
+
+An additional illustrative guard retains source endpoints before/after zero/nonzero
+edges and >=4x upward changes. Then both alternatives preserve the isolated pulse's
+0.1% peak with 31 / 32 intervals instead of 200. This guard does not preserve all
+uneven 30Hz variation; it is not a general error-bound contract. Window scaling
+alone is insufficient to guarantee burst reconstruction. Retained point counts
+are **not compressed bytes**; no storage improvement is claimed from this model.
