@@ -566,6 +566,8 @@ fn decoder_requires_memory_header_and_fourth_section_as_a_pair() {
         vec![process(42, 1, 2, "has memory", Some(500), None, None)],
     )];
     let without_memory = encode_block(&context, &rows, Profile::Adaptive).unwrap();
+    // A present memory field must be an object, not null masquerading as absence.
+    assert!(decode_block(&rewrite_memory_header(&without_memory, Value::Null)).is_err());
     let mut sections = unpack_sections(&without_memory);
     sections.sections.push(b"PMM1".to_vec());
     assert!(decode_block(&pack_sections(&sections, &sections.sections)).is_err());
