@@ -55,10 +55,7 @@ sampler remains separate; recording has not been wired into it.
   Roots/run directories are private; defaults cap a root at 8 GiB and reserve
   20 GiB free space. Limits stop recording rather than deleting history; retention
   policy remains operator-owned. Directories and files created by a sudo invocation
-  under `--output` are owned by the invoking sudo user. Privileged directory creation
-  uses protected staging and requires the same filesystem as `/private/tmp`; it fails
-  safely across filesystems. Failed privileged block exports remain owner-removable
-  rather than being recursively deleted. SIGTERM/normal shutdown sends the end marker
+  under `--output` are owned by the invoking sudo user. SIGTERM/normal shutdown sends the end marker
   and flushes the current block/frame. Recovery validates journals/frames; partial runs
   are not presented as complete.
 - `transform`, `inspect`, and `bench` use the same Rust model and binary codecs.

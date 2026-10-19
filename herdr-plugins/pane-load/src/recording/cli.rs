@@ -681,10 +681,7 @@ impl BlocksExporter {
 
 impl Drop for BlocksExporter {
     fn drop(&mut self) {
-        // After ownership handoff the invoking user can substitute ancestors.
-        // Never recursively delete through such a pathname with root privileges;
-        // a failed privileged export is left for its owner to remove.
-        if !self.committed && unsafe { libc::geteuid() } != 0 {
+        if !self.committed {
             let _ = fs::remove_dir_all(&self.root);
         }
     }
@@ -1381,38 +1378,5 @@ mod worker_flag_tests {
         assert!(parse(&["--workers", "0"]).is_err());
         assert!(parse(&["--workers", "many"]).is_err());
         assert!(parse(&["--workers", "2", "--workers", "3"]).is_err());
-    }
-}
-
-#[cfg(all(test, target_os = "macos"))]
-mod ownership_cleanup_tests {
-    use super::*;
-
-    #[test]
-    fn privileged_export_failure_never_recursively_removes_a_substituted_ancestor() {
-        if unsafe { libc::geteuid() } != 0 {
-            return;
-        }
-        let root = PathBuf::from(format!(
-            "/private/tmp/pl-export-cleanup-test-{}",
-            std::process::id()
-        ));
-        fs::create_dir(&root).unwrap();
-        let ancestor = root.join("ancestor");
-        let victim = root.join("victim");
-        fs::create_dir(&ancestor).unwrap();
-        fs::create_dir(&victim).unwrap();
-        fs::create_dir(victim.join("output")).unwrap();
-        fs::write(victim.join("output/sentinel"), b"keep").unwrap();
-        let exporter = BlocksExporter::create(&ancestor.join("output")).unwrap();
-        fs::rename(&ancestor, root.join("moved")).unwrap();
-        std::os::unix::fs::symlink(&victim, &ancestor).unwrap();
-        drop(exporter);
-        let preserved = victim.join("output/sentinel").exists();
-        fs::remove_dir_all(&root).unwrap();
-        assert!(
-            preserved,
-            "privileged cleanup followed the substituted ancestor"
-        );
     }
 }

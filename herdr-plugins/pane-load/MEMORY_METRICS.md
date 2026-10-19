@@ -198,10 +198,11 @@ Python parity must pass unmodified.
    `memory_unit_bytes` when present.
 7. **Implemented separately — sudo ownership**: when `geteuid() == 0` and
    `SUDO_UID`/`SUDO_GID` parse, new output directories/files belong to the invoking
-   user. No flag. Files use `fchown` immediately after exclusive creation; directories
-   are prepared in root-private staging and chowned before exclusive publication.
-   Existing objects are never chowned. Env decisions and directory-substitution
-   regressions are tested, including actual root execution; binary/raw sudo e2e passed.
+   user. No flag. Files use `fchown` immediately after exclusive creation; new
+   directories are created 0700 and `lchown`ed. Existing objects are never chowned.
+   This is a development convenience for the temporary sudoers rule, not a defense
+   against the invoking user (who already has root through that rule); the launchd
+   daemon will not use it. Env decisions are unit-tested; sudo e2e passed.
 
 Implementation details/deviations:
 
@@ -209,11 +210,6 @@ Implementation details/deviations:
   memory use `encode_block_with_memory`.
 - Cached-binary `bench` cannot restore omitted values or finer source precision;
   explicit memory options are rejected with guidance to use raw sources.
-- To avoid privileged directory-substitution races, new directories are staged
-  securely under `/private/tmp`. Privileged directory creation fails closed across
-  filesystems (`EXDEV`); cross-filesystem sudo output remains unsupported. Failed
-  privileged `--blocks-out` exports are left for their owner to remove rather than
-  recursively deleting through user-controlled paths.
 
 Implemented verification covers:
 

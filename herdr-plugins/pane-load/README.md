@@ -63,9 +63,7 @@ only acquires selected columns. Cached-binary `bench` is codec-only and rejects
 explicit memory options, so use raw sources to compare memory columns or units. The
 10 Hz recording default, profiles, and live UI sampler are unchanged. When invoked
 through sudo, recorder-created output under `--output` is owned by the invoking sudo
-user. Privileged directory creation currently requires the same filesystem as
-`/private/tmp` (cross-filesystem publication fails safely). Failed privileged block
-exports are left for their owner to remove.
+user.
 
 For legacy normalized-nanosecond source without a declared source timebase, provide
 it explicitly (never inferred from the current host):
