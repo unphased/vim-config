@@ -596,8 +596,9 @@ external standard.
   changes, and RSS in floored 256 KiB units. Optional memory metadata has the shape
   `{"columns":["owned","peak","evicted"],"unit_bytes":262144}` (the columns
   list may be a canonical subset). For each declared column and row, PMM1 uses the
-  processes in identity order, writes an absent count and gap-coded absent process
-  indices, then signed deltas of present `floor(bytes / unit_bytes)` values from
+  processes in identity order, writes a uvarint absent count and gap-coded absent
+  process indices (first index absolute, then `index - previous_index - 1`), then
+  signed varint deltas of present `floor(bytes / unit_bytes)` values from
   that identity's previous present value in the column within the block (or zero).
   `peak` is encoded as a signed `peak_units - owned_units` when owned is declared and
   present at that point; otherwise it is absolute peak units. This preserves even
@@ -606,7 +607,8 @@ external standard.
 - Raw-source process rows retain the 8-field tuple when all memory values are
   absent. If any is present, the row is an 11-field tuple in the order
   `[pid,ppid,start_sec,start_usec,name,user,system,rss,owned,peak,evicted]`, with
-  `null` for absent memory values; both shapes parse. Decoded binary JSONL exports
+  `null` for absent memory values; these raw values are bytes, without wire flooring.
+  Both shapes parse. Decoded binary JSONL exports
   memory as `owned_bytes`, `peak_bytes`, `evicted_bytes` and `memory_unit_bytes`
   when available. Binary CPU is user+system total only: decoded JSON marks
   `cpu_components: null` and includes per-reading CPU error bounds; it cannot

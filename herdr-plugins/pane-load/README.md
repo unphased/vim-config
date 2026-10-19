@@ -48,9 +48,27 @@ cargo build --release
   --output .recordings --duration 10 --format binary
 ```
 
-`record` defaults to the adaptive profile. For legacy normalized-nanosecond source
-without a declared source timebase, provide it explicitly (never inferred from the
-current host):
+`record` defaults to the adaptive profile. Memory-selection options for the three
+commands are:
+
+```text
+record    [--memory-columns owned,peak,evicted|none] [--memory-unit-bytes N]
+transform [--memory-columns owned,peak,evicted|none] [--memory-unit-bytes N]
+bench     [--memory-columns owned,peak,evicted|none] [--memory-unit-bytes N]
+```
+
+Columns default to all three and unit size to `262144` bytes (minimum `1`). `none`
+disables memory acquisition/encoding and retains memory-free compatibility; `record`
+only acquires selected columns. Cached-binary `bench` is codec-only and rejects
+explicit memory options, so use raw sources to compare memory columns or units. The
+10 Hz recording default, profiles, and live UI sampler are unchanged. When invoked
+through sudo, recorder-created output under `--output` is owned by the invoking sudo
+user. Privileged directory creation currently requires the same filesystem as
+`/private/tmp` (cross-filesystem publication fails safely). Failed privileged block
+exports are left for their owner to remove.
+
+For legacy normalized-nanosecond source without a declared source timebase, provide
+it explicitly (never inferred from the current host):
 
 ```sh
 ./target/release/pane-load recording transform \

@@ -32,13 +32,17 @@ sampler remains separate; recording has not been wired into it.
   origin/timebase, wall anchors, run/boot identity, and non-atomic scan method.
   There is no JSONL or Python round trip in this path.
 - Raw-reference output uses `recording_source: 1`, declares `cpu_unit: native_ticks`,
-  and retains accepted observations, separate user/system CPU counters, RSS and
-  quality information. It is lossless relative to those accepted observations.
+  and retains accepted observations, separate user/system CPU counters, RSS, optional
+  `owned`/`peak`/`evicted` memory values and quality information. It is lossless
+  relative to those accepted observations. Memory acquisition is macOS-only; Linux
+  acquisition is deferred.
   Existing legacy `probe_capture: 1` JSONL/`.jsonl.zst` is readable; if its header
   has no source timebase, import requires an explicit `--timebase NUM/DEN` and
   never guesses from the current host. For the known legacy source, use `125/3`.
 - `adaptive` is the default binary profile. It writes PST2 blocks with PSD1 sparse
-  metadata and CSH2 CPU layout version 2 (with version-1 read compatibility).
+  metadata and CSH2 CPU layout version 2 (with version-1 read compatibility). Optional
+  selected memory columns use a PMM1 fourth section; memory-free PST2 and PST1 bytes
+  remain compatible.
   Adaptive interval quanta target less than 12.5% relative CPU-increment error,
   capped at 1 ms in source ticks; Q=1
   intervals, including zero intervals, are exact. `legacy-1ms` is the PST1/CSH1
@@ -50,16 +54,21 @@ sampler remains separate; recording has not been wired into it.
   300-row/approximately 30-second blocks and a one-hour source-time frame limit.
   Roots/run directories are private; defaults cap a root at 8 GiB and reserve
   20 GiB free space. Limits stop recording rather than deleting history; retention
-  policy remains operator-owned. SIGTERM/normal shutdown sends the end marker and flushes the
-  current block/frame. Recovery validates journals/frames; partial runs are not
-  presented as complete.
+  policy remains operator-owned. Directories and files created by a sudo invocation
+  under `--output` are owned by the invoking sudo user. Privileged directory creation
+  uses protected staging and requires the same filesystem as `/private/tmp`; it fails
+  safely across filesystems. Failed privileged block exports remain owner-removable
+  rather than being recursively deleted. SIGTERM/normal shutdown sends the end marker
+  and flushes the current block/frame. Recovery validates journals/frames; partial runs
+  are not presented as complete.
 - `transform`, `inspect`, and `bench` use the same Rust model and binary codecs.
   Inspect JSONL from binary is explicitly decoded/quantized: `cpu_components` is
   `null`, components are unavailable, and CPU error bounds are included.
-  `--blocks-out` exports quantized PST blocks, not finer source truth. Raw-source
-  JSONL export remains distinct. Bench compares profiles over the same raw source
-  or benchmarks the stored profile from a binary archive/cache using shared source
-  and frame geometry.
+  `--blocks-out` exports quantized PST blocks, not finer source truth. Decoded JSONL
+  includes memory byte values and `memory_unit_bytes` when present. Raw-source JSONL
+  export remains distinct. Bench compares profiles over the same raw source or
+  benchmarks the stored profile from a binary archive/cache using shared source and
+  frame geometry.
 - Offline transform accepts `--workers auto|N` (default one); live stays single-worker.
   Parallel source summaries reconstruct incoming per-identity validation state,
   then workers replay/encode independent exact-context groups. The coordinator
@@ -89,14 +98,26 @@ The default profile is adaptive; default frequency is 10 Hz. Main options are:
 record   --output ROOT [--duration SEC] [--hz N]
          [--profile adaptive|legacy-1ms|fixed-100us]
          [--format binary|jsonl-zstd]
+         [--memory-columns owned,peak,evicted|none] [--memory-unit-bytes N]
 transform --input FILE|CAPTUREROOT --output NEWROOT
           [--timebase NUM/DEN] [--profile PROFILE] [--verify] [--workers auto|N]
+          [--memory-columns owned,peak,evicted|none] [--memory-unit-bytes N]
 inspect  --input ARCHIVE|RECORDROOT|CACHE [--verify] [--recover]
          [--jsonl | --blocks-out NEWPRIVATEdir]
 bench    --input RAWSOURCE|ARCHIVE/CACHE
          --profiles adaptive,legacy-1ms,fixed-100us
-         [--timebase NUM/DEN] [--frame-bytes N] --output DIR|FILE.jsonl
+         [--timebase NUM/DEN] [--frame-bytes N]
+         [--memory-columns owned,peak,evicted|none] [--memory-unit-bytes N]
+         --output DIR|FILE.jsonl
 ```
+
+For `record`, `transform`, and raw-source `bench`, memory columns default to all
+three (`owned,peak,evicted`) and `--memory-unit-bytes` defaults to `262144` (minimum
+1). `--memory-columns none` disables memory encoding/acquisition and preserves the
+memory-free format. Cached-binary `bench` is codec-only and rejects explicit memory
+options; use raw sources to compare memory columns or units. Recording remains 10 Hz
+by default, the adaptive profile remains the default, and neither this feature nor
+its CLI options change live UI sampling or plugin behavior.
 
 For example, legacy normalized-nanosecond source without a declared timebase:
 
