@@ -130,6 +130,10 @@ recorder and the current UI sampler.
 
 ## Completed closeout and known limits
 
+- All-core fixed-1-ms control completed in **7m26s** using 10 workers; matched
+  Brotli-5 compression returned **99.68 MiB/day** with the Rust backend, or
+  **100.84 MiB/day** with the original C backend. Ten small serial/parallel fixtures
+  plus full-corpus checks passed; bulk architecture follow-up was accepted by Opus.
 - All 248 frozen source shards / 1,413,925,731 readings passed Rust verification;
   all 14 component decreases remain flagged, no source observations dropped.
   All 20 real first-shard fixed-control blocks matched Python bytes exactly.
@@ -142,6 +146,10 @@ recorder and the current UI sampler.
   with no remaining blockers (session `94c67b86-05a8-4934-ad70-3043f7baa87a`). Live
   block cuts, startup recovery, incomplete raw imports, capacity accounting and
   endpoint layout findings were corrected with regressions.
+
+Bulk is most useful for independently contextualized shards, as in the legacy
+capture. Long raw runs with one shared context encode as one group and may hit the
+one-million touched-identity/retained-seed safety bound; use `--workers 1` then.
 
 Minor deferred cleanup: old partial runs without a journal may still be verified
 at startup; numeric shard parsing relies on zero-padded lexical order; profiling

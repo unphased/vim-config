@@ -12,6 +12,72 @@ real observations -> named precision profile -> independent byte-sized frames
 Rank storage against **compression CPU-seconds/input GiB**; wall time is separate.
 Read costs do not constrain frames. Decompression only verifies correctness.
 
+## Rust fixed-1-ms control and all-core bulk validation
+
+The requested old-semantics control **returns to ~100 MiB/day**. Same stopped
+41h19m44s source, fixed 1 ms cumulative CPU, 256 KiB RSS, original logical 10 Hz
+observations/clocks/membership, all 14 component decreases retained. No new capture.
+
+| Encoder/profile and Brotli-5 backend | Full-corpus compressed bytes | MiB/day |
+| --- | ---: | ---: |
+| Historical Python fixed-1-ms + C Brotli 1.2.0 | 182,080,781 | 100.837 |
+| Rust fixed-1-ms + same C Brotli 1.2.0 | 182,084,756 | **100.839** |
+| Rust fixed-1-ms + pure-Rust Brotli 8.0.4 | 179,986,772 | **99.677** |
+| Rust adaptive + pure-Rust Brotli, byte-only frames | 708,297,357 | 392.258 |
+
+All rows use a 16 MiB PCR1 input target and a 1 MiB Brotli window. These are
+codec payloads, not archive filesystem totals. The C-backend control is within
+**0.0022%** of the original result; pure Rust produces 1.15% fewer bytes on the
+fixed-profile input. Thus Rust itself did not cause the ~4× storage increase.
+Adaptive adds finer CPU fidelity **and** a different CPU layout; this control does
+not separately apportion their costs. Polling/time resolution is unchanged.
+
+### How long Rust takes
+
+`transform --profile legacy-1ms --verify --workers auto` used 10 parsing/encoding
+workers and processed **248 shards / 1,487,845 host scans / 1,413,925,731 process
+observations**, yielding 4,973 blocks, with zero retained-value/endpoint/RSS-bound
+violations. The all-core path is opt-in; live recording and default serial replay
+are unchanged.
+
+- Whole Rust command: **446.009 s wall (7m26s)**, including initial preflight.
+- Measured pipeline: 437.171 s; whole-process CPU **3,246.315 s (54m06s)** summed
+  over threads; peak RSS **1,678,426,112 B (~1.56 GiB)**.
+- Historical Python preparation: **4h37m16s wall**, ~4h37m14s CPU. Rust's wall
+  comparison includes parallelism; it is not a single-core language speed claim.
+- The separate single-worker cached codec benchmark took 306.282 s including
+  complete archive decoding/validation plus three repeats per frame. Brotli
+  encoding itself was **14.387 CPU s**, **23.992 CPU-s/actual compact-input GiB**,
+  summed per-frame medians. Input was 643,878,564 B over 39 frames, no padding.
+  The extra C-backend size control was one pass, not a median-performance score.
+
+### Fidelity and parity checks
+
+Rust emitted 643,863,423 PST1 bytes versus Python's 643,849,941. Of 4,973 blocks,
+**4,949 are entirely byte-identical**; 14 differ only in richer quality headers.
+Ten blocks in one shard shift a boundary by one observation because Rust also
+honors a 30-second block-age limit. All timestamps/readings remain present and
+CPU/RSS precision semantics remain the same, but this is not a claim that every
+historical byte or quantized interior point is identical.
+
+The fixed control quantized **128,914,597 positive CPU intervals to zero** within
+blocks; adaptive lost none in the full source audit. Near a 0.1%-of-one-core rate
+at 100 ms spacing, adaptive's quantum is ~10.67 us versus 1 ms: about **94× finer
+quantization**, without more frequent polling. This is not increased physical
+kernel measurement accuracy; the improvement varies with CPU consumption.
+
+Ten small bulk integration fixtures compare workers 1/2/4 with serial PST bytes,
+flags and ordered provenance, including cross-shard regression/gaps, absent-ID
+resets, context boundaries, empties, corrupt input and out-of-order workload.
+Additional private helper tests cover between-pass mutation and failure cleanup.
+**157 Rust + 142 Python tests** passed, with fmt/Clippy/release checks. Opus 5.5 on
+`work2` accepted the bulk-path closeout after independent review fixes.
+
+Private reproducible run: `.recordings/rust-legacy1ms-bulk-20261019T013315Z/`,
+pinned code `64959f7`, source/code/binary hashes, external per-process resource
+metrics, complete archive, codec cases and block-difference audit. Bulk uses two
+source passes and bounded batches; it trades total CPU for elapsed time, not fidelity.
+
 ## Canonical Rust adaptive profile: full 41-hour validation
 
 Completed 2026-10-18: **all 248 shards, 1,487,845 scans and 1,413,925,731

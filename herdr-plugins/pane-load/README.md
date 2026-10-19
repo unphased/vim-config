@@ -67,7 +67,10 @@ For offline bulk replay, add `--workers auto` (all available cores) or `--worker
 to `recording transform`. The default remains one worker; live recording is unchanged.
 Bulk replay uses two source passes, bounded worker batches, and ordered archive
 publication; exact-context source groups remain intact for byte-identical results.
-A single file/group cannot distribute encoding across cores. Small integration
+A single file/group cannot distribute encoding across cores. The full old-semantics
+control completed in **7m26s** with 10 workers and returned **~100 MiB/day** after
+Brotli-5; see the [comparison](RECORDING_RESULTS.md#rust-fixed-1-ms-control-and-all-core-bulk-validation).
+Small integration
 fixtures compare serial/parallel output across regressions, gaps, resets and failures.
 
 Use `inspect --input ROOT --verify`, `inspect --input ARCHIVE --recover`, or
