@@ -17,7 +17,7 @@ use std::path::{Path, PathBuf};
 const DEFAULT_BENCH_FRAME_BYTES: usize = 16 * 1024 * 1024;
 const USAGE: &str = "pane-load recording <record|transform|inspect|bench> ...\n\
 record: --output ROOT [--duration SEC] [--hz N] [--profile adaptive|legacy-1ms|fixed-100us] [--format binary|jsonl-zstd]\n\
-transform: --input FILE|CAPTUREROOT --output NEWARCHIVE [--timebase NUM/DEN] [--profile PROFILE] [--block-rows N] [--frame-bytes N] [--max-bytes N] [--min-free-bytes N] [--verify]\n\
+transform: --input FILE|CAPTUREROOT --output NEWARCHIVE [--timebase NUM/DEN] [--profile PROFILE] [--workers auto|N] [--block-rows N] [--frame-bytes N] [--max-bytes N] [--min-free-bytes N] [--verify]\n\
 inspect: --input ARCHIVE|RECORDROOT|CACHE [--verify (archives are always fully verified)] [--jsonl|--blocks-out NEWPRIVATEdir] [--recover]\n\
 bench: --input RAWSOURCE|ARCHIVE/CACHE --profiles adaptive,legacy-1ms,fixed-100us [--timebase NUM/DEN] [--frame-bytes N] --output DIR|FILE.jsonl";
 
@@ -143,6 +143,13 @@ struct Parsed {
     jsonl: bool,
     recover: bool,
     blocks_out: Option<PathBuf>,
+    workers: Option<WorkerSetting>,
+}
+
+#[derive(Clone, Copy)]
+enum WorkerSetting {
+    Auto,
+    Count(usize),
 }
 
 fn parse_flags(args: &[String], allowed: &[&str], booleans: &[&str]) -> Result<Parsed> {
@@ -181,6 +188,17 @@ fn parse_flags(args: &[String], allowed: &[&str], booleans: &[&str]) -> Result<P
             "--frame-bytes" => parsed.frame_bytes = Some(parse_usize(value, flag)?),
             "--max-bytes" => parsed.max_bytes = Some(parse_u64(value, flag)?),
             "--min-free-bytes" => parsed.min_free_bytes = Some(parse_u64(value, flag)?),
+            "--workers" => {
+                parsed.workers = Some(if value == "auto" {
+                    WorkerSetting::Auto
+                } else {
+                    let count = parse_usize(value, flag)?;
+                    if count == 0 {
+                        return Err("--workers must be positive".into());
+                    }
+                    WorkerSetting::Count(count)
+                });
+            }
             "--profiles" => {
                 let mut profiles = Vec::new();
                 for name in value.split(',') {
@@ -218,6 +236,7 @@ fn run_transform(args: &[String]) -> Result<()> {
             "--frame-bytes",
             "--max-bytes",
             "--min-free-bytes",
+            "--workers",
         ],
         &["--verify"],
     )?;
@@ -246,7 +265,23 @@ fn run_transform(args: &[String]) -> Result<()> {
         options.min_free_bytes = value;
     }
     options.verify = parsed.verify;
-    let stats = pipeline::transform_sources(&files, &output, &options, parsed.timebase)?;
+    let stats = if let Some(setting) = parsed.workers {
+        let workers = match setting {
+            WorkerSetting::Auto => std::thread::available_parallelism()
+                .map(|count| count.get())
+                .unwrap_or(1),
+            WorkerSetting::Count(count) => count,
+        };
+        pipeline::transform_sources_with_workers(
+            &files,
+            &output,
+            &options,
+            parsed.timebase,
+            workers,
+        )?
+    } else {
+        pipeline::transform_sources(&files, &output, &options, parsed.timebase)?
+    };
     println!(
         "{}",
         serde_json::to_string(&stats).map_err(|e| format!("encode transform metrics: {e}"))?
@@ -1234,4 +1269,29 @@ fn parse_timebase(value: &str) -> Result<Timebase> {
     };
     t.validate()?;
     Ok(t)
+}
+
+#[cfg(test)]
+mod worker_flag_tests {
+    use super::*;
+
+    fn parse(args: &[&str]) -> Result<Parsed> {
+        let args = args.iter().map(|arg| (*arg).to_owned()).collect::<Vec<_>>();
+        parse_flags(&args, &["--workers"], &[])
+    }
+
+    #[test]
+    fn workers_flag_accepts_auto_and_positive_counts_only_once() {
+        assert!(matches!(
+            parse(&["--workers", "auto"]).unwrap().workers,
+            Some(WorkerSetting::Auto)
+        ));
+        assert!(matches!(
+            parse(&["--workers", "4"]).unwrap().workers,
+            Some(WorkerSetting::Count(4))
+        ));
+        assert!(parse(&["--workers", "0"]).is_err());
+        assert!(parse(&["--workers", "many"]).is_err());
+        assert!(parse(&["--workers", "2", "--workers", "3"]).is_err());
+    }
 }

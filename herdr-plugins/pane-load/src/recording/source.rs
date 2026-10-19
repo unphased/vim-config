@@ -10,7 +10,7 @@ use std::io::{self, BufRead, BufReader, Write};
 use std::marker::PhantomData;
 use std::path::Path;
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct SourceStats {
     pub scans: u64,
     pub readings: u64,

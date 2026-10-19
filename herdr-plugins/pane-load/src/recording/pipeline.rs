@@ -1,7 +1,7 @@
 //! Shared validated streaming pipeline for live observations and imported JSONL sources.
 use super::model::{
-    Context, LiveMessage, MAX_BLOCK_BYTES, MAX_POINTS, Observation, OutputFormat, Process, Profile,
-    RecordOptions, Result, Timebase,
+    Context, Identity, LiveMessage, MAX_BLOCK_BYTES, MAX_POINTS, Observation, OutputFormat,
+    Process, Profile, RecordOptions, Result, Timebase,
 };
 use super::source::{self, RawWriter};
 use super::store::{ArchiveWriter, CodecFrameAccumulator, StoreOptions};
@@ -28,6 +28,9 @@ const LIVE_STATE_GRACE_NS: u64 = 30_000_000_000;
 const MAX_BLOCK_AGE_NS: u64 = 30_000_000_000;
 const MAX_FRAME_AGE_NS: u64 = 3_600_000_000_000;
 static STATUS_TEMP_ID: AtomicU64 = AtomicU64::new(0);
+
+#[path = "pipeline_bulk.rs"]
+mod bulk;
 
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct RunStats {
@@ -70,6 +73,12 @@ pub struct RunStats {
     pub end_reason: Option<String>,
     #[serde(default)]
     pub verification_enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bulk_workers: Option<usize>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub encoding_workers: Option<usize>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_passes: Option<u8>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -139,7 +148,7 @@ struct Previous {
 /// One validator owns global clock order and independent U/S continuity. Offline audit
 /// keeps all identities; live input expires state after one source-clock grace window.
 struct Validator {
-    previous: HashMap<super::model::Identity, Previous>,
+    previous: HashMap<Identity, Previous>,
     last_seq: Option<u64>,
     last_stamp: Option<u64>,
     last_expiry_check: Option<u64>,
@@ -186,18 +195,8 @@ impl Validator {
         // Raw replay carries acquisition-time continuity decisions. Reset those identities
         // before comparing counters so an old, bounded-window unknown baseline cannot become
         // a new offline regression merely because replay itself is unbounded.
-        for quality in &row.quality {
-            if quality.get("kind").and_then(Value::as_str) == Some("cpu-continuity-unknown")
-                && let Some(identity) = quality.get("identity")
-                && let (Some(pid), Some(start_sec), Some(start_usec)) = (
-                    identity.get("pid").and_then(Value::as_u64),
-                    identity.get("start_sec").and_then(Value::as_u64),
-                    identity.get("start_usec").and_then(Value::as_u64),
-                )
-                && let (Ok(pid), Ok(start_usec)) = (u32::try_from(pid), u32::try_from(start_usec))
-            {
-                self.previous.remove(&(pid, start_sec, start_usec));
-            }
+        for identity in row.quality.iter().filter_map(continuity_unknown_identity) {
+            self.previous.remove(&identity);
         }
         let mut boundary = row.quality.iter().any(|quality| {
             quality.get("kind").and_then(Value::as_str) == Some("cpu-component-regression")
@@ -270,6 +269,23 @@ impl Validator {
     }
 }
 
+fn continuity_unknown_identity(quality: &Value) -> Option<Identity> {
+    if quality.get("kind").and_then(Value::as_str) != Some("cpu-continuity-unknown") {
+        return None;
+    }
+    let identity = quality.get("identity")?;
+    let (pid, start_sec, start_usec) = (
+        identity.get("pid")?.as_u64()?,
+        identity.get("start_sec")?.as_u64()?,
+        identity.get("start_usec")?.as_u64()?,
+    );
+    Some((
+        u32::try_from(pid).ok()?,
+        start_sec,
+        u32::try_from(start_usec).ok()?,
+    ))
+}
+
 fn regression_event(
     component: &str,
     process: &Process,
@@ -332,6 +348,21 @@ impl BlockBuilder {
     fn is_empty(&self) -> bool {
         self.rows.is_empty()
     }
+}
+
+#[derive(Clone, Copy, Default)]
+struct AuditCounts {
+    endpoint_mismatches: u64,
+    positive_intervals_lost: u64,
+    precision_violations: u64,
+    rss_floor_violations: u64,
+}
+
+struct EncodedBlock {
+    bytes: Vec<u8>,
+    first_stamp: u64,
+    last_stamp: u64,
+    audit: AuditCounts,
 }
 
 enum Sink {
@@ -1072,71 +1103,108 @@ fn append_block(
     if builder.is_empty() {
         return Ok(());
     }
+    let encoded = encode_finished_block(builder, options)?;
+    apply_audit_counts(stats, encoded.audit);
+    match sink {
+        Sink::Binary(_) => append_binary_bytes(
+            &encoded.bytes,
+            encoded.first_stamp,
+            encoded.last_stamp,
+            sink,
+            frame_start,
+            stats,
+        )?,
+        Sink::Raw(writer) => {
+            stats.raw_encoded_bytes = stats
+                .raw_encoded_bytes
+                .saturating_add(writer.write_block(&builder.rows)?);
+            stats.blocks = stats.blocks.saturating_add(1);
+        }
+    }
+    builder.rows.clear();
+    builder.points = 0;
+    Ok(())
+}
+
+fn encode_finished_block(builder: &BlockBuilder, options: &RecordOptions) -> Result<EncodedBlock> {
     let bytes = encode_block(&builder.context, &builder.rows, options.profile)?;
+    let mut audit = RunStats::default();
     if options.verify {
-        let before = (
-            stats.endpoint_mismatches,
-            stats.positive_intervals_lost,
-            stats.precision_violations,
-            stats.rss_floor_violations,
-        );
         audit_source_block(
             &builder.context,
             &builder.rows,
             options.profile,
             &bytes,
-            stats,
+            &mut audit,
         )?;
-        let has_errors = stats.endpoint_mismatches != before.0
-            || stats.precision_violations != before.2
-            || stats.rss_floor_violations != before.3
-            || options.profile == Profile::Adaptive && stats.positive_intervals_lost != before.1;
-        if has_errors {
+        if audit.endpoint_mismatches != 0
+            || audit.precision_violations != 0
+            || audit.rss_floor_violations != 0
+            || options.profile == Profile::Adaptive && audit.positive_intervals_lost != 0
+        {
             return Err("source fidelity verification failed".into());
         }
     }
-    match sink {
-        Sink::Binary(writer) => {
-            if !writer.has_active_frame() {
-                *frame_start = None;
-            }
-            if let (Some(start), Some(first)) = (
-                *frame_start,
-                builder.rows.first().map(|row| row.scan_start_ns),
-            ) && first.saturating_sub(start) >= MAX_FRAME_AGE_NS
-            {
-                writer.flush_frame()?;
-                *frame_start = None;
-            }
-            writer.append(&bytes)?;
-            if writer.has_active_frame() {
-                if frame_start.is_none() {
-                    *frame_start = builder.rows.first().map(|row| row.scan_start_ns);
-                }
-                if let (Some(start), Some(end)) = (
-                    *frame_start,
-                    builder.rows.last().map(|row| row.scan_start_ns),
-                ) && end.saturating_sub(start) >= MAX_FRAME_AGE_NS
-                {
-                    writer.flush_frame()?;
-                    *frame_start = None;
-                }
-            } else {
-                *frame_start = None;
-            }
+    Ok(EncodedBlock {
+        bytes,
+        first_stamp: builder.rows.first().map_or(0, |row| row.scan_start_ns),
+        last_stamp: builder.rows.last().map_or(0, |row| row.scan_start_ns),
+        audit: AuditCounts {
+            endpoint_mismatches: audit.endpoint_mismatches,
+            positive_intervals_lost: audit.positive_intervals_lost,
+            precision_violations: audit.precision_violations,
+            rss_floor_violations: audit.rss_floor_violations,
+        },
+    })
+}
+
+fn apply_audit_counts(stats: &mut RunStats, audit: AuditCounts) {
+    stats.endpoint_mismatches = stats
+        .endpoint_mismatches
+        .saturating_add(audit.endpoint_mismatches);
+    stats.positive_intervals_lost = stats
+        .positive_intervals_lost
+        .saturating_add(audit.positive_intervals_lost);
+    stats.precision_violations = stats
+        .precision_violations
+        .saturating_add(audit.precision_violations);
+    stats.rss_floor_violations = stats
+        .rss_floor_violations
+        .saturating_add(audit.rss_floor_violations);
+}
+
+fn append_binary_bytes(
+    bytes: &[u8],
+    first_stamp: u64,
+    last_stamp: u64,
+    sink: &mut Sink,
+    frame_start: &mut Option<u64>,
+    stats: &mut RunStats,
+) -> Result<()> {
+    let Sink::Binary(writer) = sink else {
+        return Err("encoded binary block requires archive writer".into());
+    };
+    if !writer.has_active_frame() {
+        *frame_start = None;
+    }
+    if frame_start.is_some_and(|start| first_stamp.saturating_sub(start) >= MAX_FRAME_AGE_NS) {
+        writer.flush_frame()?;
+        *frame_start = None;
+    }
+    writer.append(bytes)?;
+    if writer.has_active_frame() {
+        if frame_start.is_none() {
+            *frame_start = Some(first_stamp);
         }
-        Sink::Raw(writer) => {
-            stats.raw_encoded_bytes = stats
-                .raw_encoded_bytes
-                .saturating_add(writer.write_block(&builder.rows)?);
+        if frame_start.is_some_and(|start| last_stamp.saturating_sub(start) >= MAX_FRAME_AGE_NS) {
+            writer.flush_frame()?;
+            *frame_start = None;
         }
+    } else {
+        *frame_start = None;
     }
     stats.blocks = stats.blocks.saturating_add(1);
-    if matches!(sink, Sink::Binary(_)) {
-        stats.raw_encoded_bytes = stats.raw_encoded_bytes.saturating_add(bytes.len() as u64);
-    }
-    builder.rows.clear();
-    builder.points = 0;
+    stats.raw_encoded_bytes = stats.raw_encoded_bytes.saturating_add(bytes.len() as u64);
     Ok(())
 }
 
@@ -1255,10 +1323,36 @@ pub fn transform_sources(
     options: &RecordOptions,
     legacy_timebase: Option<Timebase>,
 ) -> Result<RunStats> {
+    transform_sources_impl(inputs, output, options, legacy_timebase, None)
+}
+
+/// Opt-in bulk transform using bounded source-summary and encode worker pools.
+pub fn transform_sources_with_workers(
+    inputs: &[PathBuf],
+    output: &Path,
+    options: &RecordOptions,
+    legacy_timebase: Option<Timebase>,
+    workers: usize,
+) -> Result<RunStats> {
+    if workers == 0 {
+        return Err("--workers must be positive".into());
+    }
+    transform_sources_impl(inputs, output, options, legacy_timebase, Some(workers))
+}
+
+fn transform_sources_impl(
+    inputs: &[PathBuf],
+    output: &Path,
+    options: &RecordOptions,
+    legacy_timebase: Option<Timebase>,
+    bulk_workers: Option<usize>,
+) -> Result<RunStats> {
     validate_record_options(options)?;
     if inputs.is_empty() {
         return Err("transform needs at least one source file".into());
     }
+    let start = Instant::now();
+    let before = usage();
     let upstream_status = source_run_status(inputs)?;
     for input in inputs {
         let meta =
@@ -1311,8 +1405,6 @@ pub fn transform_sources(
         }
         _ => {}
     }
-    let start = Instant::now();
-    let before = usage();
     let (root, _lock) = prepare_root(output)?;
     let entries = fs::read_dir(&root).map_err(|e| format!("inspect transform output: {e}"))?;
     for entry in entries {
@@ -1343,6 +1435,9 @@ pub fn transform_sources(
     };
     let mut stats = RunStats {
         verification_enabled: options.verify,
+        bulk_workers: bulk_workers.map(|workers| workers.min(inputs.len()).max(1)),
+        encoding_workers: bulk_workers.map(|_| 1),
+        source_passes: bulk_workers.map(|_| 1),
         ..RunStats::default()
     };
     let mut first_context: Option<Context> = None;
@@ -1385,6 +1480,47 @@ pub fn transform_sources(
         .and_then(|reserve| reserve.checked_add(end_quality_reserve))
         .ok_or_else(|| "transform output reserve overflow".to_string())?;
     let store_options = archive_options_for_root(&root, None, base_store_options, output_reserve)?;
+    if let Some(requested_workers) = bulk_workers.filter(|workers| *workers > 1 && inputs.len() > 1)
+    {
+        let result = run_bulk_transform(BulkTransformSetup {
+            inputs,
+            legacy_timebase,
+            options,
+            requested_workers,
+            archive_path: &archive_path,
+            store_options,
+            capture_ledger: capture_ledger.as_ref(),
+            checked_segments,
+            stats,
+        });
+        return match result {
+            Ok(mut stats) => {
+                if let Some(status) = &upstream_status {
+                    stats.end_quality = status.end_quality.clone();
+                    stats.flagged_events = stats
+                        .flagged_events
+                        .saturating_add(stats.end_quality.len() as u64);
+                    stats.end_reason = status.end_reason.clone();
+                }
+                finish_metrics(&mut stats, start, before);
+                if upstream_status
+                    .as_ref()
+                    .is_some_and(|status| status.partial)
+                {
+                    write_run_status(&root, "partial.json", &stats, "source-import")?;
+                } else {
+                    stats.complete = true;
+                    write_run_status(&root, "complete.json", &stats, "source-import")?;
+                    remove_partial_status(&root)?;
+                }
+                Ok(stats)
+            }
+            Err(error) => {
+                write_failure_marker(&root, &error)?;
+                Err(error)
+            }
+        };
+    }
     let mut failure: Option<String> = None;
     for (input_index, input) in inputs.iter().enumerate() {
         if let Some(ledger) = &capture_ledger
@@ -1569,6 +1705,252 @@ pub fn transform_sources(
         remove_partial_status(&root)?;
     }
     Ok(stats)
+}
+
+struct BulkTransformSetup<'a> {
+    inputs: &'a [PathBuf],
+    legacy_timebase: Option<Timebase>,
+    options: &'a RecordOptions,
+    requested_workers: usize,
+    archive_path: &'a Path,
+    store_options: StoreOptions,
+    capture_ledger: Option<&'a CaptureLedger>,
+    checked_segments: Option<File>,
+    stats: RunStats,
+}
+
+fn run_bulk_transform(setup: BulkTransformSetup<'_>) -> Result<RunStats> {
+    run_bulk_transform_with_group_limit(setup, bulk::MAX_GROUP_ENCODED_BYTES)
+}
+
+fn run_bulk_transform_with_group_limit(
+    setup: BulkTransformSetup<'_>,
+    max_group_encoded_bytes: usize,
+) -> Result<RunStats> {
+    let BulkTransformSetup {
+        inputs,
+        legacy_timebase,
+        options,
+        requested_workers,
+        archive_path,
+        store_options,
+        capture_ledger,
+        mut checked_segments,
+        mut stats,
+    } = setup;
+    let plan = bulk::build_plan(inputs, legacy_timebase, capture_ledger, requested_workers)?;
+    let encoding_workers = requested_workers.min(plan.groups.len()).max(1);
+    stats.bulk_workers = Some(plan.parser_workers);
+    stats.encoding_workers = Some(encoding_workers);
+    stats.source_passes = Some(2);
+
+    fs::create_dir(archive_path).map_err(|e| format!("create transformed archive: {e}"))?;
+    #[cfg(unix)]
+    fs::set_permissions(archive_path, fs::Permissions::from_mode(0o700))
+        .map_err(|e| format!("protect transformed archive: {e}"))?;
+    let mut sink = Sink::Binary(ArchiveWriter::open(
+        archive_path,
+        &plan.first_context,
+        options.profile,
+        store_options,
+    )?);
+    let mut frame_start = None;
+
+    let transform_result = (|| {
+        if plan.groups.len() == 1 {
+            let cancel = std::sync::atomic::AtomicBool::new(false);
+            let replay = bulk::ReplayInput {
+                inputs,
+                expected_sources: &plan.sources,
+                expected_compressed_hashes: &plan.compressed_hashes,
+                legacy_timebase,
+                ledger: capture_ledger,
+                options,
+                cancel: &cancel,
+            };
+            let group_stats = bulk::replay_group(&plan.groups[0], &replay, |block| {
+                apply_audit_counts(&mut stats, block.audit);
+                append_binary_bytes(
+                    &block.bytes,
+                    block.first_stamp,
+                    block.last_stamp,
+                    &mut sink,
+                    &mut frame_start,
+                    &mut stats,
+                )
+            })?;
+            commit_group_stats(
+                group_stats,
+                inputs,
+                capture_ledger,
+                checked_segments.as_mut(),
+                &mut stats,
+            )?;
+        } else {
+            for batch_start in (0..plan.groups.len()).step_by(encoding_workers) {
+                let batch_end = (batch_start + encoding_workers).min(plan.groups.len());
+                let cancel = std::sync::atomic::AtomicBool::new(false);
+                let outputs = std::thread::scope(|scope| {
+                    let mut handles = Vec::with_capacity(batch_end - batch_start);
+                    let mut spawn_error = None;
+                    for group_index in batch_start..batch_end {
+                        let cancel = &cancel;
+                        let group = &plan.groups[group_index];
+                        let replay = bulk::ReplayInput {
+                            inputs,
+                            expected_sources: &plan.sources,
+                            expected_compressed_hashes: &plan.compressed_hashes,
+                            legacy_timebase,
+                            ledger: capture_ledger,
+                            options,
+                            cancel,
+                        };
+                        match std::thread::Builder::new()
+                            .name(format!("bulk-encode-{group_index}"))
+                            .spawn_scoped(scope, move || {
+                                let result =
+                                    if max_group_encoded_bytes == bulk::MAX_GROUP_ENCODED_BYTES {
+                                        bulk::encode_group(group, &replay)
+                                    } else {
+                                        bulk::encode_group_with_limit(
+                                            group,
+                                            &replay,
+                                            max_group_encoded_bytes,
+                                        )
+                                    };
+                                if result.is_err() {
+                                    cancel.store(true, Ordering::Release);
+                                }
+                                result
+                            }) {
+                            Ok(handle) => handles.push((group_index, handle)),
+                            Err(error) => {
+                                cancel.store(true, Ordering::Release);
+                                spawn_error = Some(format!(
+                                    "spawn bulk encode worker for group {group_index}: {error}"
+                                ));
+                                break;
+                            }
+                        }
+                    }
+                    let mut results = Vec::with_capacity(handles.len());
+                    let mut failure = spawn_error;
+                    for (group_index, handle) in handles {
+                        match handle.join() {
+                            Ok(Ok(output)) => results.push((group_index, Some(output))),
+                            Ok(Err(error)) => {
+                                if !error.contains("cancelled after a peer failure")
+                                    && failure.is_none()
+                                {
+                                    failure = Some(error);
+                                }
+                                results.push((group_index, None));
+                            }
+                            Err(_) => {
+                                cancel.store(true, Ordering::Release);
+                                failure.get_or_insert_with(|| {
+                                    format!("bulk encode worker for group {group_index} panicked")
+                                });
+                                results.push((group_index, None));
+                            }
+                        }
+                    }
+                    (results, failure)
+                });
+                if let Some(error) = outputs.1 {
+                    return Err(error);
+                }
+                for (group_index, output) in outputs.0 {
+                    let output = output.ok_or_else(|| {
+                        format!("bulk encode group {group_index} cancelled after a peer failure")
+                    })?;
+                    for block in output.blocks {
+                        apply_audit_counts(&mut stats, block.audit);
+                        append_binary_bytes(
+                            &block.bytes,
+                            block.first_stamp,
+                            block.last_stamp,
+                            &mut sink,
+                            &mut frame_start,
+                            &mut stats,
+                        )?;
+                    }
+                    commit_group_stats(
+                        output.stats,
+                        inputs,
+                        capture_ledger,
+                        checked_segments.as_mut(),
+                        &mut stats,
+                    )?;
+                }
+            }
+        }
+        Ok(())
+    })();
+
+    let mut failure = transform_result.err();
+    if let Some(file) = checked_segments.as_mut()
+        && let Err(error) = file.sync_all()
+    {
+        let cleanup = format!("sync checked segment ledger: {error}");
+        if let Some(primary) = &mut failure {
+            primary.push_str(&format!("; additionally, {cleanup}"));
+        } else {
+            failure = Some(cleanup);
+        }
+    }
+    if let Err(error) = finish_sink(sink) {
+        let cleanup = format!("finish transformed archive: {error}");
+        if let Some(primary) = &mut failure {
+            primary.push_str(&format!("; additionally, {cleanup}"));
+        } else {
+            failure = Some(cleanup);
+        }
+    }
+    match failure {
+        Some(error) => Err(error),
+        None => Ok(stats),
+    }
+}
+
+fn commit_group_stats(
+    group: bulk::GroupStats,
+    inputs: &[PathBuf],
+    ledger: Option<&CaptureLedger>,
+    mut checked_segments: Option<&mut File>,
+    stats: &mut RunStats,
+) -> Result<()> {
+    stats.scans = stats.scans.saturating_add(group.scans);
+    stats.readings = stats.readings.saturating_add(group.readings);
+    stats.flagged_events = stats.flagged_events.saturating_add(group.flagged_events);
+    for source in group.sources {
+        let index = source.index;
+        let source_stats = source.stats;
+        stats.source_hashes.push(SourceHashStats {
+            path: inputs[index].to_string_lossy().into_owned(),
+            scans: source_stats.scans,
+            readings: source_stats.readings,
+            input_bytes: source_stats.input_bytes,
+            expanded_bytes: source_stats.expanded_bytes,
+            expanded_sha256: source_stats.expanded_sha256.clone(),
+            first_seq: source_stats.first_seq,
+            last_seq: source_stats.last_seq,
+            first_scan_start_ns: source_stats.first_scan_start_ns,
+            last_scan_start_ns: source_stats.last_scan_start_ns,
+        });
+        if let (Some(ledger), Some(file)) = (ledger, checked_segments.as_deref_mut()) {
+            let line = checked_segment_line(
+                ledger,
+                index,
+                &inputs[index],
+                &source_stats,
+                &source.compressed_hash,
+            )?;
+            file.write_all(&line)
+                .map_err(|e| format!("write checked segment: {e}"))?;
+        }
+    }
+    Ok(())
 }
 
 #[derive(Clone, Debug)]

@@ -60,6 +60,14 @@ sampler remains separate; recording has not been wired into it.
   JSONL export remains distinct. Bench compares profiles over the same raw source
   or benchmarks the stored profile from a binary archive/cache using shared source
   and frame geometry.
+- Offline transform accepts `--workers auto|N` (default one); live stays single-worker.
+  Parallel source summaries reconstruct incoming per-identity validation state,
+  then workers replay/encode independent exact-context groups. The coordinator
+  publishes in original order. Two source passes trade CPU for wall time; small
+  tests require identical serial PST bytes, flags and provenance. Batches are
+  bounded by worker count, groups by 256 MiB encoded output, retained seeds by
+  one million identities; limit errors recommend `--workers 1`. One context group
+  encodes serially rather than inventing cuts. No raw spool format is introduced.
 - The existing include-based Python capture shim remains supported through the
   project-library path dependency. Python and external codec CLIs are not runtime
   dependencies of the Rust recording commands.
@@ -82,7 +90,7 @@ record   --output ROOT [--duration SEC] [--hz N]
          [--profile adaptive|legacy-1ms|fixed-100us]
          [--format binary|jsonl-zstd]
 transform --input FILE|CAPTUREROOT --output NEWROOT
-          [--timebase NUM/DEN] [--profile PROFILE] [--verify]
+          [--timebase NUM/DEN] [--profile PROFILE] [--verify] [--workers auto|N]
 inspect  --input ARCHIVE|RECORDROOT|CACHE [--verify] [--recover]
          [--jsonl | --blocks-out NEWPRIVATEdir]
 bench    --input RAWSOURCE|ARCHIVE/CACHE

@@ -63,6 +63,13 @@ review findings are fixed. The adaptive archive measures ~392.46 MiB/day on that
 corpus—finer fidelity, not the old fixed-1-ms storage profile. Limits stop recording
 rather than deleting history; no service is installed or enabled automatically.
 
+For offline bulk replay, add `--workers auto` (all available cores) or `--workers N`
+to `recording transform`. The default remains one worker; live recording is unchanged.
+Bulk replay uses two source passes, bounded worker batches, and ordered archive
+publication; exact-context source groups remain intact for byte-identical results.
+A single file/group cannot distribute encoding across cores. Small integration
+fixtures compare serial/parallel output across regressions, gaps, resets and failures.
+
 Use `inspect --input ROOT --verify`, `inspect --input ARCHIVE --recover`, or
 `inspect --input ARCHIVE --jsonl`. `--blocks-out NEWPRIVATEdir` exports original
 encoded, quantized PST blocks—not finer source truth. `bench --input SOURCE --profiles
