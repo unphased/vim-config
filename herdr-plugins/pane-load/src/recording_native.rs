@@ -813,3 +813,69 @@ mod tests {
         assert!(rx.recv().is_err());
     }
 }
+
+#[cfg(all(test, target_os = "macos"))]
+mod memory_tests {
+    use super::*;
+    use herdr_pane_load::recording::MemoryEncoding;
+
+    #[test]
+    fn two_scans_capture_an_unmapped_64_mib_spike() {
+        let mut sampler = super::super::MacProcessSampler::new().unwrap();
+        let timebase = Timebase {
+            numer: u64::from(sampler.timebase.numer),
+            denom: u64::from(sampler.timebase.denom),
+        };
+        let origin = continuous_ticks();
+        let first = sample_scan(
+            &mut sampler,
+            0,
+            timebase,
+            origin,
+            &MemoryEncoding::default(),
+        )
+        .unwrap();
+        let own = |row: &Observation| {
+            row.processes
+                .iter()
+                .find(|p| p.pid == std::process::id())
+                .unwrap()
+                .clone()
+        };
+        let baseline = own(&first);
+        assert!(baseline.owned.unwrap() > 0);
+        const SIZE: usize = 64 * 1024 * 1024;
+        // SAFETY: the anonymous mapping is checked, touched in-bounds, then unmapped exactly once.
+        unsafe {
+            let memory = libc::mmap(
+                std::ptr::null_mut(),
+                SIZE,
+                libc::PROT_READ | libc::PROT_WRITE,
+                libc::MAP_PRIVATE | libc::MAP_ANON,
+                -1,
+                0,
+            );
+            assert_ne!(memory, libc::MAP_FAILED);
+            for offset in (0..SIZE).step_by(4096) {
+                std::ptr::write_volatile(memory.cast::<u8>().add(offset), 1);
+            }
+            assert_eq!(libc::munmap(memory, SIZE), 0);
+        }
+        let second = sample_scan(
+            &mut sampler,
+            1,
+            timebase,
+            origin,
+            &MemoryEncoding::default(),
+        )
+        .unwrap();
+        let point = own(&second);
+        assert!(
+            point.peak.unwrap() - point.owned.unwrap() >= SIZE as u64,
+            "peak={:?}, owned={:?}",
+            point.peak,
+            point.owned
+        );
+        assert!(point.owned.unwrap().saturating_sub(baseline.owned.unwrap()) < SIZE as u64);
+    }
+}
