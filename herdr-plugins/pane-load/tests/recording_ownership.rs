@@ -32,15 +32,15 @@ fn block_export_directory_remains_usable_with_restrictive_umask() {
         });
     }
     let result = command.output().unwrap();
-    assert!(
-        result.status.success(),
-        "{}",
-        String::from_utf8_lossy(&result.stderr)
-    );
     let permissions = std::fs::metadata(&output).unwrap().mode() & 0o777;
     // Restore access even on failure so this test never leaves an inaccessible tree.
     use std::os::unix::fs::PermissionsExt;
     std::fs::set_permissions(&output, std::fs::Permissions::from_mode(0o700)).unwrap();
     std::fs::remove_dir_all(&root).unwrap();
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
     assert_eq!(permissions, 0o700);
 }

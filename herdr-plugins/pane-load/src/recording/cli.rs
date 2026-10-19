@@ -4,15 +4,15 @@ use super::model::{
     RecordOptions, Result, Timebase,
 };
 use super::{
-    decode_block, pipeline, source,
+    decode_block, ownership, pipeline, source,
     store::{self, ArchiveWriter, StoreOptions},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
-use std::fs::{self, DirBuilder, OpenOptions};
+use std::fs::{self, OpenOptions};
 use std::io::{BufWriter, Read, Write};
-use std::os::unix::fs::{DirBuilderExt, MetadataExt, OpenOptionsExt, PermissionsExt};
+use std::os::unix::fs::{MetadataExt, OpenOptionsExt};
 use std::path::{Path, PathBuf};
 
 const DEFAULT_BENCH_FRAME_BYTES: usize = 16 * 1024 * 1024;
@@ -596,17 +596,8 @@ struct BlocksExporter {
 
 impl BlocksExporter {
     fn create(path: &Path) -> Result<Self> {
-        let mut builder = DirBuilder::new();
-        #[cfg(unix)]
-        builder.mode(0o700);
-        builder
-            .create(path)
+        ownership::create_private_directory(path)
             .map_err(|error| format!("create PST block export directory: {error}"))?;
-        #[cfg(unix)]
-        if let Err(error) = fs::set_permissions(path, fs::Permissions::from_mode(0o700)) {
-            let _ = fs::remove_dir(path);
-            return Err(format!("protect PST block export directory: {error}"));
-        }
         Ok(Self {
             root: path.to_path_buf(),
             entries: Vec::new(),
@@ -620,9 +611,16 @@ impl BlocksExporter {
         options.write(true).create_new(true);
         #[cfg(unix)]
         options.mode(0o600);
+        #[cfg(unix)]
+        options.custom_flags(libc::O_NOFOLLOW | libc::O_CLOEXEC);
         let mut file = options
             .open(self.root.join(&name))
             .map_err(|error| format!("create exported PST block: {error}"))?;
+        if let Err(error) = ownership::chown_created_file(&file) {
+            drop(file);
+            let _ = fs::remove_file(self.root.join(&name));
+            return Err(format!("set exported PST block owner: {error}"));
+        }
         file.write_all(bytes)
             .map_err(|error| format!("write exported PST block: {error}"))?;
         file.sync_all()
@@ -652,9 +650,17 @@ impl BlocksExporter {
             options.write(true).create_new(true);
             #[cfg(unix)]
             options.mode(0o600);
+            #[cfg(unix)]
+            options.custom_flags(libc::O_NOFOLLOW | libc::O_CLOEXEC);
+            let manifest_path = self.root.join("manifest.json");
             let mut file = options
-                .open(self.root.join("manifest.json"))
+                .open(&manifest_path)
                 .map_err(|error| format!("create PST block export manifest: {error}"))?;
+            if let Err(error) = ownership::chown_created_file(&file) {
+                drop(file);
+                let _ = fs::remove_file(&manifest_path);
+                return Err(format!("set PST block export manifest owner: {error}"));
+            }
             serde_json::to_writer(&mut file, &manifest)
                 .map_err(|error| format!("encode PST block export manifest: {error}"))?;
             file.write_all(b"\n")
@@ -675,7 +681,10 @@ impl BlocksExporter {
 
 impl Drop for BlocksExporter {
     fn drop(&mut self) {
-        if !self.committed {
+        // After ownership handoff the invoking user can substitute ancestors.
+        // Never recursively delete through such a pathname with root privileges;
+        // a failed privileged export is left for its owner to remove.
+        if !self.committed && unsafe { libc::geteuid() } != 0 {
             let _ = fs::remove_dir_all(&self.root);
         }
     }
@@ -734,7 +743,7 @@ fn read_cached_block(path: &Path, require_owned: bool) -> Result<Vec<u8>> {
     if before.file_type().is_symlink()
         || !before.is_file()
         || before.len() > super::model::MAX_BLOCK_BYTES as u64
-        || (require_owned && before.uid() != unsafe { libc::geteuid() })
+        || (require_owned && before.uid() != ownership::expected_uid())
     {
         return Err(format!(
             "unsafe or oversized cached block: {}",
@@ -1197,15 +1206,11 @@ fn write_results(path: &Path, results: &[BenchResult]) -> Result<()> {
                 return Err("benchmark output directory is not empty".into());
             }
             #[cfg(unix)]
-            if meta.uid() != unsafe { libc::geteuid() } || meta.mode() & 0o077 != 0 {
+            if meta.uid() != ownership::expected_uid() || meta.mode() & 0o077 != 0 {
                 return Err("existing benchmark output must be owned and private".into());
             }
         } else {
-            let mut builder = DirBuilder::new();
-            #[cfg(unix)]
-            builder.mode(0o700);
-            builder
-                .create(path)
+            ownership::create_private_directory(path)
                 .map_err(|e| format!("create benchmark output: {e}"))?;
         }
         path.join("bench.jsonl")
@@ -1213,10 +1218,16 @@ fn write_results(path: &Path, results: &[BenchResult]) -> Result<()> {
     let mut opts = OpenOptions::new();
     opts.write(true).create_new(true);
     #[cfg(unix)]
-    opts.mode(0o600);
+    opts.mode(0o600)
+        .custom_flags(libc::O_NOFOLLOW | libc::O_CLOEXEC);
     let file = opts
         .open(&target)
         .map_err(|e| format!("create benchmark results: {e}"))?;
+    if let Err(error) = ownership::chown_created_file(&file) {
+        drop(file);
+        let _ = fs::remove_file(&target);
+        return Err(format!("set benchmark results owner: {error}"));
+    }
     let mut writer = BufWriter::new(file);
     for result in results {
         serde_json::to_writer(&mut writer, result)
@@ -1370,5 +1381,38 @@ mod worker_flag_tests {
         assert!(parse(&["--workers", "0"]).is_err());
         assert!(parse(&["--workers", "many"]).is_err());
         assert!(parse(&["--workers", "2", "--workers", "3"]).is_err());
+    }
+}
+
+#[cfg(all(test, target_os = "macos"))]
+mod ownership_cleanup_tests {
+    use super::*;
+
+    #[test]
+    fn privileged_export_failure_never_recursively_removes_a_substituted_ancestor() {
+        if unsafe { libc::geteuid() } != 0 {
+            return;
+        }
+        let root = PathBuf::from(format!(
+            "/private/tmp/pl-export-cleanup-test-{}",
+            std::process::id()
+        ));
+        fs::create_dir(&root).unwrap();
+        let ancestor = root.join("ancestor");
+        let victim = root.join("victim");
+        fs::create_dir(&ancestor).unwrap();
+        fs::create_dir(&victim).unwrap();
+        fs::create_dir(victim.join("output")).unwrap();
+        fs::write(victim.join("output/sentinel"), b"keep").unwrap();
+        let exporter = BlocksExporter::create(&ancestor.join("output")).unwrap();
+        fs::rename(&ancestor, root.join("moved")).unwrap();
+        std::os::unix::fs::symlink(&victim, &ancestor).unwrap();
+        drop(exporter);
+        let preserved = victim.join("output/sentinel").exists();
+        fs::remove_dir_all(&root).unwrap();
+        assert!(
+            preserved,
+            "privileged cleanup followed the substituted ancestor"
+        );
     }
 }

@@ -1,12 +1,12 @@
 //! Private, crash-recoverable Brotli frame storage for opaque encoded recording blocks.
-use super::{Context, MAX_BLOCK_BYTES, Profile, Result};
+use super::{Context, MAX_BLOCK_BYTES, Profile, Result, ownership};
 use brotli::{CompressorWriter, Decompressor};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::ffi::CString;
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, Read, Seek, SeekFrom, Write};
-use std::os::unix::fs::{DirBuilderExt, MetadataExt, OpenOptionsExt, PermissionsExt};
+use std::os::unix::fs::{MetadataExt, OpenOptionsExt, PermissionsExt};
 use std::path::{Path, PathBuf};
 
 const ARCHIVE_VERSION: u32 = 1;
@@ -828,7 +828,7 @@ impl ArchiveWriter {
         if let Ok(meta) = fs::symlink_metadata(&current) {
             if meta.file_type().is_symlink()
                 || !meta.is_file()
-                || meta.uid() != unsafe { libc::geteuid() }
+                || meta.uid() != ownership::expected_uid()
             {
                 return Err("unsafe archive manifest".into());
             }
@@ -994,7 +994,7 @@ fn scan_frames_with(
             fs::symlink_metadata(entry.path()).map_err(io_error("inspect archive entry"))?;
         if metadata.file_type().is_symlink()
             || !metadata.is_file()
-            || metadata.uid() != unsafe { libc::geteuid() }
+            || metadata.uid() != ownership::expected_uid()
         {
             return Err(format!("unsafe or unowned archive entry: {name}"));
         }
@@ -1472,30 +1472,26 @@ fn prepare_root(path: &Path) -> Result<PathBuf> {
         .unwrap_or(Path::new("."));
     let parent = fs::canonicalize(parent).map_err(io_error("resolve archive parent"))?;
     let root = parent.join(name);
-    match fs::symlink_metadata(&root) {
+    let created = match fs::symlink_metadata(&root) {
         Ok(meta) if meta.file_type().is_symlink() => {
             return Err("archive path must not be a symlink".into());
         }
         Ok(meta) if !meta.is_dir() => return Err("archive path is not a directory".into()),
-        Ok(_) => {}
+        Ok(_) => false,
         Err(e) if e.kind() == io::ErrorKind::NotFound => {
-            let mut builder = fs::DirBuilder::new();
-            builder.mode(0o700);
-            builder
-                .create(&root)
+            ownership::create_private_directory(&root)
                 .map_err(io_error("create archive directory"))?;
-            fs::set_permissions(&root, fs::Permissions::from_mode(0o700))
-                .map_err(io_error("protect archive directory"))?;
             sync_directory(&parent)?;
+            true
         }
         Err(e) => return Err(format!("inspect archive path: {e}")),
-    }
+    };
     let meta = fs::symlink_metadata(&root).map_err(io_error("inspect archive directory"))?;
-    if !meta.is_dir() || meta.uid() != unsafe { libc::geteuid() } {
+    if !meta.is_dir() || meta.uid() != ownership::expected_uid() {
         return Err("archive directory is not owned by current user".into());
     }
-    if meta.permissions().mode() & 0o777 != 0o700 {
-        fs::set_permissions(&root, fs::Permissions::from_mode(0o700))
+    if !created && meta.permissions().mode() & 0o777 != 0o700 {
+        ownership::make_existing_directory_private(&root)
             .map_err(io_error("make archive directory private"))?;
     }
     Ok(root)
@@ -1503,7 +1499,7 @@ fn prepare_root(path: &Path) -> Result<PathBuf> {
 
 fn existing_root(path: &Path) -> Result<PathBuf> {
     let meta = fs::symlink_metadata(path).map_err(io_error("inspect archive directory"))?;
-    if meta.file_type().is_symlink() || !meta.is_dir() || meta.uid() != unsafe { libc::geteuid() } {
+    if meta.file_type().is_symlink() || !meta.is_dir() || meta.uid() != ownership::expected_uid() {
         return Err("archive path is not an owned, non-symlink directory".into());
     }
     if meta.permissions().mode() & 0o077 != 0 {
@@ -1514,16 +1510,32 @@ fn existing_root(path: &Path) -> Result<PathBuf> {
 
 fn acquire_lock(root: &Path) -> Result<File> {
     let path = root.join(LOCK_FILE);
-    let existed = fs::symlink_metadata(&path).is_ok();
     let mut opts = OpenOptions::new();
     opts.read(true)
         .write(true)
-        .create(true)
+        .create_new(true)
         .mode(0o600)
         .custom_flags(libc::O_NOFOLLOW | libc::O_CLOEXEC);
-    let file = opts.open(&path).map_err(io_error("open writer lock"))?;
+    let (file, created) = match opts.open(&path) {
+        Ok(file) => {
+            if let Err(error) = ownership::chown_created_file(&file) {
+                drop(file);
+                let _ = fs::remove_file(&path);
+                return Err(format!("set writer lock owner: {error}"));
+            }
+            (file, true)
+        }
+        Err(error) if error.kind() == io::ErrorKind::AlreadyExists => {
+            opts.create_new(false);
+            (
+                opts.open(&path).map_err(io_error("open writer lock"))?,
+                false,
+            )
+        }
+        Err(error) => return Err(io_error("create writer lock")(error)),
+    };
     let meta = file.metadata().map_err(io_error("stat writer lock"))?;
-    if !meta.is_file() || meta.uid() != unsafe { libc::geteuid() } {
+    if !meta.is_file() || meta.uid() != ownership::expected_uid() {
         return Err("writer lock is not an owned regular file".into());
     }
     file.set_permissions(fs::Permissions::from_mode(0o600))
@@ -1537,7 +1549,7 @@ fn acquire_lock(root: &Path) -> Result<File> {
     if status != 0 {
         return Err("archive already has an active writer".into());
     }
-    if !existed {
+    if created {
         sync_directory(root)?;
     }
     Ok(file)
@@ -1598,7 +1610,7 @@ fn open_existing_regular(path: &Path, write: bool) -> Result<File> {
         .custom_flags(libc::O_NOFOLLOW | libc::O_CLOEXEC);
     let file = opts.open(path).map_err(io_error("open regular file"))?;
     let meta = file.metadata().map_err(io_error("stat regular file"))?;
-    if !meta.is_file() || meta.uid() != unsafe { libc::geteuid() } {
+    if !meta.is_file() || meta.uid() != ownership::expected_uid() {
         return Err(format!(
             "unsafe or unowned regular file: {}",
             path.display()
@@ -1618,7 +1630,13 @@ fn create_private_new(path: &Path) -> Result<File> {
         .create_new(true)
         .mode(0o600)
         .custom_flags(libc::O_NOFOLLOW | libc::O_CLOEXEC);
-    opts.open(path).map_err(io_error("create private file"))
+    let file = opts.open(path).map_err(io_error("create private file"))?;
+    if let Err(error) = ownership::chown_created_file(&file) {
+        drop(file);
+        let _ = fs::remove_file(path);
+        return Err(format!("set private file owner: {error}"));
+    }
+    Ok(file)
 }
 
 fn atomic_write_new(
@@ -1688,7 +1706,7 @@ fn cleanup_frame_temps(root: &Path) -> Result<()> {
                 .map_err(io_error("inspect frame temporary file"))?;
             if meta.file_type().is_symlink()
                 || !meta.is_file()
-                || meta.uid() != unsafe { libc::geteuid() }
+                || meta.uid() != ownership::expected_uid()
             {
                 return Err(format!("unsafe frame temporary file: {name}"));
             }
@@ -1706,7 +1724,7 @@ fn remove_owned_temp(root: &Path, name: &str) -> Result<()> {
         Ok(meta) => {
             if meta.file_type().is_symlink()
                 || !meta.is_file()
-                || meta.uid() != unsafe { libc::geteuid() }
+                || meta.uid() != ownership::expected_uid()
             {
                 return Err(format!("unsafe temporary file: {name}"));
             }
@@ -1717,8 +1735,7 @@ fn remove_owned_temp(root: &Path, name: &str) -> Result<()> {
 fn remove_owned_regular(root: &Path, name: &str) -> Result<()> {
     let path = root.join(name);
     let meta = fs::symlink_metadata(&path).map_err(io_error("inspect file to remove"))?;
-    if meta.file_type().is_symlink() || !meta.is_file() || meta.uid() != unsafe { libc::geteuid() }
-    {
+    if meta.file_type().is_symlink() || !meta.is_file() || meta.uid() != ownership::expected_uid() {
         return Err(format!("refusing to remove unsafe file: {name}"));
     }
     fs::remove_file(path).map_err(io_error("remove file"))
@@ -1755,7 +1772,7 @@ fn directory_bytes(root: &Path) -> Result<u64> {
         let meta = fs::symlink_metadata(entry.path()).map_err(io_error("stat archive entry"))?;
         if meta.file_type().is_symlink()
             || !meta.is_file()
-            || meta.uid() != unsafe { libc::geteuid() }
+            || meta.uid() != ownership::expected_uid()
         {
             return Err("unsafe archive entry while accounting storage".into());
         }

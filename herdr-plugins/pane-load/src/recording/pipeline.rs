@@ -3,6 +3,7 @@ use super::model::{
     Context, Identity, LiveMessage, MAX_BLOCK_BYTES, MAX_POINTS, MemoryColumn, MemoryEncoding,
     Observation, OutputFormat, Process, Profile, RecordOptions, Result, Timebase,
 };
+use super::ownership;
 use super::source::{self, RawWriter};
 use super::store::{ArchiveWriter, CodecFrameAccumulator, StoreOptions};
 use super::wire::encode_block_with_memory;
@@ -10,10 +11,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::collections::{HashMap, HashSet};
-use std::fs::{self, DirBuilder, File, OpenOptions};
+use std::fs::{self, File, OpenOptions};
 use std::io::{BufRead, BufReader, Read, Write};
 use std::os::fd::AsRawFd;
-use std::os::unix::fs::{DirBuilderExt, MetadataExt, OpenOptionsExt, PermissionsExt};
+use std::os::unix::fs::{MetadataExt, OpenOptionsExt};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::mpsc::Receiver;
@@ -630,11 +631,7 @@ fn open_sink(
             run_dir.display()
         ));
     }
-    let mut builder = DirBuilder::new();
-    #[cfg(unix)]
-    builder.mode(0o700);
-    builder
-        .create(&run_dir)
+    ownership::create_private_directory(&run_dir)
         .map_err(|e| format!("create recording run directory: {e}"))?;
     write_initial_status(
         &run_dir,
@@ -672,11 +669,7 @@ fn prepare_root(path: &Path) -> Result<(PathBuf, File)> {
         Ok(meta) if !meta.is_dir() => return Err("recording root is not a directory".into()),
         Ok(_) => false,
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-            let mut builder = DirBuilder::new();
-            #[cfg(unix)]
-            builder.mode(0o700);
-            builder
-                .create(path)
+            ownership::create_private_directory(path)
                 .map_err(|e| format!("create recording root: {e}"))?;
             true
         }
@@ -687,25 +680,38 @@ fn prepare_root(path: &Path) -> Result<(PathBuf, File)> {
         return Err("recording root must be a non-symlink directory".into());
     }
     #[cfg(unix)]
-    if meta.uid() != unsafe { libc::geteuid() } || (!created && meta.mode() & 0o077 != 0) {
+    if meta.uid() != ownership::expected_uid() || (!created && meta.mode() & 0o077 != 0) {
         return Err("existing recording root must be owned and private".into());
     }
     let lock_path = path.join("record.lock");
     let mut open = OpenOptions::new();
-    open.read(true).write(true).create(true);
+    open.read(true).write(true).create_new(true);
     #[cfg(unix)]
     open.mode(0o600)
         .custom_flags(libc::O_NOFOLLOW | libc::O_CLOEXEC);
-    let lock = open
-        .open(&lock_path)
-        .map_err(|e| format!("open recording root lock: {e}"))?;
+    let lock = match open.open(&lock_path) {
+        Ok(lock) => {
+            if let Err(error) = ownership::chown_created_file(&lock) {
+                drop(lock);
+                let _ = fs::remove_file(&lock_path);
+                return Err(format!("set recording root lock owner: {error}"));
+            }
+            lock
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
+            open.create_new(false);
+            open.open(&lock_path)
+                .map_err(|e| format!("open recording root lock: {e}"))?
+        }
+        Err(e) => return Err(format!("create recording root lock: {e}")),
+    };
     #[cfg(unix)]
     {
         let lock_meta = lock
             .metadata()
             .map_err(|e| format!("inspect recording root lock: {e}"))?;
         if !lock_meta.is_file()
-            || lock_meta.uid() != unsafe { libc::geteuid() }
+            || lock_meta.uid() != ownership::expected_uid()
             || lock_meta.nlink() != 1
             || lock_meta.mode() & 0o077 != 0
         {
@@ -734,10 +740,7 @@ fn create_private_dirs(path: &Path) -> Result<()> {
                 ));
             }
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-                let mut builder = DirBuilder::new();
-                #[cfg(unix)]
-                builder.mode(0o700);
-                match builder.create(&current) {
+                match ownership::create_private_directory(&current) {
                     Ok(()) => {}
                     Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
                         if !fs::metadata(&current).is_ok_and(|meta| meta.is_dir()) {
@@ -781,7 +784,7 @@ fn recover_owned_archives(root: &Path, options: &RecordOptions) -> Result<Vec<St
             return Err("unsafe entry in recording root".into());
         }
         #[cfg(unix)]
-        if meta.uid() != unsafe { libc::geteuid() } || meta.mode() & 0o077 != 0 {
+        if meta.uid() != ownership::expected_uid() || meta.mode() & 0o077 != 0 {
             return Err("recording run is not an owned private directory".into());
         }
 
@@ -799,7 +802,7 @@ fn recover_owned_archives(root: &Path, options: &RecordOptions) -> Result<Vec<St
             }
             Ok(meta) => {
                 #[cfg(unix)]
-                if meta.uid() != unsafe { libc::geteuid() } || meta.mode() & 0o077 != 0 {
+                if meta.uid() != ownership::expected_uid() || meta.mode() & 0o077 != 0 {
                     return Err("recording archive is not an owned private directory".into());
                 }
                 Some(meta)
@@ -817,7 +820,7 @@ fn recover_owned_archives(root: &Path, options: &RecordOptions) -> Result<Vec<St
                     return Err("unsafe active journal in recording archive".into());
                 }
                 #[cfg(unix)]
-                if meta.uid() != unsafe { libc::geteuid() } || meta.mode() & 0o077 != 0 {
+                if meta.uid() != ownership::expected_uid() || meta.mode() & 0o077 != 0 {
                     return Err("active journal is not an owned private file".into());
                 }
                 true
@@ -905,7 +908,7 @@ fn validate_owned_archive_entries(archive: &Path) -> Result<()> {
             return Err("unsafe entry in active recording archive".into());
         }
         #[cfg(unix)]
-        if meta.uid() != unsafe { libc::geteuid() } || meta.mode() & 0o077 != 0 {
+        if meta.uid() != ownership::expected_uid() || meta.mode() & 0o077 != 0 {
             return Err("active archive entry is not an owned private file".into());
         }
     }
@@ -922,7 +925,7 @@ fn read_owned_metadata(path: &Path, limit: u64) -> Result<Vec<u8>> {
         ));
     }
     #[cfg(unix)]
-    if before.uid() != unsafe { libc::geteuid() }
+    if before.uid() != ownership::expected_uid()
         || before.nlink() != 1
         || before.mode() & 0o077 != 0
     {
@@ -942,7 +945,7 @@ fn read_owned_metadata(path: &Path, limit: u64) -> Result<Vec<u8>> {
     if !after.is_file()
         || after.dev() != before.dev()
         || after.ino() != before.ino()
-        || after.uid() != unsafe { libc::geteuid() }
+        || after.uid() != ownership::expected_uid()
         || after.nlink() != 1
         || after.mode() & 0o077 != 0
     {
@@ -1256,9 +1259,18 @@ fn publish_status(run: &Path, name: &str, bytes: &[u8], replace: bool) -> Result
         let mut options = OpenOptions::new();
         options.write(true).create_new(true);
         #[cfg(unix)]
-        options.mode(0o600);
+        options
+            .mode(0o600)
+            .custom_flags(libc::O_NOFOLLOW | libc::O_CLOEXEC);
         match options.open(&temp) {
-            Ok(file) => break (temp, file),
+            Ok(file) => {
+                if let Err(error) = ownership::chown_created_file(&file) {
+                    drop(file);
+                    let _ = fs::remove_file(&temp);
+                    return Err(format!("set run status temp owner: {error}"));
+                }
+                break (temp, file);
+            }
             Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
             Err(error) => return Err(format!("create run status temp: {error}")),
         }
@@ -1297,7 +1309,7 @@ fn validate_owned_status(path: &Path, required: bool) -> Result<()> {
         return Err(format!("unsafe run status: {}", path.display()));
     }
     #[cfg(unix)]
-    if metadata.uid() != unsafe { libc::geteuid() }
+    if metadata.uid() != ownership::expected_uid()
         || metadata.nlink() != 1
         || metadata.mode() & 0o077 != 0
     {
@@ -1429,14 +1441,21 @@ fn transform_sources_impl(
     )?;
     let archive_path = root.join("archive");
     let mut checked_segments = if capture_ledger.is_some() {
+        let path = root.join("checkedsegments.jsonl");
         let mut open = OpenOptions::new();
         open.write(true).create_new(true);
         #[cfg(unix)]
-        open.mode(0o600);
-        Some(
-            open.open(root.join("checkedsegments.jsonl"))
-                .map_err(|e| format!("create checked segment ledger: {e}"))?,
-        )
+        open.mode(0o600)
+            .custom_flags(libc::O_NOFOLLOW | libc::O_CLOEXEC);
+        let file = open
+            .open(&path)
+            .map_err(|e| format!("create checked segment ledger: {e}"))?;
+        if let Err(error) = ownership::chown_created_file(&file) {
+            drop(file);
+            let _ = fs::remove_file(&path);
+            return Err(format!("set checked segment ledger owner: {error}"));
+        }
+        Some(file)
     } else {
         None
     };
@@ -1553,11 +1572,8 @@ fn transform_sources_impl(
                 }
             } else {
                 first_context = Some(context.clone());
-                fs::create_dir(&archive_path)
+                ownership::create_private_directory(&archive_path)
                     .map_err(|e| format!("create transformed archive: {e}"))?;
-                #[cfg(unix)]
-                fs::set_permissions(&archive_path, fs::Permissions::from_mode(0o700))
-                    .map_err(|e| format!("protect transformed archive: {e}"))?;
                 sink = Some(Sink::Binary(ArchiveWriter::open(
                     &archive_path,
                     context,
@@ -1619,11 +1635,8 @@ fn transform_sources_impl(
                     }
                 } else {
                     first_context = Some(source_stats.context.clone());
-                    fs::create_dir(&archive_path)
+                    ownership::create_private_directory(&archive_path)
                         .map_err(|e| format!("create transformed archive: {e}"))?;
-                    #[cfg(unix)]
-                    fs::set_permissions(&archive_path, fs::Permissions::from_mode(0o700))
-                        .map_err(|e| format!("protect transformed archive: {e}"))?;
                     sink = Some(Sink::Binary(ArchiveWriter::open(
                         &archive_path,
                         &source_stats.context,
@@ -1751,10 +1764,8 @@ fn run_bulk_transform_with_group_limit(
     stats.encoding_workers = Some(encoding_workers);
     stats.source_passes = Some(2);
 
-    fs::create_dir(archive_path).map_err(|e| format!("create transformed archive: {e}"))?;
-    #[cfg(unix)]
-    fs::set_permissions(archive_path, fs::Permissions::from_mode(0o700))
-        .map_err(|e| format!("protect transformed archive: {e}"))?;
+    ownership::create_private_directory(archive_path)
+        .map_err(|e| format!("create transformed archive: {e}"))?;
     let mut sink = Sink::Binary(ArchiveWriter::open(
         archive_path,
         &plan.first_context,

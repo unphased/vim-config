@@ -1,5 +1,6 @@
 //! Streaming JSONL source and lossless raw-reference writer.
 use super::model::{Context, MAX_BLOCK_BYTES, MAX_POINTS, Observation, Process, Result, Timebase};
+use super::ownership;
 use serde::de::{self, IgnoredAny, SeqAccess, Visitor};
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Value};
@@ -707,6 +708,11 @@ fn open_private_exclusive(path: &Path) -> Result<File> {
     let file = options
         .open(path)
         .map_err(|e| format!("create source {} exclusively: {e}", path.display()))?;
+    if let Err(error) = ownership::chown_created_file(&file) {
+        drop(file);
+        let _ = fs::remove_file(path);
+        return Err(format!("set source owner {}: {error}", path.display()));
+    }
     let metadata = file
         .metadata()
         .map_err(|e| format!("stat created source {}: {e}", path.display()))?;
@@ -719,7 +725,7 @@ fn open_private_exclusive(path: &Path) -> Result<File> {
     #[cfg(unix)]
     {
         use std::os::unix::fs::{MetadataExt, PermissionsExt};
-        if metadata.uid() != unsafe { libc::geteuid() } {
+        if metadata.uid() != ownership::expected_uid() {
             return Err(format!(
                 "created source is not owned by the current user: {}",
                 path.display()
