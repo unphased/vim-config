@@ -626,7 +626,13 @@ validation, current byte/CPU costs and the different-fidelity historical control
 Protocol design is fluid; these alternatives introduce no compatibility requirement.
 Research artifacts are private under `.recordings/window-design-example-v2/`:
 `model.py`, exact synthetic input, actual Rust baseline, assumptions/summary JSON,
-and `window-rules.svg.png` / `burst-guard.svg.png`. No production source was changed.
+and `window-rules.svg` / `burst-guard.svg`. Both comparison charts include the
+**exact unquantized 100ms input in black**, separately from current CSH2's decoded
+output in blue. `input-truth.svg` shows only that input so overlapping output curves
+cannot obscure it. This is encoder-input ground truth, not sub-100ms execution
+timing. Three chart checks validate the 12 input curves, comparison-only output
+curves, and equality with the actual raw input rather than quantized output.
+No production source was changed; charts are SVG only.
 
 Each case is 20 seconds at 10 Hz, with average CPU 0.005%, 0.05%, 0.5% or 5% of one
 core. Four patterns have identical totals at each intensity: steady, evenly spaced
