@@ -399,8 +399,8 @@ fn encode_v2(
 ) -> Result<Vec<u8>> {
     let profile_name = match profile {
         Profile::Adaptive => "adaptive-v1",
-        Profile::AdaptiveInverse => "adaptive-inverse-v1",
-        Profile::AdaptiveLog => "adaptive-log-v1",
+        Profile::AdaptiveInverse => "adaptive-inverse",
+        Profile::AdaptiveLog => "adaptive-log",
         Profile::Fixed100us => "fixed-100us-v1",
         Profile::Legacy1ms => return Err("legacy profile cannot use PST2".into()),
     };
@@ -409,10 +409,6 @@ fn encode_v2(
         .any(|row| !row.quality.is_empty())
         .then(|| rows.iter().map(|row| row.quality.as_slice()).collect());
     let memory = selected_memory(memory, rows);
-    let memory_section = memory
-        .as_ref()
-        .map(|encoding| encode_pmm1(rows, encoding))
-        .transpose()?;
     let header = V2HeaderRef {
         all_observations_kept: true,
         context: WireContextRef::from(context),
@@ -428,7 +424,30 @@ fn encode_v2(
         memory: memory.as_ref(),
     };
     let header = json_bytes(&header, MAX_BLOCK_BYTES)?;
-    json_expansion_cost(&header)?;
+    let header_expansion = json_expansion_cost(&header)?;
+    let name_bytes =
+        rows.iter()
+            .flat_map(|row| &row.processes)
+            .try_fold(0usize, |size, process| {
+                size.checked_add(process.name.len())
+                    .ok_or_else(|| "PST2 name-size estimate overflow".to_string())
+            })?;
+    check_v2_decoded_budget(
+        rows.len(),
+        point_count,
+        name_bytes,
+        rows.iter()
+            .map(|row| row.processes.len())
+            .max()
+            .unwrap_or(0),
+        memory.as_ref().map_or(0, |memory| memory.columns.len()),
+        header_expansion,
+        matches!(profile, Profile::AdaptiveInverse | Profile::AdaptiveLog),
+    )?;
+    let memory_section = memory
+        .as_ref()
+        .map(|encoding| encode_pmm1(rows, encoding))
+        .transpose()?;
     let cpu = if matches!(profile, Profile::AdaptiveInverse | Profile::AdaptiveLog) {
         encode_csh2_temporal(rows, profile, context.cpu_timebase, point_count)?
     } else {
@@ -536,7 +555,7 @@ fn decode_legacy(bytes: &[u8]) -> Result<DecodedBlock> {
     if header.cpu_quantum_native_ticks != context.cpu_timebase.quantum(LEGACY_CPU_NS)? {
         return Err("PST1 CPU quantum disagrees with its timebase".into());
     }
-    let mut rows = decode_psd1(metadata_bytes)?;
+    let mut rows = decode_psd1(metadata_bytes, 0)?;
     if let Some(quality) = header.quality {
         if quality.len() != rows.len() {
             return Err("PST1 row quality count does not match metadata".into());
@@ -572,6 +591,7 @@ fn decode_legacy(bytes: &[u8]) -> Result<DecodedBlock> {
 
 fn decode_v2(bytes: &[u8]) -> Result<DecodedBlock> {
     let (header_bytes, cpu_bytes, metadata_bytes, memory_bytes) = unpack_v2_sections(bytes)?;
+    let header_expansion = json_expansion_cost(header_bytes)?;
     let header: V2Header = parse_json(header_bytes)?;
     let memory = header.memory;
     if memory.is_some() != memory_bytes.is_some() {
@@ -598,8 +618,8 @@ fn decode_v2(bytes: &[u8]) -> Result<DecodedBlock> {
     let profile = match header.profile.as_str() {
         "adaptive-v1" => Profile::Adaptive,
         "fixed-100us-v1" => Profile::Fixed100us,
-        "adaptive-inverse-v1" => Profile::AdaptiveInverse,
-        "adaptive-log-v1" => Profile::AdaptiveLog,
+        "adaptive-inverse" => Profile::AdaptiveInverse,
+        "adaptive-log" => Profile::AdaptiveLog,
         _ => return Err("unsupported PST2 CPU profile".into()),
     };
     let declared_rows =
@@ -607,7 +627,7 @@ fn decode_v2(bytes: &[u8]) -> Result<DecodedBlock> {
     if declared_rows > MAX_POINTS {
         return Err("row limit exceeded".into());
     }
-    let mut metadata = decode_psd1(metadata_bytes)?;
+    let mut metadata = decode_psd1(metadata_bytes, header_expansion)?;
     if metadata.len() != declared_rows {
         return Err("PST2 row count does not match metadata".into());
     }
@@ -619,15 +639,33 @@ fn decode_v2(bytes: &[u8]) -> Result<DecodedBlock> {
             row.quality = values;
         }
     }
-    let mut decoded = Vec::with_capacity(metadata.len());
     let mut total_points = 0usize;
-    for row in metadata {
+    let mut name_bytes = 0usize;
+    let mut max_row_points = 0usize;
+    for row in &metadata {
         total_points = total_points
             .checked_add(row.processes.len())
             .ok_or_else(|| "PST2 point count overflow".to_string())?;
+        name_bytes = row.processes.iter().try_fold(name_bytes, |size, process| {
+            size.checked_add(process.name.len())
+                .ok_or_else(|| "PST2 name-size estimate overflow".to_string())
+        })?;
+        max_row_points = max_row_points.max(row.processes.len());
         if total_points > MAX_POINTS {
             return Err("PST2 point limit exceeded".into());
         }
+    }
+    check_v2_decoded_budget(
+        metadata.len(),
+        total_points,
+        name_bytes,
+        max_row_points,
+        memory.as_ref().map_or(0, |memory| memory.columns.len()),
+        header_expansion,
+        matches!(profile, Profile::AdaptiveInverse | Profile::AdaptiveLog),
+    )?;
+    let mut decoded = Vec::with_capacity(metadata.len());
+    for row in metadata {
         let processes = row
             .processes
             .into_iter()
@@ -820,6 +858,64 @@ struct MetaRow {
     scan_end_ns: u64,
     processes: Vec<MetaProcess>,
     quality: Vec<Value>,
+}
+
+fn check_v2_decoded_budget(
+    row_count: usize,
+    point_count: usize,
+    name_bytes: usize,
+    max_row_points: usize,
+    memory_columns: usize,
+    header_expansion: usize,
+    temporal: bool,
+) -> Result<()> {
+    let mut expanded = header_expansion;
+    let mut add = |count: usize, size: usize| -> Result<()> {
+        expanded = expanded
+            .checked_add(
+                count
+                    .checked_mul(size)
+                    .ok_or_else(|| "PST2 decoded-size estimate overflow".to_string())?,
+            )
+            .ok_or_else(|| "PST2 decoded-size estimate overflow".to_string())?;
+        Ok(())
+    };
+    // Metadata and final DTOs overlap during conversion; names are moved, not cloned.
+    add(row_count, std::mem::size_of::<MetaRow>())?;
+    add(point_count, std::mem::size_of::<MetaProcess>())?;
+    add(row_count, std::mem::size_of::<DecodedObservation>())?;
+    add(point_count, std::mem::size_of::<DecodedProcess>())?;
+    add(name_bytes, 1)?;
+    add(
+        point_count,
+        std::mem::size_of::<MetaProcess>()
+            + std::mem::size_of::<(u32, u64, u32)>()
+            + 8 * std::mem::size_of::<usize>(),
+    )?;
+    add(name_bytes, 1)?;
+    if temporal {
+        add(
+            point_count,
+            std::mem::size_of::<usize>() + 3 * std::mem::size_of::<u64>(),
+        )?;
+        add(
+            point_count,
+            std::mem::size_of::<TemporalSpan>()
+                + std::mem::size_of::<(u32, u64, u32)>()
+                + 4 * std::mem::size_of::<usize>(),
+        )?;
+    }
+    if memory_columns > 0 {
+        add(
+            point_count,
+            std::mem::size_of::<((u32, u64, u32), i128)>() + 4 * std::mem::size_of::<usize>(),
+        )?;
+        add(max_row_points, std::mem::size_of::<bool>())?;
+    }
+    if expanded > MAX_DECODED_BYTES {
+        return Err("PST2 decoded expansion exceeds the bounded output limit".into());
+    }
+    Ok(())
 }
 
 fn add_psd1_row_expansion(
@@ -1017,7 +1113,7 @@ impl MetaChange {
     }
 }
 
-fn decode_psd1(bytes: &[u8]) -> Result<Vec<MetaRow>> {
+fn decode_psd1(bytes: &[u8], budget_reserve: usize) -> Result<Vec<MetaRow>> {
     if bytes.len() < 5 || &bytes[..4] != PSD1 {
         return Err("invalid PSD1 metadata magic".into());
     }
@@ -1027,6 +1123,18 @@ fn decode_psd1(bytes: &[u8]) -> Result<Vec<MetaRow>> {
     if frame_count > MAX_POINTS || frame_count > bytes.len().saturating_sub(offset) / 5 {
         return Err("PSD1 row count exceeds limits or payload".into());
     }
+    let budget_reserve = budget_reserve
+        .checked_add(
+            frame_count
+                .checked_mul(
+                    std::mem::size_of::<MetaRow>() + std::mem::size_of::<DecodedObservation>(),
+                )
+                .ok_or_else(|| "PSD1 decoded-size estimate overflow".to_string())?,
+        )
+        .ok_or_else(|| "PSD1 decoded-size estimate overflow".to_string())?;
+    if budget_reserve > MAX_DECODED_BYTES {
+        return Err("PSD1 decoded expansion exceeds the bounded output limit".into());
+    }
     let mut slots: Vec<MetaProcess> = Vec::new();
     let mut declared_ids = BTreeSet::new();
     let mut active = BTreeSet::new();
@@ -1034,6 +1142,7 @@ fn decode_psd1(bytes: &[u8]) -> Result<Vec<MetaRow>> {
     let (mut seq, mut wall, mut scan) = (0u64, 0i64, 0u64);
     let mut total_points = 0usize;
     let mut expanded_bytes = 0usize;
+    let mut identity_scratch_bytes = 0usize;
     for _ in 0..frame_count {
         seq = add_signed_u64(seq, read_svarint(bytes, &mut offset)?, "sequence")?;
         wall = add_signed_i64(wall, read_svarint(bytes, &mut offset)?, "wall clock")?;
@@ -1090,6 +1199,19 @@ fn decode_psd1(bytes: &[u8]) -> Result<Vec<MetaRow>> {
                     if !declared_ids.insert((pid, start_sec, start_usec)) {
                         return Err("PSD1 identity was allocated more than once".into());
                     }
+                    identity_scratch_bytes = identity_scratch_bytes
+                        .checked_add(
+                            std::mem::size_of::<MetaProcess>()
+                                .checked_add(name.len())
+                                .and_then(|size| {
+                                    size.checked_add(std::mem::size_of::<(u32, u64, u32)>())
+                                })
+                                .and_then(|size| size.checked_add(8 * std::mem::size_of::<usize>()))
+                                .ok_or_else(|| {
+                                    "PSD1 identity-size estimate overflow".to_string()
+                                })?,
+                        )
+                        .ok_or_else(|| "PSD1 identity-size estimate overflow".to_string())?;
                     slots.push(MetaProcess {
                         pid,
                         ppid,
@@ -1172,6 +1294,22 @@ fn decode_psd1(bytes: &[u8]) -> Result<Vec<MetaRow>> {
                     .ok_or_else(|| "PSD1 active slot out of range".to_string())
             }),
         )?;
+        if budget_reserve > 0 {
+            let parsed_rows = rows.len() + 1;
+            let row_structs = parsed_rows
+                .checked_mul(std::mem::size_of::<MetaRow>())
+                .ok_or_else(|| "PSD1 decoded-size estimate overflow".to_string())?;
+            let metadata_processes = expanded_bytes
+                .checked_sub(row_structs)
+                .ok_or_else(|| "PSD1 decoded-size estimate underflow".to_string())?;
+            let combined = budget_reserve
+                .checked_add(metadata_processes)
+                .and_then(|size| size.checked_add(identity_scratch_bytes))
+                .ok_or_else(|| "PSD1 decoded-size estimate overflow".to_string())?;
+            if combined > MAX_DECODED_BYTES {
+                return Err("PST2 decoded expansion exceeds the bounded output limit".into());
+            }
+        }
         let mut processes: Vec<_> = active
             .iter()
             .map(|slot| {
@@ -1596,8 +1734,7 @@ fn encode_csh2_temporal(
                 let previous = &rows[*previous_index];
                 row_index != previous_index + 1
                     || rows[row_index].seq != previous.seq.saturating_add(1)
-                    || (previous_index + 1..=row_index)
-                        .any(|index| temporal_quality_boundary(&rows[index], identity))
+                    || temporal_quality_boundary(&rows[row_index], identity)
             });
             if split {
                 segments.push(TemporalSegment {
@@ -1615,12 +1752,19 @@ fn encode_csh2_temporal(
         }
     }
 
-    let qbusy = timebase.quantum(LEGACY_CPU_NS)?;
+    let cap = timebase.quantum(LEGACY_CPU_NS)?;
+    let qbusy = adaptive_quantum(u128::from(cap), cap);
     let mut selected_segments = Vec::<TemporalSegment>::new();
     let mut checkpoint_count = 0usize;
     for segment in segments {
-        let chosen =
-            select_temporal_points(rows, &segment.samples, segment.identity, qbusy, profile)?;
+        let chosen = select_temporal_points(
+            rows,
+            &segment.samples,
+            segment.identity,
+            cap,
+            qbusy,
+            profile,
+        )?;
         checkpoint_count = checkpoint_count
             .checked_add(chosen.len())
             .ok_or_else(|| "temporal CPU checkpoint count overflow".to_string())?;
@@ -1635,7 +1779,7 @@ fn encode_csh2_temporal(
 
     let mut out = Vec::new();
     out.extend_from_slice(CSH2);
-    out.push(3);
+    out.push(CSH2_VERSION);
     for value in [
         rows.len() as u64,
         selected_segments.len() as u64,
@@ -1666,19 +1810,49 @@ fn encode_csh2_temporal(
             .first()
             .ok_or_else(|| "empty temporal CPU segment".to_string())?;
         put_uvarint(&mut out, first.1)?;
+
+        let mut quanta = Vec::with_capacity(segment.samples.len().saturating_sub(1));
         for pair in segment.samples.windows(2) {
             let delta = pair[1]
                 .1
                 .checked_sub(pair[0].1)
                 .ok_or_else(|| "temporal CPU total regressed".to_string())?;
-            let start_ns = rows[pair[0].0].scan_start_ns;
-            let end_ns = rows[pair[1].0].scan_start_ns;
-            let duration = end_ns
-                .checked_sub(start_ns)
+            let duration = rows[pair[1].0]
+                .scan_start_ns
+                .checked_sub(rows[pair[0].0].scan_start_ns)
                 .filter(|duration| *duration > 0)
                 .ok_or_else(|| "temporal CPU interval has invalid duration".to_string())?;
-            put_uvarint(&mut out, delta)?;
-            put_uvarint(&mut out, temporal_quantum(delta, duration, qbusy)?)?;
+            quanta.push(temporal_quantum(delta, duration, cap)?);
+        }
+        let mut runs = Vec::<(usize, usize, u64)>::new();
+        let mut start = 0usize;
+        while start < quanta.len() {
+            let q = quanta[start];
+            let mut end = start + 1;
+            while end < quanta.len() && quanta[end] == q {
+                end += 1;
+            }
+            runs.push((start, end - start, q));
+            start = end;
+        }
+        put_uvarint(&mut out, runs.len() as u64)?;
+        for (start, length, q) in runs {
+            put_uvarint(&mut out, length as u64)?;
+            put_uvarint(&mut out, q)?;
+            let anchor = segment.samples[start].1;
+            let end_point = start + length;
+            for (_, cpu) in segment.samples.iter().take(end_point).skip(start + 1) {
+                let quotient = cpu
+                    .checked_sub(anchor)
+                    .ok_or_else(|| "temporal CPU anchor regression".to_string())?
+                    / q;
+                put_uvarint(&mut out, quotient)?;
+            }
+            let endpoint_delta = segment.samples[end_point]
+                .1
+                .checked_sub(anchor)
+                .ok_or_else(|| "temporal CPU endpoint regression".to_string())?;
+            put_uvarint(&mut out, endpoint_delta)?;
         }
         check_wire_size(&out)?;
     }
@@ -1690,59 +1864,56 @@ fn select_temporal_points(
     rows: &[Observation],
     samples: &[(usize, u64)],
     identity: (u32, u64, u32),
+    cap: u64,
     qbusy: u64,
     profile: Profile,
 ) -> Result<Vec<(usize, u64)>> {
     if samples.len() <= 2 {
         return Ok(samples.to_vec());
     }
-    let mut selected = Vec::new();
-    selected.push(samples[0]);
+    let mut selected = vec![samples[0]];
     let mut anchor = 0usize;
     let mut pending_ns = 5_000_000_000u64;
     for index in 1..samples.len() {
-        let (start_row, start_total) = samples[anchor];
+        let (previous_row, previous_total) = samples[index - 1];
         let (row_index, total) = samples[index];
-        let elapsed = rows[row_index]
+        let adjacent_elapsed = rows[row_index]
             .scan_start_ns
-            .checked_sub(rows[start_row].scan_start_ns)
+            .checked_sub(rows[previous_row].scan_start_ns)
             .filter(|duration| *duration > 0)
             .ok_or_else(|| "temporal CPU source time did not advance".to_string())?;
-        let amount = total
-            .checked_sub(start_total)
+        let adjacent_delta = total
+            .checked_sub(previous_total)
             .ok_or_else(|| "temporal CPU source total regressed".to_string())?;
-        let q = temporal_quantum(amount, elapsed, qbusy)?;
+        let q = temporal_quantum(adjacent_delta, adjacent_elapsed, cap)?;
         let desired = temporal_target(q, qbusy, profile)?;
-        if desired < pending_ns && index > anchor + 1 {
-            let before_burst = samples[index - 1];
-            if selected.last().is_none_or(|last| last.0 != before_burst.0) {
-                selected.push(before_burst);
+
+        let anchor_row = samples[anchor].0;
+        let elapsed_from_anchor = rows[row_index]
+            .scan_start_ns
+            .checked_sub(rows[anchor_row].scan_start_ns)
+            .filter(|duration| *duration > 0)
+            .ok_or_else(|| "temporal CPU source time did not advance".to_string())?;
+        if desired < pending_ns && index > anchor + 1 && elapsed_from_anchor > desired {
+            let previous = samples[index - 1];
+            if selected.last().is_none_or(|last| last.0 != previous.0) {
+                selected.push(previous);
             }
             anchor = index - 1;
             pending_ns = 5_000_000_000;
-            let (anchor_row, anchor_total) = samples[anchor];
-            let adjacent_elapsed = rows[row_index]
-                .scan_start_ns
-                .checked_sub(rows[anchor_row].scan_start_ns)
-                .ok_or_else(|| "temporal CPU source time regressed".to_string())?;
-            let adjacent_amount = total
-                .checked_sub(anchor_total)
-                .ok_or_else(|| "temporal CPU source total regressed".to_string())?;
-            let adjacent_q = temporal_quantum(adjacent_amount, adjacent_elapsed, qbusy)?;
-            let adjacent_target = temporal_target(adjacent_q, qbusy, profile)?;
-            pending_ns = pending_ns.min(adjacent_target);
-        } else {
-            pending_ns = pending_ns.min(desired);
         }
-        let distance = rows[row_index]
+        pending_ns = pending_ns.min(desired);
+
+        let since_anchor = rows[row_index]
             .scan_start_ns
-            .saturating_sub(rows[samples[anchor].0].scan_start_ns);
+            .checked_sub(rows[samples[anchor].0].scan_start_ns)
+            .ok_or_else(|| "temporal CPU source time regressed".to_string())?;
         let metadata_change = rows[row_index]
             .processes
             .iter()
             .find(|process| process.identity() == identity)
             .zip(
-                rows[samples[index - 1].0]
+                rows[previous_row]
                     .processes
                     .iter()
                     .find(|process| process.identity() == identity),
@@ -1750,7 +1921,7 @@ fn select_temporal_points(
             .is_some_and(|(current, previous)| {
                 current.name != previous.name || current.ppid != previous.ppid
             });
-        if distance >= pending_ns || metadata_change {
+        if since_anchor >= pending_ns || metadata_change {
             if selected.last().is_none_or(|last| last.0 != row_index) {
                 selected.push((row_index, total));
             }
@@ -1784,69 +1955,64 @@ fn temporal_quality_boundary(row: &Observation, identity: (u32, u64, u32)) -> bo
     })
 }
 
-fn temporal_quantum(delta: u64, elapsed_ns: u64, qbusy: u64) -> Result<u64> {
-    if elapsed_ns == 0 {
-        return Err("temporal CPU interval duration is zero".into());
+fn temporal_quantum(delta: u64, elapsed_ns: u64, cap: u64) -> Result<u64> {
+    if elapsed_ns == 0 || cap == 0 {
+        return Err("temporal CPU interval duration/cap is zero".into());
     }
-    let per_100ms = (u128::from(delta) * 100_000_000u128) / u128::from(elapsed_ns);
+    let scaled = u128::from(delta)
+        .checked_mul(100_000_000)
+        .ok_or_else(|| "temporal CPU normalization overflow".to_string())?;
+    let per_100ms = scaled / u128::from(elapsed_ns);
+    Ok(adaptive_quantum(per_100ms, cap))
+}
+
+fn adaptive_quantum(per_100ms: u128, cap: u64) -> u64 {
     let eighth = per_100ms / 8;
-    let power = if eighth == 0 {
-        1
-    } else if eighth >= u128::from(qbusy) {
-        qbusy
-    } else {
-        1u64 << (127 - eighth.leading_zeros())
-    };
-    Ok(power.min(qbusy).max(1))
+    if eighth == 0 {
+        return 1;
+    }
+    let exponent = 127 - eighth.leading_zeros();
+    let power = 1u128 << exponent;
+    u64::try_from(power.min(u128::from(cap)))
+        .unwrap_or(cap)
+        .max(1)
 }
 
 fn temporal_target(q: u64, qbusy: u64, profile: Profile) -> Result<u64> {
+    if q == 0 || qbusy == 0 || !qbusy.is_power_of_two() {
+        return Err("temporal deadline quantum is invalid".into());
+    }
     let ratio = (qbusy / q).max(1);
     match profile {
-        Profile::AdaptiveInverse => Ok((100_000_000u128
-            .checked_mul(u128::from(ratio))
-            .ok_or_else(|| "inverse temporal deadline overflow".to_string())?
-            .min(5_000_000_000u128)) as u64),
+        Profile::AdaptiveInverse => {
+            let target = 100_000_000u128
+                .checked_mul(u128::from(ratio))
+                .ok_or_else(|| "inverse temporal deadline overflow".to_string())?;
+            Ok(target.min(5_000_000_000) as u64)
+        }
         Profile::AdaptiveLog => {
-            if qbusy == 1 {
+            let busy_exponent = u128::from(qbusy.trailing_zeros());
+            if busy_exponent == 0 || q >= qbusy {
                 return Ok(100_000_000);
             }
-            let log_ratio = log2_q63(ratio)?;
-            let log_busy = log2_q63(qbusy)?;
-            let offset = 4_900_000_000u128
+            if !q.is_power_of_two() {
+                return Err("low-rate temporal quantum is not a power of two".into());
+            }
+            let quiet_exponent = u128::from(q.trailing_zeros());
+            let log_ratio = busy_exponent
+                .checked_sub(quiet_exponent)
+                .ok_or_else(|| "log temporal exponent underflow".to_string())?;
+            let numerator = 4_900_000_000u128
                 .checked_mul(log_ratio)
-                .ok_or_else(|| "log temporal deadline overflow".to_string())?
-                .div_ceil(log_busy);
-            Ok((100_000_000u128 + offset).min(5_000_000_000) as u64)
+                .ok_or_else(|| "log temporal deadline overflow".to_string())?;
+            let offset = numerator.div_ceil(busy_exponent);
+            let target = 100_000_000u128
+                .checked_add(offset)
+                .ok_or_else(|| "log temporal deadline overflow".to_string())?;
+            Ok(target.min(5_000_000_000) as u64)
         }
         _ => Err("non-temporal profile used temporal deadline".into()),
     }
-}
-
-fn log2_q63(value: u64) -> Result<u128> {
-    if value == 0 {
-        return Err("logarithm input must be positive".into());
-    }
-    let exponent = 63 - value.leading_zeros();
-    let normalized = u128::from(value)
-        .checked_shl(63 - exponent)
-        .ok_or_else(|| "logarithm normalization overflow".to_string())?;
-    let mut square = normalized;
-    let mut fraction = 0u128;
-    for bit in 0..63 {
-        square = square
-            .checked_mul(square)
-            .ok_or_else(|| "logarithm square overflow".to_string())?
-            >> 63;
-        if square >= (1u128 << 64) {
-            square >>= 1;
-            fraction |= 1u128 << (62 - bit);
-        }
-    }
-    u128::from(exponent)
-        .checked_mul(1u128 << 63)
-        .and_then(|whole| whole.checked_add(fraction))
-        .ok_or_else(|| "logarithm result overflow".into())
 }
 
 fn encode_csh2(
@@ -1874,7 +2040,7 @@ fn encode_csh2(
         Profile::Adaptive => timebase.quantum(LEGACY_CPU_NS)?,
         Profile::Fixed100us => timebase.quantum(FIXED_100US_NS)?,
         Profile::AdaptiveInverse | Profile::AdaptiveLog => {
-            return Err("temporal profile requires CSH2 version 3".into());
+            return Err("temporal profile requires the temporal CSH2 body".into());
         }
         Profile::Legacy1ms => return Err("legacy profile cannot use CSH2".into()),
     };
@@ -1973,6 +2139,93 @@ fn encode_csh2(
     Ok(out)
 }
 
+#[derive(Clone, Copy)]
+struct TemporalSpan {
+    first: usize,
+    last: usize,
+}
+
+fn decoded_temporal_spans(
+    rows: &[DecodedObservation],
+) -> BTreeMap<(u32, u64, u32), Vec<TemporalSpan>> {
+    let mut spans = BTreeMap::<(u32, u64, u32), Vec<TemporalSpan>>::new();
+    for (row_index, row) in rows.iter().enumerate() {
+        for process in &row.processes {
+            let identity = process.identity();
+            let identity_spans = spans.entry(identity).or_default();
+            let contiguous = identity_spans.last().is_some_and(|span| {
+                span.last.checked_add(1) == Some(row_index)
+                    && row.seq == rows[span.last].seq.saturating_add(1)
+                    && !decoded_temporal_quality_boundary(row, identity)
+            });
+            if contiguous {
+                identity_spans.last_mut().unwrap().last = row_index;
+            } else {
+                identity_spans.push(TemporalSpan {
+                    first: row_index,
+                    last: row_index,
+                });
+            }
+        }
+    }
+    spans
+}
+
+fn temporal_allowed_delta_range(quantum: u64, cap: u64, duration_ns: u64) -> Option<(u128, u128)> {
+    let (normalized_min, normalized_max) = allowed_delta_range(Profile::Adaptive, quantum, cap)?;
+    let duration = u128::from(duration_ns);
+    let scale = 100_000_000u128;
+    let delta_min = normalized_min.checked_mul(duration)?.div_ceil(scale);
+    let delta_max = if normalized_max == u128::from(u64::MAX) {
+        u128::from(u64::MAX)
+    } else {
+        normalized_max
+            .checked_add(1)?
+            .checked_mul(duration)?
+            .div_ceil(scale)
+            .checked_sub(1)?
+    };
+    Some((delta_min, delta_max.min(u128::from(u64::MAX))))
+}
+
+fn temporal_run_values_feasible(
+    decoded: &[u64],
+    residual_max: &[u64],
+    durations: &[u64],
+    start: usize,
+    end: usize,
+    quantum: u64,
+    cap: u64,
+) -> bool {
+    let mut reachable_min = u128::from(decoded[start]);
+    let Some(mut reachable_max) = reachable_min.checked_add(u128::from(residual_max[start])) else {
+        return false;
+    };
+    for index in start + 1..=end {
+        let Some((delta_min, delta_max)) =
+            temporal_allowed_delta_range(quantum, cap, durations[index - 1])
+        else {
+            return false;
+        };
+        let Some(next_min) = reachable_min.checked_add(delta_min) else {
+            return false;
+        };
+        let Some(next_max) = reachable_max.checked_add(delta_max) else {
+            return false;
+        };
+        reachable_min = next_min;
+        reachable_max = next_max;
+        let point_min = u128::from(decoded[index]);
+        let point_max = (point_min + u128::from(residual_max[index])).min(u128::from(u64::MAX));
+        reachable_min = reachable_min.max(point_min);
+        reachable_max = reachable_max.min(point_max);
+        if reachable_min > reachable_max {
+            return false;
+        }
+    }
+    true
+}
+
 fn decode_csh2_temporal(
     bytes: &[u8],
     profile: Profile,
@@ -1983,9 +2236,9 @@ fn decode_csh2_temporal(
     if !matches!(profile, Profile::AdaptiveInverse | Profile::AdaptiveLog)
         || bytes.len() < 5
         || &bytes[..4] != CSH2
-        || bytes[4] != 3
+        || bytes[4] != CSH2_VERSION
     {
-        return Err("temporal profile requires CSH2 version 3".into());
+        return Err("unsupported temporal CSH2 magic/version".into());
     }
     let mut offset = 5usize;
     let row_count = usize::try_from(read_uvarint(bytes, &mut offset)?)
@@ -2003,18 +2256,22 @@ fn decode_csh2_temporal(
     {
         return Err("inconsistent temporal CSH2 counts".into());
     }
-    let checkpoint_budget = std::mem::size_of::<CpuCheckpoint>()
-        .saturating_add(std::mem::size_of::<(usize, (u32, u64, u32))>())
-        .saturating_add(std::mem::size_of::<usize>());
-    let expanded = checkpoint_count
-        .checked_mul(checkpoint_budget)
-        .ok_or_else(|| "temporal CSH2 decoded-size estimate overflow".to_string())?;
-    if expanded > MAX_DECODED_BYTES {
-        return Err("temporal CSH2 decoded expansion exceeds the bounded output limit".into());
+    let spans = decoded_temporal_spans(rows);
+    let expected_segment_count = spans
+        .values()
+        .try_fold(0usize, |count, identity_spans| {
+            count.checked_add(identity_spans.len())
+        })
+        .ok_or_else(|| "temporal CSH2 span count overflow".to_string())?;
+    if segment_count != expected_segment_count {
+        return Err("temporal CSH2 segments do not cover every metadata span".into());
     }
-    let qbusy = timebase.quantum(LEGACY_CPU_NS)?;
+    let cap = timebase.quantum(LEGACY_CPU_NS)?;
+    let mut expected_segments = spans.iter().flat_map(|(identity, identity_spans)| {
+        let identity = *identity;
+        identity_spans.iter().map(move |span| (identity, *span))
+    });
     let mut previous_segment: Option<((u32, u64, u32), usize)> = None;
-    let mut claimed = BTreeSet::<(usize, (u32, u64, u32))>::new();
     let mut observed_checkpoints = 0usize;
     for _ in 0..segment_count {
         let pid = to_u32(read_uvarint(bytes, &mut offset)?, "temporal CSH2 pid")?;
@@ -2054,93 +2311,161 @@ fn decode_csh2_temporal(
         let first_index = *row_indices
             .first()
             .ok_or_else(|| "empty temporal segment".to_string())?;
-        if let Some((prior_identity, prior_end)) = previous_segment {
-            if identity < prior_identity || identity == prior_identity && first_index <= prior_end {
-                return Err("temporal CSH2 segments are not in canonical order".into());
-            }
-            if identity == prior_identity
-                && !decoded_temporal_boundary(rows, identity, prior_end, first_index)
-            {
-                return Err("temporal CSH2 segment split has no source discontinuity".into());
-            }
+        let last_index = *row_indices.last().unwrap();
+        let Some((expected_identity, expected_span)) = expected_segments.next() else {
+            return Err("temporal CSH2 contains an unclaimed segment".into());
+        };
+        if identity != expected_identity
+            || first_index != expected_span.first
+            || last_index != expected_span.last
+        {
+            return Err("temporal CSH2 segment misses a metadata span endpoint".into());
         }
-        previous_segment = Some((identity, *row_indices.last().unwrap()));
+        if let Some((prior_identity, prior_end)) = previous_segment
+            && (identity < prior_identity || identity == prior_identity && first_index <= prior_end)
+        {
+            return Err("temporal CSH2 segments are not in canonical order".into());
+        }
+        previous_segment = Some((identity, last_index));
 
         let first_total = read_uvarint(bytes, &mut offset)?;
-        let mut previous_total = first_total;
-        for (sample_index, row_index) in row_indices.iter().copied().enumerate() {
+        let interval_count = count - 1;
+        let run_count = usize::try_from(read_uvarint(bytes, &mut offset)?)
+            .map_err(|_| "temporal CSH2 run count overflow")?;
+        if (interval_count == 0 && run_count != 0)
+            || (interval_count > 0 && (run_count == 0 || run_count > interval_count))
+            || run_count > bytes.len().saturating_sub(offset) / 2
+        {
+            return Err("invalid temporal CSH2 run count".into());
+        }
+        let mut cpus = Vec::with_capacity(count);
+        let mut bounds = Vec::with_capacity(count);
+        let mut durations = Vec::with_capacity(interval_count);
+        cpus.push(first_total);
+        bounds.push(0u64);
+        let mut completed_intervals = 0usize;
+        let mut previous_quantum = None;
+        for _ in 0..run_count {
+            let run_intervals = usize::try_from(read_uvarint(bytes, &mut offset)?)
+                .map_err(|_| "temporal CSH2 run length overflow")?;
+            let quantum = read_uvarint(bytes, &mut offset)?;
+            if run_intervals == 0
+                || run_intervals > interval_count.saturating_sub(completed_intervals)
+                || quantum == 0
+                || quantum > cap
+                || (quantum != cap && !quantum.is_power_of_two())
+                || previous_quantum == Some(quantum)
+            {
+                return Err("invalid/noncanonical temporal CSH2 run".into());
+            }
+            previous_quantum = Some(quantum);
+            let start_point = completed_intervals;
+            let end_point = start_point
+                .checked_add(run_intervals)
+                .ok_or_else(|| "temporal CSH2 run end overflow".to_string())?;
+            let anchor = *cpus
+                .last()
+                .ok_or_else(|| "empty temporal CPU track".to_string())?;
+            for _ in start_point + 1..end_point {
+                let quotient = read_uvarint(bytes, &mut offset)?;
+                let value = quotient
+                    .checked_mul(quantum)
+                    .and_then(|value| anchor.checked_add(value))
+                    .ok_or_else(|| "temporal CSH2 interior CPU value overflow".to_string())?;
+                if value < *cpus.last().unwrap() {
+                    return Err("temporal CSH2 interior CPU value regresses".into());
+                }
+                cpus.push(value);
+                bounds.push(quantum - 1);
+            }
+            let endpoint_delta = read_uvarint(bytes, &mut offset)?;
+            let endpoint = anchor
+                .checked_add(endpoint_delta)
+                .ok_or_else(|| "temporal CSH2 endpoint CPU overflow".to_string())?;
+            if endpoint < *cpus.last().unwrap() {
+                return Err("temporal CSH2 exact run endpoint regresses".into());
+            }
+            cpus.push(endpoint);
+            bounds.push(0);
+            for point in completed_intervals..end_point {
+                let start_row = row_indices[point];
+                let end_row = row_indices[point + 1];
+                if !decoded_temporal_interval_covered(rows, identity, start_row, end_row) {
+                    return Err("temporal CSH2 interval bridges unknown CPU coverage".into());
+                }
+                let duration = rows[end_row]
+                    .scan_start_ns
+                    .checked_sub(rows[start_row].scan_start_ns)
+                    .filter(|duration| *duration > 0)
+                    .ok_or_else(|| "temporal CSH2 interval has invalid duration".to_string())?;
+                durations.push(duration);
+            }
+            if !temporal_run_values_feasible(
+                &cpus,
+                &bounds,
+                &durations,
+                start_point,
+                end_point,
+                quantum,
+                cap,
+            ) {
+                return Err("temporal CSH2 run has no feasible source counter sequence".into());
+            }
+            completed_intervals = end_point;
+        }
+        if completed_intervals != interval_count
+            || cpus.len() != count
+            || bounds.len() != count
+            || durations.len() != interval_count
+        {
+            return Err("temporal CSH2 runs do not cover all intervals".into());
+        }
+        for point_index in 0..count {
+            let row_index = row_indices[point_index];
             let process_index = rows[row_index]
                 .processes
                 .binary_search_by_key(&identity, DecodedProcess::identity)
                 .map_err(|_| "temporal CSH2 identity absent from metadata")?;
-            if !claimed.insert((row_index, identity)) {
-                return Err("duplicate temporal CSH2 CPU checkpoint".into());
-            }
-            let (total, interval) = if sample_index == 0 {
-                (first_total, None)
+            let interval = if point_index == 0 {
+                None
             } else {
-                let delta = read_uvarint(bytes, &mut offset)?;
-                let quantum = read_uvarint(bytes, &mut offset)?;
-                if quantum == 0 || quantum > qbusy {
-                    return Err("invalid temporal CSH2 quantum".into());
-                }
-                let start_index = row_indices[sample_index - 1];
-                if !decoded_temporal_interval_covered(rows, identity, start_index, row_index) {
-                    return Err("temporal CSH2 interval bridges unknown CPU coverage".into());
-                }
+                let start_index = row_indices[point_index - 1];
                 let start = &rows[start_index];
                 let end = &rows[row_index];
-                let duration = end
-                    .scan_start_ns
-                    .checked_sub(start.scan_start_ns)
-                    .filter(|duration| *duration > 0)
-                    .ok_or_else(|| "temporal CSH2 interval has invalid duration".to_string())?;
-                if temporal_quantum(delta, duration, qbusy)? != quantum {
-                    return Err("temporal CSH2 quantum disagrees with normalized interval".into());
-                }
-                let total = previous_total
-                    .checked_add(delta)
-                    .ok_or_else(|| "temporal CSH2 CPU total overflow".to_string())?;
-                (
-                    total,
-                    Some(CpuInterval {
-                        start_seq: start.seq,
-                        start_time_ns: start.scan_start_ns,
-                        end_time_ns: end.scan_start_ns,
-                        duration_ns: duration,
-                        delta,
-                        error_bound: 0,
-                    }),
-                )
+                let delta = cpus[point_index]
+                    .checked_sub(cpus[point_index - 1])
+                    .ok_or_else(|| "temporal CSH2 CPU total regressed".to_string())?;
+                Some(CpuInterval {
+                    start_seq: start.seq,
+                    start_time_ns: start.scan_start_ns,
+                    end_time_ns: end.scan_start_ns,
+                    duration_ns: durations[point_index - 1],
+                    delta,
+                    error_bound: bounds[point_index].max(bounds[point_index - 1]),
+                })
             };
-            rows[row_index].processes[process_index].cpu = Some(CpuCheckpoint {
-                total,
-                error_bound: 0,
+            let process = &mut rows[row_index].processes[process_index];
+            if process.cpu.is_some() {
+                return Err("duplicate temporal CSH2 CPU checkpoint".into());
+            }
+            process.cpu = Some(CpuCheckpoint {
+                total: cpus[point_index],
+                error_bound: bounds[point_index],
                 components: None,
                 interval,
             });
-            previous_total = total;
             observed_checkpoints = observed_checkpoints
                 .checked_add(1)
                 .ok_or_else(|| "temporal CSH2 checkpoint count overflow".to_string())?;
         }
     }
-    if observed_checkpoints != checkpoint_count || offset != bytes.len() {
-        return Err("temporal CSH2 checkpoint count mismatch or trailing bytes".into());
+    if expected_segments.next().is_some()
+        || observed_checkpoints != checkpoint_count
+        || offset != bytes.len()
+    {
+        return Err("temporal CSH2 coverage/count mismatch or trailing bytes".into());
     }
     Ok(())
-}
-
-fn decoded_temporal_boundary(
-    rows: &[DecodedObservation],
-    identity: (u32, u64, u32),
-    previous: usize,
-    next: usize,
-) -> bool {
-    if next <= previous || next >= rows.len() {
-        return false;
-    }
-    !decoded_temporal_interval_covered(rows, identity, previous, next)
 }
 
 fn decoded_temporal_interval_covered(
@@ -2224,7 +2549,7 @@ fn decode_csh2(
         Profile::Adaptive => timebase.quantum(LEGACY_CPU_NS)?,
         Profile::Fixed100us => timebase.quantum(FIXED_100US_NS)?,
         Profile::AdaptiveInverse | Profile::AdaptiveLog => {
-            return Err("temporal profile requires CSH2 version 3".into());
+            return Err("temporal profile requires the temporal CSH2 body".into());
         }
         Profile::Legacy1ms => return Err("legacy profile cannot use CSH2".into()),
     };
@@ -3416,7 +3741,7 @@ mod tests {
                 put_svarint(&mut bytes, i128::MAX).unwrap();
             }
         }
-        assert!(decode_psd1(&bytes).is_err());
+        assert!(decode_psd1(&bytes, 0).is_err());
     }
 
     #[test]
@@ -3427,11 +3752,22 @@ mod tests {
     }
 
     #[test]
-    fn encode_and_decode_share_the_psd1_expansion_boundary() {
+    fn encode_and_decode_share_the_aggregate_pst2_expansion_boundary() {
         let name = "x".repeat(MAX_NAME_BYTES);
-        let row_cost =
+        let metadata_row_cost =
             std::mem::size_of::<MetaRow>() + std::mem::size_of::<MetaProcess>() + name.len();
-        let allowed_rows = MAX_DECODED_BYTES / row_cost;
+        let mut low = 0usize;
+        let mut high = MAX_DECODED_BYTES / metadata_row_cost;
+        while low < high {
+            let middle = low + (high - low).div_ceil(2);
+            let name_bytes = middle * name.len();
+            if check_v2_decoded_budget(middle, middle, name_bytes, 1, 0, 1024, false).is_ok() {
+                low = middle;
+            } else {
+                high = middle - 1;
+            }
+        }
+        let allowed_rows = low;
         assert!(allowed_rows < MAX_POINTS);
         let rows: Vec<_> = (0..=allowed_rows)
             .map(|seq| {
@@ -3441,14 +3777,31 @@ mod tests {
             })
             .collect();
 
-        for profile in [Profile::Legacy1ms, Profile::Adaptive] {
-            let error = encode_block(&context(), &rows, profile).unwrap_err();
-            assert!(error.contains("PSD1 decoded expansion"), "{error}");
-        }
+        let error = encode_block(&context(), &rows, Profile::Adaptive).unwrap_err();
+        assert!(error.contains("PST2 decoded expansion"), "{error}");
         let boundary = encode_block(&context(), &rows[..allowed_rows], Profile::Adaptive).unwrap();
         assert!(boundary.len() < 1_000_000);
         drop(rows);
         assert_eq!(decode_block(&boundary).unwrap().rows.len(), allowed_rows);
+    }
+
+    #[test]
+    fn aggregate_budget_includes_temporal_spans_and_pmm1_scratch() {
+        let mut low = 0usize;
+        let mut high = MAX_POINTS;
+        while low < high {
+            let middle = low + (high - low).div_ceil(2);
+            let names = middle * MAX_NAME_BYTES;
+            if check_v2_decoded_budget(middle, middle, names, 1, 0, 0, false).is_ok() {
+                low = middle;
+            } else {
+                high = middle - 1;
+            }
+        }
+        let points = low;
+        let names = points * MAX_NAME_BYTES;
+        assert!(check_v2_decoded_budget(points, points, names, 1, 0, 0, false).is_ok());
+        assert!(check_v2_decoded_budget(points, points, names, 1, 3, 0, true).is_err());
     }
 
     #[test]
@@ -3557,6 +3910,87 @@ mod tests {
     }
 
     #[test]
+    fn temporal_policy_uses_one_percent_reference_and_integer_deadlines() {
+        let timebase = Timebase {
+            numer: 125,
+            denom: 3,
+        };
+        let cap = timebase.quantum(LEGACY_CPU_NS).unwrap();
+        let qbusy = adaptive_quantum(u128::from(cap), cap);
+        assert_eq!(cap, 24_000);
+        assert_eq!(qbusy, 2_048);
+        assert_eq!(temporal_quantum(24_000, 100_000_000, cap).unwrap(), qbusy);
+        assert_eq!(temporal_quantum(120_000, 100_000_000, cap).unwrap(), 8_192);
+        assert_eq!(temporal_quantum(120, 100_000_000, cap).unwrap(), 8);
+        assert_eq!(
+            temporal_target(8_192, qbusy, Profile::AdaptiveInverse).unwrap(),
+            100_000_000
+        );
+        assert_eq!(
+            temporal_target(8, qbusy, Profile::AdaptiveInverse).unwrap(),
+            5_000_000_000
+        );
+        assert_eq!(
+            temporal_target(8, qbusy, Profile::AdaptiveLog).unwrap(),
+            3_663_636_364
+        );
+
+        let source = [row(0, 0, 0), row(1, 100_000_000, 1)];
+        let encoded = encode_block(&Context::new(timebase), &source, Profile::AdaptiveLog).unwrap();
+        let [header_bytes, cpu, metadata] = unpack_sections(&encoded).unwrap();
+        assert_eq!(cpu[4], CSH2_VERSION);
+        let header: Value = parse_json(header_bytes).unwrap();
+        assert_eq!(header["profile"], "adaptive-log");
+        assert!(Profile::parse("adaptive-log-v1").is_err());
+
+        let mut impossible = cpu.to_vec();
+        let q_offset = first_run_quantum_offset(&impossible);
+        assert_eq!(impossible[q_offset], 1);
+        impossible[q_offset] = 2;
+        assert!(
+            decode_block(&pack_sections(PST2, header_bytes, &impossible, metadata).unwrap())
+                .is_err()
+        );
+
+        let huge_delta = [row(0, 0, 0), row(1, 1, 1_000_000_000_000)];
+        let decoded =
+            decode_block(&encode_block(&context(), &huge_delta, Profile::AdaptiveInverse).unwrap())
+                .unwrap();
+        assert_eq!(
+            decoded.rows[1].processes[0].cpu.as_ref().unwrap().total,
+            1_000_000_000_000
+        );
+    }
+
+    #[test]
+    fn temporal_decoder_requires_exact_raw_span_endpoints_and_every_segment() {
+        let source = [row(0, 0, 0), row(1, 100_000_000, 1), row(2, 200_000_000, 2)];
+        let encoded = encode_block(&context(), &source, Profile::AdaptiveInverse).unwrap();
+        let [header, cpu, metadata] = unpack_sections(&encoded).unwrap();
+        let (segment_count_offset, row_offsets) = temporal_track_offsets(cpu);
+        assert_eq!(row_offsets.len(), 2);
+
+        let mut no_segment = cpu.to_vec();
+        no_segment[segment_count_offset] = 0;
+        assert!(
+            decode_block(&pack_sections(PST2, header, &no_segment, metadata).unwrap()).is_err()
+        );
+
+        let mut missing_first = cpu.to_vec();
+        missing_first[row_offsets[0]] = 1;
+        missing_first[row_offsets[1]] = 1;
+        assert!(
+            decode_block(&pack_sections(PST2, header, &missing_first, metadata).unwrap()).is_err()
+        );
+
+        let mut missing_last = cpu.to_vec();
+        missing_last[row_offsets[1]] = 1;
+        assert!(
+            decode_block(&pack_sections(PST2, header, &missing_last, metadata).unwrap()).is_err()
+        );
+    }
+
+    #[test]
     fn temporal_decoder_rejects_duplicate_unclaimed_and_inflated_cpu_indexes() {
         let rows = [
             row(0, 0, 10_000_000),
@@ -3599,7 +4033,7 @@ mod tests {
     #[test]
     fn temporal_decoder_checks_resource_counts_before_allocating_indexes() {
         let mut cpu = CSH2.to_vec();
-        cpu.push(3);
+        cpu.push(CSH2_VERSION);
         put_uvarint(&mut cpu, 0).unwrap();
         put_uvarint(&mut cpu, 0).unwrap();
         put_uvarint(&mut cpu, (MAX_POINTS + 1) as u64).unwrap();
@@ -3613,6 +4047,24 @@ mod tests {
             )
             .is_err()
         );
+    }
+
+    fn temporal_track_offsets(cpu: &[u8]) -> (usize, Vec<usize>) {
+        let mut offset = 5;
+        read_uvarint(cpu, &mut offset).unwrap(); // row count
+        let segment_count_offset = offset;
+        read_uvarint(cpu, &mut offset).unwrap(); // segment count
+        read_uvarint(cpu, &mut offset).unwrap(); // checkpoint count
+        for _ in 0..3 {
+            read_uvarint(cpu, &mut offset).unwrap();
+        }
+        let count = read_uvarint(cpu, &mut offset).unwrap() as usize;
+        let mut row_offsets = Vec::with_capacity(count);
+        for _ in 0..count {
+            row_offsets.push(offset);
+            read_uvarint(cpu, &mut offset).unwrap();
+        }
+        (segment_count_offset, row_offsets)
     }
 
     fn first_run_quantum_offset(cpu: &[u8]) -> usize {

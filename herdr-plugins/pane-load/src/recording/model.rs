@@ -201,8 +201,8 @@ impl Profile {
             "legacy-1ms" | "fixed-1ms" => Ok(Self::Legacy1ms),
             "fixed-100us" => Ok(Self::Fixed100us),
             "adaptive" | "adaptive-v1" => Ok(Self::Adaptive),
-            "adaptive-inverse" | "adaptive-inverse-v1" => Ok(Self::AdaptiveInverse),
-            "adaptive-log" | "adaptive-log-v1" => Ok(Self::AdaptiveLog),
+            "adaptive-inverse" => Ok(Self::AdaptiveInverse),
+            "adaptive-log" => Ok(Self::AdaptiveLog),
             _ => Err(format!("unknown recording profile: {s}")),
         }
     }

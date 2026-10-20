@@ -59,6 +59,59 @@ fn encode(rate_ticks_per_100ms: u64, count: u64, profile: Profile) -> Vec<(u64, 
 }
 
 #[test]
+fn one_percent_reference_uses_adaptive_one_millisecond_quantum() {
+    let timebase = Timebase {
+        numer: 125,
+        denom: 3,
+    }; // 24 MHz Mach ticks: 24,000 ticks per millisecond.
+    let context = Context::new(timebase);
+
+    let steady_five_percent: Vec<_> = (0..61).map(|seq| row(seq, seq * 120_000)).collect();
+    let decoded = decode_block(
+        &encode_block(&context, &steady_five_percent, Profile::AdaptiveInverse).unwrap(),
+    )
+    .unwrap();
+    let steady_checkpoints = samples(&decoded);
+    assert_eq!(steady_checkpoints.len(), steady_five_percent.len());
+    for (index, (_, cpu)) in steady_checkpoints.iter().enumerate() {
+        let actual = steady_five_percent[index].processes[0].total().unwrap();
+        assert!(cpu.total <= actual);
+        assert!(actual - cpu.total <= cpu.error_bound);
+        assert_eq!(
+            cpu.error_bound,
+            if index == 0 || index + 1 == steady_checkpoints.len() {
+                0
+            } else {
+                8_191
+            }
+        );
+    }
+
+    let low_rate: Vec<_> = (0..121).map(|seq| row(seq, seq * 120)).collect();
+    let inverse =
+        decode_block(&encode_block(&context, &low_rate, Profile::AdaptiveInverse).unwrap())
+            .unwrap();
+    let log =
+        decode_block(&encode_block(&context, &low_rate, Profile::AdaptiveLog).unwrap()).unwrap();
+    let inverse_intervals: Vec<_> = samples(&inverse)
+        .iter()
+        .filter_map(|(_, cpu)| cpu.interval.as_ref().map(|interval| interval.duration_ns))
+        .collect();
+    let log_intervals: Vec<_> = samples(&log)
+        .iter()
+        .filter_map(|(_, cpu)| cpu.interval.as_ref().map(|interval| interval.duration_ns))
+        .collect();
+    assert_eq!(
+        inverse_intervals,
+        [5_000_000_000, 5_000_000_000, 2_000_000_000]
+    );
+    assert_eq!(
+        log_intervals,
+        [3_700_000_000, 3_700_000_000, 3_700_000_000, 900_000_000]
+    );
+}
+
+#[test]
 fn inverse_and_log_profiles_retain_less_as_steady_cpu_rate_falls() {
     for profile in [Profile::AdaptiveInverse, Profile::AdaptiveLog] {
         let counts: Vec<_> = [5_000_000, 500_000, 50_000, 5_000]
@@ -98,6 +151,63 @@ fn quiet_prefix_is_closed_before_a_full_core_burst() {
     assert_eq!(interval.duration_ns, STEP_NS);
     assert_eq!(interval.delta, 100_000_000);
     assert!(checkpoints.iter().any(|(seq, _)| *seq == 29));
+}
+
+#[test]
+fn selection_uses_latest_adjacent_raw_rate_without_cutting_a_short_prefix() {
+    let times = [
+        0,
+        100_000_000,
+        200_000_000,
+        300_000_000,
+        400_000_000,
+        500_000_000,
+    ];
+    let totals = [0, 100_000, 300_000, 300_000, 300_000, 300_000];
+    let source: Vec<_> = times
+        .into_iter()
+        .zip(totals)
+        .enumerate()
+        .map(|(seq, (time, total))| {
+            let mut observation = row(seq as u64, total);
+            observation.scan_start_ns = time;
+            observation.scan_end_ns = time + 1_000;
+            observation
+        })
+        .collect();
+    let decoded =
+        decode_block(&encode_block(&context(), &source, Profile::AdaptiveInverse).unwrap())
+            .unwrap();
+    let selected: Vec<_> = samples(&decoded).into_iter().map(|(seq, _)| seq).collect();
+    assert_eq!(selected, [0, 4, 5]);
+}
+
+#[test]
+fn noisy_thirty_hz_temporal_tracks_reduce_checkpoints_without_losing_aggregate_cpu() {
+    let source: Vec<_> = (0..=600)
+        .map(|seq| {
+            let mut observation = row(seq, seq / 2);
+            observation.scan_start_ns = seq * 33_333_333;
+            observation.scan_end_ns = observation.scan_start_ns + 1_000;
+            observation
+        })
+        .collect();
+    for profile in [Profile::AdaptiveInverse, Profile::AdaptiveLog] {
+        let decoded = decode_block(&encode_block(&context(), &source, profile).unwrap()).unwrap();
+        let checkpoints = samples(&decoded);
+        assert!(
+            checkpoints.len() < source.len() / 20,
+            "{profile:?}: {}",
+            checkpoints.len()
+        );
+        assert_eq!(checkpoints.first().unwrap().1.total, 0);
+        assert_eq!(checkpoints.last().unwrap().1.total, 300);
+        assert!(
+            checkpoints
+                .windows(2)
+                .all(|pair| pair[1].1.total >= pair[0].1.total)
+        );
+    }
 }
 
 #[test]

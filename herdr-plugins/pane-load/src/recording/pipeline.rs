@@ -2908,7 +2908,11 @@ fn audit_source_block(
             let actual = process.total()?;
             let Some(cpu) = &decoded_process.cpu else {
                 stats.cpu_omitted_readings = stats.cpu_omitted_readings.saturating_add(1);
-                if !temporal {
+                if !temporal
+                    || temporal
+                        && (source_temporal_span_start(rows, id, row_index)
+                            || source_temporal_span_end(rows, id, row_index))
+                {
                     stats.precision_violations += 1;
                 }
                 prior_raw.insert(id, (row_index, actual, actual));
@@ -2921,7 +2925,11 @@ fn audit_source_block(
             {
                 stats.precision_violations += 1;
             }
-            if temporal && cpu.error_bound != 0 {
+            if temporal
+                && (source_temporal_span_start(rows, id, row_index)
+                    || source_temporal_span_end(rows, id, row_index))
+                && (actual != cpu.total || cpu.error_bound != 0)
+            {
                 stats.precision_violations += 1;
             }
             if let Some((start_index, start_actual, start_decoded, start_bound)) =
@@ -2934,7 +2942,11 @@ fn audit_source_block(
                         let duration = row.scan_start_ns.checked_sub(start.scan_start_ns);
                         let actual_delta = actual.checked_sub(start_actual);
                         let decoded_delta = cpu.total.checked_sub(start_decoded);
-                        let expected_bound = cpu.error_bound.saturating_add(start_bound);
+                        let expected_bound = if temporal {
+                            cpu.error_bound.max(start_bound)
+                        } else {
+                            cpu.error_bound.saturating_add(start_bound)
+                        };
                         if interval.start_seq != start.seq
                             || interval.start_time_ns != start.scan_start_ns
                             || interval.end_time_ns != row.scan_start_ns
@@ -2989,7 +3001,11 @@ fn audit_source_block(
                     state.3 = cpu.total;
                 })
                 .or_insert((actual, cpu.total, actual, cpu.total));
-            if temporal && actual != cpu.total {
+            if temporal
+                && (source_temporal_span_start(rows, id, row_index)
+                    || source_temporal_span_end(rows, id, row_index))
+                && actual != cpu.total
+            {
                 stats.endpoint_mismatches = stats.endpoint_mismatches.saturating_add(1);
             }
         }
@@ -3056,6 +3072,22 @@ mod temporal_audit_tests {
         assert_eq!(stats.cpu_omitted_readings, 58);
         assert_eq!(stats.max_cpu_interval_ns, 5_000_000_000);
     }
+}
+
+fn source_temporal_span_start(
+    rows: &[Observation],
+    identity: super::model::Identity,
+    index: usize,
+) -> bool {
+    index == 0 || !source_cpu_interval_covered(rows, identity, index - 1, index)
+}
+
+fn source_temporal_span_end(
+    rows: &[Observation],
+    identity: super::model::Identity,
+    index: usize,
+) -> bool {
+    index + 1 >= rows.len() || !source_cpu_interval_covered(rows, identity, index, index + 1)
 }
 
 fn source_cpu_interval_covered(
