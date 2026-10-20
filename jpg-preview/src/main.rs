@@ -56,16 +56,22 @@ struct Timings {
 impl Timings {
     fn line(&self, width: u32, height: u32) -> String {
         let ms = |duration: Duration| (duration.as_secs_f64() * 1000.0).round() as u64;
+        let mut stages = [
+            ("delivery", self.delivery),
+            ("decode", self.decode),
+            ("resize", self.resize),
+            ("compress", self.compress),
+            ("protocol", self.encode),
+            ("read", self.read),
+            ("orientation", self.orient),
+        ];
+        stages.sort_by_key(|(_, duration)| std::cmp::Reverse(*duration));
+        let stages = stages
+            .map(|(name, duration)| format!("{name}={}", ms(duration)))
+            .join(" ");
         format!(
-            "{}ms LF{} D{} R{} O{} S{} Z{} B{} {}>{} {}x{}",
+            "total={}ms {stages} {}>{} {}x{}",
             ms(self.total),
-            ms(self.delivery),
-            ms(self.decode),
-            ms(self.read),
-            ms(self.orient),
-            ms(self.resize),
-            ms(self.compress),
-            ms(self.encode),
             byte_size(self.input_bytes),
             byte_size(self.wire_bytes),
             width,
@@ -76,9 +82,9 @@ impl Timings {
 
 fn byte_size(bytes: usize) -> String {
     if bytes >= 1024 * 1024 {
-        format!("{:.1}M", bytes as f64 / (1024.0 * 1024.0))
+        format!("{:.1}MiB", bytes as f64 / (1024.0 * 1024.0))
     } else if bytes >= 1024 {
-        format!("{}k", bytes.div_ceil(1024))
+        format!("{}KiB", bytes.div_ceil(1024))
     } else {
         format!("{bytes}B")
     }
@@ -791,7 +797,7 @@ mod tests {
     }
 
     #[test]
-    fn timing_line_is_one_compact_ascii_row_with_pipeline_and_payload_sizes() {
+    fn timing_line_uses_readable_labels_sorted_by_cost_in_one_ascii_row() {
         let ms = Duration::from_millis;
         let timings = Timings {
             read: ms(1),
@@ -806,14 +812,13 @@ mod tests {
             wire_bytes: 2 * 1024 * 1024,
         };
         let line = timings.line(400, 300);
-        assert_eq!(line, "29ms LF8 D2 R1 O3 S4 Z5 B6 1.0M>2.0M 400x300");
-        assert!(line.len() <= 60);
+        assert_eq!(line, "total=29ms delivery=8 protocol=6 compress=5 resize=4 orientation=3 decode=2 read=1 1.0MiB>2.0MiB 400x300");
         assert!(line
             .bytes()
             .all(|byte| byte.is_ascii_graphic() || byte == b' '));
         assert_eq!(byte_size(128), "128B");
-        assert_eq!(byte_size(1025), "2k");
-        assert_eq!(byte_size(1024 * 1024), "1.0M");
+        assert_eq!(byte_size(1025), "2KiB");
+        assert_eq!(byte_size(1024 * 1024), "1.0MiB");
     }
 
     #[test]

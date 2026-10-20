@@ -109,10 +109,10 @@ class PreviewTests(unittest.TestCase):
     def test_lf_client_uses_synchronized_renderer_mode(self):
         self.env["id"] = "12345"
         # Graphics use lf's socket; the timing row must remain on preview stdout.
-        self.stub("jpg-preview", 'printf "%s\\n" "$@" > "$CALLS"; printf "R1 D22 LF150 =180ms\\n"')
+        self.stub("jpg-preview", 'printf "%s\\n" "$@" > "$CALLS"; printf "total=180ms delivery=150 decode=22\\n"')
         result, tty = self.preview()
         self.assertEqual(result.returncode, 1)
-        self.assertEqual(result.stdout, b"R1 D22 LF150 =180ms\n")
+        self.assertEqual(result.stdout, b"total=180ms delivery=150 decode=22\n")
         self.assertEqual(tty, b"")
         self.assertEqual(self.calls.read_text().splitlines(),
                          ["--lf-id", "12345", str(self.png), "40", "20", "60", "1"])

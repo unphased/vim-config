@@ -42,23 +42,23 @@ image sizing uses the remaining height and placement starts one row lower. For
 example (all stage values are rounded milliseconds):
 
 ```text
-141ms LF97 D10 R0 O0 S6 Z14 B12 782k>2.7M 816x1088
+total=141ms delivery=97 compress=14 protocol=12 decode=10 resize=6 read=0 orientation=0 782KiB>2.7MiB 816x1088
 ```
 
-- First value: elapsed Rust invocation time, including acknowledged delivery.
-- `LF`: command-file creation, lf queue/parsing, tty writes, and acknowledgement.
-- `D`: image decoding, including orientation metadata lookup.
-- `R`: file read / ARW JPEG extraction, format detection, decoder construction.
-- `O`: applying orientation; `S`: color conversion and resizing.
-- `Z`: zlib compression; `B`: base64/Kitty packet and lf command assembly.
-- `782k>2.7M`: encoded input bytes → actual Kitty-stream bytes (`k` = KiB,
-  `M` = MiB). For ARW, input size is the embedded JPEG, not the RAW file.
-- Final dimensions: resized image pixels. Narrow preview panes clip the line;
-  total, delivery, and decoding are first so the important costs remain visible.
+- `total`: elapsed Rust invocation time, including acknowledged delivery.
+- `delivery`: command-file creation, lf queue/parsing, tty writes, acknowledgement.
+- `decode`: image decoding, including orientation metadata lookup.
+- `read`: file read / ARW JPEG extraction, format detection, decoder construction.
+- `orientation`: applying orientation; `resize`: color conversion and resizing.
+- `compress`: zlib compression; `protocol`: base64/Kitty packet and lf command assembly.
+- `782KiB>2.7MiB`: encoded input bytes → actual Kitty-stream bytes. For ARW,
+  input size is the embedded JPEG, not the RAW file.
+- Final dimensions: resized image pixels. Stages are sorted by descending cost
+  after total, so narrow panes show the largest bottlenecks before clipping.
 
 The row is finalized after lf acknowledges its writes, since delivery cannot be
 measured in advance. lf publishes preview stdout after the helper exits; text
-therefore appears above, without repainting over the image. `LF` is **not** a
+therefore appears above, without repainting over the image. `delivery` is **not** a
 Ghostty display acknowledgement: SSH/terminal buffering and final rendering can
 continue afterward. Total excludes the shell's MIME detection/startup and lf's
 later stdout publication. Stage sums can differ slightly from total due to
