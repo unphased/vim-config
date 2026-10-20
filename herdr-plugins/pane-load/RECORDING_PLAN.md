@@ -1,23 +1,26 @@
 # Rust process-history recorder: implementation plan and status
 
-**One current plan; no new design phase.** The user-approved buildout is implemented
-in the existing `pane-load` binary: native capture, shared Rust validation/encoding,
-archives, source transforms, inspection/export, and benchmarking. Full 41-hour
-source-fidelity validation and the Opus 5.5/`work2` architecture/design review
-are complete; review findings are fixed and tested.
-The older Python codec work remains a measured reference, not the current recorder.
+**One current plan; no new design phase.** The Rust recorder supports native capture,
+shared validation/encoding, archives, source transforms, inspection/export, and
+benchmarking. The original dense `adaptive` profile has full 41-hour
+source-fidelity validation; the opt-in temporal profiles have a finite synthetic
+Rust sanity comparison, not a full-duration replay benchmark. The older Python codec
+and window-model work remains historical reference material.
 
 ```mermaid
 flowchart LR
-  OS[Native macOS observer] --> Q[Bounded live queue]
-  Q --> C[Validator + Rust recording core]
-  J[Raw JSONL or JSONL.zst] --> C
-  C --> R[Optional lossless native-tick source]
-  C --> B[Versioned PST blocks + durable archive]
-  B --> I[Inspect, verify, export]
+  OS[Native macOS observer] --> Q[Accepted 10 Hz source rows]
+  J[Raw JSONL or JSONL.zst] --> Q
+  Q --> R[Raw reference: exact user/system CPU + RSS]
+  Q --> E[Profile encoder]
+  E --> D[Dense: CPU checkpoint per process reading]
+  E --> S[Temporal: selected CPU checkpoints]
+  D --> B[Binary blocks: metadata/RSS per row + profile-specific CPU]
+  S --> B
+  B --> A[Durable archive]
+  A --> I[Inspect: all rows, optional CPU DTOs]
   J --> T[Same-source transform / bench]
   T --> B
-  T --> I
   UI[Existing Herdr UI sampler] -. independent today .-> Herdr[Pane/workspace telemetry]
 ```
 
@@ -26,11 +29,14 @@ sampler remains separate; recording has not been wired into it.
 
 ## Implemented scope
 
-- `pane-load recording record` samples native process CPU components and RSS at
-  10 Hz by default, directly from the macOS acquisition path. CPU stays in native
-  ticks with an explicit timebase. Capture context records the `mach_continuous_time`
-  origin/timebase, wall anchors, run/boot identity, and non-atomic scan method.
-  There is no JSONL or Python round trip in this path.
+- `pane-load recording record` acquires process CPU components and RSS at 10 Hz
+  by default, directly from macOS. Raw references retain exact native user/system
+  counters and RSS. Binary profiles retain metadata, process presence and RSS for
+  every source row; dense profiles also checkpoint CPU per reading, while temporal
+  profiles select sparse CPU checkpoints. CPU uses native ticks and an explicit
+  timebase. Capture context records the `mach_continuous_time` origin/timebase, wall
+  anchors, run/boot identity, and non-atomic scan method. No JSONL/Python round trip
+  is needed for live acquisition.
 - Raw-reference output uses `recording_source: 1`, declares `cpu_unit: native_ticks`,
   and retains accepted observations, separate user/system CPU counters, RSS, optional
   `owned`/`peak`/`evicted` memory values and quality information. It is lossless
@@ -39,16 +45,18 @@ sampler remains separate; recording has not been wired into it.
   Existing legacy `probe_capture: 1` JSONL/`.jsonl.zst` is readable; if its header
   has no source timebase, import requires an explicit `--timebase NUM/DEN` and
   never guesses from the current host. For the known legacy source, use `125/3`.
-- `adaptive` is the default binary profile. It writes PST2 blocks with PSD1 sparse
-  metadata and CSH2 CPU layout version 2 (with version-1 read compatibility). Optional
-  selected memory columns use a PMM1 fourth section; memory-free PST2 and PST1 bytes
-  remain compatible.
-  Adaptive interval quanta target less than 12.5% relative CPU-increment error,
-  capped at 1 ms in source ticks; Q=1
-  intervals, including zero intervals, are exact. `legacy-1ms` is the PST1/CSH1
-  comparison control; `fixed-100us` is another PST2/CSH2 control. All binary
-  profiles keep total CPU only. RSS is floored to 256 KiB; observations and
-  quality flags are retained.
+- `adaptive` remains the default dense binary profile. It writes PST2 blocks with
+  PSD1 sparse metadata and CSH2 CPU layout version 2 (with version-1 read
+  compatibility). Its interval quanta target less than 12.5% relative CPU-increment
+  error, capped at 1 ms in source ticks; Q=1 intervals are exact. `adaptive-inverse`
+  and `adaptive-log` are opt-in temporal profiles: they use the same PST2/CSH2 v2
+  tags, with the PST2 profile identifying the temporal CPU body (continuous identity
+  segments, selected row indices and quantum runs). These encoding-only profiles
+  add no acquisition, startup, service, or dependency changes. The legacy PST1/CSH1
+  and `fixed-100us` controls are unchanged. All binary profiles keep total CPU only;
+  raw references retain the user/system split. Optional memory columns use a PMM1
+  fourth section. RSS is floored to 256 KiB; every source observation and quality
+  flag remains in metadata.
 - Binary archives journal private blocks atomically before frame publication.
   Defaults are Brotli-5, a 1 MiB window (window log 20), 16 MiB frame input,
   300-row/approximately 30-second blocks and a one-hour source-time frame limit.
@@ -59,13 +67,16 @@ sampler remains separate; recording has not been wired into it.
   and flushes the current block/frame. Recovery validates journals/frames; partial runs
   are not presented as complete.
 - `transform`, `inspect`, and `bench` use the same Rust model and binary codecs.
-  Inspect JSONL from binary is explicitly decoded/quantized: `cpu_components` is
-  `null`, components are unavailable, and CPU error bounds are included.
-  `--blocks-out` exports quantized PST blocks, not finer source truth. Decoded JSONL
-  includes memory byte values and `memory_unit_bytes` when present. Raw-source JSONL
-  export remains distinct. Bench compares profiles over the same raw source or
-  benchmarks the stored profile from a binary archive/cache using shared source and
-  frame geometry.
+  Decoded binary JSONL keeps every metadata/RSS row. Dense profiles include a CPU
+  checkpoint at every process reading; temporal profiles use `cpu: null` where no
+  checkpoint exists—never a fake zero or interpolation. Checkpoint objects report
+  total native ticks, a per-checkpoint error bound, `components: null`, and either a
+  null baseline interval or an interval with actual start/end scan times, duration,
+  decoded delta and native-tick error bound. `--blocks-out` exports quantized PST
+  blocks, not finer source truth. Decoded JSONL includes memory byte values and
+  `memory_unit_bytes` when present. Raw-source JSONL export remains distinct. Bench
+  compares profiles over the same raw source or benchmarks the stored archive/cache
+  profile using shared source and frame geometry.
 - Offline transform accepts `--workers auto|N` (default one); live stays single-worker.
   Parallel source summaries reconstruct incoming per-identity validation state,
   then workers replay/encode independent exact-context groups. The coordinator
@@ -93,16 +104,16 @@ The default profile is adaptive; default frequency is 10 Hz. Main options are:
 
 ```text
 record   --output ROOT [--duration SEC] [--hz N]
-         [--profile adaptive|legacy-1ms|fixed-100us]
+         [--profile adaptive|adaptive-inverse|adaptive-log|legacy-1ms|fixed-100us]
          [--format binary|jsonl-zstd]
          [--memory-columns owned,peak,evicted|none] [--memory-unit-bytes N]
 transform --input FILE|CAPTUREROOT --output NEWROOT
-          [--timebase NUM/DEN] [--profile PROFILE] [--verify] [--workers auto|N]
+          [--timebase NUM/DEN] [--profile adaptive|adaptive-inverse|adaptive-log|legacy-1ms|fixed-100us] [--verify] [--workers auto|N]
           [--memory-columns owned,peak,evicted|none] [--memory-unit-bytes N]
 inspect  --input ARCHIVE|RECORDROOT|CACHE [--verify] [--recover]
          [--jsonl | --blocks-out NEWPRIVATEdir]
 bench    --input RAWSOURCE|ARCHIVE/CACHE
-         --profiles adaptive,legacy-1ms,fixed-100us
+         --profiles adaptive,adaptive-inverse,adaptive-log,legacy-1ms,fixed-100us
          [--timebase NUM/DEN] [--frame-bytes N]
          [--memory-columns owned,peak,evicted|none] [--memory-unit-bytes N]
          --output DIR|FILE.jsonl
@@ -113,8 +124,9 @@ three (`owned,peak,evicted`) and `--memory-unit-bytes` defaults to `262144` (min
 1). `--memory-columns none` disables memory encoding/acquisition and preserves the
 memory-free format. Cached-binary `bench` is codec-only and rejects explicit memory
 options; use raw sources to compare memory columns or units. Recording remains 10 Hz
-by default, the adaptive profile remains the default, and neither this feature nor
-its CLI options change live UI sampling or plugin behavior.
+by default and dense `adaptive` remains the default. Temporal profiles affect only
+binary CPU checkpoint retention; they do not change acquisition cadence, the live UI
+sampler, or plugin behavior.
 
 For example, legacy normalized-nanosecond source without a declared timebase:
 
@@ -133,18 +145,22 @@ its exact option bounds.
 
 ## Fidelity and deployment boundaries
 
-Raw reference observations preserve user and system components separately. Binary
-CSH2 stores their total; a decoder cannot recreate the original split or recover
-raw counters from quantized values. It reports the per-reading CPU error bound.
-The CPU counters are observed snapshots, not utilization percentages; scans are
-non-atomic and cannot guarantee seeing every short-lived process. RSS is a point
-reading, not a poll-interval average.
+Raw reference observations preserve exact user and system components separately.
+Binary profiles store total CPU only; the split and unquantized source counters are
+not recoverable. Dense profiles checkpoint every reading. Temporal profiles expose
+optional sparse checkpoints and interval DTOs in native ticks, with explicit error
+bounds and no interpolation; an omitted CPU checkpoint is not zero. Process
+metadata/RSS and actual row timestamps remain at the source cadence. CPU counters
+are observed snapshots, not utilization percentages; scans are non-atomic and
+cannot guarantee seeing every short-lived process. RSS is a point reading, not a
+poll-interval average.
 
 Recording is manual and standalone. This work does not enable deployment, automount,
 service installation/restart, change plugin startup, or alter UI defaults. Linux
-acquisition, service packaging, UI/consumer adapters, and timeline/history UI remain
-future work. In particular, there is no claim of shared sampling between the
-recorder and the current UI sampler.
+acquisition, service packaging, Strands/frontend consumers, and timeline/history UI
+remain future work. Once the DTO contract settles, a consumer can use the 10 Hz
+metadata/RSS rows plus optional CPU intervals. There is no claim of shared sampling
+between the recorder and the current UI sampler.
 
 ## Completed closeout and known limits
 
@@ -152,14 +168,17 @@ recorder and the current UI sampler.
   Brotli-5 compression returned **99.68 MiB/day** with the Rust backend, or
   **100.84 MiB/day** with the original C backend. Ten small serial/parallel fixtures
   plus full-corpus checks passed; bulk architecture follow-up was accepted by Opus.
-- All 248 frozen source shards / 1,413,925,731 readings passed Rust verification;
-  all 14 component decreases remain flagged, no source observations dropped.
-  All 20 real first-shard fixed-control blocks matched Python bytes exactly.
+- The original dense `adaptive` profile passed Rust verification on all 248 frozen
+  source shards / 1,413,925,731 readings; all 14 component decreases remain flagged,
+  with no source observations dropped. All 20 real first-shard fixed-control blocks
+  matched Python bytes exactly.
 - Finite native churn, SIGTERM, SIGKILL recovery and actual-native-reference
-  live/replay byte-parity tests passed. Normal/optimized Python and Rust tests,
-  fmt, strict Clippy and release build passed. See the [scorecard](RECORDING_RESULTS.md)
-  for measured CPU/memory/bytes; adaptive archive payload is ~392.46 MiB/day on this
-  corpus, not the older fixed-profile ~100.84 MiB/day.
+  live/replay byte-parity tests passed. The new temporal profiles passed a separate
+  finite 20-second synthetic Rust sanity comparison; they have not been replayed
+  across the full 41-hour source. Normal/optimized Python and Rust tests, fmt, strict
+  Clippy and release build passed. See the [scorecard](RECORDING_RESULTS.md) for
+  measured CPU/memory/bytes; dense adaptive archive payload is ~392.46 MiB/day on
+  the full corpus, not the older fixed-profile ~100.84 MiB/day.
 - Opus 5.5/`work2` implementation review and follow-ups accepted the architecture
   with no remaining blockers (session `94c67b86-05a8-4934-ad70-3043f7baa87a`). Live
   block cuts, startup recovery, incomplete raw imports, capacity accounting and

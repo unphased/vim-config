@@ -8,9 +8,9 @@ across every pane in each workspace and published in the workspace sidebar.
 
 Process-history recording is separate from this live plugin:
 
-- [Plan and status](RECORDING_PLAN.md): implemented, validated and architecture-reviewed Rust recorder.
-- [Data and binary format](RECORDING_DATA.md): measured Python prototype walkthrough plus current Rust layout.
-- [Measured results](RECORDING_RESULTS.md): full 41-hour Rust adaptive validation and historical prototype comparisons.
+- [Plan and status](RECORDING_PLAN.md): Rust recorder scope and validation status.
+- [Data and binary format](RECORDING_DATA.md): historical Python prototype walkthrough plus current Rust layout and temporal CPU profiles.
+- [Measured results](RECORDING_RESULTS.md): finite temporal-profile sanity, full 41-hour dense-adaptive validation, and historical comparisons.
 
 Superseded proposals live in Git history. Experimental codecs are tested by
 `make test`; none changes the live plugin.
@@ -48,7 +48,11 @@ cargo build --release
   --output .recordings --duration 10 --format binary
 ```
 
-`record` defaults to the adaptive profile. Memory-selection options for the three
+`record` defaults to `adaptive`, which retains dense CPU checkpoints. The opt-in
+`adaptive-inverse` and `adaptive-log` profiles sparsify CPU checkpoints while keeping
+process metadata and RSS at the 10 Hz source cadence; `legacy-1ms` and `fixed-100us`
+remain unchanged controls. The temporal profiles have finite synthetic Rust sanity
+coverage, not a full-duration replay benchmark. Memory-selection options for the three
 commands are:
 
 ```text
@@ -61,9 +65,9 @@ Columns default to all three and unit size to `262144` bytes (minimum `1`). `non
 disables memory acquisition/encoding and retains memory-free compatibility; `record`
 only acquires selected columns. Cached-binary `bench` is codec-only and rejects
 explicit memory options, so use raw sources to compare memory columns or units. The
-10 Hz recording default, profiles, and live UI sampler are unchanged. When invoked
-through sudo, recorder-created output under `--output` is owned by the invoking sudo
-user.
+10 Hz recording cadence and dense `adaptive` default are unchanged; profile selection
+does not affect the live UI sampler. When invoked through sudo, recorder-created
+output under `--output` is owned by the invoking sudo user.
 
 For legacy normalized-nanosecond source without a declared source timebase, provide
 it explicitly (never inferred from the current host):
@@ -74,10 +78,11 @@ it explicitly (never inferred from the current host):
   --timebase 125/3 --profile adaptive --verify
 ```
 
-The full preserved 41-hour capture passed source-fidelity verification; Opus 5.5
-review findings are fixed. The adaptive archive measures ~392.46 MiB/day on that
-corpus—finer fidelity, not the old fixed-1-ms storage profile. Limits stop recording
-rather than deleting history; no service is installed or enabled automatically.
+The existing dense `adaptive` profile passed source-fidelity verification on the
+full preserved 41-hour capture and measures ~392.46 MiB/day there. This does not
+benchmark the new temporal profiles: those have only a finite 20-second synthetic
+Rust sanity comparison so far. Limits stop recording rather than deleting history;
+no service is installed or enabled automatically.
 
 For offline bulk replay, add `--workers auto` (all available cores) or `--workers N`
 to `recording transform`. The default remains one worker; live recording is unchanged.
@@ -92,8 +97,8 @@ fixtures compare serial/parallel output across regressions, gaps, resets and fai
 Use `inspect --input ROOT --verify`, `inspect --input ARCHIVE --recover`, or
 `inspect --input ARCHIVE --jsonl`. `--blocks-out NEWPRIVATEdir` exports original
 encoded, quantized PST blocks—not finer source truth. `bench --input SOURCE --profiles
-adaptive,legacy-1ms,fixed-100us --frame-bytes 16777216 --output DIR` compares
-profiles over one source; archive/cache input benchmarks only its stored profile.
+adaptive,adaptive-inverse,adaptive-log,legacy-1ms,fixed-100us --frame-bytes 16777216 --output DIR`
+compares profiles over one source; archive/cache input benchmarks only its stored profile.
 Full flags and current status are in the [plan](RECORDING_PLAN.md). Rust recording
 has no Python or external codec-CLI runtime dependency. The old Python capture
 shim remains supported through the project-library path dependency.

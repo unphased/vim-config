@@ -579,19 +579,21 @@ external standard.
   lossless reference for those observations.
 - A binary archive frame is `HFR1`, a little-endian JSON-header length and frame
   metadata, Brotli-5 bytes, then a SHA-256 digest. Decompression yields `PCR1`,
-  a uvarint block count and length-prefixed blocks. A current adaptive block is
-  `PST2` followed by three length-prefixed sections: JSON header/context, `CSH2`
-  CPU data and `PSD1` sparse metadata. If memory values are present, a fourth
-  `PMM1` section is added and declared by the header's `memory` object. `legacy-1ms`
-  retains the PST1/CSH1 control and ignores memory.
-- CSH2 begins `CSH2`, version byte `2`, then row/identity/point counts. The reader
-  also supports prototype version 1. Each sorted
-  identity track stores its identity, observation count and row-index deltas, an
-  exact first total, then maximal CPU-quantum runs. A run stores interval count,
-  Q, quantized interior offsets from its exact starting anchor, and an exact end
-  delta from that anchor (version 1 stored the absolute end total). Adaptive Q is interval-derived, capped at 1 ms in native ticks; Q=1
-  covers zero/fine intervals exactly. This yields the implemented <12.5% relative
-  positive interval target without rounding away positive intervals.
+  a uvarint block count and length-prefixed blocks. `adaptive`, `adaptive-inverse`,
+  and `adaptive-log` use PST2 with a JSON header/context, CSH2 CPU data, and PSD1
+  metadata; the PST2 profile names the CPU policy. If memory values are present,
+  a fourth PMM1 section is added and declared by the header's `memory` object.
+  `legacy-1ms` retains PST1/CSH1; `fixed-100us` is a dense PST2/CSH2 control.
+- Dense CSH2 begins `CSH2`, version byte `2`, then row/identity/point counts; the
+  reader also supports prototype version 1. Each sorted identity track stores its
+  identity, observation count and row-index deltas, an exact first total, then
+  maximal CPU-quantum runs. A run stores interval count, Q, quantized interior
+  offsets from its exact starting anchor, and an exact end delta from that anchor
+  (version 1 stored the absolute end total). Dense `adaptive` Q is interval-derived,
+  capped at 1 ms in native ticks; Q=1 is exact. The opt-in temporal profiles use
+  the same CSH2 v2 tag but a profile-specific body: continuous identity segments,
+  selected row-index deltas, exact segment/run anchors and quantum runs. No protocol
+  version bump or compatibility framework was introduced.
 - PSD1 carries row clocks, process identities/names/PPIDs, sparse presence and
   changes, and RSS in floored 256 KiB units. Optional memory metadata has the shape
   `{"columns":["owned","peak","evicted"],"unit_bytes":262144}` (the columns
@@ -608,22 +610,65 @@ external standard.
   absent. If any is present, the row is an 11-field tuple in the order
   `[pid,ppid,start_sec,start_usec,name,user,system,rss,owned,peak,evicted]`, with
   `null` for absent memory values; these raw values are bytes, without wire flooring.
-  Both shapes parse. Decoded binary JSONL exports
-  memory as `owned_bytes`, `peak_bytes`, `evicted_bytes` and `memory_unit_bytes`
-  when available. Binary CPU is user+system total only: decoded JSON marks
-  `cpu_components: null` and includes per-reading CPU error bounds; it cannot
-  reconstruct the original raw component split or finer source values. Binary
-  block export is quantized and is not a replacement for the raw reference.
+  Both shapes parse. Decoded binary JSONL exports memory as `owned_bytes`,
+  `peak_bytes`, `evicted_bytes` and `memory_unit_bytes` when available. Binary CPU
+  is user+system total only. Dense profiles have a checkpoint for every process
+  reading; temporal profiles retain metadata/RSS at every source row but may emit
+  `"cpu": null` when no CPU checkpoint exists. A checkpoint reports total native
+  ticks, `components: null`, a native-tick error bound, and either a null baseline
+  interval or an interval with actual start/end scan times, duration, decoded delta
+  and native-tick error bound. Omitted CPU is never replaced by zero or
+  interpolation. Binary export cannot reconstruct raw user/system components or
+  finer source values; block export is not a replacement for the raw reference.
+
+## Current temporal CPU profiles (opt-in)
+
+Only CPU checkpoint retention changes. Source acquisition still observes process
+presence, metadata, RSS and timestamps at 10 Hz; raw reference rows retain exact
+native user/system counters. The default `adaptive` profile remains dense, and
+`legacy-1ms` / `fixed-100us` controls are unchanged.
+
+For each continuous identity segment, the encoder estimates the latest adjacent
+raw CPU delta over its actual elapsed scan time, normalized to 100 ms. That estimate
+selects Q from the existing power-of-two ladder capped at the native-tick equivalent
+of 1 ms; Q=1 is exact. Let `Qbusy` be the ladder quantum at 1 ms of CPU per 100 ms,
+`R = Qbusy / Q` and `1 <= R <= Qbusy` (the minimum quantum is one tick). Targets
+are calculated with integer-time arithmetic:
+
+- `adaptive-inverse`: `T = min(5 s, 100 ms * R)`.
+- `adaptive-log`: `T = 100 ms + 4.9 s * log2(R) / log2(Qbusy)`.
+
+The pending deadline only tightens as new raw intervals arrive. If a busier interval
+requires a shorter window than an already accumulated prefix, the checkpoint is
+placed at the previous raw point; the new interval is not smeared across the quiet
+prefix. Lower-rate jitter may still be averaged. There is no all-zero/nonzero or
+4x-change guard. Quantization Q is based on the completed window's CPU average
+normalized to 100 ms; for a forced sub-100 ms interval, Q is capped by its actual
+CPU amount so a positive interval cannot vanish.
+
+Checkpoints use actual observed timestamps, not nominal 100 ms timestamps. A
+baseline has `interval: null`; subsequent interval DTOs report actual start/end
+scan-start times, elapsed duration, decoded CPU delta and native-tick error bound.
+Missing process readings, sequence/acquisition or clock-coverage gaps, and
+continuity-unknown quality boundaries start a new exact-baseline segment; no CPU
+interval bridges a gap. State/error bounds are block-local (blocks are roughly 30 s).
+The binary CSH2 v2 body stores continuous segments and selected row indices/quantum
+runs, identified by the PST2 profile; it does not change the CSH2 version tag.
+
+No Strands/frontend consumer is wired yet. A later consumer can use the unchanged
+10 Hz metadata/RSS rows plus these optional interval DTOs after the contract settles.
 
 Native records declare the source clock/timebase; legacy inputs without a timebase
 require an explicit import argument (for the documented legacy source,
-`--timebase 125/3`). The [plan](RECORDING_PLAN.md) tracks implemented scope and
-completed review; the [scorecard](RECORDING_RESULTS.md) reports full-source adaptive
-validation, current byte/CPU costs and the different-fidelity historical controls.
+`--timebase 125/3`). The [plan](RECORDING_PLAN.md) tracks scope and boundaries; the
+[scorecard](RECORDING_RESULTS.md) separates temporal sanity from full-source dense
+adaptive validation and historical controls.
 
-## Synthetic CPU-window design example (not implemented)
+## Historical Python CPU-window design example (not current Rust behavior)
 
-Protocol design is fluid; these alternatives introduce no compatibility requirement.
+This pre-implementation Python design model is retained as historical research; its
+blanket zero/nonzero and >=4x-change guard is **not** used by the current Rust
+`adaptive-inverse` or `adaptive-log` profiles.
 Research artifacts are private under `.recordings/window-design-example-v2/`:
 `model.py`, exact synthetic input, actual Rust baseline, assumptions/summary JSON,
 and `window-rules.svg` / `burst-guard.svg`. Comparison charts show only the three
@@ -632,15 +677,16 @@ reconstructed outputs. **Exact unquantized 100ms input is exclusively in the sep
 the colored outputs. This is encoder-input ground truth, not sub-100ms execution
 timing. Three chart checks validate input/output separation, the 12 input curves,
 and equality with the actual raw input rather than quantized output.
-No production source was changed; charts are SVG only.
+This historical model did not change production source; its charts are SVG only.
 
 Each case is 20 seconds at 10 Hz, with average CPU 0.005%, 0.05%, 0.5% or 5% of one
 core. Four patterns have identical totals at each intensity: steady, evenly spaced
 30 events/sec, uneven 30 events/sec (100ms-bin event counts `[2,5,1,4,3,2,6,1,4,2]`),
 and one burst every 2 seconds. User/system counters split 80/20; their sum drives
-this experiment. All models retain exact case totals. Current CSH2 reconstruction
-uses the pinned Rust binary from `rust-legacy1ms-bulk-20261019T013315Z`, not a
-second implementation. The two window alternatives are Python design models.
+this experiment. All models retain exact case totals. The dense baseline reconstruction uses the
+pinned Rust binary from `rust-legacy1ms-bulk-20261019T013315Z`; it is not a second
+implementation of the temporal profiles described above. The two window alternatives
+are historical Python design models.
 
 Window decisions reference the **original 100ms CPU increment**, avoiding feedback
 between a growing interval and Q. Let `Qb=2048` native ticks (the Q at nominal 1%
@@ -674,8 +720,8 @@ the pulse. Even a target that shortens to 100ms **after** a larger burst arrives
 cannot undo the preceding accumulated quiet interval.
 
 An additional illustrative guard retains source endpoints before/after zero/nonzero
-edges and >=4x upward changes. Then both alternatives preserve the isolated pulse's
-0.1% peak with 31 / 32 intervals instead of 200. This guard does not preserve all
-uneven 30Hz variation; it is not a general error-bound contract. Window scaling
-alone is insufficient to guarantee burst reconstruction. Retained point counts
-are **not compressed bytes**; no storage improvement is claimed from this model.
+edges and >=4x upward changes. Then both historical alternatives preserve the
+isolated pulse's 0.1% peak with 31 / 32 intervals instead of 200. This guard does
+not preserve all uneven 30Hz variation; it is not a general error-bound contract
+and is not in the current Rust implementation. Retained point counts are **not
+compressed bytes**; no storage improvement is claimed from this model.

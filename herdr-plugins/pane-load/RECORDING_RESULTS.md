@@ -12,6 +12,38 @@ real observations -> named precision profile -> independent byte-sized frames
 Rank storage against **compression CPU-seconds/input GiB**; wall time is separate.
 Read costs do not constrain frames. Decompression only verifies correctness.
 
+## Rust temporal CPU profiles: finite synthetic sanity
+
+`adaptive-inverse` and `adaptive-log` are opt-in sparse-checkpoint profiles; the
+original dense `adaptive` default and legacy/fixed controls are unchanged. This is a
+20-second synthetic sanity fixture per profile, **not** the full 41-hour replay
+retimed with the new profiles. Each run retained all 201 scans and 3,216 process
+metadata/RSS readings. All three `transform --verify` and subsequent
+`inspect --jsonl` commands exited 0; endpoint, precision, RSS and declared-bound
+checks had zero violations. Source-weighted CPU totals and RSS were unchanged.
+
+| Profile | CPU checkpoints | CPU intervals | Maximum interval |
+| --- | ---: | ---: | ---: |
+| `adaptive` (dense default) | 3,216 | 3,200 | 0.1 s |
+| `adaptive-inverse` | 1,083 | 1,067 | 5.0 s |
+| `adaptive-log` | 897 | 881 | 3.7 s |
+
+In the fixture, regular 30 Hz work aliases the steady 10 Hz source for all three
+profiles. At 5% steady CPU, all three reconstructed window arrays coincide; the
+isolated 2-second burst case retains a 100 ms interval with a 100% reported peak in
+each profile. These are interval averages, not sub-100 ms execution timing. The
+20-second payload sizes are illustrative only: no MiB/day projection, storage-win,
+or full-corpus fidelity claim follows from them.
+
+Private artifacts (gitignored):
+`.recordings/rust-window-sanity-20261020T070618Z/REPORT.md`,
+`.recordings/rust-window-sanity-20261020T070618Z/summary.json`,
+`.recordings/rust-window-sanity-20261020T070618Z/compare.svg`, and
+`.recordings/rust-window-sanity-20261020T070618Z/input-truth.svg`. The comparison
+plots only actual Rust outputs; exact raw 100 ms counter differences are separate.
+The two all-profile-coincident panels are marked. Both charts are SVG; no black
+truth curve is overlaid and no PNG was created.
+
 ## Rust fixed-1-ms control and all-core bulk validation
 
 The requested old-semantics control **returns to ~100 MiB/day**. Same stopped
@@ -78,7 +110,7 @@ pinned code `64959f7`, source/code/binary hashes, external per-process resource
 metrics, complete archive, codec cases and block-difference audit. Bulk uses two
 source passes and bounded batches; it trades total CPU for elapsed time, not fidelity.
 
-## Canonical Rust adaptive profile: full 41-hour validation
+## Original dense `adaptive` default: full 41-hour validation
 
 Completed 2026-10-18: **all 248 shards, 1,487,845 scans and 1,413,925,731
 process readings**, producing 4,973 PST2 blocks. All source hashes/counts/ranges
@@ -88,10 +120,11 @@ track endpoints were exact; point/interval bounds, zero/positive classification
 and RSS-floor checks had **zero violations**. All **14 component decreases** remain
 flagged with unavailable-rate semantics, not a restart inference.
 
-This is the finer **adaptive-v1 policy, CSH2 wire version 2**, total CPU and 256 KiB
-RSS. It preserves every positive observed CPU interval, unlike the fixed control's
-sub-quantum plateaus. It is not an equal-fidelity compression comparison with the
-historical fixed-1-ms profile below.
+This is the original dense default's finer **adaptive-v1 policy, CSH2 wire version
+2**, total CPU and 256 KiB RSS—not either new temporal profile. It preserves every
+positive observed CPU interval, unlike the fixed control's sub-quantum plateaus. It
+is not an equal-fidelity compression comparison with the historical fixed-1-ms
+profile below.
 
 | Stage | Exact bytes |
 | --- | ---: |
