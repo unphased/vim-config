@@ -452,6 +452,35 @@ fn raw_source_without_memory_keeps_the_recording_source_v1_header() {
     assert!(header.get("memory").is_none());
     let row_value = source::row_to_value(&row).unwrap();
     assert_eq!(row_value["processes"][0].as_array().unwrap().len(), 8);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_pane-load"))
+        .args(["recording", "inspect", "--input"])
+        .arg(&path)
+        .arg("--jsonl")
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let exported: Vec<Value> = String::from_utf8(output.stdout)
+        .unwrap()
+        .lines()
+        .map(|line| serde_json::from_str(line).unwrap())
+        .collect();
+    let export_header = exported
+        .iter()
+        .find(|value| value.get("recording_export").is_some())
+        .unwrap();
+    assert_eq!(export_header["cpu_unit"], "native_ticks");
+    assert_eq!(export_header["cpu_total_only"], false);
+    assert_eq!(
+        export_header["cpu_components"],
+        "raw-user-system-native-ticks"
+    );
+    let raw_observation = exported
+        .iter()
+        .find(|value| value["kind"] == "raw-source-observation")
+        .unwrap();
+    assert_eq!(raw_observation["processes"][0][5], 142);
+    assert_eq!(raw_observation["processes"][0][6], 20);
 }
 
 #[test]
@@ -496,12 +525,29 @@ fn decoded_jsonl_export_includes_memory_bytes_and_the_selected_unit() {
         .lines()
         .map(|line| serde_json::from_str(line).unwrap())
         .collect();
+    let header = exported
+        .iter()
+        .find(|value| value.get("recording_export").is_some())
+        .unwrap();
+    assert_eq!(header["cpu_unit"], "native_ticks");
+    assert_eq!(header["time_unit"], "ns");
+    assert_eq!(header["cpu_total_only"], true);
+    assert_eq!(
+        header["cpu_observation_model"],
+        "dense-quantized-checkpoints"
+    );
+    assert_eq!(header["cpu_interpolation"], "none");
     let observation = exported
         .iter()
         .find(|value| value["kind"] == "decoded-observation")
         .unwrap();
     assert_eq!(observation["memory_unit_bytes"], UNIT);
     let process = &observation["processes"][0];
+    assert_eq!(process["cpu"]["total_native_ticks"], 162);
+    assert_eq!(process["cpu"]["error_bound_native_ticks"], 0);
+    assert_eq!(process["cpu"]["components"], Value::Null);
+    assert_eq!(process["cpu"]["interval"], Value::Null);
+    assert!(process.get("cpu_total_native_ticks").is_none());
     assert_eq!(process["owned_bytes"], 12_300);
     assert_eq!(process["peak_bytes"], 23_400);
     assert_eq!(process["evicted_bytes"], 3_400);

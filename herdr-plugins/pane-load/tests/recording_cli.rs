@@ -7,6 +7,7 @@ use herdr_pane_load::recording::{
 use sha2::{Digest, Sha256};
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::mpsc;
 
@@ -106,6 +107,31 @@ fn record_options_reject_unknown_and_duplicate_flags_and_apply_defaults() {
     );
     let options = parse_record_options(&["--output".into(), "store".into()]).unwrap();
     assert_eq!(options.profile, Profile::Adaptive);
+    for (name, expected) in [
+        ("adaptive", Profile::Adaptive),
+        ("adaptive-inverse", Profile::AdaptiveInverse),
+        ("adaptive-log", Profile::AdaptiveLog),
+        ("legacy-1ms", Profile::Legacy1ms),
+        ("fixed-100us", Profile::Fixed100us),
+    ] {
+        let options = parse_record_options(&[
+            "--output".into(),
+            "store".into(),
+            "--profile".into(),
+            name.into(),
+        ])
+        .unwrap();
+        assert_eq!(options.profile, expected);
+    }
+    for alias in ["adaptive-inverse-v1", "adaptive-log-v1"] {
+        let result = parse_record_options(&[
+            "--output".into(),
+            "store".into(),
+            "--profile".into(),
+            alias.into(),
+        ]);
+        assert!(result.is_err(), "accepted new profile alias {alias}");
+    }
     assert_eq!(options.hz, 10);
     assert_eq!(options.block_rows, 300);
     assert_eq!(options.frame_bytes, 16 * 1024 * 1024);
@@ -459,7 +485,8 @@ fn source_audit_handles_empty_rows_metadata_changes_and_gaps() {
 
     let legacy =
         pipeline::benchmark_sources(&[source], Profile::Legacy1ms, None, 16 * 1024 * 1024).unwrap();
-    assert!(legacy.positive_intervals_lost > 0);
+    assert_eq!(legacy.precision_violations, 0);
+    assert!(legacy.cpu_checkpoints > 0);
     assert_eq!(legacy.endpoint_mismatches, 0);
 }
 
@@ -1659,4 +1686,185 @@ fn real_capture_context_survives_legacy_control_and_per_shard_provenance() {
         .unwrap();
         assert!(exported.join("manifest.json").exists());
     }
+}
+
+#[test]
+fn temporal_profile_cli_export_preserves_sparse_cpu_intervals_and_dense_metadata() {
+    const STEP_NS: u64 = 100_000_000;
+    const BURST_TICKS: u64 = 2_400_000; // 100 ms at 24 MHz native CPU ticks.
+    let temp = Temp::new();
+    let source = temp.path("temporal-source.jsonl.zst");
+    let context = context("temporal-cli");
+    let rows: Vec<_> = (0..201)
+        .map(|seq| {
+            let mut process = proc(if seq == 0 { 0 } else { BURST_TICKS }, 0);
+            process.rss = 2 * 262_144;
+            process.owned = Some(12_300);
+            process.peak = Some(45_600);
+            process.evicted = Some(78_900);
+            row(seq, seq * STEP_NS, vec![process])
+        })
+        .collect();
+    write_source(&source, &context, &rows);
+
+    for (profile, expected_model) in [
+        ("adaptive-inverse", "sparse-interval-averaged"),
+        ("adaptive-log", "sparse-interval-averaged"),
+    ] {
+        let output = temp.path(&format!("transform-{profile}"));
+        let transformed = Command::new(env!("CARGO_BIN_EXE_pane-load"))
+            .args(["recording", "transform", "--input"])
+            .arg(&source)
+            .args(["--output"])
+            .arg(&output)
+            .args([
+                "--profile",
+                profile,
+                "--verify",
+                "--memory-columns",
+                "owned,peak,evicted",
+                "--memory-unit-bytes",
+                "100",
+                "--block-rows",
+                "300",
+                "--max-bytes",
+                "67108864",
+                "--min-free-bytes",
+                "0",
+            ])
+            .output()
+            .unwrap();
+        assert!(
+            transformed.status.success(),
+            "{profile} transform failed: {}",
+            String::from_utf8_lossy(&transformed.stderr)
+        );
+        let transform_stats: serde_json::Value =
+            serde_json::from_slice(&transformed.stdout).unwrap();
+        assert_eq!(transform_stats["verification_enabled"], true);
+        assert_eq!(transform_stats["precision_violations"], 0);
+        assert_eq!(transform_stats["scans"], 201);
+        assert!(transform_stats["cpu_checkpoints"].as_u64().unwrap() < 201);
+        assert!(transform_stats["cpu_omitted_readings"].as_u64().unwrap() > 0);
+
+        let archive = output.join("archive");
+        let inspected = Command::new(env!("CARGO_BIN_EXE_pane-load"))
+            .args(["recording", "inspect", "--input"])
+            .arg(&archive)
+            .arg("--jsonl")
+            .output()
+            .unwrap();
+        assert!(
+            inspected.status.success(),
+            "{profile} inspect failed: {}",
+            String::from_utf8_lossy(&inspected.stderr)
+        );
+        let exported: Vec<serde_json::Value> = String::from_utf8(inspected.stdout)
+            .unwrap()
+            .lines()
+            .map(|line| serde_json::from_str(line).unwrap())
+            .collect();
+        let header = exported
+            .iter()
+            .find(|value| value.get("recording_export").is_some())
+            .unwrap();
+        assert_eq!(header["profile"], profile);
+        assert_eq!(header["cpu_unit"], "native_ticks");
+        assert_eq!(header["time_unit"], "ns");
+        assert_eq!(header["cpu_total_only"], true);
+        assert_eq!(header["cpu_observation_model"], expected_model);
+        assert_eq!(header["cpu_interpolation"], "none");
+
+        let observations: Vec<_> = exported
+            .iter()
+            .filter(|value| value["kind"] == "decoded-observation")
+            .collect();
+        assert_eq!(observations.len(), 201);
+        let cpu_readings = observations
+            .iter()
+            .filter_map(|observation| observation["processes"][0]["cpu"].as_object())
+            .count();
+        assert!(cpu_readings < observations.len());
+        assert_eq!(
+            observations
+                .iter()
+                .filter(|observation| observation["processes"][0]["cpu"].is_null())
+                .count(),
+            observations.len() - cpu_readings
+        );
+
+        let baseline = observations[0];
+        assert_eq!(baseline["seq"], 0);
+        assert_eq!(
+            baseline["processes"][0]["cpu"]["interval"],
+            serde_json::Value::Null
+        );
+        let burst = observations[1];
+        assert_eq!(burst["seq"], 1);
+        let interval = &burst["processes"][0]["cpu"]["interval"];
+        assert_eq!(interval["start_seq"], 0);
+        assert_eq!(interval["start_time_ns"], 0);
+        assert_eq!(interval["end_time_ns"], STEP_NS);
+        assert_eq!(interval["duration_ns"], STEP_NS);
+        let decoded_delta = interval["delta_native_ticks"].as_u64().unwrap();
+        let error_bound = interval["error_bound_native_ticks"].as_u64().unwrap();
+        assert!(
+            decoded_delta.abs_diff(BURST_TICKS) <= error_bound,
+            "interval delta {decoded_delta} differs from source {BURST_TICKS} by more than {error_bound}"
+        );
+
+        for (seq, observation) in observations.iter().enumerate() {
+            assert_eq!(observation["seq"], seq as u64);
+            assert_eq!(observation["scan_start_ns"], seq as u64 * STEP_NS);
+            assert_eq!(observation["scan_end_ns"], seq as u64 * STEP_NS + 10);
+            assert_eq!(observation["processes"][0]["rss_bytes"], 2 * 262_144);
+            assert_eq!(observation["processes"][0]["owned_bytes"], 12_300);
+            assert_eq!(observation["processes"][0]["peak_bytes"], 45_600);
+            assert_eq!(observation["processes"][0]["evicted_bytes"], 78_900);
+        }
+
+        let summary_output = Command::new(env!("CARGO_BIN_EXE_pane-load"))
+            .args(["recording", "inspect", "--input"])
+            .arg(&archive)
+            .output()
+            .unwrap();
+        assert!(summary_output.status.success());
+        let summary: serde_json::Value = serde_json::from_slice(&summary_output.stdout).unwrap();
+        assert_eq!(
+            summary["cpu_checkpoints"],
+            transform_stats["cpu_checkpoints"]
+        );
+        assert_eq!(summary["cpu_intervals"], transform_stats["cpu_intervals"]);
+        assert_eq!(
+            summary["cpu_omitted_readings"],
+            transform_stats["cpu_omitted_readings"]
+        );
+        assert_eq!(
+            summary["max_cpu_interval_ns"],
+            transform_stats["max_cpu_interval_ns"]
+        );
+        assert!(summary["max_cpu_interval_ns"].as_u64().unwrap() >= STEP_NS);
+    }
+
+    let bench_output = temp.path("temporal-bench.jsonl");
+    let benchmark = Command::new(env!("CARGO_BIN_EXE_pane-load"))
+        .args(["recording", "bench", "--input"])
+        .arg(&source)
+        .args(["--profiles", "adaptive-inverse,adaptive-log", "--output"])
+        .arg(&bench_output)
+        .output()
+        .unwrap();
+    assert!(
+        benchmark.status.success(),
+        "new bench profile names rejected: {}",
+        String::from_utf8_lossy(&benchmark.stderr)
+    );
+    let results: Vec<serde_json::Value> = fs::read_to_string(bench_output)
+        .unwrap()
+        .lines()
+        .map(|line| serde_json::from_str(line).unwrap())
+        .collect();
+    assert_eq!(results.len(), 2);
+    assert_eq!(results[0]["profile"], "AdaptiveInverse");
+    assert_eq!(results[1]["profile"], "AdaptiveLog");
 }

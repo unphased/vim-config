@@ -17,10 +17,10 @@ use std::path::{Path, PathBuf};
 
 const DEFAULT_BENCH_FRAME_BYTES: usize = 16 * 1024 * 1024;
 const USAGE: &str = "pane-load recording <record|transform|inspect|bench> ...\n\
-record: --output ROOT [--duration SEC] [--hz N] [--profile adaptive|legacy-1ms|fixed-100us] [--format binary|jsonl-zstd] [--memory-columns owned,peak,evicted|none] [--memory-unit-bytes N]\n\
-transform: --input FILE|CAPTUREROOT --output NEWARCHIVE [--timebase NUM/DEN] [--profile PROFILE] [--workers auto|N] [--block-rows N] [--frame-bytes N] [--max-bytes N] [--min-free-bytes N] [--memory-columns owned,peak,evicted|none] [--memory-unit-bytes N] [--verify]\n\
+record: --output ROOT [--duration SEC] [--hz N] [--profile adaptive|adaptive-inverse|adaptive-log|legacy-1ms|fixed-100us] [--format binary|jsonl-zstd] [--memory-columns owned,peak,evicted|none] [--memory-unit-bytes N]\n\
+transform: --input FILE|CAPTUREROOT --output NEWARCHIVE [--timebase NUM/DEN] [--profile adaptive|adaptive-inverse|adaptive-log|legacy-1ms|fixed-100us] [--workers auto|N] [--block-rows N] [--frame-bytes N] [--max-bytes N] [--min-free-bytes N] [--memory-columns owned,peak,evicted|none] [--memory-unit-bytes N] [--verify]\n\
 inspect: --input ARCHIVE|RECORDROOT|CACHE [--verify (archives are always fully verified)] [--jsonl|--blocks-out NEWPRIVATEdir] [--recover]\n\
-bench: --input RAWSOURCE|ARCHIVE/CACHE --profiles adaptive,legacy-1ms,fixed-100us [--timebase NUM/DEN] [--frame-bytes N] [--memory-columns owned,peak,evicted|none] [--memory-unit-bytes N] --output DIR|FILE.jsonl";
+bench: --input RAWSOURCE|ARCHIVE/CACHE --profiles adaptive,adaptive-inverse,adaptive-log,legacy-1ms,fixed-100us [--timebase NUM/DEN] [--frame-bytes N] [--memory-columns owned,peak,evicted|none] [--memory-unit-bytes N] --output DIR|FILE.jsonl";
 
 /// Parse the flags following `record`. Unknown, duplicate, missing, and malformed flags fail.
 pub fn parse_record_options(args: &[String]) -> Result<RecordOptions> {
@@ -420,6 +420,10 @@ struct Summary {
     readings: u64,
     flagged_events: u64,
     encoded_bytes: u64,
+    cpu_checkpoints: u64,
+    cpu_intervals: u64,
+    cpu_omitted_readings: u64,
+    max_cpu_interval_ns: u64,
     recovery: Vec<String>,
     profiles: Vec<String>,
     contexts: Vec<Value>,
@@ -516,6 +520,8 @@ fn run_inspect(args: &[String]) -> Result<()> {
         let value = json!({"format":"pane-load-inspection","incomplete":summary.incomplete,"partial_error":summary.partial_error,
             "archives":summary.archives,"blocks":summary.blocks,"scans":summary.scans,
             "readings":summary.readings,"flagged_events":summary.flagged_events,"encoded_bytes":summary.encoded_bytes,
+            "cpu_checkpoints":summary.cpu_checkpoints,"cpu_intervals":summary.cpu_intervals,
+            "cpu_omitted_readings":summary.cpu_omitted_readings,"max_cpu_interval_ns":summary.max_cpu_interval_ns,
             "profiles":summary.profiles,"contexts":summary.contexts,"source_hashes":summary.source_hashes,"recovery":summary.recovery,
             "wall_seconds":started.elapsed().as_secs_f64(),"own_cpu_seconds":get_cpu_delta(cpu_before).0,"child_cpu_seconds":0.0,"peak_rss_bytes":get_cpu().1});
         println!(
@@ -851,9 +857,35 @@ fn inspect_source_file(
 }
 
 fn print_export_header(kind: &str, profile: Profile, context: &Context) -> Result<()> {
+    let raw_source = kind == "raw-source";
+    let cpu_observation_model = if raw_source {
+        "dense-raw-source-readings"
+    } else if matches!(profile, Profile::AdaptiveInverse | Profile::AdaptiveLog) {
+        "sparse-interval-averaged"
+    } else {
+        "dense-quantized-checkpoints"
+    };
+    let cpu_components = if raw_source {
+        "raw-user-system-native-ticks"
+    } else {
+        "unavailable-for-binary-total-only"
+    };
+    let cpu_precision = if raw_source {
+        "lossless native component counters"
+    } else {
+        "per-checkpoint native tick error bound"
+    };
+    let interval_units = if raw_source {
+        Value::Null
+    } else {
+        json!({"start_time_ns":"ns","end_time_ns":"ns","duration_ns":"ns",
+            "delta_native_ticks":"native_ticks","error_bound_native_ticks":"native_ticks"})
+    };
     let value = json!({"recording_export":1,"kind":kind,"profile":profile,"context":context,
-        "cpu_components":"unavailable-for-binary-total-only","rss_precision_bytes":262144,
-        "cpu_precision":"per-reading native tick error bound"});
+        "cpu_unit":"native_ticks","time_unit":"ns","cpu_total_only":!raw_source,
+        "cpu_observation_model":cpu_observation_model,"cpu_interpolation":"none",
+        "cpu_interval_units":interval_units,"cpu_components":cpu_components,
+        "rss_precision_bytes":262144,"cpu_precision":cpu_precision});
     println!(
         "{}",
         serde_json::to_string(&value).map_err(|e| format!("encode export header: {e}"))?
@@ -866,9 +898,21 @@ fn write_decoded_rows(block: &DecodedBlock) -> Result<()> {
             .processes
             .iter()
             .map(|p| {
+                let cpu = p.cpu.as_ref().map_or(Value::Null, |cpu| {
+                    json!({"total_native_ticks":cpu.total,
+                        "error_bound_native_ticks":cpu.error_bound,
+                        "components":cpu.components,
+                        "interval":cpu.interval.as_ref().map(|interval| json!({
+                            "start_seq":interval.start_seq,
+                            "start_time_ns":interval.start_time_ns,
+                            "end_time_ns":interval.end_time_ns,
+                            "duration_ns":interval.duration_ns,
+                            "delta_native_ticks":interval.delta,
+                            "error_bound_native_ticks":interval.error_bound
+                        }))})
+                });
                 let mut process = json!({"pid":p.pid,"ppid":p.ppid,"start_sec":p.start_sec,"start_usec":p.start_usec,
-                    "name":p.name,"cpu_total_native_ticks":p.cpu_total,"cpu_error_bound_native_ticks":p.cpu_error_bound,
-                    "cpu_components":null,"components_available":false,"rss_bytes":p.rss,"rss_precision_bytes":262144});
+                    "name":p.name,"cpu":cpu,"rss_bytes":p.rss,"rss_precision_bytes":262144});
                 if let Some(value) = p.owned {
                     process["owned_bytes"] = json!(value);
                 }
@@ -912,6 +956,17 @@ fn accumulate_block(summary: &mut Summary, block: &DecodedBlock, bytes: u64) {
             .map(|row| row.processes.len() as u64)
             .sum::<u64>(),
     );
+    for process in block.rows.iter().flat_map(|row| &row.processes) {
+        if let Some(cpu) = &process.cpu {
+            summary.cpu_checkpoints = summary.cpu_checkpoints.saturating_add(1);
+            if let Some(interval) = &cpu.interval {
+                summary.cpu_intervals = summary.cpu_intervals.saturating_add(1);
+                summary.max_cpu_interval_ns = summary.max_cpu_interval_ns.max(interval.duration_ns);
+            }
+        } else {
+            summary.cpu_omitted_readings = summary.cpu_omitted_readings.saturating_add(1);
+        }
+    }
     summary.flagged_events = summary.flagged_events.saturating_add(
         block
             .rows
@@ -1313,6 +1368,8 @@ fn parse_memory_columns(value: &str) -> Result<Vec<MemoryColumn>> {
 fn parse_named_profile(value: &str) -> Result<Profile> {
     match value {
         "adaptive" => Ok(Profile::Adaptive),
+        "adaptive-inverse" => Ok(Profile::AdaptiveInverse),
+        "adaptive-log" => Ok(Profile::AdaptiveLog),
         "legacy-1ms" => Ok(Profile::Legacy1ms),
         "fixed-100us" => Ok(Profile::Fixed100us),
         _ => Err(format!("unknown recording profile: {value}")),

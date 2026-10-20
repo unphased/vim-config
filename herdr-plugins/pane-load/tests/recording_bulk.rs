@@ -152,7 +152,12 @@ fn run_parity(temp: &Temp, inputs: &[PathBuf], block_rows: usize) -> pipeline::R
         temp,
         inputs,
         block_rows,
-        &[Profile::Legacy1ms, Profile::Adaptive],
+        &[
+            Profile::Legacy1ms,
+            Profile::Adaptive,
+            Profile::AdaptiveInverse,
+            Profile::AdaptiveLog,
+        ],
     )
 }
 
@@ -170,8 +175,8 @@ fn run_parity_for_profiles(
     for profile in profiles {
         let serial_output = temp.path(&format!("serial-{profile:?}"));
         let serial_options = record_options(serial_output.clone(), *profile, block_rows);
-        let serial =
-            pipeline::transform_sources(inputs, &serial_output, &serial_options, None).unwrap();
+        let serial = pipeline::transform_sources(inputs, &serial_output, &serial_options, None)
+            .unwrap_or_else(|error| panic!("serial transform for {profile:?}: {error}"));
 
         for workers in [1, 2, 4] {
             let parallel_output = temp.path(&format!("parallel-{profile:?}-{workers}"));
