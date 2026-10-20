@@ -62,6 +62,14 @@ pub struct RunStats {
     pub peak_rss_bytes: u64,
     pub endpoint_mismatches: u64,
     pub positive_intervals_lost: u64,
+    #[serde(default)]
+    pub cpu_checkpoints: u64,
+    #[serde(default)]
+    pub cpu_intervals: u64,
+    #[serde(default)]
+    pub cpu_omitted_readings: u64,
+    #[serde(default)]
+    pub max_cpu_interval_ns: u64,
     pub precision_violations: u64,
     pub rss_floor_violations: u64,
     #[serde(default)]
@@ -355,6 +363,10 @@ impl BlockBuilder {
 struct AuditCounts {
     endpoint_mismatches: u64,
     positive_intervals_lost: u64,
+    cpu_checkpoints: u64,
+    cpu_intervals: u64,
+    cpu_omitted_readings: u64,
+    max_cpu_interval_ns: u64,
     precision_violations: u64,
     rss_floor_violations: u64,
 }
@@ -1162,6 +1174,10 @@ fn encode_finished_block(builder: &BlockBuilder, options: &RecordOptions) -> Res
         audit: AuditCounts {
             endpoint_mismatches: audit.endpoint_mismatches,
             positive_intervals_lost: audit.positive_intervals_lost,
+            cpu_checkpoints: audit.cpu_checkpoints,
+            cpu_intervals: audit.cpu_intervals,
+            cpu_omitted_readings: audit.cpu_omitted_readings,
+            max_cpu_interval_ns: audit.max_cpu_interval_ns,
             precision_violations: audit.precision_violations,
             rss_floor_violations: audit.rss_floor_violations,
         },
@@ -1175,6 +1191,12 @@ fn apply_audit_counts(stats: &mut RunStats, audit: AuditCounts) {
     stats.positive_intervals_lost = stats
         .positive_intervals_lost
         .saturating_add(audit.positive_intervals_lost);
+    stats.cpu_checkpoints = stats.cpu_checkpoints.saturating_add(audit.cpu_checkpoints);
+    stats.cpu_intervals = stats.cpu_intervals.saturating_add(audit.cpu_intervals);
+    stats.cpu_omitted_readings = stats
+        .cpu_omitted_readings
+        .saturating_add(audit.cpu_omitted_readings);
+    stats.max_cpu_interval_ns = stats.max_cpu_interval_ns.max(audit.max_cpu_interval_ns);
     stats.precision_violations = stats
         .precision_violations
         .saturating_add(audit.precision_violations);
@@ -2802,15 +2824,12 @@ fn audit_source_block(
     stats: &mut RunStats,
 ) -> Result<()> {
     let decoded = super::wire::decode_block(bytes)?;
-    // PST1 predates run/header provenance; that context belongs to the archive,
-    // not the byte-parity control block. Its CPU timebase is still retained.
+    let temporal = matches!(profile, Profile::AdaptiveInverse | Profile::AdaptiveLog);
     if decoded.profile != profile
         || decoded.context.cpu_timebase != context.cpu_timebase
         || (profile != Profile::Legacy1ms && decoded.context != *context)
+        || decoded.rows.len() != rows.len()
     {
-        stats.precision_violations += 1;
-    }
-    if decoded.rows.len() != rows.len() {
         stats.precision_violations += 1;
     }
     if profile != Profile::Legacy1ms {
@@ -2840,9 +2859,11 @@ fn audit_source_block(
             stats.precision_violations += 1;
         }
     }
-    let mut prior: HashMap<super::model::Identity, (u64, u64)> = HashMap::new();
+
+    let mut prior_cpu: HashMap<super::model::Identity, (usize, u64, u64, u64)> = HashMap::new();
+    let mut prior_raw: HashMap<super::model::Identity, (usize, u64, u64)> = HashMap::new();
     let mut endpoints: HashMap<super::model::Identity, (u64, u64, u64, u64)> = HashMap::new();
-    for (row, decoded_row) in rows.iter().zip(&decoded.rows) {
+    for (row_index, (row, decoded_row)) in rows.iter().zip(&decoded.rows).enumerate() {
         if row.seq != decoded_row.seq
             || row.wall_start_ns != decoded_row.wall_start_ns
             || row.scan_start_ns != decoded_row.scan_start_ns
@@ -2854,18 +2875,8 @@ fn audit_source_block(
         }
         let mut actuals: Vec<_> = row.processes.iter().collect();
         let mut restored: Vec<_> = decoded_row.processes.iter().collect();
-        if !actuals
-            .windows(2)
-            .all(|pair| pair[0].identity() <= pair[1].identity())
-        {
-            actuals.sort_by_key(|process| process.identity());
-        }
-        if !restored
-            .windows(2)
-            .all(|pair| pair[0].identity() <= pair[1].identity())
-        {
-            restored.sort_by_key(|process| process.identity());
-        }
+        actuals.sort_by_key(|process| process.identity());
+        restored.sort_by_key(|process| process.identity());
         for (process, decoded_process) in actuals.into_iter().zip(restored) {
             let id = process.identity();
             if id != decoded_process.identity() {
@@ -2890,65 +2901,196 @@ fn audit_source_block(
                     stats.precision_violations += 1;
                 }
             }
-            let actual = process.total()?;
-            let decoded_total = decoded_process.cpu_total;
-            if actual < decoded_total
-                || actual.abs_diff(decoded_total) > decoded_process.cpu_error_bound
-            {
-                stats.precision_violations += 1;
-            }
             let expected_rss = process.rss / super::model::RSS_QUANTUM * super::model::RSS_QUANTUM;
             if decoded_process.rss != expected_rss {
                 stats.rss_floor_violations += 1;
             }
-            if decoded_process.components.is_some() {
+            let actual = process.total()?;
+            let Some(cpu) = &decoded_process.cpu else {
+                stats.cpu_omitted_readings = stats.cpu_omitted_readings.saturating_add(1);
+                if !temporal {
+                    stats.precision_violations += 1;
+                }
+                prior_raw.insert(id, (row_index, actual, actual));
+                continue;
+            };
+            stats.cpu_checkpoints = stats.cpu_checkpoints.saturating_add(1);
+            if actual < cpu.total
+                || actual.abs_diff(cpu.total) > cpu.error_bound
+                || cpu.components.is_some()
+            {
                 stats.precision_violations += 1;
             }
-            if let Some((previous_actual, previous_decoded)) = prior.get(&id) {
-                let actual_delta = actual.checked_sub(*previous_actual);
-                let decoded_delta = decoded_total.checked_sub(*previous_decoded);
-                let (Some(actual_delta), Some(decoded_delta)) = (actual_delta, decoded_delta)
-                else {
-                    stats.precision_violations += 1;
-                    prior.insert(id, (actual, decoded_total));
-                    endpoints
-                        .entry(id)
-                        .and_modify(|state| {
-                            state.2 = actual;
-                            state.3 = decoded_total;
-                        })
-                        .or_insert((actual, decoded_total, actual, decoded_total));
-                    continue;
-                };
-                if actual_delta > 0 && decoded_delta == 0 {
-                    stats.positive_intervals_lost += 1;
+            if temporal && cpu.error_bound != 0 {
+                stats.precision_violations += 1;
+            }
+            if let Some((start_index, start_actual, start_decoded, start_bound)) =
+                prior_cpu.get(&id).copied()
+            {
+                let covered = source_cpu_interval_covered(rows, id, start_index, row_index);
+                match (&cpu.interval, covered) {
+                    (Some(interval), true) => {
+                        let start = &rows[start_index];
+                        let duration = row.scan_start_ns.checked_sub(start.scan_start_ns);
+                        let actual_delta = actual.checked_sub(start_actual);
+                        let decoded_delta = cpu.total.checked_sub(start_decoded);
+                        let expected_bound = cpu.error_bound.saturating_add(start_bound);
+                        if interval.start_seq != start.seq
+                            || interval.start_time_ns != start.scan_start_ns
+                            || interval.end_time_ns != row.scan_start_ns
+                            || duration != Some(interval.duration_ns)
+                            || actual_delta.is_none_or(|value| {
+                                value.abs_diff(interval.delta) > interval.error_bound
+                            })
+                            || decoded_delta != Some(interval.delta)
+                            || interval.error_bound != expected_bound
+                        {
+                            stats.precision_violations += 1;
+                        }
+                        stats.cpu_intervals = stats.cpu_intervals.saturating_add(1);
+                        stats.max_cpu_interval_ns =
+                            stats.max_cpu_interval_ns.max(interval.duration_ns);
+                    }
+                    (None, true) if temporal => stats.precision_violations += 1,
+                    (Some(_), false) => stats.precision_violations += 1,
+                    _ => {}
                 }
-                if profile == Profile::Adaptive
-                    && ((actual_delta == 0) != (decoded_delta == 0)
+            } else if cpu.interval.is_some() {
+                stats.precision_violations += 1;
+            }
+            if let Some((previous_index, previous_actual, previous_decoded)) =
+                prior_raw.get(&id).copied()
+                && previous_index + 1 == row_index
+                && rows[previous_index].seq.saturating_add(1) == row.seq
+                && source_cpu_interval_covered(rows, id, previous_index, row_index)
+            {
+                let actual_delta = actual.saturating_sub(previous_actual);
+                let decoded_delta = cpu.total.saturating_sub(previous_decoded);
+                if profile == Profile::Adaptive {
+                    if actual_delta > 0 && decoded_delta == 0 {
+                        stats.positive_intervals_lost =
+                            stats.positive_intervals_lost.saturating_add(1);
+                    }
+                    if (actual_delta == 0) != (decoded_delta == 0)
                         || actual_delta > 0
                             && 8u128 * u128::from(actual_delta.abs_diff(decoded_delta))
-                                >= u128::from(actual_delta))
-                {
-                    stats.precision_violations += 1;
+                                >= u128::from(actual_delta)
+                    {
+                        stats.precision_violations += 1;
+                    }
                 }
             }
-            prior.insert(id, (actual, decoded_total));
+            prior_cpu.insert(id, (row_index, actual, cpu.total, cpu.error_bound));
+            prior_raw.insert(id, (row_index, actual, cpu.total));
             endpoints
                 .entry(id)
                 .and_modify(|state| {
                     state.2 = actual;
-                    state.3 = decoded_total;
+                    state.3 = cpu.total;
                 })
-                .or_insert((actual, decoded_total, actual, decoded_total));
+                .or_insert((actual, cpu.total, actual, cpu.total));
+            if temporal && actual != cpu.total {
+                stats.endpoint_mismatches = stats.endpoint_mismatches.saturating_add(1);
+            }
         }
     }
-    for (first_actual, first_decoded, last_actual, last_decoded) in endpoints.values() {
-        if first_actual != first_decoded {
-            stats.endpoint_mismatches += 1;
-        }
-        if last_actual != last_decoded {
-            stats.endpoint_mismatches += 1;
+    if !temporal {
+        for (first_actual, first_decoded, last_actual, last_decoded) in endpoints.values() {
+            if first_actual != first_decoded {
+                stats.endpoint_mismatches += 1;
+            }
+            if last_actual != last_decoded {
+                stats.endpoint_mismatches += 1;
+            }
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod temporal_audit_tests {
+    use super::*;
+
+    #[test]
+    fn temporal_audit_counts_cpu_checkpoints_without_counting_omissions_as_loss() {
+        let context = Context::new(Timebase { numer: 1, denom: 1 });
+        let rows: Vec<_> = (0..61)
+            .map(|seq| Observation {
+                seq,
+                wall_start_ns: seq as i64 * 100_000_000,
+                scan_start_ns: seq * 100_000_000,
+                scan_end_ns: seq * 100_000_000 + 100,
+                processes: vec![Process {
+                    pid: 42,
+                    ppid: 1,
+                    start_sec: 123,
+                    start_usec: 4,
+                    name: "worker".into(),
+                    user: seq * 1_000,
+                    system: 0,
+                    rss: 1_048_575,
+                    owned: None,
+                    peak: None,
+                    evicted: None,
+                }],
+                quality: vec![],
+            })
+            .collect();
+        let profile = Profile::AdaptiveInverse;
+        let bytes = super::super::wire::encode_block(&context, &rows, profile).unwrap();
+        let mut stats = RunStats::default();
+        audit_source_block(
+            &context,
+            &rows,
+            profile,
+            &MemoryEncoding::NONE,
+            &bytes,
+            &mut stats,
+        )
+        .unwrap();
+        assert_eq!(stats.precision_violations, 0);
+        assert_eq!(stats.endpoint_mismatches, 0);
+        assert_eq!(stats.positive_intervals_lost, 0);
+        assert_eq!(stats.cpu_checkpoints, 3);
+        assert_eq!(stats.cpu_intervals, 2);
+        assert_eq!(stats.cpu_omitted_readings, 58);
+        assert_eq!(stats.max_cpu_interval_ns, 5_000_000_000);
+    }
+}
+
+fn source_cpu_interval_covered(
+    rows: &[Observation],
+    identity: super::model::Identity,
+    start: usize,
+    end: usize,
+) -> bool {
+    if end <= start || end >= rows.len() {
+        return false;
+    }
+    for index in start + 1..=end {
+        if rows[index].seq != rows[index - 1].seq.saturating_add(1)
+            || !rows[index]
+                .processes
+                .iter()
+                .any(|process| process.identity() == identity)
+            || rows[index].quality.iter().any(|quality| {
+                let kind = quality.get("kind").and_then(Value::as_str).unwrap_or("");
+                let id = quality.get("identity");
+                let targeted = id.is_some_and(|id| {
+                    id.get("pid").and_then(Value::as_u64) == Some(u64::from(identity.0))
+                        && id.get("start_sec").and_then(Value::as_u64) == Some(identity.1)
+                        && id.get("start_usec").and_then(Value::as_u64)
+                            == Some(u64::from(identity.2))
+                });
+                let continuity_unknown = kind.contains("continuity-unknown");
+                targeted && (continuity_unknown || kind == "cpu-component-regression")
+                    || continuity_unknown && id.is_none()
+                    || kind.contains("acquisition-gap")
+                    || matches!(kind, "gap" | "source-gap" | "sequence-gap") && id.is_none()
+            })
+        {
+            return false;
+        }
+    }
+    true
 }

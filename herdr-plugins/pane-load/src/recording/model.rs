@@ -192,6 +192,8 @@ pub enum Profile {
     Legacy1ms,
     Fixed100us,
     Adaptive,
+    AdaptiveInverse,
+    AdaptiveLog,
 }
 impl Profile {
     pub fn parse(s: &str) -> Result<Self> {
@@ -199,12 +201,35 @@ impl Profile {
             "legacy-1ms" | "fixed-1ms" => Ok(Self::Legacy1ms),
             "fixed-100us" => Ok(Self::Fixed100us),
             "adaptive" | "adaptive-v1" => Ok(Self::Adaptive),
+            "adaptive-inverse" | "adaptive-inverse-v1" => Ok(Self::AdaptiveInverse),
+            "adaptive-log" | "adaptive-log-v1" => Ok(Self::AdaptiveLog),
             _ => Err(format!("unknown recording profile: {s}")),
         }
     }
 }
 
-/// Deliberately distinct from raw Process: total-only lossy profiles cannot restore U/S.
+/// A source interval ending at a retained CPU checkpoint. `delta` and `error_bound`
+/// are in native cumulative CPU ticks; endpoint timestamps come from source rows.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CpuInterval {
+    pub start_seq: u64,
+    pub start_time_ns: u64,
+    pub end_time_ns: u64,
+    pub duration_ns: u64,
+    pub delta: u64,
+    pub error_bound: u64,
+}
+
+/// Total-only CPU reading; components remain unavailable for binary totals.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CpuCheckpoint {
+    pub total: u64,
+    pub error_bound: u64,
+    pub components: Option<[u64; 2]>,
+    pub interval: Option<CpuInterval>,
+}
+
+/// Deliberately distinct from raw Process: CPU may be unavailable on metadata-only rows.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DecodedProcess {
     pub pid: u32,
@@ -212,10 +237,8 @@ pub struct DecodedProcess {
     pub start_sec: u64,
     pub start_usec: u32,
     pub name: String,
-    pub cpu_total: u64,
+    pub cpu: Option<CpuCheckpoint>,
     pub rss: u64,
-    pub components: Option<[u64; 2]>,
-    pub cpu_error_bound: u64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub owned: Option<u64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]

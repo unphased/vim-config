@@ -43,7 +43,7 @@ fn adaptive_keeps_source_zero_and_positive_intervals() {
     let values: Vec<_> = decoded
         .rows
         .iter()
-        .map(|r| r.processes[0].cpu_total)
+        .map(|r| r.processes[0].cpu.as_ref().unwrap().total)
         .collect();
     assert_eq!(values.first(), Some(&0));
     assert_eq!(values.last(), Some(&303));
@@ -58,7 +58,7 @@ fn adaptive_keeps_source_zero_and_positive_intervals() {
         decoded
             .rows
             .iter()
-            .all(|r| r.processes[0].components.is_none())
+            .all(|r| r.processes[0].cpu.as_ref().unwrap().components.is_none())
     );
 }
 

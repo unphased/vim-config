@@ -1,5 +1,7 @@
+use herdr_pane_load::recording::wire::encode_block_with_memory;
 use herdr_pane_load::recording::{
-    Context, CpuCheckpoint, Observation, Process, Profile, Timebase, decode_block, encode_block,
+    Context, CpuCheckpoint, MemoryEncoding, Observation, Process, Profile, Timebase, decode_block,
+    encode_block,
 };
 
 const STEP_NS: u64 = 100_000_000;
@@ -39,13 +41,7 @@ fn samples(decoded: &herdr_pane_load::recording::DecodedBlock) -> Vec<(u64, CpuC
     decoded
         .rows
         .iter()
-        .filter_map(|row| {
-            row.processes
-                .first()?
-                .cpu
-                .clone()
-                .map(|cpu| (row.seq, cpu))
-        })
+        .filter_map(|row| row.processes.first()?.cpu.clone().map(|cpu| (row.seq, cpu)))
         .collect()
 }
 
@@ -54,7 +50,11 @@ fn encode(rate_ticks_per_100ms: u64, count: u64, profile: Profile) -> Vec<(u64, 
         .map(|seq| row(seq, seq * rate_ticks_per_100ms))
         .collect();
     let decoded = decode_block(&encode_block(&context(), &source, profile).unwrap()).unwrap();
-    assert_eq!(decoded.rows.len(), source.len(), "metadata rows are never thinned");
+    assert_eq!(
+        decoded.rows.len(),
+        source.len(),
+        "metadata rows are never thinned"
+    );
     samples(&decoded)
 }
 
@@ -65,7 +65,10 @@ fn inverse_and_log_profiles_retain_less_as_steady_cpu_rate_falls() {
             .into_iter()
             .map(|rate| encode(rate, 121, profile).len())
             .collect();
-        assert!(counts.windows(2).all(|pair| pair[0] >= pair[1]), "{counts:?}");
+        assert!(
+            counts.windows(2).all(|pair| pair[0] >= pair[1]),
+            "{counts:?}"
+        );
         assert!(counts[0] > counts[3], "{profile:?}: {counts:?}");
     }
 }
@@ -74,15 +77,20 @@ fn inverse_and_log_profiles_retain_less_as_steady_cpu_rate_falls() {
 fn quiet_prefix_is_closed_before_a_full_core_burst() {
     let mut source: Vec<_> = (0..30).map(|seq| row(seq, 0)).collect();
     source.push(row(30, 100_000_000));
-    let decoded = decode_block(
-        &encode_block(&context(), &source, Profile::AdaptiveInverse).unwrap(),
-    )
-    .unwrap();
+    source.extend((31..62).map(|seq| row(seq, 100_000_000)));
+    let decoded =
+        decode_block(&encode_block(&context(), &source, Profile::AdaptiveInverse).unwrap())
+            .unwrap();
     let checkpoints = samples(&decoded);
     let burst = checkpoints
         .iter()
         .find(|(seq, _)| *seq == 30)
         .expect("burst endpoint must be retained");
+    assert_eq!(burst.1.total, 100_000_000);
+    assert!(
+        decoded.rows[31].processes[0].cpu.is_none(),
+        "quiet rows must not hold CPU"
+    );
     let interval = burst.1.interval.as_ref().expect("burst has a CPU interval");
     assert_eq!(interval.start_seq, 29);
     assert_eq!(interval.start_time_ns, 29 * STEP_NS);
@@ -95,20 +103,31 @@ fn quiet_prefix_is_closed_before_a_full_core_burst() {
 #[test]
 fn metadata_only_rows_have_no_cpu_and_memory_stays_on_every_row() {
     let decoded = decode_block(
-        &encode_block(
+        &encode_block_with_memory(
             &context(),
-            &(0..121).map(|seq| row(seq, seq * 5_000)).collect::<Vec<_>>(),
+            &(0..121)
+                .map(|seq| row(seq, seq * 5_000))
+                .collect::<Vec<_>>(),
             Profile::AdaptiveLog,
+            MemoryEncoding::default(),
         )
         .unwrap(),
     )
     .unwrap();
-    assert!(decoded.rows.iter().any(|row| row.processes[0].cpu.is_none()));
+    assert!(
+        decoded
+            .rows
+            .iter()
+            .any(|row| row.processes[0].cpu.is_none())
+    );
     for (seq, observation) in decoded.rows.iter().enumerate() {
         let process = &observation.processes[0];
         assert_eq!(observation.seq, seq as u64);
         assert_eq!(process.rss, 786_432);
-        assert_eq!(process.owned, Some((4_000_000 + seq as u64 * 256 * 1024) / 262_144 * 262_144));
+        assert_eq!(
+            process.owned,
+            Some((4_000_000 + seq as u64 * 256 * 1024) / 262_144 * 262_144)
+        );
         assert_eq!(process.peak, Some(8_000_000 / 262_144 * 262_144));
     }
 }
@@ -120,25 +139,101 @@ fn jitter_is_averaged_and_process_returns_start_a_new_baseline() {
         .collect();
     source[20].processes.clear();
     source[21].processes[0].user = source[19].processes[0].user;
-    let decoded = decode_block(
-        &encode_block(&context(), &source, Profile::AdaptiveInverse).unwrap(),
-    )
-    .unwrap();
+    let decoded =
+        decode_block(&encode_block(&context(), &source, Profile::AdaptiveInverse).unwrap())
+            .unwrap();
     let checkpoints = samples(&decoded);
-    assert!(checkpoints.len() < 30, "low-level jitter forced too many anchors");
+    assert!(
+        checkpoints.len() < 30,
+        "low-level jitter forced too many anchors"
+    );
     let returned = checkpoints.iter().find(|(seq, _)| *seq == 21).unwrap();
     assert!(returned.1.interval.is_none(), "absence must not be bridged");
 }
 
 #[test]
+fn source_elapsed_time_controls_normalized_cpu_rate_and_interval_duration() {
+    let mut source: Vec<_> = (0..21)
+        .map(|seq| {
+            let mut observation = row(seq, seq * 60_000);
+            observation.scan_start_ns = seq * 250_000_000;
+            observation.scan_end_ns = observation.scan_start_ns + 500;
+            observation
+        })
+        .collect();
+    // A discontinuous sequence is a new baseline even when identity is unchanged.
+    source[5].seq = 7;
+    for (index, observation) in source.iter_mut().enumerate().skip(6) {
+        observation.seq = index as u64 + 2;
+    }
+    let native_context = Context::new(Timebase {
+        numer: 125,
+        denom: 3,
+    });
+    let decoded =
+        decode_block(&encode_block(&native_context, &source, Profile::AdaptiveInverse).unwrap())
+            .unwrap();
+    let checkpoints = samples(&decoded);
+    assert!(
+        checkpoints
+            .iter()
+            .any(|(seq, cpu)| *seq == 7 && cpu.interval.is_none())
+    );
+    for (_, cpu) in checkpoints {
+        if let Some(interval) = cpu.interval {
+            assert_eq!(
+                interval.duration_ns,
+                interval.end_time_ns - interval.start_time_ns
+            );
+            assert!(interval.duration_ns >= 250_000_000);
+        }
+    }
+}
+
+#[test]
+fn quality_unknown_resets_cpu_and_only_name_or_parent_changes_force_checkpoints() {
+    let mut source: Vec<_> = (0..31).map(|seq| row(seq, seq)).collect();
+    source[8].processes[0].rss += 1_000_000;
+    source[10].processes[0].name = "renamed".into();
+    source[11].processes[0].ppid = 3;
+    source[15].quality.push(serde_json::json!({
+        "kind":"cpu-continuity-unknown",
+        "identity":{"pid":42,"start_sec":123,"start_usec":4}
+    }));
+    source[15].processes[0].user = 1;
+    for (seq, observation) in source.iter_mut().enumerate().skip(16) {
+        observation.processes[0].user = 25_000_000 + seq as u64;
+    }
+    let native_context = Context::new(Timebase {
+        numer: 125,
+        denom: 3,
+    });
+    let decoded =
+        decode_block(&encode_block(&native_context, &source, Profile::AdaptiveInverse).unwrap())
+            .unwrap();
+    let checkpoints = samples(&decoded);
+    assert!(checkpoints.iter().any(|(seq, _)| *seq == 10));
+    assert!(checkpoints.iter().any(|(seq, _)| *seq == 11));
+    assert!(!checkpoints.iter().any(|(seq, _)| *seq == 8));
+    let reset = checkpoints.iter().find(|(seq, _)| *seq == 15).unwrap();
+    assert!(reset.1.interval.is_none());
+    let after_reset = checkpoints.iter().find(|(seq, _)| *seq == 16).unwrap();
+    assert_eq!(after_reset.1.interval.as_ref().unwrap().start_seq, 15);
+}
+
+#[test]
 fn singleton_and_empty_blocks_are_valid() {
     for source in [vec![], vec![row(0, 7)]] {
-        let decoded = decode_block(
-            &encode_block(&context(), &source, Profile::AdaptiveInverse).unwrap(),
-        )
-        .unwrap();
+        let decoded =
+            decode_block(&encode_block(&context(), &source, Profile::AdaptiveInverse).unwrap())
+                .unwrap();
         assert_eq!(decoded.rows.len(), source.len());
-        if let Some(cpu) = decoded.rows.first().and_then(|row| row.processes.first()).and_then(|p| p.cpu.as_ref()) {
+        if let Some(cpu) = decoded
+            .rows
+            .first()
+            .and_then(|row| row.processes.first())
+            .and_then(|p| p.cpu.as_ref())
+        {
             assert!(cpu.interval.is_none());
         }
     }
