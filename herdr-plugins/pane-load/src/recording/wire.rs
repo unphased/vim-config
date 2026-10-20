@@ -4,8 +4,8 @@
 //! sparse metadata, adds context and row quality, and uses independently versioned CSH2 CPU runs.
 use super::model::{
     Context, CpuCheckpoint, CpuInterval, DecodedBlock, DecodedObservation, DecodedProcess,
-    MAX_BLOCK_BYTES, MAX_NAME_BYTES, MAX_POINTS, MemoryColumn, MemoryEncoding, Observation,
-    Process, Profile, RSS_QUANTUM, Result, Timebase,
+    Identity, MAX_BLOCK_BYTES, MAX_NAME_BYTES, MAX_POINTS, MemoryColumn, MemoryEncoding,
+    Observation, Process, Profile, RSS_QUANTUM, Result, Timebase,
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use serde_json::Value;
@@ -114,7 +114,7 @@ fn validate_rows(context: &Context, rows: &[Observation]) -> Result<usize> {
         let reset = counters
             .keys()
             .copied()
-            .filter(|identity| temporal_quality_boundary(row, *identity))
+            .filter(|identity| temporal_quality_boundary(&row.quality, *identity))
             .collect::<Vec<_>>();
         for identity in reset {
             counters.remove(&identity);
@@ -1704,10 +1704,17 @@ fn decode_csh1(
     Ok(())
 }
 
+#[derive(Clone, Copy)]
+struct TemporalSample {
+    row_index: usize,
+    process_index: usize,
+    total: u64,
+}
+
 #[derive(Clone)]
 struct TemporalSegment {
-    identity: (u32, u64, u32),
-    samples: Vec<(usize, u64)>,
+    identity: Identity,
+    samples: Vec<TemporalSample>,
 }
 
 fn encode_csh2_temporal(
@@ -1716,25 +1723,30 @@ fn encode_csh2_temporal(
     timebase: Timebase,
     metadata_points: usize,
 ) -> Result<Vec<u8>> {
-    let mut by_identity = BTreeMap::<(u32, u64, u32), Vec<(usize, u64)>>::new();
+    let mut by_identity = BTreeMap::<Identity, Vec<TemporalSample>>::new();
     for (row_index, row) in rows.iter().enumerate() {
-        for process in &row.processes {
+        for (process_index, process) in row.processes.iter().enumerate() {
             by_identity
                 .entry(process.identity())
                 .or_default()
-                .push((row_index, process.total()?));
+                .push(TemporalSample {
+                    row_index,
+                    process_index,
+                    total: process.total()?,
+                });
         }
     }
 
     let mut segments = Vec::new();
     for (identity, samples) in by_identity {
-        let mut current = Vec::<(usize, u64)>::new();
-        for (row_index, total) in samples {
-            let split = current.last().is_some_and(|(previous_index, _)| {
-                let previous = &rows[*previous_index];
-                row_index != previous_index + 1
-                    || rows[row_index].seq != previous.seq.saturating_add(1)
-                    || temporal_quality_boundary(&rows[row_index], identity)
+        let mut current = Vec::<TemporalSample>::new();
+        for sample in samples {
+            let row_index = sample.row_index;
+            let split = current.last().is_some_and(|previous| {
+                let previous_row = &rows[previous.row_index];
+                row_index != previous.row_index + 1
+                    || rows[row_index].seq != previous_row.seq.saturating_add(1)
+                    || temporal_quality_boundary(&rows[row_index].quality, identity)
             });
             if split {
                 segments.push(TemporalSegment {
@@ -1742,7 +1754,7 @@ fn encode_csh2_temporal(
                     samples: std::mem::take(&mut current),
                 });
             }
-            current.push((row_index, total));
+            current.push(sample);
         }
         if !current.is_empty() {
             segments.push(TemporalSegment {
@@ -1757,14 +1769,7 @@ fn encode_csh2_temporal(
     let mut selected_segments = Vec::<TemporalSegment>::new();
     let mut checkpoint_count = 0usize;
     for segment in segments {
-        let chosen = select_temporal_points(
-            rows,
-            &segment.samples,
-            segment.identity,
-            cap,
-            qbusy,
-            profile,
-        )?;
+        let chosen = select_temporal_points(rows, &segment.samples, cap, qbusy, profile)?;
         checkpoint_count = checkpoint_count
             .checked_add(chosen.len())
             .ok_or_else(|| "temporal CPU checkpoint count overflow".to_string())?;
@@ -1797,32 +1802,33 @@ fn encode_csh2_temporal(
             put_uvarint(&mut out, value)?;
         }
         let mut previous_row = None;
-        for (row_index, _) in &segment.samples {
-            let delta = previous_row.map_or(*row_index, |previous| row_index - previous);
+        for sample in &segment.samples {
+            let delta =
+                previous_row.map_or(sample.row_index, |previous| sample.row_index - previous);
             if previous_row.is_some() && delta == 0 {
                 return Err("duplicate temporal CPU checkpoint row".into());
             }
             put_uvarint(&mut out, delta as u64)?;
-            previous_row = Some(*row_index);
+            previous_row = Some(sample.row_index);
         }
         let first = segment
             .samples
             .first()
             .ok_or_else(|| "empty temporal CPU segment".to_string())?;
-        put_uvarint(&mut out, first.1)?;
+        put_uvarint(&mut out, first.total)?;
 
         let mut quanta = Vec::with_capacity(segment.samples.len().saturating_sub(1));
         for pair in segment.samples.windows(2) {
             let delta = pair[1]
-                .1
-                .checked_sub(pair[0].1)
+                .total
+                .checked_sub(pair[0].total)
                 .ok_or_else(|| "temporal CPU total regressed".to_string())?;
-            let duration = rows[pair[1].0]
+            let duration = rows[pair[1].row_index]
                 .scan_start_ns
-                .checked_sub(rows[pair[0].0].scan_start_ns)
+                .checked_sub(rows[pair[0].row_index].scan_start_ns)
                 .filter(|duration| *duration > 0)
                 .ok_or_else(|| "temporal CPU interval has invalid duration".to_string())?;
-            quanta.push(temporal_quantum(delta, duration, cap)?);
+            quanta.push(temporal_storage_quantum(delta, duration, cap)?);
         }
         let mut runs = Vec::<(usize, usize, u64)>::new();
         let mut start = 0usize;
@@ -1839,17 +1845,18 @@ fn encode_csh2_temporal(
         for (start, length, q) in runs {
             put_uvarint(&mut out, length as u64)?;
             put_uvarint(&mut out, q)?;
-            let anchor = segment.samples[start].1;
+            let anchor = segment.samples[start].total;
             let end_point = start + length;
-            for (_, cpu) in segment.samples.iter().take(end_point).skip(start + 1) {
-                let quotient = cpu
+            for sample in segment.samples.iter().take(end_point).skip(start + 1) {
+                let quotient = sample
+                    .total
                     .checked_sub(anchor)
                     .ok_or_else(|| "temporal CPU anchor regression".to_string())?
                     / q;
                 put_uvarint(&mut out, quotient)?;
             }
             let endpoint_delta = segment.samples[end_point]
-                .1
+                .total
                 .checked_sub(anchor)
                 .ok_or_else(|| "temporal CPU endpoint regression".to_string())?;
             put_uvarint(&mut out, endpoint_delta)?;
@@ -1862,12 +1869,11 @@ fn encode_csh2_temporal(
 
 fn select_temporal_points(
     rows: &[Observation],
-    samples: &[(usize, u64)],
-    identity: (u32, u64, u32),
+    samples: &[TemporalSample],
     cap: u64,
     qbusy: u64,
     profile: Profile,
-) -> Result<Vec<(usize, u64)>> {
+) -> Result<Vec<TemporalSample>> {
     if samples.len() <= 2 {
         return Ok(samples.to_vec());
     }
@@ -1875,8 +1881,12 @@ fn select_temporal_points(
     let mut anchor = 0usize;
     let mut pending_ns = 5_000_000_000u64;
     for index in 1..samples.len() {
-        let (previous_row, previous_total) = samples[index - 1];
-        let (row_index, total) = samples[index];
+        let previous = samples[index - 1];
+        let current = samples[index];
+        let previous_row = previous.row_index;
+        let previous_total = previous.total;
+        let row_index = current.row_index;
+        let total = current.total;
         let adjacent_elapsed = rows[row_index]
             .scan_start_ns
             .checked_sub(rows[previous_row].scan_start_ns)
@@ -1888,7 +1898,7 @@ fn select_temporal_points(
         let q = temporal_quantum(adjacent_delta, adjacent_elapsed, cap)?;
         let desired = temporal_target(q, qbusy, profile)?;
 
-        let anchor_row = samples[anchor].0;
+        let anchor_row = samples[anchor].row_index;
         let elapsed_from_anchor = rows[row_index]
             .scan_start_ns
             .checked_sub(rows[anchor_row].scan_start_ns)
@@ -1896,7 +1906,10 @@ fn select_temporal_points(
             .ok_or_else(|| "temporal CPU source time did not advance".to_string())?;
         if desired < pending_ns && index > anchor + 1 && elapsed_from_anchor > desired {
             let previous = samples[index - 1];
-            if selected.last().is_none_or(|last| last.0 != previous.0) {
+            if selected
+                .last()
+                .is_none_or(|last| last.row_index != previous.row_index)
+            {
                 selected.push(previous);
             }
             anchor = index - 1;
@@ -1906,24 +1919,18 @@ fn select_temporal_points(
 
         let since_anchor = rows[row_index]
             .scan_start_ns
-            .checked_sub(rows[samples[anchor].0].scan_start_ns)
+            .checked_sub(rows[samples[anchor].row_index].scan_start_ns)
             .ok_or_else(|| "temporal CPU source time regressed".to_string())?;
-        let metadata_change = rows[row_index]
-            .processes
-            .iter()
-            .find(|process| process.identity() == identity)
-            .zip(
-                rows[previous_row]
-                    .processes
-                    .iter()
-                    .find(|process| process.identity() == identity),
-            )
-            .is_some_and(|(current, previous)| {
-                current.name != previous.name || current.ppid != previous.ppid
-            });
+        let current_process = &rows[row_index].processes[current.process_index];
+        let previous_process = &rows[previous_row].processes[previous.process_index];
+        let metadata_change = current_process.name != previous_process.name
+            || current_process.ppid != previous_process.ppid;
         if since_anchor >= pending_ns || metadata_change {
-            if selected.last().is_none_or(|last| last.0 != row_index) {
-                selected.push((row_index, total));
+            if selected
+                .last()
+                .is_none_or(|last| last.row_index != row_index)
+            {
+                selected.push(current);
             }
             anchor = index;
             pending_ns = 5_000_000_000;
@@ -1932,14 +1939,17 @@ fn select_temporal_points(
     let last = *samples
         .last()
         .ok_or_else(|| "empty temporal CPU segment".to_string())?;
-    if selected.last().is_none_or(|sample| sample.0 != last.0) {
+    if selected
+        .last()
+        .is_none_or(|sample| sample.row_index != last.row_index)
+    {
         selected.push(last);
     }
     Ok(selected)
 }
 
-fn temporal_quality_boundary(row: &Observation, identity: (u32, u64, u32)) -> bool {
-    row.quality.iter().any(|quality| {
+pub(super) fn temporal_quality_boundary(qualities: &[Value], identity: Identity) -> bool {
+    qualities.iter().any(|quality| {
         let kind = quality.get("kind").and_then(Value::as_str).unwrap_or("");
         let id = quality.get("identity");
         let targeted = id.is_some_and(|id| {
@@ -1950,9 +1960,14 @@ fn temporal_quality_boundary(row: &Observation, identity: (u32, u64, u32)) -> bo
         let continuity_unknown = kind.contains("continuity-unknown");
         targeted && (continuity_unknown || kind == "cpu-component-regression")
             || continuity_unknown && id.is_none()
+            || kind == "clock-gap"
             || kind.contains("acquisition-gap")
             || matches!(kind, "gap" | "source-gap" | "sequence-gap") && id.is_none()
     })
+}
+
+fn temporal_storage_quantum(delta: u64, elapsed_ns: u64, cap: u64) -> Result<u64> {
+    temporal_quantum(delta, elapsed_ns.max(100_000_000), cap)
 }
 
 fn temporal_quantum(delta: u64, elapsed_ns: u64, cap: u64) -> Result<u64> {
@@ -2156,7 +2171,7 @@ fn decoded_temporal_spans(
             let contiguous = identity_spans.last().is_some_and(|span| {
                 span.last.checked_add(1) == Some(row_index)
                     && row.seq == rows[span.last].seq.saturating_add(1)
-                    && !decoded_temporal_quality_boundary(row, identity)
+                    && !temporal_quality_boundary(&row.quality, identity)
             });
             if contiguous {
                 identity_spans.last_mut().unwrap().last = row_index;
@@ -2173,7 +2188,7 @@ fn decoded_temporal_spans(
 
 fn temporal_allowed_delta_range(quantum: u64, cap: u64, duration_ns: u64) -> Option<(u128, u128)> {
     let (normalized_min, normalized_max) = allowed_delta_range(Profile::Adaptive, quantum, cap)?;
-    let duration = u128::from(duration_ns);
+    let duration = u128::from(duration_ns.max(100_000_000));
     let scale = 100_000_000u128;
     let delta_min = normalized_min.checked_mul(duration)?.div_ceil(scale);
     let delta_max = if normalized_max == u128::from(u64::MAX) {
@@ -2470,7 +2485,7 @@ fn decode_csh2_temporal(
 
 fn decoded_temporal_interval_covered(
     rows: &[DecodedObservation],
-    identity: (u32, u64, u32),
+    identity: Identity,
     start: usize,
     end: usize,
 ) -> bool {
@@ -2483,7 +2498,7 @@ fn decoded_temporal_interval_covered(
                 .processes
                 .binary_search_by_key(&identity, DecodedProcess::identity)
                 .is_err()
-            || decoded_temporal_quality_boundary(&rows[index], identity)
+            || temporal_quality_boundary(&rows[index].quality, identity)
         {
             return false;
         }
@@ -2491,28 +2506,8 @@ fn decoded_temporal_interval_covered(
     true
 }
 
-fn decoded_temporal_quality_boundary(row: &DecodedObservation, identity: (u32, u64, u32)) -> bool {
-    decoded_temporal_quality_values_boundary(&row.quality, identity)
-}
-
-fn decoded_temporal_quality_values_boundary(
-    qualities: &[Value],
-    identity: (u32, u64, u32),
-) -> bool {
-    qualities.iter().any(|quality| {
-        let kind = quality.get("kind").and_then(Value::as_str).unwrap_or("");
-        let id = quality.get("identity");
-        let targeted = id.is_some_and(|id| {
-            id.get("pid").and_then(Value::as_u64) == Some(u64::from(identity.0))
-                && id.get("start_sec").and_then(Value::as_u64) == Some(identity.1)
-                && id.get("start_usec").and_then(Value::as_u64) == Some(u64::from(identity.2))
-        });
-        let continuity_unknown = kind.contains("continuity-unknown");
-        targeted && (continuity_unknown || kind == "cpu-component-regression")
-            || continuity_unknown && id.is_none()
-            || kind.contains("acquisition-gap")
-            || matches!(kind, "gap" | "source-gap" | "sequence-gap") && id.is_none()
-    })
+fn decoded_temporal_quality_values_boundary(qualities: &[Value], identity: Identity) -> bool {
+    temporal_quality_boundary(qualities, identity)
 }
 
 fn decode_csh2(
@@ -2704,7 +2699,7 @@ fn decode_csh2(
                     let end = &rows[row_index];
                     if row_index != previous_row + 1
                         || end.seq != start.seq.saturating_add(1)
-                        || decoded_temporal_quality_boundary(end, identity)
+                        || temporal_quality_boundary(&end.quality, identity)
                     {
                         return None;
                     }

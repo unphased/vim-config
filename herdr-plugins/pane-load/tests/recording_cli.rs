@@ -440,6 +440,33 @@ fn transform_verify_flag_audits_and_labels_cpu_scope() {
     assert_eq!(status["precision_violations"], 0);
     assert_eq!(status["rss_floor_violations"], 0);
     assert_eq!(status["endpoint_mismatches"], 0);
+
+    let unverified_output = temp.path("unverified-transform");
+    let stdout = Command::new(env!("CARGO_BIN_EXE_pane-load"))
+        .args(["recording", "transform", "--input"])
+        .arg(&source)
+        .arg("--output")
+        .arg(&unverified_output)
+        .output()
+        .unwrap();
+    assert!(stdout.status.success());
+    let transformed: serde_json::Value = serde_json::from_slice(&stdout.stdout).unwrap();
+    assert_eq!(transformed["verification_enabled"], false);
+    assert_eq!(transformed["cpu_checkpoints"], 1);
+    assert_eq!(transformed["cpu_intervals"], 0);
+    let inspected = Command::new(env!("CARGO_BIN_EXE_pane-load"))
+        .args(["recording", "inspect", "--input"])
+        .arg(unverified_output.join("archive"))
+        .output()
+        .unwrap();
+    assert!(inspected.status.success());
+    let summary: serde_json::Value = serde_json::from_slice(&inspected.stdout).unwrap();
+    assert_eq!(summary["cpu_checkpoints"], transformed["cpu_checkpoints"]);
+    assert_eq!(summary["cpu_intervals"], transformed["cpu_intervals"]);
+    assert_eq!(
+        summary["cpu_omitted_readings"],
+        transformed["cpu_omitted_readings"]
+    );
 }
 
 #[test]
@@ -457,9 +484,10 @@ fn source_audit_handles_empty_rows_metadata_changes_and_gaps() {
         &context("audit"),
         &[
             row(0, 100, vec![proc(0, 0)]),
-            row(1, 200, vec![]),
-            row(2, 300, vec![changed.clone()]),
-            row(3, 400, vec![last]),
+            row(1, 200, vec![proc(1, 0)]),
+            row(2, 300, vec![]),
+            row(3, 400, vec![changed.clone()]),
+            row(4, 500, vec![last]),
         ],
     );
     let adaptive = pipeline::benchmark_sources(
@@ -488,6 +516,7 @@ fn source_audit_handles_empty_rows_metadata_changes_and_gaps() {
     assert_eq!(legacy.precision_violations, 0);
     assert!(legacy.cpu_checkpoints > 0);
     assert_eq!(legacy.endpoint_mismatches, 0);
+    assert!(legacy.positive_intervals_lost > 0);
 }
 
 #[test]

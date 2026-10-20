@@ -332,6 +332,81 @@ fn quality_unknown_resets_cpu_and_only_name_or_parent_changes_force_checkpoints(
 }
 
 #[test]
+fn temporal_profiles_retain_positive_millisecond_metadata_changes_for_multiple_processes() {
+    let context = Context::new(Timebase { numer: 1, denom: 1 });
+    let rows: Vec<_> = (0..3)
+        .map(|seq| {
+            let mut observation = row(seq, seq);
+            observation.scan_start_ns = seq * 1_000_000;
+            observation.scan_end_ns = observation.scan_start_ns + 100;
+            for process in &mut observation.processes {
+                process.name = format!("worker-{seq}");
+            }
+            let mut second = observation.processes[0].clone();
+            second.pid = 43;
+            second.user = seq;
+            observation.processes.push(second);
+            observation
+        })
+        .collect();
+
+    for profile in [Profile::AdaptiveInverse, Profile::AdaptiveLog] {
+        let encoded = encode_block(&context, &rows, profile).unwrap();
+        let decoded = decode_block(&encoded).unwrap();
+        for (row_index, decoded_row) in decoded.rows.iter().enumerate() {
+            assert_eq!(decoded_row.processes.len(), 2);
+            for process in &decoded_row.processes {
+                let cpu = process
+                    .cpu
+                    .as_ref()
+                    .expect("name changes retain each point");
+                assert_eq!(cpu.total, row_index as u64);
+                assert_eq!(cpu.error_bound, 0);
+                if row_index > 0 {
+                    let interval = cpu.interval.as_ref().unwrap();
+                    assert_eq!(interval.delta, 1);
+                    assert_eq!(interval.error_bound, 0);
+                    assert_eq!(interval.duration_ns, 1_000_000);
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn clock_gap_resets_temporal_cpu_baseline_without_crossing_the_rate_jump() {
+    let mut source = vec![row(0, 0), row(1, 100), row(2, 10_000), row(3, 10_100)];
+    for (observation, stamp) in
+        source
+            .iter_mut()
+            .zip([0, 100_000_000, 10_000_000_000, 10_100_000_000])
+    {
+        observation.scan_start_ns = stamp;
+        observation.scan_end_ns = stamp + 1_000;
+    }
+    source[2]
+        .quality
+        .push(serde_json::json!({"kind":"clock-gap"}));
+
+    for profile in [Profile::AdaptiveInverse, Profile::AdaptiveLog] {
+        let decoded = decode_block(&encode_block(&context(), &source, profile).unwrap()).unwrap();
+        let process_cpu = |seq: usize| {
+            decoded.rows[seq].processes[0]
+                .cpu
+                .as_ref()
+                .expect("gap boundaries are retained")
+        };
+        assert_eq!(process_cpu(1).total, 100);
+        assert_eq!(process_cpu(1).interval.as_ref().unwrap().start_seq, 0);
+        assert_eq!(process_cpu(2).total, 10_000);
+        assert!(process_cpu(2).interval.is_none());
+        let after_gap = process_cpu(3).interval.as_ref().unwrap();
+        assert_eq!(after_gap.start_seq, 2);
+        assert_eq!(after_gap.delta, 100);
+    }
+}
+
+#[test]
 fn singleton_and_empty_blocks_are_valid() {
     for source in [vec![], vec![row(0, 7)]] {
         let decoded =

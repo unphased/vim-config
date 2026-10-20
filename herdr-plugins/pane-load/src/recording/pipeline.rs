@@ -1150,22 +1150,21 @@ fn encode_finished_block(builder: &BlockBuilder, options: &RecordOptions) -> Res
         options.memory.clone(),
     )?;
     let mut audit = RunStats::default();
-    if options.verify {
-        audit_source_block(
-            &builder.context,
-            &builder.rows,
-            options.profile,
-            &options.memory,
-            &bytes,
-            &mut audit,
-        )?;
-        if audit.endpoint_mismatches != 0
+    audit_source_block(
+        &builder.context,
+        &builder.rows,
+        options.profile,
+        &options.memory,
+        &bytes,
+        &mut audit,
+    )?;
+    if options.verify
+        && (audit.endpoint_mismatches != 0
             || audit.precision_violations != 0
             || audit.rss_floor_violations != 0
-            || options.profile == Profile::Adaptive && audit.positive_intervals_lost != 0
-        {
-            return Err("source fidelity verification failed".into());
-        }
+            || options.profile == Profile::Adaptive && audit.positive_intervals_lost != 0)
+    {
+        return Err("source fidelity verification failed".into());
     }
     Ok(EncodedBlock {
         bytes,
@@ -2825,6 +2824,18 @@ fn audit_source_block(
 ) -> Result<()> {
     let decoded = super::wire::decode_block(bytes)?;
     let temporal = matches!(profile, Profile::AdaptiveInverse | Profile::AdaptiveLog);
+    let source_identities = rows
+        .iter()
+        .map(|row| {
+            let mut identities = row
+                .processes
+                .iter()
+                .map(super::model::Process::identity)
+                .collect::<Vec<_>>();
+            identities.sort_unstable();
+            identities
+        })
+        .collect::<Vec<_>>();
     if decoded.profile != profile
         || decoded.context.cpu_timebase != context.cpu_timebase
         || (profile != Profile::Legacy1ms && decoded.context != *context)
@@ -2861,7 +2872,7 @@ fn audit_source_block(
     }
 
     let mut prior_cpu: HashMap<super::model::Identity, (usize, u64, u64, u64)> = HashMap::new();
-    let mut prior_raw: HashMap<super::model::Identity, (usize, u64, u64)> = HashMap::new();
+    let mut prior_raw: HashMap<super::model::Identity, (usize, u64, Option<u64>)> = HashMap::new();
     let mut endpoints: HashMap<super::model::Identity, (u64, u64, u64, u64)> = HashMap::new();
     for (row_index, (row, decoded_row)) in rows.iter().zip(&decoded.rows).enumerate() {
         if row.seq != decoded_row.seq
@@ -2910,12 +2921,12 @@ fn audit_source_block(
                 stats.cpu_omitted_readings = stats.cpu_omitted_readings.saturating_add(1);
                 if !temporal
                     || temporal
-                        && (source_temporal_span_start(rows, id, row_index)
-                            || source_temporal_span_end(rows, id, row_index))
+                        && (source_temporal_span_start(rows, &source_identities, id, row_index)
+                            || source_temporal_span_end(rows, &source_identities, id, row_index))
                 {
                     stats.precision_violations += 1;
                 }
-                prior_raw.insert(id, (row_index, actual, actual));
+                prior_raw.insert(id, (row_index, actual, None));
                 continue;
             };
             stats.cpu_checkpoints = stats.cpu_checkpoints.saturating_add(1);
@@ -2926,8 +2937,8 @@ fn audit_source_block(
                 stats.precision_violations += 1;
             }
             if temporal
-                && (source_temporal_span_start(rows, id, row_index)
-                    || source_temporal_span_end(rows, id, row_index))
+                && (source_temporal_span_start(rows, &source_identities, id, row_index)
+                    || source_temporal_span_end(rows, &source_identities, id, row_index))
                 && (actual != cpu.total || cpu.error_bound != 0)
             {
                 stats.precision_violations += 1;
@@ -2935,7 +2946,13 @@ fn audit_source_block(
             if let Some((start_index, start_actual, start_decoded, start_bound)) =
                 prior_cpu.get(&id).copied()
             {
-                let covered = source_cpu_interval_covered(rows, id, start_index, row_index);
+                let covered = source_cpu_interval_covered(
+                    rows,
+                    &source_identities,
+                    id,
+                    start_index,
+                    row_index,
+                );
                 match (&cpu.interval, covered) {
                     (Some(interval), true) => {
                         let start = &rows[start_index];
@@ -2959,6 +2976,22 @@ fn audit_source_block(
                         {
                             stats.precision_violations += 1;
                         }
+                        if temporal
+                            && let (Some(actual_delta), Some(decoded_delta)) =
+                                (actual_delta, decoded_delta)
+                        {
+                            if actual_delta > 0 && decoded_delta == 0 {
+                                stats.positive_intervals_lost =
+                                    stats.positive_intervals_lost.saturating_add(1);
+                            }
+                            if (actual_delta == 0) != (decoded_delta == 0)
+                                || actual_delta > 0
+                                    && 8u128 * u128::from(actual_delta.abs_diff(decoded_delta))
+                                        >= u128::from(actual_delta)
+                            {
+                                stats.precision_violations += 1;
+                            }
+                        }
                         stats.cpu_intervals = stats.cpu_intervals.saturating_add(1);
                         stats.max_cpu_interval_ns =
                             stats.max_cpu_interval_ns.max(interval.duration_ns);
@@ -2970,30 +3003,35 @@ fn audit_source_block(
             } else if cpu.interval.is_some() {
                 stats.precision_violations += 1;
             }
-            if let Some((previous_index, previous_actual, previous_decoded)) =
-                prior_raw.get(&id).copied()
+            if !temporal
+                && let Some((previous_index, previous_actual, Some(previous_decoded))) =
+                    prior_raw.get(&id).copied()
                 && previous_index + 1 == row_index
                 && rows[previous_index].seq.saturating_add(1) == row.seq
-                && source_cpu_interval_covered(rows, id, previous_index, row_index)
+                && source_cpu_interval_covered(
+                    rows,
+                    &source_identities,
+                    id,
+                    previous_index,
+                    row_index,
+                )
             {
                 let actual_delta = actual.saturating_sub(previous_actual);
                 let decoded_delta = cpu.total.saturating_sub(previous_decoded);
-                if profile == Profile::Adaptive {
-                    if actual_delta > 0 && decoded_delta == 0 {
-                        stats.positive_intervals_lost =
-                            stats.positive_intervals_lost.saturating_add(1);
-                    }
-                    if (actual_delta == 0) != (decoded_delta == 0)
+                if actual_delta > 0 && decoded_delta == 0 {
+                    stats.positive_intervals_lost = stats.positive_intervals_lost.saturating_add(1);
+                }
+                if profile == Profile::Adaptive
+                    && ((actual_delta == 0) != (decoded_delta == 0)
                         || actual_delta > 0
                             && 8u128 * u128::from(actual_delta.abs_diff(decoded_delta))
-                                >= u128::from(actual_delta)
-                    {
-                        stats.precision_violations += 1;
-                    }
+                                >= u128::from(actual_delta))
+                {
+                    stats.precision_violations += 1;
                 }
             }
             prior_cpu.insert(id, (row_index, actual, cpu.total, cpu.error_bound));
-            prior_raw.insert(id, (row_index, actual, cpu.total));
+            prior_raw.insert(id, (row_index, actual, Some(cpu.total)));
             endpoints
                 .entry(id)
                 .and_modify(|state| {
@@ -3002,8 +3040,8 @@ fn audit_source_block(
                 })
                 .or_insert((actual, cpu.total, actual, cpu.total));
             if temporal
-                && (source_temporal_span_start(rows, id, row_index)
-                    || source_temporal_span_end(rows, id, row_index))
+                && (source_temporal_span_start(rows, &source_identities, id, row_index)
+                    || source_temporal_span_end(rows, &source_identities, id, row_index))
                 && actual != cpu.total
             {
                 stats.endpoint_mismatches = stats.endpoint_mismatches.saturating_add(1);
@@ -3021,6 +3059,46 @@ fn audit_source_block(
         }
     }
     Ok(())
+}
+
+fn source_temporal_span_start(
+    rows: &[Observation],
+    identities: &[Vec<super::model::Identity>],
+    identity: super::model::Identity,
+    index: usize,
+) -> bool {
+    index == 0 || !source_cpu_interval_covered(rows, identities, identity, index - 1, index)
+}
+
+fn source_temporal_span_end(
+    rows: &[Observation],
+    identities: &[Vec<super::model::Identity>],
+    identity: super::model::Identity,
+    index: usize,
+) -> bool {
+    index + 1 >= rows.len()
+        || !source_cpu_interval_covered(rows, identities, identity, index, index + 1)
+}
+
+fn source_cpu_interval_covered(
+    rows: &[Observation],
+    identities: &[Vec<super::model::Identity>],
+    identity: super::model::Identity,
+    start: usize,
+    end: usize,
+) -> bool {
+    if end <= start || end >= rows.len() {
+        return false;
+    }
+    for index in start + 1..=end {
+        if rows[index].seq != rows[index - 1].seq.saturating_add(1)
+            || identities[index].binary_search(&identity).is_err()
+            || super::wire::temporal_quality_boundary(&rows[index].quality, identity)
+        {
+            return false;
+        }
+    }
+    true
 }
 
 #[cfg(test)]
@@ -3072,57 +3150,4 @@ mod temporal_audit_tests {
         assert_eq!(stats.cpu_omitted_readings, 58);
         assert_eq!(stats.max_cpu_interval_ns, 5_000_000_000);
     }
-}
-
-fn source_temporal_span_start(
-    rows: &[Observation],
-    identity: super::model::Identity,
-    index: usize,
-) -> bool {
-    index == 0 || !source_cpu_interval_covered(rows, identity, index - 1, index)
-}
-
-fn source_temporal_span_end(
-    rows: &[Observation],
-    identity: super::model::Identity,
-    index: usize,
-) -> bool {
-    index + 1 >= rows.len() || !source_cpu_interval_covered(rows, identity, index, index + 1)
-}
-
-fn source_cpu_interval_covered(
-    rows: &[Observation],
-    identity: super::model::Identity,
-    start: usize,
-    end: usize,
-) -> bool {
-    if end <= start || end >= rows.len() {
-        return false;
-    }
-    for index in start + 1..=end {
-        if rows[index].seq != rows[index - 1].seq.saturating_add(1)
-            || !rows[index]
-                .processes
-                .iter()
-                .any(|process| process.identity() == identity)
-            || rows[index].quality.iter().any(|quality| {
-                let kind = quality.get("kind").and_then(Value::as_str).unwrap_or("");
-                let id = quality.get("identity");
-                let targeted = id.is_some_and(|id| {
-                    id.get("pid").and_then(Value::as_u64) == Some(u64::from(identity.0))
-                        && id.get("start_sec").and_then(Value::as_u64) == Some(identity.1)
-                        && id.get("start_usec").and_then(Value::as_u64)
-                            == Some(u64::from(identity.2))
-                });
-                let continuity_unknown = kind.contains("continuity-unknown");
-                targeted && (continuity_unknown || kind == "cpu-component-regression")
-                    || continuity_unknown && id.is_none()
-                    || kind.contains("acquisition-gap")
-                    || matches!(kind, "gap" | "source-gap" | "sequence-gap") && id.is_none()
-            })
-        {
-            return false;
-        }
-    }
-    true
 }
