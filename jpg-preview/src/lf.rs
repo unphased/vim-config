@@ -12,13 +12,8 @@ use std::time::{Duration, Instant};
 
 use crate::{emit_kitty as emit_protocol, PreparedImage, Timings};
 
-const MAX_COMMAND_BYTES: usize = 60_000; // lf's remote scanner has a 64 KiB limit.
-const TARGET_COMMAND_BYTES: usize = 48 * 1024;
 const TIMEOUT: Duration = Duration::from_secs(5);
-const APC_START: &[u8] = b"\x1b_G";
-const APC_END: &[u8] = b"\x1b\\";
 static NEXT_TRANSFER: AtomicU64 = AtomicU64::new(0);
-type KittyParts<'a> = (&'a [u8], Vec<&'a [u8]>, &'a [u8]);
 
 pub fn emit_kitty(
     image: &PreparedImage,
@@ -30,15 +25,9 @@ pub fn emit_kitty(
     let started = Instant::now();
     let mut protocol = Vec::new();
     emit_protocol(&mut protocol, image, x, y)?;
-    let commands = command_lines(&protocol, id)?;
-    let (prefix, _, suffix) = split_protocol(&protocol)?;
-    timings.wire_bytes =
-        protocol.len() + commands.len().saturating_sub(1) * (prefix.len() + suffix.len());
+    timings.wire_bytes = protocol.len();
     timings.encode = started.elapsed();
-    let started = Instant::now();
-    transfer(&commands, &socket_path(), id, TIMEOUT)?;
-    timings.delivery = started.elapsed();
-    Ok(())
+    transfer(&protocol, &socket_path(), id, TIMEOUT, timings)
 }
 
 fn runtime_dir(runtime: Option<PathBuf>, temporary: Option<PathBuf>, uid: u32) -> PathBuf {
@@ -86,7 +75,19 @@ impl Drop for TransferFiles {
     }
 }
 
-fn transfer(commands: &[Vec<u8>], socket: &Path, id: u32, timeout: Duration) -> io::Result<()> {
+fn transfer(
+    protocol: &[u8],
+    socket: &Path,
+    id: u32,
+    timeout: Duration,
+    timings: &mut Timings,
+) -> io::Result<()> {
+    // A generated Kitty/base64 stream never contains single quotes. Literal
+    // quoting avoids escaping and reparsing megabytes of image data in lf.
+    if protocol.contains(&b'\'') {
+        return Err(io::Error::other("invalid quote in Kitty stream"));
+    }
+    let started = Instant::now();
     let files = TransferFiles::create(
         socket
             .parent()
@@ -110,14 +111,11 @@ fn transfer(commands: &[Vec<u8>], socket: &Path, id: u32, timeout: Duration) -> 
         .create_new(true)
         .mode(0o600)
         .open(&source)?;
-    let prefix = format!("send {id} ");
-    for command in commands {
-        output.write_all(
-            command
-                .strip_prefix(prefix.as_bytes())
-                .ok_or_else(|| io::Error::other("invalid lf image command"))?,
-        )?;
-    }
+    // source files have no remote scanner's 64 KiB line limit. The image stays
+    // in one UI-thread write, still containing bounded 4096-byte Kitty packets.
+    output.write_all(b"tty-write '")?;
+    output.write_all(protocol)?;
+    output.write_all(b"'\n")?;
     // A shell builtin acknowledges execution AFTER all tty writes. Sending all
     // image bytes over the server socket can deadlock lf when quitting under
     // backpressure; one small source notification avoids that bulk queue.
@@ -126,8 +124,14 @@ fn transfer(commands: &[Vec<u8>], socket: &Path, id: u32, timeout: Duration) -> 
     let mut notification = format!("send {id} source \"").into_bytes();
     escape_command_body(&mut notification, source.as_os_str().as_bytes());
     notification.extend_from_slice(b"\"\n");
+    timings.stage_file = started.elapsed();
+    let started = Instant::now();
     send_to_socket(&notification, socket, timeout)?;
-    wait_for_ack(&mut ack, timeout)
+    timings.notify = started.elapsed();
+    let started = Instant::now();
+    wait_for_ack(&mut ack, timeout)?;
+    timings.lf_wait = started.elapsed();
+    Ok(())
     // files is removed only after consumption, rejection, or a bounded timeout.
 }
 
@@ -186,76 +190,6 @@ fn wait_for_ack(ack: &mut File, timeout: Duration) -> io::Result<()> {
     }
 }
 
-pub(super) fn command_lines(protocol: &[u8], id: u32) -> io::Result<Vec<Vec<u8>>> {
-    let (prefix, packets, suffix) = split_protocol(protocol)?;
-    let command_prefix = format!("send {id} tty-write \"");
-    let fixed_size = command_prefix.len() + escaped_len(prefix) + escaped_len(suffix) + 2;
-    let mut commands = Vec::new();
-    let mut batch = Vec::new();
-    let mut batch_size = fixed_size;
-    for packet in packets {
-        let packet_size = escaped_len(packet);
-        if !batch.is_empty() && batch_size + packet_size > TARGET_COMMAND_BYTES {
-            commands.push(make_command(&command_prefix, prefix, &batch, suffix)?);
-            batch.clear();
-            batch_size = fixed_size;
-        }
-        if batch_size + packet_size > MAX_COMMAND_BYTES {
-            return Err(io::Error::other(
-                "kitty packet exceeds lf command size limit",
-            ));
-        }
-        batch.extend_from_slice(packet);
-        batch_size += packet_size;
-    }
-    if !batch.is_empty() {
-        commands.push(make_command(&command_prefix, prefix, &batch, suffix)?);
-    }
-    Ok(commands)
-}
-
-fn split_protocol(protocol: &[u8]) -> io::Result<KittyParts<'_>> {
-    let first = find_bytes(protocol, APC_START, 0)
-        .ok_or_else(|| io::Error::other("missing kitty packet"))?;
-    let prefix = &protocol[..first];
-    if !prefix.starts_with(b"\x1b7") {
-        return Err(io::Error::other("missing cursor save"));
-    }
-    let mut packets = Vec::new();
-    let mut cursor = first;
-    loop {
-        if !protocol[cursor..].starts_with(APC_START) {
-            return Err(io::Error::other("invalid kitty packet boundary"));
-        }
-        let end = find_bytes(protocol, APC_END, cursor + APC_START.len())
-            .ok_or_else(|| io::Error::other("unterminated kitty packet"))?
-            + APC_END.len();
-        packets.push(&protocol[cursor..end]);
-        cursor = end;
-        if !protocol[cursor..].starts_with(APC_START) {
-            break;
-        }
-    }
-    if &protocol[cursor..] != b"\x1b8" {
-        return Err(io::Error::other("missing cursor restore"));
-    }
-    Ok((prefix, packets, &protocol[cursor..]))
-}
-
-fn find_bytes(haystack: &[u8], needle: &[u8], from: usize) -> Option<usize> {
-    haystack
-        .get(from..)?
-        .windows(needle.len())
-        .position(|window| window == needle)
-        .map(|offset| from + offset)
-}
-
-fn escaped_len(bytes: &[u8]) -> usize {
-    let mut output = Vec::new();
-    escape_command_body(&mut output, bytes);
-    output.len()
-}
-
 fn escape_command_body(output: &mut Vec<u8>, bytes: &[u8]) {
     let mut octal = false;
     for &byte in bytes {
@@ -279,23 +213,6 @@ fn escape_command_body(output: &mut Vec<u8>, bytes: &[u8]) {
             }
         }
     }
-}
-
-fn make_command(
-    command_prefix: &str,
-    prefix: &[u8],
-    packets: &[u8],
-    suffix: &[u8],
-) -> io::Result<Vec<u8>> {
-    let mut command = command_prefix.as_bytes().to_vec();
-    escape_command_body(&mut command, prefix);
-    escape_command_body(&mut command, packets);
-    escape_command_body(&mut command, suffix);
-    command.extend_from_slice(b"\"\n");
-    if command.len() > MAX_COMMAND_BYTES {
-        return Err(io::Error::other("lf command exceeds size limit"));
-    }
-    Ok(command)
 }
 
 fn send_to_socket(command: &[u8], path: &Path, timeout: Duration) -> io::Result<()> {
@@ -329,7 +246,6 @@ mod tests {
             escaped,
             b"\\033\\067\\033\\070\\033\\061\\062\\063\\\\\\\"\\r\\n"
         );
-        assert_eq!(escaped_len(b"\x1b7"), 8);
     }
 
     #[test]
@@ -350,7 +266,10 @@ mod tests {
         let root = TransferFiles::create(&env::temp_dir()).unwrap();
         let socket = root.0.join("lf.sock");
         let listener = UnixListener::bind(&socket).unwrap();
-        let commands = vec![b"send 17 tty-write \"payload\"\n".to_vec()];
+        let mut protocol = b"\x1b7".to_vec();
+        protocol.extend(std::iter::repeat_n(b'A', 200_000));
+        protocol.extend_from_slice(b"\x1b8");
+        let expected = protocol.clone();
         let server = thread::spawn(move || {
             let (mut stream, _) = listener.accept().unwrap();
             let mut request = String::new();
@@ -362,7 +281,9 @@ mod tests {
                 .strip_suffix("\"\n")
                 .unwrap();
             let content = fs::read_to_string(source).unwrap();
-            assert!(content.starts_with("tty-write \"payload\"\n&printf x > "));
+            let body = content.strip_prefix("tty-write '").unwrap().as_bytes();
+            assert_eq!(&body[..expected.len()], expected);
+            assert!(body[expected.len()..].starts_with(b"'\n&printf x > "));
             let ack = Path::new(source).parent().unwrap().join("ack");
             drop(stream); // Transport forwarding alone must not delete the source.
             assert!(Path::new(source).exists());
@@ -373,7 +294,10 @@ mod tests {
                 .write_all(b"x")
                 .unwrap();
         });
-        transfer(&commands, &socket, 17, Duration::from_secs(1)).unwrap();
+        let started = Instant::now();
+        let mut timings = Timings::default();
+        transfer(&protocol, &socket, 17, Duration::from_secs(1), &mut timings).unwrap();
+        assert!(timings.stage_file + timings.notify + timings.lf_wait <= started.elapsed());
         server.join().unwrap();
         assert_eq!(fs::read_dir(&root.0).unwrap().count(), 1); // Only server socket remains.
         fs::remove_file(&socket).unwrap();
@@ -385,10 +309,30 @@ mod tests {
             stream.read_to_end(&mut request).unwrap();
             // Accept forwarding, but simulate lf quitting before consuming source.
         });
-        let error = transfer(&commands, &socket, 17, Duration::from_millis(20)).unwrap_err();
+        let error = transfer(
+            &protocol,
+            &socket,
+            17,
+            Duration::from_millis(20),
+            &mut Timings::default(),
+        )
+        .unwrap_err();
         assert_eq!(error.kind(), io::ErrorKind::TimedOut);
         server.join().unwrap();
         assert_eq!(fs::read_dir(&root.0).unwrap().count(), 1);
+    }
+
+    #[test]
+    fn rejects_literal_quote_in_protocol_before_creating_files() {
+        let error = transfer(
+            b"bad'protocol",
+            Path::new("/unused/lf.sock"),
+            17,
+            TIMEOUT,
+            &mut Timings::default(),
+        )
+        .unwrap_err();
+        assert!(error.to_string().contains("invalid quote"));
     }
 
     #[test]
@@ -405,10 +349,11 @@ mod tests {
                 .unwrap();
         });
         let error = transfer(
-            &[b"send 17 tty-write \"x\"\n".to_vec()],
+            b"\x1b7x\x1b8",
             &socket,
             17,
             Duration::from_secs(1),
+            &mut Timings::default(),
         )
         .unwrap_err();
         assert!(error.to_string().contains("no such client id"));

@@ -4,6 +4,16 @@
 Codec/protocol/ARW parsing is tested by cargo test in jpg-preview/.
 """
 import os
+import base64
+import fcntl
+import random
+import re
+import shlex
+import shutil
+import signal
+import struct
+import termios
+import zlib
 from pathlib import Path
 import pty
 import select
@@ -212,6 +222,95 @@ class PreviewTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         self.assertEqual(result.stdout, b"")
         self.assertEqual(tty, b"\x1b_Ga=d,d=I,i=424242,q=2\x1b\\")
+
+
+@unittest.skipUnless(os.environ.get("LF_REAL_SMOKE") == "1", "opt-in real LF/Rust smoke test")
+class RealLfSmokeTests(unittest.TestCase):
+    def test_large_png_stream_is_sourced_and_acknowledged_by_real_lf(self):
+        lf = shutil.which("lf")
+        binary = ROOT / "jpg-preview/target/release/jpg-preview"
+        self.assertIsNotNone(lf, "install lf before running LF_REAL_SMOKE=1")
+        self.assertTrue(binary.is_file(), "build the release renderer first")
+        with tempfile.TemporaryDirectory(prefix="lf-smoke-") as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            runtime.mkdir(mode=0o700)
+            stats = root / "stats"
+            image = root / "noise.png"
+            noise = random.Random(42).randbytes(256 * 256 * 3)
+            rows = b"".join(b"\0" + noise[y * 768:(y + 1) * 768] for y in range(256))
+            def chunk(kind, data):
+                return struct.pack("!I", len(data)) + kind + data + struct.pack("!I", zlib.crc32(kind + data))
+            image.write_bytes(b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack("!2I5B", 256, 256, 8, 2, 0, 0, 0)) + chunk(b"IDAT", zlib.compress(rows)) + chunk(b"IEND", b""))
+            preview = root / "preview"
+            preview.write_text('#!/bin/sh\nLF_IMAGE_CELL_PIXELS=1x1 ' + shlex.quote(str(binary)) + ' --lf-id "$id" "$1" 256 257 "$4" "$5" | tee ' + shlex.quote(str(stats)) + '\nexit 1\n')
+            preview.chmod(0o700)
+            config = root / "lfrc"
+            config.write_text(f"set previewer {preview}\nset preload false\nset previewdelay 0\nset autoquit true\n")
+            env = dict(os.environ, XDG_RUNTIME_DIR=str(runtime), TERM="xterm-256color")
+            pid, master = pty.fork()
+            if pid == 0:
+                fcntl.ioctl(0, termios.TIOCSWINSZ, struct.pack("HHHH", 30, 100, 1000, 600))
+                # Keep a session owner alive, like a terminal's shell. Making LF
+                # the session leader sends SIGHUP to its helpers when LF exits.
+                child = os.fork()
+                if child == 0:
+                    os.execve(lf, [lf, "-config", str(config), str(image)], env)
+                _, status = os.waitpid(child, 0)
+                deadline = time.monotonic() + 6
+                while list(runtime.glob("jpg-*")) and time.monotonic() < deadline:
+                    select.select([], [], [], 0.01)
+                os._exit(os.waitstatus_to_exitcode(status))
+            output = bytearray()
+            reaped = False
+            try:
+                deadline = time.monotonic() + 10
+                quitting = False
+                timing_line = ""
+                while time.monotonic() < deadline:
+                    if select.select([master], [], [], 0.02)[0]:
+                        try:
+                            output.extend(os.read(master, 65536))
+                        except OSError:
+                            pass
+                    if not quitting and stats.exists():
+                        current = stats.read_text()
+                        if current.endswith("\n"):
+                            timing_line = current
+                            os.write(master, b"q")
+                            quitting = True
+                    done, status = os.waitpid(pid, os.WNOHANG)
+                    if done:
+                        reaped = True
+                        self.assertEqual(os.waitstatus_to_exitcode(status), 0)
+                        break
+                else:
+                    self.fail("real lf preview/quit timed out")
+                self.assertTrue(quitting, "renderer never acknowledged source consumption")
+                self.assertEqual(len(timing_line.splitlines()), 1)
+                self.assertTrue(timing_line.startswith("total="))
+                # Startup may queue another preview before q. Validate the first
+                # complete frame, not concatenated PNGs or a later truncated log.
+                packets = []
+                for packet in re.findall(rb"\x1b_G([^;]*);([^\x1b]*)\x1b\\", bytes(output)):
+                    packets.append(packet)
+                    if packet[0].endswith(b"m=0"):
+                        break
+                self.assertTrue(packets)
+                self.assertIn(b"f=100", packets[0][0])
+                self.assertNotIn(b"o=z", packets[0][0])
+                self.assertTrue(all(len(data) <= 4096 for _, data in packets))
+                self.assertTrue(packets[-1][0].endswith(b"m=0"))
+                payload = base64.b64decode(b"".join(data for _, data in packets), validate=True)
+                self.assertGreater(len(payload), 65536)
+                self.assertTrue(payload.startswith(b"\x89PNG\r\n\x1a\n"))
+                self.assertEqual(struct.unpack_from("!II", payload, 16), (256, 256))
+                self.assertEqual(list(runtime.glob("jpg-*")), [])
+            finally:
+                if not reaped:
+                    os.kill(pid, signal.SIGKILL)
+                    os.waitpid(pid, 0)
+                os.close(master)
 
 
 if __name__ == "__main__":

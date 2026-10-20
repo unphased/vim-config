@@ -11,9 +11,10 @@ mod lf;
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
 use fast_image_resize as fir;
-use flate2::write::ZlibEncoder;
-use flate2::Compression;
-use image::{DynamicImage, ImageDecoder, ImageFormat, ImageReader, Limits};
+use image::codecs::png::{CompressionType, FilterType, PngEncoder};
+use image::{
+    ColorType, DynamicImage, ImageDecoder, ImageEncoder, ImageFormat, ImageReader, Limits,
+};
 
 const MAX_PIXELS: u64 = 64_000_000;
 const MAX_DECODE_BYTES: u64 = 512 * 1024 * 1024;
@@ -34,8 +35,7 @@ struct CliArgs {
 struct PreparedImage {
     width: u32,
     height: u32,
-    pixel_format: u8,
-    compressed_rgb: Vec<u8>,
+    payload: Vec<u8>,
     timings: Timings,
 }
 
@@ -47,7 +47,9 @@ struct Timings {
     resize: Duration,
     compress: Duration,
     encode: Duration,
-    delivery: Duration,
+    stage_file: Duration,
+    notify: Duration,
+    lf_wait: Duration,
     total: Duration,
     input_bytes: usize,
     wire_bytes: usize,
@@ -57,13 +59,15 @@ impl Timings {
     fn line(&self, width: u32, height: u32) -> String {
         let ms = |duration: Duration| (duration.as_secs_f64() * 1000.0).round() as u64;
         let mut stages = [
-            ("delivery", self.delivery),
-            ("decode", self.decode),
-            ("resize", self.resize),
-            ("compress", self.compress),
+            ("lf-wait", self.lf_wait),
             ("protocol", self.encode),
-            ("read", self.read),
+            ("compress", self.compress),
+            ("resize", self.resize),
             ("orientation", self.orient),
+            ("decode", self.decode),
+            ("file", self.stage_file),
+            ("read", self.read),
+            ("notify", self.notify),
         ];
         stages.sort_by_key(|(_, duration)| std::cmp::Reverse(*duration));
         let stages = stages
@@ -134,8 +138,8 @@ fn run() -> Result<(), Box<dyn Error>> {
         let mut timings = prepared.timings;
         lf::emit_kitty(&prepared, args.x, image_y, id, &mut timings)?;
         timings.total = started.elapsed();
-        // lf publishes preview stdout after the child exits. Finalize this
-        // single reserved row after acknowledgement so delivery is measurable.
+        // lf publishes preview stdout after the child exits. Finalize the
+        // reserved timing row after acknowledgement.
         println!("{}", timings.line(prepared.width, prepared.height));
     } else {
         let mut output = BufWriter::with_capacity(64 * 1024, io::stdout().lock());
@@ -324,7 +328,7 @@ fn prepare_with_orientation(
     let started = Instant::now();
     let has_alpha = decoded.color().has_alpha();
     let (width, height) = fit_dimensions(decoded.width(), decoded.height(), max_width, max_height);
-    let (pixels, pixel_format) = if has_alpha {
+    let (pixels, color_type) = if has_alpha {
         let source = decoded.into_rgba8();
         let pixels = if width == source.width() && height == source.height() {
             source.into_raw()
@@ -341,7 +345,7 @@ fn prepare_with_orientation(
             fir::Resizer::new().resize(&src, &mut dst, Some(&options))?;
             dst.into_vec()
         };
-        (pixels, 32)
+        (pixels, ColorType::Rgba8)
     } else {
         let source = decoded.into_rgb8();
         let pixels = if width == source.width() && height == source.height() {
@@ -359,19 +363,18 @@ fn prepare_with_orientation(
             fir::Resizer::new().resize(&src, &mut dst, Some(&options))?;
             dst.into_vec()
         };
-        (pixels, 24)
+        (pixels, ColorType::Rgb8)
     };
     timings.resize = started.elapsed();
     let started = Instant::now();
-    let mut encoder = ZlibEncoder::new(Vec::new(), Compression::fast());
-    encoder.write_all(&pixels)?;
-    let compressed_rgb = encoder.finish()?;
+    let mut payload = Vec::new();
+    PngEncoder::new_with_quality(&mut payload, CompressionType::Fast, FilterType::Paeth)
+        .write_image(&pixels, width, height, color_type.into())?;
     timings.compress = started.elapsed();
     Ok(PreparedImage {
         width,
         height,
-        pixel_format,
-        compressed_rgb,
+        payload,
         timings,
     })
 }
@@ -406,14 +409,14 @@ fn emit_kitty(
     write!(output, "\x1b[{row};{column}H")?;
 
     let chunk_size = (BASE64_CHUNK / 4) * 3;
-    let chunk_count = image.compressed_rgb.len().div_ceil(chunk_size);
-    for (index, chunk) in image.compressed_rgb.chunks(chunk_size).enumerate() {
+    let chunk_count = image.payload.len().div_ceil(chunk_size);
+    for (index, chunk) in image.payload.chunks(chunk_size).enumerate() {
         let more = usize::from(index + 1 < chunk_count);
         if index == 0 {
             write!(
                 output,
-                "\x1b_Ga=T,f={},s={},v={},i={},q=2,C=1,o=z,m={more};",
-                image.pixel_format, image.width, image.height, IMAGE_ID
+                "\x1b_Ga=T,f=100,s={},v={},i={},q=2,C=1,m={more};",
+                image.width, image.height, IMAGE_ID
             )?;
         } else {
             write!(output, "\x1b_Gm={more};")?;
@@ -427,12 +430,9 @@ fn emit_kitty(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use flate2::read::ZlibDecoder;
     use image::codecs::jpeg::JpegEncoder;
-    use image::codecs::png::PngEncoder;
-    use image::{ColorType, ImageEncoder, RgbImage};
+    use image::RgbImage;
     use std::io::Cursor;
-    use std::io::Read;
 
     fn jpeg_with_orientation(width: u32, height: u32, orientation: u16) -> Vec<u8> {
         let image = RgbImage::from_fn(width, height, |x, y| {
@@ -504,63 +504,17 @@ mod tests {
         (header, STANDARD.decode(encoded).unwrap())
     }
 
-    fn inflate_zlib(data: &[u8]) -> Vec<u8> {
-        let mut decoder = ZlibDecoder::new(Cursor::new(data));
-        let mut output = Vec::new();
-        decoder.read_to_end(&mut output).unwrap();
-        output
-    }
-
-    fn decode_lf_command(line: &[u8]) -> Vec<u8> {
-        let prefix = b"send 17 tty-write \"";
-        assert!(line.starts_with(prefix));
-        assert!(line.ends_with(b"\"\n"));
-        assert!(!line.contains(&0x1b));
-        let mut output = Vec::new();
-        let mut cursor = prefix.len();
-        while cursor < line.len() - 2 {
-            if line[cursor] != b'\\' {
-                output.push(line[cursor]);
-                cursor += 1;
-                continue;
-            }
-            match &line[cursor + 1..cursor + 2] {
-                [b'0'..=b'9'] => {
-                    // lf r42 greedily consumes every decimal digit after an
-                    // octal escape, not exactly three (scan.go's isDigit loop).
-                    let start = cursor + 1;
-                    cursor = start;
-                    while line[cursor].is_ascii_digit() {
-                        cursor += 1;
-                    }
-                    let octal = std::str::from_utf8(&line[start..cursor]).unwrap();
-                    output.push(u8::from_str_radix(octal, 8).unwrap());
-                }
-                b"\\" => {
-                    output.push(b'\\');
-                    cursor += 2;
-                }
-                b"\"" => {
-                    output.push(b'\"');
-                    cursor += 2;
-                }
-                b"r" => {
-                    output.push(b'\r');
-                    cursor += 2;
-                }
-                b"n" => {
-                    output.push(b'\n');
-                    cursor += 2;
-                }
-                escape => panic!("unexpected escape: {escape:?}"),
-            }
-        }
-        output
+    fn decode_png(data: &[u8]) -> DynamicImage {
+        ImageReader::new(Cursor::new(data))
+            .with_guessed_format()
+            .unwrap()
+            .decode()
+            .unwrap()
     }
 
     fn png(width: u32, height: u32, bytes: &[u8], color: ColorType) -> Vec<u8> {
         let mut encoded = Vec::new();
-        PngEncoder::new(&mut encoded)
+        PngEncoder::new_with_quality(&mut encoded, CompressionType::Fast, FilterType::Paeth)
             .write_image(bytes, width, height, color.into())
             .unwrap();
         encoded
@@ -583,12 +537,7 @@ mod tests {
         let (header, payload) = parse_protocol(&output);
         assert!(header.starts_with("a=T,f=100,s=2,v=1"));
 
-        let decoded = ImageReader::new(Cursor::new(payload))
-            .with_guessed_format()
-            .unwrap()
-            .decode()
-            .unwrap()
-            .into_rgba8();
+        let decoded = decode_png(&payload).into_rgba8();
         assert_eq!(decoded.into_raw(), rgba);
     }
 
@@ -597,16 +546,15 @@ mod tests {
         let rgba = [255, 0, 0, 0, 0, 0, 255, 255];
         let encoded = png(2, 1, &rgba, ColorType::Rgba8);
         let native = decode_test_image(&encoded, 2, 1);
-        assert_eq!(native.pixel_format, 32);
-        assert_eq!(inflate_zlib(&native.compressed_rgb), rgba);
+        assert_eq!(decode_png(&native.payload).into_rgba8().into_raw(), rgba);
         let mut output = Vec::new();
         emit_kitty(&mut output, &native, 0, 0).unwrap();
-        let (header, compressed) = parse_protocol(&output);
-        assert!(header.contains("f=32"));
-        assert_eq!(inflate_zlib(&compressed), rgba);
+        let (header, payload) = parse_protocol(&output);
+        assert!(header.contains("f=100"));
+        assert_eq!(decode_png(&payload).into_rgba8().into_raw(), rgba);
 
         let resized = decode_test_image(&encoded, 1, 1);
-        let pixels = inflate_zlib(&resized.compressed_rgb);
+        let pixels = decode_png(&resized.payload).into_rgba8().into_raw();
         assert_eq!(pixels.len(), 4);
         assert!(
             pixels[0] < 10,
@@ -624,7 +572,7 @@ mod tests {
         let gray = png(2, 1, &[32, 192], ColorType::L8);
         let decoded = decode_test_image(&gray, 2, 1);
         assert_eq!(
-            inflate_zlib(&decoded.compressed_rgb),
+            decode_png(&decoded.payload).into_rgb8().into_raw(),
             [32, 32, 32, 192, 192, 192]
         );
 
@@ -635,7 +583,7 @@ mod tests {
             .collect::<Vec<_>>();
         let sixteen = png(2, 1, &raw, ColorType::L16);
         let decoded = decode_test_image(&sixteen, 2, 1);
-        let pixels = inflate_zlib(&decoded.compressed_rgb);
+        let pixels = decode_png(&decoded.payload).into_rgb8().into_raw();
         assert_eq!(pixels.len(), 6);
         assert_eq!(&pixels[0..3], &[pixels[0]; 3]);
         assert_eq!(&pixels[3..6], &[pixels[3]; 3]);
@@ -666,7 +614,7 @@ mod tests {
                 (expected.width(), expected.height())
             );
             assert_eq!(
-                inflate_zlib(&prepared.compressed_rgb),
+                decode_png(&prepared.payload).into_rgb8().into_raw(),
                 expected.into_rgb8().into_raw()
             );
         }
@@ -718,7 +666,10 @@ mod tests {
         )
         .unwrap();
         assert_eq!((prepared.width, prepared.height), (2, 3));
-        assert_eq!(inflate_zlib(&prepared.compressed_rgb), expected_pixels);
+        assert_eq!(
+            decode_png(&prepared.payload).into_rgb8().into_raw(),
+            expected_pixels
+        );
     }
 
     #[test]
@@ -726,22 +677,25 @@ mod tests {
         let jpeg = jpeg_with_orientation(3, 2, 6);
         let prepared = decode_test_jpeg(&jpeg, 10, 10);
         assert_eq!((prepared.width, prepared.height), (2, 3));
-        assert_eq!(inflate_zlib(&prepared.compressed_rgb).len(), 2 * 3 * 3);
+        assert_eq!(
+            decode_png(&prepared.payload).into_rgb8().into_raw().len(),
+            2 * 3 * 3
+        );
         let mut terminal = Vec::new();
         emit_kitty(&mut terminal, &prepared, 0, 0).unwrap();
-        let (header, compressed) = parse_protocol(&terminal);
+        let (header, payload) = parse_protocol(&terminal);
         assert!(header.contains("s=2,v=3"));
-        assert_eq!(inflate_zlib(&compressed).len(), 2 * 3 * 3);
+        assert_eq!(decode_png(&payload).into_rgb8().into_raw().len(), 2 * 3 * 3);
 
         let smaller = decode_test_jpeg(&jpeg, 1, 2);
         assert_eq!((smaller.width, smaller.height), (1, 2));
-        assert_eq!(inflate_zlib(&smaller.compressed_rgb).len(), 6);
+        assert_eq!(decode_png(&smaller.payload).into_rgb8().into_raw().len(), 6);
     }
 
     #[test]
     fn emits_cursor_position_and_reassemblable_bounded_packets() {
         let mut state = 0x1234_5678u32;
-        let raw = (0..200_000)
+        let raw = (0..160 * 160 * 3)
             .map(|_| {
                 state ^= state << 13;
                 state ^= state >> 17;
@@ -749,20 +703,17 @@ mod tests {
                 state as u8
             })
             .collect::<Vec<_>>();
-        let mut encoder = ZlibEncoder::new(Vec::new(), Compression::fast());
-        encoder.write_all(&raw).unwrap();
-        let compressed_rgb = encoder.finish().unwrap();
+        let payload = png(160, 160, &raw, ColorType::Rgb8);
         let image = PreparedImage {
-            width: 4,
-            height: 3,
-            pixel_format: 24,
-            compressed_rgb,
+            width: 160,
+            height: 160,
+            payload,
             timings: Timings::default(),
         };
         let mut output = Vec::new();
         emit_kitty(&mut output, &image, 7, 2).unwrap();
         assert!(
-            output.starts_with(b"\x1b7\x1b[3;8H\x1b_Ga=T,f=24,s=4,v=3,i=424242,q=2,C=1,o=z,m=1;")
+            output.starts_with(b"\x1b7\x1b[3;8H\x1b_Ga=T,f=100,s=160,v=160,i=424242,q=2,C=1,m=1;")
         );
         assert!(output.ends_with(b"\x1b8"));
 
@@ -773,30 +724,14 @@ mod tests {
             assert!(chunk.len() <= BASE64_CHUNK);
             assert_eq!(
                 fields.ends_with("m=1"),
-                (index + 1) * ((BASE64_CHUNK / 4) * 3) < image.compressed_rgb.len()
+                (index + 1) * ((BASE64_CHUNK / 4) * 3) < image.payload.len()
             );
         }
-        let (header, inflated) = parse_protocol(&output);
-        assert!(header.starts_with("a=T,f=24,s=4,v=3,i=424242,q=2,C=1,o=z,m=1"));
-        assert_eq!(inflate_zlib(&inflated), raw);
-
-        let commands = lf::command_lines(&output, 17).unwrap();
-        assert!(commands.len() > 1, "image should be divided into batches");
-        let cursor_prefix = b"\x1b7\x1b[3;8H";
-        let mut reassembled = cursor_prefix.to_vec();
-        for command in &commands {
-            assert!(command.len() <= 60_000);
-            let body = decode_lf_command(command);
-            assert!(body.starts_with(cursor_prefix));
-            assert!(body.ends_with(b"\x1b8"));
-            let packets = &body[cursor_prefix.len()..body.len() - 2];
-            assert!(packets.starts_with(b"\x1b_G"));
-            assert!(packets.ends_with(b"\x1b\\"));
-            reassembled.extend_from_slice(packets);
-        }
-        reassembled.extend_from_slice(b"\x1b8");
-        let (_, reassembled_compressed) = parse_protocol(&reassembled);
-        assert_eq!(inflate_zlib(&reassembled_compressed), raw);
+        let (header, reassembled_payload) = parse_protocol(&output);
+        assert!(header.starts_with("a=T,f=100,s=160,v=160,i=424242,q=2,C=1,m=1"));
+        assert!(!header.contains("o=z"));
+        assert_eq!(reassembled_payload, image.payload);
+        assert_eq!(decode_png(&reassembled_payload).into_rgb8().into_raw(), raw);
     }
 
     #[test]
@@ -825,13 +760,15 @@ mod tests {
             resize: ms(4),
             compress: ms(5),
             encode: ms(6),
-            delivery: ms(8),
-            total: ms(29),
+            stage_file: ms(2),
+            notify: ms(1),
+            lf_wait: ms(8),
+            total: ms(32),
             input_bytes: 1024 * 1024,
             wire_bytes: 2 * 1024 * 1024,
         };
         let line = timings.line(400, 300);
-        assert_eq!(line, "total=29ms delivery=8 protocol=6 compress=5 resize=4 orientation=3 decode=2 read=1 1.0MiB>2.0MiB 400x300");
+        assert_eq!(line, "total=32ms lf-wait=8 protocol=6 compress=5 resize=4 orientation=3 decode=2 file=2 read=1 notify=1 1.0MiB>2.0MiB 400x300");
         assert!(line
             .bytes()
             .all(|byte| byte.is_ascii_graphic() || byte == b' '));

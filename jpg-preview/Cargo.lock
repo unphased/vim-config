@@ -114,7 +114,6 @@ version = "0.1.0"
 dependencies = [
  "base64",
  "fast_image_resize",
- "flate2",
  "image",
  "libc",
 ]
