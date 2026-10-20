@@ -574,6 +574,25 @@ mod tests {
     }
 
     #[test]
+    fn kitty_payload_uses_lossless_png_transport() {
+        let rgba = [255, 0, 0, 0, 0, 0, 255, 255];
+        let encoded = png(2, 1, &rgba, ColorType::Rgba8);
+        let prepared = decode_test_image(&encoded, 2, 1);
+        let mut output = Vec::new();
+        emit_kitty(&mut output, &prepared, 0, 0).unwrap();
+        let (header, payload) = parse_protocol(&output);
+        assert!(header.starts_with("a=T,f=100,s=2,v=1"));
+
+        let decoded = ImageReader::new(Cursor::new(payload))
+            .with_guessed_format()
+            .unwrap()
+            .decode()
+            .unwrap()
+            .into_rgba8();
+        assert_eq!(decoded.into_raw(), rgba);
+    }
+
+    #[test]
     fn png_rgba_is_preserved_at_native_size_and_alpha_correct_when_resized() {
         let rgba = [255, 0, 0, 0, 0, 0, 255, 255];
         let encoded = png(2, 1, &rgba, ColorType::Rgba8);
