@@ -125,6 +125,19 @@ lf -cpuprofile /tmp/lf.cpu /path/to/photo.jpg
 go tool pprof -top -cum /tmp/lf.cpu
 ```
 
+## Direct JPEG probe in Ghostty
+
+On installed Ghostty `1.3.0-main+685daee01`, a separate raw-TTY probe (no LF,
+SSH, or multiplexer) displayed a 152,985-byte PNG through `f=100` and returned
+`OK`. The corresponding 35,217-byte JPEG did not display. A valid 1,173-byte
+JPEG fitting in one Kitty packet explicitly returned `EINVAL: invalid data`
+under `f=100`; its dimensions were independently decoded successfully by macOS.
+Both single- and multi-packet PNG controls worked. JPEG under speculative
+`f=200` also did not display (no reply). These are installed-build results, not
+a claim about every possible future extension: this build does not accept JPEG
+transparently in its PNG slot, so changing JPEG quality alone cannot enable
+JPEG passthrough on the current path.
+
 ## Historical raw-RGB JPEG measurements
 
 NAS `/six_fourteen/SCREENCAPS/IMG_1795.jpg`: 800,048 bytes, 1512×2016.
