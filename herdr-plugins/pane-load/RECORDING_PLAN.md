@@ -3,8 +3,8 @@
 **One current plan; no new design phase.** The Rust recorder supports native capture,
 shared validation/encoding, archives, source transforms, inspection/export, and
 benchmarking. The original dense `adaptive` profile has full 41-hour
-source-fidelity validation; the opt-in temporal profiles have a finite synthetic
-Rust sanity comparison, not a full-duration replay benchmark. The older Python codec
+source-fidelity validation; the opt-in temporal profiles have synthetic Rust sanity
+checks and a verified first-shard replay, not a full-duration replay benchmark. The older Python codec
 and window-model work remains historical reference material.
 
 ```mermaid
@@ -174,8 +174,11 @@ between the recorder and the current UI sampler.
   matched Python bytes exactly.
 - Finite native churn, SIGTERM, SIGKILL recovery and actual-native-reference
   live/replay byte-parity tests passed. The new temporal profiles passed a separate
-  finite 20-second synthetic Rust sanity comparison; they have not been replayed
-  across the full 41-hour source. Normal/optimized Python and Rust tests, fmt, strict
+  finite 20-second synthetic Rust sanity comparison and a real 6,000-scan /
+  6,431,392-reading first-shard replay, with zero audit violations. They have not
+  been replayed across the full 41-hour source. Current validation passes 198 Rust
+  tests (one existing native-reference test remains ignored) and 142 Python tests;
+  an independent temporal-code review has no remaining blockers. Fmt, strict
   Clippy and release build passed. See the [scorecard](RECORDING_RESULTS.md) for
   measured CPU/memory/bytes; dense adaptive archive payload is ~392.46 MiB/day on
   the full corpus, not the older fixed-profile ~100.84 MiB/day.

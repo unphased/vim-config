@@ -632,7 +632,7 @@ For each continuous identity segment, the encoder estimates the latest adjacent
 raw CPU delta over its actual elapsed scan time, normalized to 100 ms. That estimate
 selects Q from the existing power-of-two ladder capped at the native-tick equivalent
 of 1 ms; Q=1 is exact. Let `Qbusy` be the ladder quantum at 1 ms of CPU per 100 ms,
-`R = Qbusy / Q` and `1 <= R <= Qbusy` (the minimum quantum is one tick). Targets
+`R = max(1, Qbusy / Q)` and `1 <= R <= Qbusy` (the minimum quantum is one tick). Targets
 are calculated with integer-time arithmetic:
 
 - `adaptive-inverse`: `T = min(5 s, 100 ms * R)`.

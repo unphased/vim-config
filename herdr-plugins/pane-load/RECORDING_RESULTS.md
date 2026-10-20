@@ -12,7 +12,7 @@ real observations -> named precision profile -> independent byte-sized frames
 Rank storage against **compression CPU-seconds/input GiB**; wall time is separate.
 Read costs do not constrain frames. Decompression only verifies correctness.
 
-## Rust temporal CPU profiles: finite synthetic sanity
+## Rust temporal CPU profiles: finite sanity and first-shard verification
 
 `adaptive-inverse` and `adaptive-log` are opt-in sparse-checkpoint profiles; the
 original dense `adaptive` default and legacy/fixed controls are unchanged. This is a
@@ -35,14 +35,44 @@ each profile. These are interval averages, not sub-100 ms execution timing. The
 20-second payload sizes are illustrative only: no MiB/day projection, storage-win,
 or full-corpus fidelity claim follows from them.
 
-Private artifacts (gitignored):
-`.recordings/rust-window-sanity-20261020T070618Z/REPORT.md`,
-`.recordings/rust-window-sanity-20261020T070618Z/summary.json`,
-`.recordings/rust-window-sanity-20261020T070618Z/compare.svg`, and
-`.recordings/rust-window-sanity-20261020T070618Z/input-truth.svg`. The comparison
+Final private artifacts (gitignored), pinned to `f7e5162`:
+`.recordings/rust-window-final-20261020T073712Z/FINAL_VALIDATION.md`,
+`summary.json`, `compare.svg`, and `input-truth.svg` in that directory. The comparison
 plots only actual Rust outputs; exact raw 100 ms counter differences are separate.
-The two all-profile-coincident panels are marked. Both charts are SVG; no black
-truth curve is overlaid and no PNG was created.
+All-profile-coincident panels are marked. Both charts are SVG; no black truth curve
+is overlaid and no PNG was created. Synthetic outputs match the earlier `b4dadec`
+pin byte-for-byte; the final fixes cover short forced intervals, clock gaps, lookup
+cost and statistics rather than changing this regular 100 ms fixture.
+
+### Finite real-source control (one stopped shard, not all 41 hours)
+
+The final binary also verified all **6,000 scans / 6,431,392 process readings** in
+`source-000000.jsonl.zst`, with identical expanded-source hash for all three
+profiles. No new capture was made. Metadata/RSS and exact span endpoints passed;
+all endpoint, retained-interval precision, lost-positive and RSS audits were zero.
+Temporal profiles deliberately omit interior CPU readings: this is not a claim
+that their reconstructions reproduce every omitted 100 ms rate.
+
+| Profile | CPU checkpoints | Raw PST bytes | Brotli-5 payload bytes |
+| --- | ---: | ---: | ---: |
+| `adaptive` | 6,431,392 | 18,450,076 | 3,156,726 |
+| `adaptive-inverse` | 542,514 | 4,424,516 | 2,012,484 |
+| `adaptive-log` | 456,336 | 4,016,393 | 1,800,333 |
+
+These are actual default archive frames (16 MiB target, Brotli quality 5/window 20,
+including the unpadded tail): two frames for dense adaptive, one for each temporal
+profile. They are **one-shard** storage measurements, not MiB/day projections or a
+full-corpus fidelity/storage result. Nominal 5 s targets close at real observations;
+the longest temporal interval was 5.687 s due to the original source timing.
+The temporal runs took about 18 s each and peaked below 374 MB RSS. Dense-control
+wall timing overlapped the test suite and is not an uncontended speed comparison.
+
+Current validation: **198 Rust tests + 142 Python tests pass**, one existing
+native-reference test remains ignored by default; fmt, strict all-target Clippy and
+release build pass. A focused independent review found and then cleared short-window
+precision, clock-gap coverage, quadratic lookups and loss-statistics issues. The
+binary retains total CPU only; exact raw user/system components remain available.
+Strands/frontend integration is deferred until the interval contract is settled.
 
 ## Rust fixed-1-ms control and all-core bulk validation
 

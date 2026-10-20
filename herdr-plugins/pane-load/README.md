@@ -51,8 +51,8 @@ cargo build --release
 `record` defaults to `adaptive`, which retains dense CPU checkpoints. The opt-in
 `adaptive-inverse` and `adaptive-log` profiles sparsify CPU checkpoints while keeping
 process metadata and RSS at the 10 Hz source cadence; `legacy-1ms` and `fixed-100us`
-remain unchanged controls. The temporal profiles have finite synthetic Rust sanity
-coverage, not a full-duration replay benchmark. Memory-selection options for the three
+remain unchanged controls. The temporal profiles have synthetic Rust sanity
+coverage and a verified first-shard replay (6.43 million readings), not a full-duration replay benchmark. Memory-selection options for the three
 commands are:
 
 ```text
@@ -80,8 +80,8 @@ it explicitly (never inferred from the current host):
 
 The existing dense `adaptive` profile passed source-fidelity verification on the
 full preserved 41-hour capture and measures ~392.46 MiB/day there. This does not
-benchmark the new temporal profiles: those have only a finite 20-second synthetic
-Rust sanity comparison so far. Limits stop recording rather than deleting history;
+benchmark the new temporal profiles: those have a 20-second synthetic comparison
+and a verified 10-minute source replay so far; see the scorecard for measured bytes. Limits stop recording rather than deleting history;
 no service is installed or enabled automatically.
 
 For offline bulk replay, add `--workers auto` (all available cores) or `--workers N`
