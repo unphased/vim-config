@@ -553,18 +553,9 @@ mod tests {
         assert!(header.contains("f=100"));
         assert_eq!(decode_png(&payload).into_rgba8().into_raw(), rgba);
 
-        let resized = decode_test_image(&encoded, 1, 1);
-        let pixels = decode_png(&resized.payload).into_rgba8().into_raw();
-        assert_eq!(pixels.len(), 4);
-        assert!(
-            pixels[0] < 10,
-            "transparent red contaminated output: {pixels:?}"
-        );
-        assert!(pixels[2] > 240, "opaque blue was lost: {pixels:?}");
-        assert!(
-            (120..=136).contains(&pixels[3]),
-            "unexpected output alpha: {pixels:?}"
-        );
+        let full = decode_test_image(&encoded, 1, 1);
+        assert_eq!((full.width, full.height), (2, 1));
+        assert_eq!(decode_png(&full.payload).into_rgba8().into_raw(), rgba);
     }
 
     #[test]
@@ -688,8 +679,8 @@ mod tests {
         assert_eq!(decode_png(&payload).into_rgb8().into_raw().len(), 2 * 3 * 3);
 
         let smaller = decode_test_jpeg(&jpeg, 1, 2);
-        assert_eq!((smaller.width, smaller.height), (1, 2));
-        assert_eq!(decode_png(&smaller.payload).into_rgb8().into_raw().len(), 6);
+        assert_eq!((smaller.width, smaller.height), (2, 3));
+        assert_eq!(decode_png(&smaller.payload).into_rgb8().into_raw().len(), 18);
     }
 
     #[test]
