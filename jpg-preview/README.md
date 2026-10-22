@@ -138,6 +138,35 @@ a claim about every possible future extension: this build does not accept JPEG
 transparently in its PNG slot, so changing JPEG quality alone cannot enable
 JPEG passthrough on the current path.
 
+## No-resize / terminal-side scaling probe
+
+A separate Ghostty `1.3.0-main+685daee01` raw-TTY test uploaded the full
+1512×2016 PNG once, then replaced the same image/placement ID without another
+upload. The simulated preview box was 768×918 pixels (48×27 cells, 16×34 pixels
+per cell). All three placements returned `OK` and were screenshot-verified:
+
+- No `c`/`r`: native pixel-size placement, clipped by terminal boundaries, not
+  fitted to the preview box. With the current `C=1` cursor-preserving behavior,
+  it can also overdraw the preview footer; the terminal does not know LF's box.
+- `c=43,r=27`: Ghostty scales the full image to 688×918 display pixels. The
+  helper would calculate aspect-fitting cell dimensions; cell rounding applies.
+- `x=744,y=1098,w=768,h=918`, no `c`/`r`: a native-size bottom-right crop,
+  contained in the box. Changing the crop gives panning without image reupload.
+
+This used one `a=t,f=100` upload and repeated `a=p` updates to the same placement
+ID, not deletion/reupload between modes. These are transient terminal image
+resources, not a persistent file cache. A first probe which deleted/cleared the
+unplaced image returned `ENOENT`; the successful run retained it throughout.
+
+Full-resolution PNG was 5,097,780 bytes / 6,812,031 Kitty-stream bytes. Rust's
+fitted 688×917 version was 1,118,796 bytes / 1,495,062 stream bytes: approximately
+6.50 versus 1.43 MiB, **4.6× more traffic without resizing**. This is a sizing
+and placement probe, not an end-to-end speed benchmark. Terminal-side scaling
+can avoid helper resizing and enable later detail inspection, but does not
+avoid full-image encoding/transmission/terminal decoding. Fit-on-load versus
+full-resolution-on-demand is therefore a tradeoff, not a free latency win.
+Production sizing and LF key bindings were not changed by this probe.
+
 ## Historical raw-RGB JPEG measurements
 
 NAS `/six_fourteen/SCREENCAPS/IMG_1795.jpg`: 800,048 bytes, 1512×2016.
