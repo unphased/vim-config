@@ -10,7 +10,7 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
-use crate::{emit_kitty as emit_protocol, PreparedImage, Timings};
+use crate::{emit_kitty as emit_protocol, Placement, PreparedImage, Timings};
 
 const TIMEOUT: Duration = Duration::from_secs(5);
 static NEXT_TRANSFER: AtomicU64 = AtomicU64::new(0);
@@ -19,12 +19,13 @@ pub fn emit_kitty(
     image: &PreparedImage,
     x: usize,
     y: usize,
+    placement: Placement,
     id: u32,
     timings: &mut Timings,
 ) -> io::Result<()> {
     let started = Instant::now();
     let mut protocol = Vec::new();
-    emit_protocol(&mut protocol, image, x, y)?;
+    emit_protocol(&mut protocol, image, x, y, placement)?;
     timings.wire_bytes = protocol.len();
     timings.encode = started.elapsed();
     transfer(&protocol, &socket_path(), id, TIMEOUT, timings)

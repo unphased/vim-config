@@ -1,7 +1,7 @@
 # Rust image preview dogfood
 
-Pure-Rust JPEG, PNG, and Sony ARW previews: orientation, SIMD resize, fast PNG
-encoding, and direct Kitty graphics transmission. No kitten, Perl, Unicode
+Pure-Rust JPEG, PNG, and Sony ARW previews: orientation, full-resolution PNG
+encoding, and Kitty placement with terminal-side scaling. No kitten, Perl, Unicode
 placeholders, terminal-response queries, temporary JPEGs, persistent image cache,
 or background preloading on lf's image path. The executable keeps its original
 `jpg-preview` name for compatibility.
@@ -25,7 +25,7 @@ PNG transmission above the 64 KiB remote-line threshold, acknowledgement, quit,
 and resource cleanup; this fast-sink check does not replace visual Ghostty tests.
 
 - **JPEG:** pure-Rust decoding and EXIF orientation, lossless PNG protocol output.
-- **PNG:** pure-Rust decoding; alpha preserved as RGBA with alpha-aware resizing.
+- **PNG:** pure-Rust decoding; full-resolution RGBA pixels and alpha preserved.
   Grayscale and 16-bit input are converted to 8-bit RGB/RGBA inside the PNG.
 - **Sony ARW:** seek to classic TIFF IFD0 tags `0x0201`/`0x0202` and read only the
   embedded JPEG. Valid outer TIFF orientation overrides embedded JPEG orientation
@@ -33,11 +33,27 @@ and resource cleanup; this fast-sink check does not replace visual Ghostty tests
 
 Cell pixel dimensions use the controlling tty's `TIOCGWINSZ` values, falling back
 to 10×20 pixels when unavailable. `LF_IMAGE_CELL_PIXELS=10x20` overrides this for
-repeatable headless benchmarks. Aspect ratio is retained; images are not enlarged.
+repeatable headless benchmarks. Rust no longer resizes image pixels. It sends
+full-resolution, oriented PNG and fits the placement to LF's available area using
+only Kitty `c` (width-limited) or `r` (height-limited). Ghostty computes the other
+axis from the source aspect ratio, avoiding two-axis cell-rounding stretch. Images
+already fitting the box use natural-size placement and are not enlarged.
 Decoded images above 64 million pixels and encoded input above 128 MiB are
 rejected. The encoded bound applies to the embedded JPEG, not the entire ARW;
 large RAW pixel data is neither scanned nor loaded. Reads are bounded before
 decoder construction. Image ID remains 424242 so the existing lf cleaner works.
+
+## Production: frontend scaling
+
+```text
+JPEG/PNG/ARW → decode/orient → full-resolution PNG → LF → Ghostty scales to c/r
+```
+
+Full-resolution transfer is the current production default, including standalone
+CLI use. The first LF row remains reserved for timings. This deliberately accepts
+larger PNG/base64 traffic to remove helper resampling and let Ghostty scale at
+display time. No pan/scroll bindings or persistent cache were added. PNG input is
+still decoded and re-encoded; it is not yet a pass-through optimization.
 
 ## Live lf timings
 
@@ -46,7 +62,7 @@ image sizing uses the remaining height and placement starts one row lower. For
 example (all stage values are rounded milliseconds):
 
 ```text
-total=85ms lf-wait=42 compress=11 read=10 decode=10 resize=6 protocol=2 file=1 notify=0 orientation=0 782KiB>4.9MiB 1338x1784
+total=...ms lf-wait=... compress=... convert=... ... 782KiB>6.5MiB 1512x2016
 ```
 
 - `total`: elapsed Rust invocation time, including acknowledged delivery.
@@ -57,11 +73,12 @@ total=85ms lf-wait=42 compress=11 read=10 decode=10 resize=6 protocol=2 file=1 n
   LF work can begin during `notify`; this is not an isolated LF CPU measurement.
 - `decode`: image decoding, including orientation metadata lookup.
 - `read`: file read / ARW JPEG extraction, format detection, decoder construction.
-- `orientation`: applying orientation; `resize`: color conversion and resizing.
+- `orientation`: applying orientation; `convert`: RGB/RGBA8 color conversion.
+  There is no Rust resize stage.
 - `compress`: lossless PNG Fast/Paeth encoding; `protocol`: base64/Kitty assembly.
 - `782KiB>4.9MiB`: encoded input bytes → actual Kitty-stream bytes. For ARW,
   input size is the embedded JPEG, not the RAW file.
-- Final dimensions: resized image pixels. Stages are sorted by descending cost
+- Final dimensions: full-resolution, oriented source pixels (not display size). Stages are sorted by descending cost
   after total, so narrow panes show the largest bottlenecks before clipping.
 
 The row is finalized after lf acknowledges its writes, since delivery cannot be
@@ -77,7 +94,11 @@ Photo JPEGs can still expand when converted to lossless PNG and base64;
 flat-color screenshots compress much better. The wire byte count helps
 distinguish this cost from decoding rather than inferring from file size.
 
-## PNG versus raw RGB: measured optimization
+## Historical PNG versus raw RGB measurements
+
+These measurements used the previous helper-resized path at identical target
+pixels. The PNG encoding algorithm remains current, but production now sends the
+full source resolution instead of these smaller target images.
 
 At identical pixels, PNG row prediction substantially beats the previous raw
 RGB + fast zlib transport. We use PNG Fast/Paeth (`f=100`), with no extra `o=z`
@@ -165,7 +186,9 @@ and placement probe, not an end-to-end speed benchmark. Terminal-side scaling
 can avoid helper resizing and enable later detail inspection, but does not
 avoid full-image encoding/transmission/terminal decoding. Fit-on-load versus
 full-resolution-on-demand is therefore a tradeoff, not a free latency win.
-Production sizing and LF key bindings were not changed by this probe.
+The probe did not change production sizing or LF key bindings. Production has
+since switched to full-resolution PNG with one-axis terminal-side fitting as
+described above; pan bindings remain unimplemented.
 
 ## Historical raw-RGB JPEG measurements
 

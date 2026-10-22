@@ -10,7 +10,6 @@ mod lf;
 
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
-use fast_image_resize as fir;
 use image::codecs::png::{CompressionType, FilterType, PngEncoder};
 use image::{
     ColorType, DynamicImage, ImageDecoder, ImageEncoder, ImageFormat, ImageReader, Limits,
@@ -44,7 +43,7 @@ struct Timings {
     read: Duration,
     decode: Duration,
     orient: Duration,
-    resize: Duration,
+    convert: Duration,
     compress: Duration,
     encode: Duration,
     stage_file: Duration,
@@ -62,7 +61,7 @@ impl Timings {
             ("lf-wait", self.lf_wait),
             ("protocol", self.encode),
             ("compress", self.compress),
-            ("resize", self.resize),
+            ("convert", self.convert),
             ("orientation", self.orient),
             ("decode", self.decode),
             ("file", self.stage_file),
@@ -125,25 +124,23 @@ fn run() -> Result<(), Box<dyn Error>> {
         return Ok(());
     };
     let (cell_width, cell_height) = cell_pixels()?;
-    let max_width = args
-        .width_cells
-        .checked_mul(cell_width)
-        .ok_or("requested pixel width overflow")?;
-    let max_height = height_cells
-        .checked_mul(cell_height)
-        .ok_or("requested pixel height overflow")?;
-    let prepared = prepare_path(&args.image, max_width, max_height)?;
+    let prepared = prepare_path(&args.image)?;
+    let placement = fit_placement(
+        (prepared.width, prepared.height),
+        (args.width_cells, height_cells),
+        (cell_width, cell_height),
+    )?;
 
     if let Some(id) = args.lf_id {
         let mut timings = prepared.timings;
-        lf::emit_kitty(&prepared, args.x, image_y, id, &mut timings)?;
+        lf::emit_kitty(&prepared, args.x, image_y, placement, id, &mut timings)?;
         timings.total = started.elapsed();
         // lf publishes preview stdout after the child exits. Finalize the
         // reserved timing row after acknowledgement.
         println!("{}", timings.line(prepared.width, prepared.height));
     } else {
         let mut output = BufWriter::with_capacity(64 * 1024, io::stdout().lock());
-        emit_kitty(&mut output, &prepared, args.x, args.y)?;
+        emit_kitty(&mut output, &prepared, args.x, args.y, placement)?;
         output.flush()?;
     }
     Ok(())
@@ -233,11 +230,7 @@ fn parse_cell_pixels(value: &str) -> Result<(usize, usize), String> {
     Ok((width, height))
 }
 
-fn prepare_path(
-    path: &PathBuf,
-    max_width: usize,
-    max_height: usize,
-) -> Result<PreparedImage, Box<dyn Error>> {
+fn prepare_path(path: &PathBuf) -> Result<PreparedImage, Box<dyn Error>> {
     let started = Instant::now();
     let is_arw = path
         .extension()
@@ -252,8 +245,7 @@ fn prepare_path(
         reader.limits(decode_limits());
         let decoder = reader.into_decoder()?;
         let read = started.elapsed();
-        let mut prepared =
-            prepare_with_orientation(decoder, max_width, max_height, extracted.orientation)?;
+        let mut prepared = prepare_with_orientation(decoder, extracted.orientation)?;
         prepared.timings.read = read;
         prepared.timings.input_bytes = input_bytes;
         return Ok(prepared);
@@ -269,7 +261,7 @@ fn prepare_path(
     reader.limits(decode_limits());
     let decoder = reader.into_decoder()?;
     let read = started.elapsed();
-    let mut prepared = prepare(decoder, max_width, max_height)?;
+    let mut prepared = prepare(decoder)?;
     prepared.timings.read = read;
     prepared.timings.input_bytes = input_bytes;
     Ok(prepared)
@@ -292,28 +284,18 @@ fn read_bounded(input: impl Read, max_bytes: u64) -> io::Result<Vec<u8>> {
     Ok(encoded)
 }
 
-fn prepare(
-    decoder: impl ImageDecoder,
-    max_width: usize,
-    max_height: usize,
-) -> Result<PreparedImage, Box<dyn Error>> {
-    prepare_with_orientation(decoder, max_width, max_height, None)
+fn prepare(decoder: impl ImageDecoder) -> Result<PreparedImage, Box<dyn Error>> {
+    prepare_with_orientation(decoder, None)
 }
 
 fn prepare_with_orientation(
     mut decoder: impl ImageDecoder,
-    max_width: usize,
-    max_height: usize,
     orientation_override: Option<image::metadata::Orientation>,
 ) -> Result<PreparedImage, Box<dyn Error>> {
     let (source_width, source_height) = decoder.dimensions();
     if u64::from(source_width) * u64::from(source_height) > MAX_PIXELS {
         return Err(format!("image exceeds the {MAX_PIXELS}-pixel safety limit").into());
     }
-    if max_width == 0 || max_height == 0 {
-        return Err("target pixel dimensions must be greater than zero".into());
-    }
-
     let mut timings = Timings::default();
     let started = Instant::now();
     let orientation = match orientation_override {
@@ -327,45 +309,13 @@ fn prepare_with_orientation(
     timings.orient = started.elapsed();
     let started = Instant::now();
     let has_alpha = decoded.color().has_alpha();
-    let (width, height) = fit_dimensions(decoded.width(), decoded.height(), max_width, max_height);
+    let (width, height) = (decoded.width(), decoded.height());
     let (pixels, color_type) = if has_alpha {
-        let source = decoded.into_rgba8();
-        let pixels = if width == source.width() && height == source.height() {
-            source.into_raw()
-        } else {
-            let src = fir::images::Image::from_vec_u8(
-                source.width(),
-                source.height(),
-                source.into_raw(),
-                fir::PixelType::U8x4,
-            )?;
-            let mut dst = fir::images::Image::new(width, height, fir::PixelType::U8x4);
-            let options = fir::ResizeOptions::new()
-                .resize_alg(fir::ResizeAlg::Convolution(fir::FilterType::Bilinear));
-            fir::Resizer::new().resize(&src, &mut dst, Some(&options))?;
-            dst.into_vec()
-        };
-        (pixels, ColorType::Rgba8)
+        (decoded.into_rgba8().into_raw(), ColorType::Rgba8)
     } else {
-        let source = decoded.into_rgb8();
-        let pixels = if width == source.width() && height == source.height() {
-            source.into_raw()
-        } else {
-            let src = fir::images::Image::from_vec_u8(
-                source.width(),
-                source.height(),
-                source.into_raw(),
-                fir::PixelType::U8x3,
-            )?;
-            let mut dst = fir::images::Image::new(width, height, fir::PixelType::U8x3);
-            let options = fir::ResizeOptions::new()
-                .resize_alg(fir::ResizeAlg::Convolution(fir::FilterType::Bilinear));
-            fir::Resizer::new().resize(&src, &mut dst, Some(&options))?;
-            dst.into_vec()
-        };
-        (pixels, ColorType::Rgb8)
+        (decoded.into_rgb8().into_raw(), ColorType::Rgb8)
     };
-    timings.resize = started.elapsed();
+    timings.convert = started.elapsed();
     let started = Instant::now();
     let mut payload = Vec::new();
     PngEncoder::new_with_quality(&mut payload, CompressionType::Fast, FilterType::Paeth)
@@ -379,18 +329,39 @@ fn prepare_with_orientation(
     })
 }
 
-fn fit_dimensions(
-    source_width: u32,
-    source_height: u32,
-    max_width: usize,
-    max_height: usize,
-) -> (u32, u32) {
-    let scale = (max_width as f64 / f64::from(source_width))
-        .min(max_height as f64 / f64::from(source_height))
-        .min(1.0);
-    let width = (f64::from(source_width) * scale).round().max(1.0) as u32;
-    let height = (f64::from(source_height) * scale).round().max(1.0) as u32;
-    (width, height)
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Placement {
+    Natural,
+    Columns(usize),
+    Rows(usize),
+}
+
+fn fit_placement(
+    source: (u32, u32),
+    area: (usize, usize),
+    cell: (usize, usize),
+) -> Result<Placement, Box<dyn Error>> {
+    if source.0 == 0 || source.1 == 0 || area.0 == 0 || area.1 == 0 || cell.0 == 0 || cell.1 == 0 {
+        return Err("image, preview and cell dimensions must be positive".into());
+    }
+    let max_width = area
+        .0
+        .checked_mul(cell.0)
+        .ok_or("requested pixel width overflow")?;
+    let max_height = area
+        .1
+        .checked_mul(cell.1)
+        .ok_or("requested pixel height overflow")?;
+    if u128::from(source.0) <= max_width as u128 && u128::from(source.1) <= max_height as u128 {
+        return Ok(Placement::Natural);
+    }
+    // Specify only the limiting axis: Ghostty computes the other dimension
+    // from the original aspect ratio, avoiding two-axis cell-rounding stretch.
+    if max_width as u128 * u128::from(source.1) <= max_height as u128 * u128::from(source.0) {
+        Ok(Placement::Columns(area.0))
+    } else {
+        Ok(Placement::Rows(area.1))
+    }
 }
 
 fn emit_kitty(
@@ -398,6 +369,7 @@ fn emit_kitty(
     image: &PreparedImage,
     x: usize,
     y: usize,
+    placement: Placement,
 ) -> io::Result<()> {
     let column = x
         .checked_add(1)
@@ -415,9 +387,15 @@ fn emit_kitty(
         if index == 0 {
             write!(
                 output,
-                "\x1b_Ga=T,f=100,s={},v={},i={},q=2,C=1,m={more};",
+                "\x1b_Ga=T,f=100,s={},v={},i={},q=2,C=1",
                 image.width, image.height, IMAGE_ID
             )?;
+            match placement {
+                Placement::Natural => {}
+                Placement::Columns(columns) => write!(output, ",c={columns}")?,
+                Placement::Rows(rows) => write!(output, ",r={rows}")?,
+            }
+            write!(output, ",m={more};")?;
         } else {
             write!(output, "\x1b_Gm={more};")?;
         }
@@ -482,13 +460,6 @@ mod tests {
         with_exif
     }
 
-    fn decode_test_jpeg(bytes: &[u8], max_width: usize, max_height: usize) -> PreparedImage {
-        let reader = ImageReader::new(Cursor::new(bytes))
-            .with_guessed_format()
-            .unwrap();
-        prepare(reader.into_decoder().unwrap(), max_width, max_height).unwrap()
-    }
-
     fn parse_protocol(output: &[u8]) -> (String, Vec<u8>) {
         let text = String::from_utf8(output.to_vec()).unwrap();
         let mut encoded = String::new();
@@ -520,20 +491,20 @@ mod tests {
         encoded
     }
 
-    fn decode_test_image(bytes: &[u8], max_width: usize, max_height: usize) -> PreparedImage {
+    fn decode_test_image(bytes: &[u8]) -> PreparedImage {
         let reader = ImageReader::new(Cursor::new(bytes))
             .with_guessed_format()
             .unwrap();
-        prepare(reader.into_decoder().unwrap(), max_width, max_height).unwrap()
+        prepare(reader.into_decoder().unwrap()).unwrap()
     }
 
     #[test]
     fn kitty_payload_uses_lossless_png_transport() {
         let rgba = [255, 0, 0, 0, 0, 0, 255, 255];
         let encoded = png(2, 1, &rgba, ColorType::Rgba8);
-        let prepared = decode_test_image(&encoded, 2, 1);
+        let prepared = decode_test_image(&encoded);
         let mut output = Vec::new();
-        emit_kitty(&mut output, &prepared, 0, 0).unwrap();
+        emit_kitty(&mut output, &prepared, 0, 0, Placement::Natural).unwrap();
         let (header, payload) = parse_protocol(&output);
         assert!(header.starts_with("a=T,f=100,s=2,v=1"));
 
@@ -542,26 +513,32 @@ mod tests {
     }
 
     #[test]
-    fn png_rgba_is_preserved_at_native_size_and_alpha_correct_when_resized() {
+    fn png_rgba_stays_full_resolution_when_frontend_shrinks_placement() {
         let rgba = [255, 0, 0, 0, 0, 0, 255, 255];
         let encoded = png(2, 1, &rgba, ColorType::Rgba8);
-        let native = decode_test_image(&encoded, 2, 1);
+        let native = decode_test_image(&encoded);
         assert_eq!(decode_png(&native.payload).into_rgba8().into_raw(), rgba);
         let mut output = Vec::new();
-        emit_kitty(&mut output, &native, 0, 0).unwrap();
+        emit_kitty(&mut output, &native, 0, 0, Placement::Natural).unwrap();
         let (header, payload) = parse_protocol(&output);
         assert!(header.contains("f=100"));
         assert_eq!(decode_png(&payload).into_rgba8().into_raw(), rgba);
 
-        let full = decode_test_image(&encoded, 1, 1);
-        assert_eq!((full.width, full.height), (2, 1));
-        assert_eq!(decode_png(&full.payload).into_rgba8().into_raw(), rgba);
+        let placement = fit_placement((native.width, native.height), (1, 1), (1, 1)).unwrap();
+        assert_eq!(placement, Placement::Columns(1));
+        output.clear();
+        emit_kitty(&mut output, &native, 0, 0, placement).unwrap();
+        let (header, payload) = parse_protocol(&output);
+        assert!(header.contains(",c=1,"));
+        assert!(!header.contains(",r="));
+        assert_eq!((native.width, native.height), (2, 1));
+        assert_eq!(decode_png(&payload).into_rgba8().into_raw(), rgba);
     }
 
     #[test]
     fn decodes_png_grayscale_and_sixteen_bit_pixels() {
         let gray = png(2, 1, &[32, 192], ColorType::L8);
-        let decoded = decode_test_image(&gray, 2, 1);
+        let decoded = decode_test_image(&gray);
         assert_eq!(
             decode_png(&decoded.payload).into_rgb8().into_raw(),
             [32, 32, 32, 192, 192, 192]
@@ -573,7 +550,7 @@ mod tests {
             .flat_map(|value| value.to_ne_bytes())
             .collect::<Vec<_>>();
         let sixteen = png(2, 1, &raw, ColorType::L16);
-        let decoded = decode_test_image(&sixteen, 2, 1);
+        let decoded = decode_test_image(&sixteen);
         let pixels = decode_png(&decoded.payload).into_rgb8().into_raw();
         assert_eq!(pixels.len(), 6);
         assert_eq!(&pixels[0..3], &[pixels[0]; 3]);
@@ -598,7 +575,7 @@ mod tests {
                 .with_guessed_format()
                 .unwrap();
             let prepared =
-                prepare_with_orientation(reader.into_decoder().unwrap(), 10, 10, Some(orientation))
+                prepare_with_orientation(reader.into_decoder().unwrap(), Some(orientation))
                     .unwrap();
             assert_eq!(
                 (prepared.width, prepared.height),
@@ -649,13 +626,9 @@ mod tests {
         let reader = ImageReader::new(Cursor::new(extracted.bytes))
             .with_guessed_format()
             .unwrap();
-        let prepared = prepare_with_orientation(
-            reader.into_decoder().unwrap(),
-            10,
-            10,
-            extracted.orientation,
-        )
-        .unwrap();
+        let prepared =
+            prepare_with_orientation(reader.into_decoder().unwrap(), extracted.orientation)
+                .unwrap();
         assert_eq!((prepared.width, prepared.height), (2, 3));
         assert_eq!(
             decode_png(&prepared.payload).into_rgb8().into_raw(),
@@ -664,23 +637,28 @@ mod tests {
     }
 
     #[test]
-    fn applies_exif_orientation_and_resizes_to_cell_pixels() {
+    fn applies_exif_orientation_and_scales_only_the_kitty_placement() {
         let jpeg = jpeg_with_orientation(3, 2, 6);
-        let prepared = decode_test_jpeg(&jpeg, 10, 10);
+        let prepared = decode_test_image(&jpeg);
         assert_eq!((prepared.width, prepared.height), (2, 3));
         assert_eq!(
             decode_png(&prepared.payload).into_rgb8().into_raw().len(),
             2 * 3 * 3
         );
         let mut terminal = Vec::new();
-        emit_kitty(&mut terminal, &prepared, 0, 0).unwrap();
+        emit_kitty(&mut terminal, &prepared, 0, 0, Placement::Natural).unwrap();
         let (header, payload) = parse_protocol(&terminal);
         assert!(header.contains("s=2,v=3"));
         assert_eq!(decode_png(&payload).into_rgb8().into_raw().len(), 2 * 3 * 3);
 
-        let smaller = decode_test_jpeg(&jpeg, 1, 2);
-        assert_eq!((smaller.width, smaller.height), (2, 3));
-        assert_eq!(decode_png(&smaller.payload).into_rgb8().into_raw().len(), 18);
+        let placement = fit_placement((prepared.width, prepared.height), (1, 2), (1, 1)).unwrap();
+        assert_eq!(placement, Placement::Columns(1));
+        terminal.clear();
+        emit_kitty(&mut terminal, &prepared, 0, 0, placement).unwrap();
+        let (header, payload) = parse_protocol(&terminal);
+        assert!(header.contains(",c=1,"));
+        assert_eq!((prepared.width, prepared.height), (2, 3));
+        assert_eq!(decode_png(&payload).into_rgb8().into_raw().len(), 18);
     }
 
     #[test]
@@ -702,10 +680,9 @@ mod tests {
             timings: Timings::default(),
         };
         let mut output = Vec::new();
-        emit_kitty(&mut output, &image, 7, 2).unwrap();
-        assert!(
-            output.starts_with(b"\x1b7\x1b[3;8H\x1b_Ga=T,f=100,s=160,v=160,i=424242,q=2,C=1,m=1;")
-        );
+        emit_kitty(&mut output, &image, 7, 2, Placement::Rows(2)).unwrap();
+        assert!(output
+            .starts_with(b"\x1b7\x1b[3;8H\x1b_Ga=T,f=100,s=160,v=160,i=424242,q=2,C=1,r=2,m=1;"));
         assert!(output.ends_with(b"\x1b8"));
 
         let text = String::from_utf8(output.clone()).unwrap();
@@ -713,13 +690,17 @@ mod tests {
             let (fields, rest) = packet.split_once(';').unwrap();
             let (chunk, _) = rest.split_once("\x1b\\").unwrap();
             assert!(chunk.len() <= BASE64_CHUNK);
+            if index > 0 {
+                assert!(!fields.contains("r="));
+                assert!(!fields.contains("c="));
+            }
             assert_eq!(
                 fields.ends_with("m=1"),
                 (index + 1) * ((BASE64_CHUNK / 4) * 3) < image.payload.len()
             );
         }
         let (header, reassembled_payload) = parse_protocol(&output);
-        assert!(header.starts_with("a=T,f=100,s=160,v=160,i=424242,q=2,C=1,m=1"));
+        assert!(header.starts_with("a=T,f=100,s=160,v=160,i=424242,q=2,C=1,r=2,m=1"));
         assert!(!header.contains("o=z"));
         assert_eq!(reassembled_payload, image.payload);
         assert_eq!(decode_png(&reassembled_payload).into_rgb8().into_raw(), raw);
@@ -732,7 +713,10 @@ mod tests {
         assert_eq!(raw.image_area().unwrap(), Some((20, 1)));
         let mut native = parse(&["--lf-id", "17", "image.jpg", "40", "20", "60", "1"]);
         assert_eq!(native.image_area().unwrap(), Some((19, 2)));
-        assert_eq!(fit_dimensions(800, 1000, 400, 19 * 20), (304, 380));
+        assert_eq!(
+            fit_placement((800, 1000), (40, 19), (10, 20)).unwrap(),
+            Placement::Rows(19)
+        );
         native.height_cells = 1;
         assert_eq!(native.image_area().unwrap(), None);
         native.height_cells = 2;
@@ -742,13 +726,40 @@ mod tests {
     }
 
     #[test]
+    fn frontend_placement_fits_both_axes_without_upscaling_or_aspect_stretch() {
+        for (source, expected) in [
+            ((4000, 2000), Placement::Columns(40)),
+            ((2000, 4000), Placement::Rows(20)),
+            ((2000, 2000), Placement::Columns(40)),
+            ((400, 400), Placement::Natural),
+            ((100, 50), Placement::Natural),
+            ((1, 10000), Placement::Rows(20)),
+        ] {
+            assert_eq!(fit_placement(source, (40, 20), (10, 20)).unwrap(), expected);
+        }
+        assert_eq!(
+            fit_placement((1000, 1000), (1, 1), (10, 20)).unwrap(),
+            Placement::Columns(1)
+        );
+        for (source, area, cell) in [
+            ((0, 1), (40, 20), (10, 20)),
+            ((1, 1), (0, 20), (10, 20)),
+            ((1, 1), (40, 20), (0, 20)),
+            ((1, 1), (usize::MAX, 20), (10, 20)),
+            ((1, 1), (40, usize::MAX), (10, 20)),
+        ] {
+            assert!(fit_placement(source, area, cell).is_err());
+        }
+    }
+
+    #[test]
     fn timing_line_uses_readable_labels_sorted_by_cost_in_one_ascii_row() {
         let ms = Duration::from_millis;
         let timings = Timings {
             read: ms(1),
             decode: ms(2),
             orient: ms(3),
-            resize: ms(4),
+            convert: ms(4),
             compress: ms(5),
             encode: ms(6),
             stage_file: ms(2),
@@ -759,7 +770,7 @@ mod tests {
             wire_bytes: 2 * 1024 * 1024,
         };
         let line = timings.line(400, 300);
-        assert_eq!(line, "total=32ms lf-wait=8 protocol=6 compress=5 resize=4 orientation=3 decode=2 file=2 read=1 notify=1 1.0MiB>2.0MiB 400x300");
+        assert_eq!(line, "total=32ms lf-wait=8 protocol=6 compress=5 convert=4 orientation=3 decode=2 file=2 read=1 notify=1 1.0MiB>2.0MiB 400x300");
         assert!(line
             .bytes()
             .all(|byte| byte.is_ascii_graphic() || byte == b' '));
@@ -774,16 +785,16 @@ mod tests {
         let bytes = png(2, 1, &[255, 0, 0, 0, 0, 0, 255, 255], ColorType::Rgba8);
         std::fs::write(&path, &bytes).unwrap();
         let started = Instant::now();
-        let result = prepare_path(&path, 1, 1);
+        let result = prepare_path(&path);
         std::fs::remove_file(path).unwrap();
         let prepared = result.unwrap();
         let timings = prepared.timings;
         assert_eq!(timings.input_bytes, bytes.len());
         assert!(
-            timings.read + timings.decode + timings.orient + timings.resize + timings.compress
+            timings.read + timings.decode + timings.orient + timings.convert + timings.compress
                 <= started.elapsed()
         );
-        assert_eq!((prepared.width, prepared.height), (1, 1));
+        assert_eq!((prepared.width, prepared.height), (2, 1));
     }
 
     #[test]

@@ -6,6 +6,5 @@ rust-version = "1.93"
 
 [dependencies]
 base64 = "=0.22.1"
-fast_image_resize = "=5.1.4"
 image = { version = "=0.25.8", default-features = false, features = ["jpeg", "png"] }
 libc = "=0.2.175"

@@ -243,7 +243,7 @@ class RealLfSmokeTests(unittest.TestCase):
                 return struct.pack("!I", len(data)) + kind + data + struct.pack("!I", zlib.crc32(kind + data))
             image.write_bytes(b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack("!2I5B", 256, 256, 8, 2, 0, 0, 0)) + chunk(b"IDAT", zlib.compress(rows)) + chunk(b"IEND", b""))
             preview = root / "preview"
-            preview.write_text('#!/bin/sh\nLF_IMAGE_CELL_PIXELS=1x1 ' + shlex.quote(str(binary)) + ' --lf-id "$id" "$1" 256 257 "$4" "$5" | tee ' + shlex.quote(str(stats)) + '\nexit 1\n')
+            preview.write_text('#!/bin/sh\nLF_IMAGE_CELL_PIXELS=10x20 ' + shlex.quote(str(binary)) + ' --lf-id "$id" "$1" 12 9 "$4" "$5" | tee ' + shlex.quote(str(stats)) + '\nexit 1\n')
             preview.chmod(0o700)
             config = root / "lfrc"
             config.write_text(f"set previewer {preview}\nset preload false\nset previewdelay 0\nset autoquit true\n")
@@ -298,6 +298,8 @@ class RealLfSmokeTests(unittest.TestCase):
                         break
                 self.assertTrue(packets)
                 self.assertIn(b"f=100", packets[0][0])
+                self.assertIn(b",c=12,", packets[0][0])
+                self.assertNotIn(b",r=", packets[0][0])
                 self.assertNotIn(b"o=z", packets[0][0])
                 self.assertTrue(all(len(data) <= 4096 for _, data in packets))
                 self.assertTrue(packets[-1][0].endswith(b"m=0"))
