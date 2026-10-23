@@ -50,21 +50,38 @@ case "$*" in
         {workspace_id:"w-child-a", number:7, worktree:{repo_key:"/repo/.git", is_linked_worktree:true}},
         {workspace_id:"w-child-b", number:9, worktree:{repo_key:"/repo/.git", is_linked_worktree:true}},
         {workspace_id:"w-final", number:10}
-      ] | map(. as $workspace | if ($marked | index($workspace.workspace_id)) then . + {tokens:{ctrl_tab_target:"↩"}} else . end)}}'
+      ] | map(. as $workspace | if ($marked | index($workspace.workspace_id)) then . + {tokens:{ctrl_tab_target:"↩"}} else . end)}}' |
+      jq --slurpfile metadata "$HERDR_TEST_METADATA" '
+        .result.workspaces |= map(.tokens = ((.tokens // {}) + ($metadata[0][.workspace_id] // {})))'
     ;;
   'workspace report-metadata '*)
     metadata_workspace=$3
-    case "${6:-}:${7:-}" in
-      '--token:ctrl_tab_target=↩')
-        grep -Fxq "$metadata_workspace" "$HERDR_TEST_MARKER" 2>/dev/null \
-          || printf '%s\n' "$metadata_workspace" >>"$HERDR_TEST_MARKER"
-        ;;
-      '--clear-token:ctrl_tab_target')
-        grep -Fxv "$metadata_workspace" "$HERDR_TEST_MARKER" >"$HERDR_TEST_MARKER.tmp" || :
-        mv "$HERDR_TEST_MARKER.tmp" "$HERDR_TEST_MARKER"
-        ;;
-      *) printf 'unexpected metadata command: %s\n' "$*" >&2; exit 1 ;;
-    esac
+    shift 5
+    while [ "$#" -gt 0 ]; do
+      option=$1 value=$2
+      shift 2
+      case "$option:$value" in
+        '--token:ctrl_tab_target=↩')
+          grep -Fxq "$metadata_workspace" "$HERDR_TEST_MARKER" 2>/dev/null \
+            || printf '%s\n' "$metadata_workspace" >>"$HERDR_TEST_MARKER"
+          ;;
+        '--clear-token:ctrl_tab_target')
+          grep -Fxv "$metadata_workspace" "$HERDR_TEST_MARKER" >"$HERDR_TEST_MARKER.tmp" || :
+          mv "$HERDR_TEST_MARKER.tmp" "$HERDR_TEST_MARKER"
+          ;;
+        '--token:ctrl_tab_history='*)
+          jq --arg workspace "$metadata_workspace" --arg history "${value#*=}" \
+            '.[$workspace].ctrl_tab_history = $history' "$HERDR_TEST_METADATA" >"$HERDR_TEST_METADATA.tmp"
+          mv "$HERDR_TEST_METADATA.tmp" "$HERDR_TEST_METADATA"
+          ;;
+        '--clear-token:ctrl_tab_history')
+          jq --arg workspace "$metadata_workspace" 'del(.[$workspace].ctrl_tab_history)' \
+            "$HERDR_TEST_METADATA" >"$HERDR_TEST_METADATA.tmp"
+          mv "$HERDR_TEST_METADATA.tmp" "$HERDR_TEST_METADATA"
+          ;;
+        *) printf 'unexpected metadata option: %s %s\n' "$option" "$value" >&2; exit 1 ;;
+      esac
+    done
     ;;
   'workspace focus w-child-a'|'workspace focus w-child-b'|'workspace focus w-parent'|'workspace focus w-other'|'workspace focus w-final')
     printf '%s\n' "$*" >>"$HERDR_TEST_FOCUS"
@@ -79,6 +96,7 @@ chmod +x "$tmp/herdr"
 
 set_marker() {
   : >"$tmp/marker"
+  printf '{}\n' >"$tmp/metadata"
   [ "$#" -eq 0 ] || printf '%s\n' "$@" >"$tmp/marker"
 }
 
@@ -88,6 +106,7 @@ run_focus() {
   HERDR_TEST_ARGS="$tmp/args" \
   HERDR_TEST_FOCUS="$tmp/focus" \
   HERDR_TEST_MARKER="$tmp/marker" \
+  HERDR_TEST_METADATA="$tmp/metadata" \
   HERDR_TEST_WORKSPACE="${2:-w-parent}" \
   HERDR_TEST_TAB="${3:-w-parent:t2}" \
   HERDR_WORKSPACE_TOGGLE_LOCK="$tmp/toggle-lock" \
@@ -123,17 +142,31 @@ grep -q 'workspace report-metadata w-parent --source workspace-toggle --token ct
 grep -q 'workspace report-metadata w-final --source workspace-toggle --clear-token ctrl_tab_target' "$tmp/args" \
   || fail 'toggle should clear its former target marker'
 
-[ "$(run_focus toggle w-final)" = 'workspace focus w-parent' ] || fail 'second toggle should swap back'
+[ "$(run_focus toggle w-final w-final:t1)" = 'tab focus w-parent:t2' ] || fail 'second toggle should restore the exact source tab' 
 [ "$(cat "$tmp/marker")" = w-final ] || fail 'second toggle should return the arrow to the prior workspace'
 
 set_marker w-final
 [ "$(run_focus toggle w-other)" = 'workspace focus w-final' ] || fail 'ordinary navigation must not change the sticky target'
 [ "$(cat "$tmp/marker")" = w-other ] || fail 'toggle after ordinary navigation should remember only its source'
 
+# Establish two exact return points, then reach the primary one without toggling.
+set_marker
+run_focus toggle w-parent w-parent:t2 >/dev/null
+run_focus toggle w-child-a w-child-a:t2 >/dev/null
+[ "$(run_focus toggle w-child-a w-child-a:t2)" = 'tab focus w-parent:t2' ] \
+  || fail 'already on the primary return point should use the older workspace and tab'
+[ "$(run_focus toggle w-parent w-parent:t2)" = 'tab focus w-child-a:t2' ] \
+  || fail 'fallback should still allow repeated back-and-forth toggling'
+
+# Two return points may be different tabs of the same workspace.
+[ "$(run_focus toggle w-parent w-parent:t3)" = 'tab focus w-parent:t2' ] \
+  || fail 'same-workspace history should restore its saved tab'
+[ "$(run_focus toggle w-parent w-parent:t3)" = 'tab focus w-parent:t2' ] \
+  || fail 'already on the primary tab should select the older tab in that workspace'
+
 set_marker w-other
-[ -z "$(run_focus toggle w-other)" ] || fail 'toggle should do nothing when the arrow is already current'
-[ "$(cat "$tmp/marker")" = w-other ] || fail 'self-targeting toggle must preserve the sticky target'
-! grep -q 'workspace focus' "$tmp/args" || fail 'self-targeting toggle must not focus another workspace'
+[ "$(run_focus toggle w-other w-other:t1)" = 'workspace focus w-child-b' ] \
+  || fail 'a legacy self-target without history should bootstrap rather than no-op' 
 
 set_marker w-parent w-final
 [ "$(run_focus toggle)" = 'workspace focus w-final' ] || fail 'toggle should recover a duplicate marker by choosing the noncurrent target'
@@ -143,4 +176,4 @@ set_marker
 [ "$(run_focus toggle)" = 'workspace focus w-child-a' ] || fail 'toggle without an arrow should bootstrap to an adjacent workspace'
 [ "$(cat "$tmp/marker")" = w-parent ] || fail 'bootstrap toggle should mark its source workspace'
 
-printf 'PASS: Herdr workspace navigation and sticky toggle\n'
+printf 'PASS: Herdr workspace/tab navigation and two-point toggle history\n'
