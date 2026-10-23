@@ -71,13 +71,13 @@ case "$*" in
           grep -Fxv "$metadata_workspace" "$HERDR_TEST_MARKER" >"$HERDR_TEST_MARKER.tmp" || :
           mv "$HERDR_TEST_MARKER.tmp" "$HERDR_TEST_MARKER"
           ;;
-        '--token:ctrl_tab_history='*)
-          jq --arg workspace "$metadata_workspace" --arg history "${value#*=}" \
-            '.[$workspace].ctrl_tab_history = $history' "$HERDR_TEST_METADATA" >"$HERDR_TEST_METADATA.tmp"
+        '--token:ctrl_tab_history='*|'--token:ctrl_tab_fallback='*)
+          jq --arg workspace "$metadata_workspace" --arg key "${value%%=*}" --arg value "${value#*=}" \
+            '.[$workspace][$key] = $value' "$HERDR_TEST_METADATA" >"$HERDR_TEST_METADATA.tmp"
           mv "$HERDR_TEST_METADATA.tmp" "$HERDR_TEST_METADATA"
           ;;
-        '--clear-token:ctrl_tab_history')
-          jq --arg workspace "$metadata_workspace" 'del(.[$workspace].ctrl_tab_history)' \
+        '--clear-token:ctrl_tab_history'|'--clear-token:ctrl_tab_fallback')
+          jq --arg workspace "$metadata_workspace" --arg key "$value" 'del(.[$workspace][$key])' \
             "$HERDR_TEST_METADATA" >"$HERDR_TEST_METADATA.tmp"
           mv "$HERDR_TEST_METADATA.tmp" "$HERDR_TEST_METADATA"
           ;;
@@ -146,6 +146,8 @@ result=$(run_focus next-tab w-final w-final:t1) || fail 'the global end must be 
 set_marker w-final
 [ "$(run_focus toggle)" = 'workspace focus w-final' ] || fail 'toggle should focus the yellow-arrow workspace'
 [ "$(cat "$tmp/marker")" = w-parent ] || fail 'toggle should move the yellow arrow to its source workspace'
+jq -e '."w-final".ctrl_tab_fallback == "↩"' "$tmp/metadata" >/dev/null \
+  || fail 'toggle should mark the historical fallback workspace'
 grep -q 'workspace report-metadata w-parent --source workspace-toggle --token ctrl_tab_target=↩' "$tmp/args" \
   || fail 'toggle should mark its source workspace'
 grep -q 'workspace report-metadata w-final --source workspace-toggle --clear-token ctrl_tab_target' "$tmp/args" \
@@ -153,6 +155,11 @@ grep -q 'workspace report-metadata w-final --source workspace-toggle --clear-tok
 
 [ "$(run_focus toggle w-final w-final:t1)" = 'tab focus w-parent:t2' ] || fail 'second toggle should restore the exact source tab'
 [ "$(cat "$tmp/marker")" = w-final ] || fail 'second toggle should return the arrow to the prior workspace'
+jq -e '."w-parent".ctrl_tab_fallback == "↩" and ."w-final".ctrl_tab_fallback == null' "$tmp/metadata" >/dev/null \
+  || fail 'second toggle should move the fallback marker and clear its old slot'
+run_focus toggle w-other w-other:t1 >/dev/null
+jq -e '[to_entries[] | select(.value.ctrl_tab_fallback == "↩") | .key] == ["w-final"]' \
+  "$tmp/metadata" >/dev/null || fail 'a third workspace must not leave stale fallback glyphs'
 
 set_marker w-final
 [ "$(run_focus toggle w-other)" = 'workspace focus w-final' ] || fail 'ordinary navigation must not change the sticky target'
@@ -177,6 +184,8 @@ run_focus toggle w-child-a w-child-a:t2 >/dev/null
   || fail 'same-workspace history should restore its saved tab'
 [ "$(run_focus toggle w-parent w-parent:t3)" = 'tab focus w-parent:t2' ] \
   || fail 'already on the primary tab should select the older tab in that workspace'
+jq -e '."w-parent".ctrl_tab_fallback == "↩"' "$tmp/metadata" >/dev/null \
+  || fail 'same-workspace history should retain the fallback glyph too'
 
 set_marker w-other
 [ "$(run_focus toggle w-other w-other:t1)" = 'workspace focus w-child-b' ] \

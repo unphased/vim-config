@@ -76,6 +76,11 @@ assert history[0]['description'] == 'Open agent history beside'
 # Metadata expires independently; empty tokens must not leave a permanent label.
 marker = {'token': '$aghist_relation', 'fg': '#89dceb', 'bold': True, 'dim': False}
 sidebar = config['ui']['sidebar']
+space_markers = {item['token']: item for item in sidebar['spaces']['rows'][0] if isinstance(item, dict)}
+primary = space_markers['$ctrl_tab_target']
+fallback = space_markers['$ctrl_tab_fallback']
+assert fallback['fg'] == primary['fg'] and fallback['dim'] is True
+assert fallback.get('bold', False) is False, 'Fallback glyph should be dimmer than the primary'
 row_sets = {
     'agents default': sidebar['agents']['rows'],
     **sidebar['agents']['rows_by_agent'],
