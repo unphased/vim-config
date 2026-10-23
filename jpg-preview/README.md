@@ -97,6 +97,12 @@ Photo JPEGs can still expand when converted to lossless PNG and base64;
 flat-color screenshots compress much better. The wire byte count helps
 distinguish this cost from decoding rather than inferring from file size.
 
+## Bulk terminal transport
+
+See [TRANSPORT.md](TRANSPORT.md) for the fixed ~20 MiB PTY/Ghostty/SSH/LF
+comparison, CPU samples, capture controls, and measurement limitations. The
+investigation did not change production settings.
+
 ## Historical PNG versus raw RGB measurements
 
 These measurements use the helper-resized path at identical target pixels,
