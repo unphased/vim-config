@@ -226,7 +226,7 @@ class PreviewTests(unittest.TestCase):
 
 @unittest.skipUnless(os.environ.get("LF_REAL_SMOKE") == "1", "opt-in real LF/Rust smoke test")
 class RealLfSmokeTests(unittest.TestCase):
-    def test_large_png_stream_is_sourced_and_acknowledged_by_real_lf(self):
+    def test_large_image_is_resized_before_transmission_and_acknowledged_by_real_lf(self):
         lf = shutil.which("lf")
         binary = ROOT / "jpg-preview/target/release/jpg-preview"
         self.assertIsNotNone(lf, "install lf before running LF_REAL_SMOKE=1")
@@ -237,13 +237,13 @@ class RealLfSmokeTests(unittest.TestCase):
             runtime.mkdir(mode=0o700)
             stats = root / "stats"
             image = root / "noise.png"
-            noise = random.Random(42).randbytes(256 * 256 * 3)
-            rows = b"".join(b"\0" + noise[y * 768:(y + 1) * 768] for y in range(256))
+            noise = random.Random(42).randbytes(512 * 512 * 3)
+            rows = b"".join(b"\0" + noise[y * 1536:(y + 1) * 1536] for y in range(512))
             def chunk(kind, data):
                 return struct.pack("!I", len(data)) + kind + data + struct.pack("!I", zlib.crc32(kind + data))
-            image.write_bytes(b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack("!2I5B", 256, 256, 8, 2, 0, 0, 0)) + chunk(b"IDAT", zlib.compress(rows)) + chunk(b"IEND", b""))
+            image.write_bytes(b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack("!2I5B", 512, 512, 8, 2, 0, 0, 0)) + chunk(b"IDAT", zlib.compress(rows)) + chunk(b"IEND", b""))
             preview = root / "preview"
-            preview.write_text('#!/bin/sh\nLF_IMAGE_CELL_PIXELS=10x20 ' + shlex.quote(str(binary)) + ' --lf-id "$id" "$1" 12 9 "$4" "$5" | tee ' + shlex.quote(str(stats)) + '\nexit 1\n')
+            preview.write_text('#!/bin/sh\nLF_IMAGE_CELL_PIXELS=1x1 ' + shlex.quote(str(binary)) + ' --lf-id "$id" "$1" 256 257 "$4" "$5" | tee ' + shlex.quote(str(stats)) + '\nexit 1\n')
             preview.chmod(0o700)
             config = root / "lfrc"
             config.write_text(f"set previewer {preview}\nset preload false\nset previewdelay 0\nset autoquit true\n")
@@ -298,7 +298,8 @@ class RealLfSmokeTests(unittest.TestCase):
                         break
                 self.assertTrue(packets)
                 self.assertIn(b"f=100", packets[0][0])
-                self.assertIn(b",c=12,", packets[0][0])
+                self.assertIn(b"s=256,v=256", packets[0][0])
+                self.assertNotIn(b",c=", packets[0][0])
                 self.assertNotIn(b",r=", packets[0][0])
                 self.assertNotIn(b"o=z", packets[0][0])
                 self.assertTrue(all(len(data) <= 4096 for _, data in packets))
