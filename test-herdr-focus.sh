@@ -37,6 +37,7 @@ case "$*" in
     printf '%s\n' '{"result":{"tabs":[{"tab_id":"w-final:t1","number":1}]}}'
     ;;
   'tab focus '*)
+    [ "${HERDR_TEST_FAIL_FOCUS:-0}" != 1 ] || exit 1
     printf '%s\n' "$*" >>"$HERDR_TEST_FOCUS"
     ;;
   'workspace list')
@@ -50,7 +51,8 @@ case "$*" in
         {workspace_id:"w-child-a", number:7, worktree:{repo_key:"/repo/.git", is_linked_worktree:true}},
         {workspace_id:"w-child-b", number:9, worktree:{repo_key:"/repo/.git", is_linked_worktree:true}},
         {workspace_id:"w-final", number:10}
-      ] | map(. as $workspace | if ($marked | index($workspace.workspace_id)) then . + {tokens:{ctrl_tab_target:"↩"}} else . end)}}' |
+      ] | map(.active_tab_id = (if .workspace_id == "w-parent" then "w-parent:t2" else .workspace_id + ":t1" end)
+        | . as $workspace | if ($marked | index($workspace.workspace_id)) then . + {tokens:{ctrl_tab_target:"↩"}} else . end)}}' |
       jq --slurpfile metadata "$HERDR_TEST_METADATA" '
         .result.workspaces |= map(.tokens = ((.tokens // {}) + ($metadata[0][.workspace_id] // {})))'
     ;;
@@ -84,6 +86,7 @@ case "$*" in
     done
     ;;
   'workspace focus w-child-a'|'workspace focus w-child-b'|'workspace focus w-parent'|'workspace focus w-other'|'workspace focus w-final')
+    [ "${HERDR_TEST_FAIL_FOCUS:-0}" != 1 ] || exit 1
     printf '%s\n' "$*" >>"$HERDR_TEST_FOCUS"
     ;;
   *)
@@ -98,6 +101,12 @@ set_marker() {
   : >"$tmp/marker"
   printf '{}\n' >"$tmp/metadata"
   [ "$#" -eq 0 ] || printf '%s\n' "$@" >"$tmp/marker"
+}
+
+set_history() {
+  set_marker "$1"
+  jq -nc --arg workspace "$1" --arg history "$2" \
+    '{($workspace): {ctrl_tab_history: $history}}' >"$tmp/metadata"
 }
 
 run_focus() {
@@ -142,7 +151,7 @@ grep -q 'workspace report-metadata w-parent --source workspace-toggle --token ct
 grep -q 'workspace report-metadata w-final --source workspace-toggle --clear-token ctrl_tab_target' "$tmp/args" \
   || fail 'toggle should clear its former target marker'
 
-[ "$(run_focus toggle w-final w-final:t1)" = 'tab focus w-parent:t2' ] || fail 'second toggle should restore the exact source tab' 
+[ "$(run_focus toggle w-final w-final:t1)" = 'tab focus w-parent:t2' ] || fail 'second toggle should restore the exact source tab'
 [ "$(cat "$tmp/marker")" = w-final ] || fail 'second toggle should return the arrow to the prior workspace'
 
 set_marker w-final
@@ -152,6 +161,11 @@ set_marker w-final
 # Establish two exact return points, then reach the primary one without toggling.
 set_marker
 run_focus toggle w-parent w-parent:t2 >/dev/null
+jq -e '."w-parent".ctrl_tab_history | fromjson ==
+  [{workspace:"w-parent",tab:"w-parent:t2"},{workspace:"w-child-a",tab:"w-child-a:t1"}]' \
+  "$tmp/metadata" >/dev/null || fail 'bootstrap should save both exact endpoints'
+[ "$(run_focus toggle w-parent w-parent:t2)" = 'tab focus w-child-a:t1' ] \
+  || fail 'bootstrap destination should retain its original tab as the older return point'
 run_focus toggle w-child-a w-child-a:t2 >/dev/null
 [ "$(run_focus toggle w-child-a w-child-a:t2)" = 'tab focus w-parent:t2' ] \
   || fail 'already on the primary return point should use the older workspace and tab'
@@ -166,7 +180,33 @@ run_focus toggle w-child-a w-child-a:t2 >/dev/null
 
 set_marker w-other
 [ "$(run_focus toggle w-other w-other:t1)" = 'workspace focus w-child-b' ] \
-  || fail 'a legacy self-target without history should bootstrap rather than no-op' 
+  || fail 'a legacy self-target without history should bootstrap rather than no-op'
+
+set_history w-parent '[{"workspace":"w-parent","tab":"w-parent:closed"},{"workspace":"w-final","tab":"w-final:t1"}]'
+[ "$(run_focus toggle)" = 'tab focus w-final:t1' ] \
+  || fail 'closed tab in the current workspace should not block the older return point'
+
+set_history w-parent '[{"workspace":"w-parent","tab":"w-parent:closed"},{"workspace":"w-final","tab":"w-final:t1"}]'
+[ "$(run_focus toggle w-other w-other:t1)" = 'workspace focus w-parent' ] \
+  || fail 'closed tab in another workspace should fall back to workspace focus'
+
+set_history w-parent '[{"workspace":"closed-workspace","tab":"closed-tab"},{"workspace":"w-final","tab":"w-final:t1"}]'
+[ "$(run_focus toggle)" = 'tab focus w-final:t1' ] \
+  || fail 'closed workspace should not block the older return point'
+
+set_history w-final 'not json'
+[ "$(run_focus toggle)" = 'workspace focus w-final' ] \
+  || fail 'malformed history should fall back to the visible workspace bookmark'
+
+set_history w-final '[{"workspace":"w-final","tab":"w-final:t1"},{"workspace":"w-parent","tab":"w-parent:t2"}]'
+before=$(cat "$tmp/metadata")
+if HERDR_TEST_FAIL_FOCUS=1 run_focus toggle; then
+  fail 'focus failure should propagate'
+fi
+[ "$(cat "$tmp/metadata")" = "$before" ] || fail 'failed focus must preserve history'
+[ "$(cat "$tmp/marker")" = w-final ] || fail 'failed focus must preserve the visible bookmark'
+! grep -q 'report-metadata' "$tmp/args" || fail 'failed focus must not mutate metadata'
+
 
 set_marker w-parent w-final
 [ "$(run_focus toggle)" = 'workspace focus w-final' ] || fail 'toggle should recover a duplicate marker by choosing the noncurrent target'

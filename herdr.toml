@@ -162,12 +162,12 @@ width = "90%"
 height = 5
 description = "Toggle pinned/mouse sidebar sizing"
 
-# Swap with the workspace carrying the sticky yellow-arrow bookmark.
+# Return to a saved workspace/tab; use the older point if already there.
 [[keys.command]]
 key = "ctrl+tab"
 type = "shell"
 command = "~/.vim/herdr-focus.sh toggle"
-description = "Toggle bookmarked workspace"
+description = "Toggle recent workspace/tab"
 
 # Move first, then open a 500 ms minimap only for zoomed, multi-pane tabs.
 # A Ctrl+H/J/K/L captured by the popup is applied before it closes immediately.
