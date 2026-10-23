@@ -69,7 +69,7 @@ claude = [
 [ui.sidebar.spaces]
 row_gap = 0
 rows = [
-  ["state_icon", { token = "$ctrl_tab_target", fg = "#f9e2af", bold = true }, { token = "$aghist_relation", fg = "#89dceb", bold = true, dim = false }, "workspace"],
+  ["state_icon", { token = "$ctrl_tab_target", fg = "#f9e2af", bold = true }, { token = "$ctrl_tab_fallback", fg = "#f9e2af", dim = true }, { token = "$aghist_relation", fg = "#89dceb", bold = true, dim = false }, "workspace"],
   [
     { token = "$cpu_idle", fg = "#686868", dim = false },
     { token = "$cpu_cool", fg = "#89b4fa", dim = false },

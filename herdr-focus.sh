@@ -169,12 +169,19 @@ if [ "$direction" = toggle ]; then
     --token 'ctrl_tab_target=↩' --token "ctrl_tab_history=$history" >/dev/null || exit
 
   printf '%s' "$workspaces" | jq -r \
-    '.result.workspaces[] | select(.tokens.ctrl_tab_target? == "↩") | .workspace_id' \
+    '.result.workspaces[] | select(.tokens.ctrl_tab_target? == "↩" or .tokens.ctrl_tab_fallback? == "↩") | .workspace_id' \
     | while IFS= read -r marked_workspace; do
-        [ "$marked_workspace" = "$workspace" ] && continue
-        herdr workspace report-metadata "$marked_workspace" --source workspace-toggle \
-          --clear-token ctrl_tab_target --clear-token ctrl_tab_history >/dev/null 2>&1 || :
+        if [ "$marked_workspace" != "$workspace" ]; then
+          herdr workspace report-metadata "$marked_workspace" --source workspace-toggle \
+            --clear-token ctrl_tab_target --clear-token ctrl_tab_history >/dev/null 2>&1 || :
+        fi
+        if [ "$marked_workspace" != "$target" ]; then
+          herdr workspace report-metadata "$marked_workspace" --source workspace-toggle \
+            --clear-token ctrl_tab_fallback >/dev/null 2>&1 || :
+        fi
       done
+  herdr workspace report-metadata "$target" --source workspace-toggle \
+    --token 'ctrl_tab_fallback=↩' >/dev/null || exit
   exit
 fi
 
