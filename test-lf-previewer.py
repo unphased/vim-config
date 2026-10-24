@@ -207,6 +207,33 @@ class PreviewTests(unittest.TestCase):
         self.assertFalse(self.calls.exists())
         self.assertEqual(tty, b"")
 
+    def test_text_cache_uses_md5_when_md5sum_is_missing(self):
+        # A curated PATH hides any system md5sum, including macOS compatibility tools.
+        self.env["PATH"] = str(self.bin)
+        (self.bin / "md5sum").unlink()
+        for name in ("realpath", "stat", "file", "tail", "head", "mktemp", "mv", "rm",
+                     "xxd", "gzip", "mkdir", "uname", "cut", "wc", "sed"):
+            (self.bin / name).symlink_to(shutil.which(name, path=os.defpath))
+        self.stub("md5", '[ "$1" = -q ] || exit 2; printf "abc\\n"')
+        result, tty = self.preview(self.text)
+        self.assertIn(b"text preview", result.stdout)
+        self.assertEqual(tty, b"")
+        cache = self.home / ".cache/lf-previewer"
+        self.assertTrue((cache / f"abc_{int(self.text.stat().st_mtime)}.preview").exists())
+
+        (self.bin / "md5").unlink()
+        result, _ = self.preview(self.text)
+        self.assertIn(b"md5sum' or 'md5", result.stdout)
+        result, tty = self.preview(self.png)
+        self.assertIn(b"RUST_IMAGE", tty)  # Images still need neither hash tool.
+        self.assertEqual(result.stdout, b"")
+
+    def test_text_cache_prefers_md5sum(self):
+        self.stub("md5", 'touch "$CALLS"; exit 99')
+        result, _ = self.preview(self.text)
+        self.assertIn(b"text preview", result.stdout)
+        self.assertFalse(self.calls.exists())
+
     def test_other_formats_do_not_silently_call_legacy_tools(self):
         gif = self.home / "later.gif"
         gif.write_bytes(b"GIF89a" + b"\x01\x00\x01\x00" + b"\x00" * 16)
