@@ -212,7 +212,7 @@ class PreviewTests(unittest.TestCase):
         self.env["PATH"] = str(self.bin)
         (self.bin / "md5sum").unlink()
         for name in ("realpath", "stat", "file", "tail", "head", "mktemp", "mv", "rm",
-                     "xxd", "gzip", "mkdir", "uname", "cut", "wc", "sed"):
+                     "xxd", "gzip", "mkdir", "dirname", "uname", "cut", "wc", "sed"):
             (self.bin / name).symlink_to(shutil.which(name, path=os.defpath))
         self.stub("md5", '[ "$1" = -q ] || exit 2; printf "abc\\n"')
         result, tty = self.preview(self.text)

@@ -101,13 +101,22 @@ LOGFILE="$CACHE_DIR/previewer.log"
 exec 2>> "$LOGFILE" # Redirect stderr to the log file (append)
 
 # --- Dependency Check ---
-for cmd in realpath stat md5sum file bat tail head printf mktemp mv rm xxd brotli zstd gzip; do
+for cmd in realpath stat file bat tail head printf mktemp mv rm xxd brotli zstd gzip; do
     if ! command -v "$cmd" >/dev/null; then
         echo "bat-lf-previewer Error: Required command '$cmd' not found in PATH."
         exit 1
     fi
 done
 
+
+if command -v md5sum >/dev/null; then
+    hash_command=(md5sum)
+elif command -v md5 >/dev/null; then
+    hash_command=(md5 -q)
+else
+    echo "bat-lf-previewer Error: Required command 'md5sum' or 'md5' not found in PATH."
+    exit 1
+fi
 
 # --- Helper Functions ---
 
@@ -359,7 +368,7 @@ fi
 echo "Input File: $input_file -> Abs: $abs_input_file, Mtime: $mtime, Height: $preview_height" >&2
 
 # Calculate cache key
-file_hash=$(echo -n "$abs_input_file" | md5sum | cut -d' ' -f1)
+file_hash=$(printf '%s' "$abs_input_file" | "${hash_command[@]}" | cut -d' ' -f1)
 cache_base="$CACHE_DIR/${file_hash}_${mtime}"
 echo "Cache Base: $cache_base" >&2
 cache_file="$CACHE_DIR/${file_hash}_${mtime}.preview"
