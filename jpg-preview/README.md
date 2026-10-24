@@ -97,6 +97,14 @@ Photo JPEGs can still expand when converted to lossless PNG and base64;
 flat-color screenshots compress much better. The wire byte count helps
 distinguish this cost from decoding rather than inferring from file size.
 
+## Herdr / SSH flicker
+
+See [FLICKER.md](FLICKER.md): the acknowledgement shell can trigger duplicate
+previews, and Herdr can display the empty state during same-ID replacement.
+Synchronized-output wrapping removed the blink in a controlled replay, but is
+not yet deployed or validated for interruption/disconnect recovery. Timings are
+per renderer invocation, not necessarily per selection.
+
 ## Bulk terminal transport
 
 See [TRANSPORT.md](TRANSPORT.md) for the fixed ~20 MiB PTY/Ghostty/SSH/LF

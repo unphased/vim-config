@@ -3,6 +3,12 @@
 Production remains **resize → fast PNG → synchronized LF delivery**. No production
 renderer or persistent SSH/Ghostty/capture settings were changed.
 
+**Follow-up correction:** [the flicker investigation](FLICKER.md) found that our
+FIFO-acknowledgement shell can trigger a second renderer invocation per selection.
+The LF rows below describe individual replay completions, not verified per-switch
+latency or exactly one transmission per selected file. There is therefore
+application-owned duplicate work to address before treating this path as optimized.
+
 ## What was measured
 
 ```text
@@ -27,8 +33,11 @@ window, bypassing automatic shell/capture startup. The NAS SSH tests used the
 currently reachable `nas-eth` endpoint while retaining `HostKeyAlias=nas` and
 normal host-key validation. No security settings were weakened.
 
-Each main condition used one warmup followed by three measured repetitions;
-reported values are medians. No competing bulk benchmark was intentionally run
+Direct PTY/terminal conditions used one warmup followed by three measured
+repetitions. LF controllers selected four replay completions and omitted the first,
+but did not distinguish an acknowledgement-triggered duplicate from the next
+requested selection. Their medians remain historical per-invocation observations,
+not a validated warmup plus three distinct user switches. No competing bulk benchmark was intentionally run
 during the final corrected comparisons. Window visibility/App Nap and other
 desktop activity were not rigorously controlled. These are exploratory timings,
 not a quiet-machine or foreground-rendering throughput ceiling.
@@ -98,8 +107,9 @@ alongside buffer growth/copying and lock/wake calls. Explicit PNG/base64 decoder
 stacks appeared much less often. These are short, per-thread stack samples,
 not whole-process CPU percentages or a precise cost decomposition.
 
-The NAS LF CPU profile for four SSH/display replays sampled 480 ms of client CPU
-over ~4.98 s, with 220 ms cumulative in parsing. That includes startup, redraw,
+The NAS LF CPU profile during the SSH/display controller run sampled 480 ms of
+client CPU over ~4.98 s, with 220 ms cumulative in parsing. The controller retained
+four completions; the actual invocation count was not independently verified. That includes startup, redraw,
 allocation and syscalls. Parsing is real work, but it does not explain all of the
 ~0.63 s per-preview LF wait; downstream backpressure can occupy that same bucket.
 
@@ -133,8 +143,9 @@ rerun in a fresh private server namespace, not treated as a sync-mode result.
   path and read/render coordination are the strongest new profiling lead.
 - SSH compression, cipher changes, and extra sync wrapping are not supported
   production fixes from these measurements.
-- A Ghostty-side profiling/optimization task or upstream report is more grounded
-  than another speculative LF transport rewrite. No such patch was made here.
+- Bulk Ghostty ingestion remains a profiling lead, but the subsequent verified
+  acknowledgement-induced duplicate render is an application integration issue
+  worth addressing first. No Ghostty patch was made here.
 
 JSON samples, bounded SSH logs, scripts and process samples were retained under
 `/tmp/lf-bulk-evidence/`; large generated PNG/stream files, private capture fixtures,
