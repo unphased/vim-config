@@ -99,11 +99,39 @@ distinguish this cost from decoding rather than inferring from file size.
 
 ## Herdr / SSH flicker
 
-See [FLICKER.md](FLICKER.md): the acknowledgement shell can trigger duplicate
-previews, and Herdr can display the empty state during same-ID replacement.
-Synchronized-output wrapping removed the blink in a controlled replay, but is
-not yet deployed or validated for interruption/disconnect recovery. Timings are
-per renderer invocation, not necessarily per selection.
+The acknowledgement shell can make LF invoke the previewer twice for one
+selection. The second same-ID upload exposed an empty intermediate image state
+in Herdr. The renderer now skips that redundant work using a **display receipt**:
+
+```text
+request → matching live display receipt? → reused status only
+        └─ no → decode/resize/PNG → LF write + ACK → publish receipt
+cleaner → invalidate receipt → UI-thread image deletion
+```
+
+This is one private metadata/status file per LF client, at most 2 KiB, under
+`<lf-runtime>/jpg-preview-receipts/`. It stores **no pixels or encoded image**.
+The key includes the LF process birth identity (plus Linux boot ID), source path
+and file version, geometry/cell size, and renderer executable identity. A miss or
+unavailable identity conservatively renders normally. The receipt is atomically
+published only after successful delivery and a file-version recheck.
+
+LF's cleaner invalidates before deleting the image; selection changes, redraws,
+and geometry changes therefore still render. The quit hook forgets metadata
+without requiring a live LF socket. Restart an already-running LF to load that
+new quit hook. Standalone and `lf -single` remain stateless. Abrupt termination
+can leave small metadata files, but an old process/boot identity cannot suppress
+another session's first preview.
+
+A `reused total=...` timing row describes the **previous actual render**, not new
+decoding or transfer. Normal totals exclude receipt publication and later stdout
+publication. LF may still invoke the helper twice; only the redundant image work
+is suppressed. A crash after delivery but before publication can still cause a
+retry, not strict exactly-once delivery.
+
+See [FLICKER.md](FLICKER.md) for evidence and validation limits. No synchronized-
+output mode was added: although it helped a replay, truncation/disconnect recovery
+in Herdr's headless terminal was not established.
 
 ## Bulk terminal transport
 

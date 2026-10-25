@@ -1,7 +1,32 @@
 #!/bin/sh
-# Delete only our image, on the same UI-thread channel as its transmission.
+# Invalidate display metadata before queueing a same-UI-thread image deletion.
+renderer() {
+    script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+    image_preview=$script_dir/jpg-preview/target/release/jpg-preview
+    [ -x "$image_preview" ] || image_preview=$(command -v jpg-preview || true)
+    [ -n "$image_preview" ] && [ -x "$image_preview" ] || {
+        printf 'jpg-preview renderer is unavailable\n' >&2
+        return 1
+    }
+    printf '%s\n' "$image_preview"
+}
+
+valid_id() {
+    case $1 in
+        ''|*[!0-9]*) printf 'Invalid lf client id\n' >&2; return 1 ;;
+    esac
+}
+
+if [ "${1:-}" = --forget ]; then
+    [ "$#" -eq 2 ] || { printf 'Usage: %s --forget ID\n' "$0" >&2; exit 1; }
+    valid_id "$2" || exit 1
+    image_preview=$(renderer) || exit 1
+    exec "$image_preview" --lf-forget "$2"
+fi
+
 if [ -n "${id:-}" ] && [ "${lf_flag_single:-false}" != true ]; then
-    case $id in *[!0-9]*) printf 'Invalid lf client id\n' >&2; exit 1 ;; esac
-    exec lf -remote "send $id tty-write \"\033_Ga=d,d=I,i=424242,q=2\033\\\\\""
+    valid_id "$id" || exit 1
+    image_preview=$(renderer) || exit 1
+    exec "$image_preview" --lf-clear "$id"
 fi
 printf '\033_Ga=d,d=I,i=424242,q=2\033\\' > /dev/tty

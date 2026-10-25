@@ -4,7 +4,7 @@ use std::fs::{self, DirBuilder, File, OpenOptions};
 use std::io::{self, Read, Write};
 use std::os::fd::AsRawFd;
 use std::os::unix::ffi::OsStrExt;
-use std::os::unix::fs::{DirBuilderExt, OpenOptionsExt};
+use std::os::unix::fs::{DirBuilderExt, MetadataExt, OpenOptionsExt};
 use std::os::unix::net::UnixStream;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -13,6 +13,8 @@ use std::time::{Duration, Instant};
 use crate::{emit_kitty as emit_protocol, PreparedImage, Timings};
 
 const TIMEOUT: Duration = Duration::from_secs(5);
+const RECEIPT_MAGIC: &[u8; 4] = b"LFR1";
+const MAX_RECEIPT_BYTES: usize = 2048;
 static NEXT_TRANSFER: AtomicU64 = AtomicU64::new(0);
 
 pub fn emit_kitty(
@@ -48,6 +50,203 @@ fn socket_path() -> PathBuf {
         unsafe { libc::geteuid() },
     )
     .join("lf.sock")
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct ReceiptKey(Vec<u8>);
+
+impl ReceiptKey {
+    pub(crate) fn for_preview(id: u32, path: &Path, geometry: [usize; 8]) -> Option<Self> {
+        let birth = process_birth(id)?;
+        let source = fs::metadata(path).ok()?;
+        let executable = fs::metadata(env::current_exe().ok()?).ok()?;
+        let mut key = Vec::with_capacity(160);
+        key.extend_from_slice(&1u32.to_le_bytes()); // Receipt/render format version.
+        key.extend_from_slice(&birth.to_le_bytes());
+        // /proc start ticks are boot-relative; a surviving runtime directory
+        // must not make a previous boot's receipt look like a live placement.
+        #[cfg(target_os = "linux")]
+        key.extend_from_slice(&fs::read("/proc/sys/kernel/random/boot_id").ok()?);
+        append_file_identity(&mut key, &source);
+        for value in geometry {
+            key.extend_from_slice(&u64::try_from(value).ok()?.to_le_bytes());
+        }
+        append_file_identity(&mut key, &executable);
+        key.extend_from_slice(path.as_os_str().as_bytes());
+        Some(Self(key))
+    }
+}
+
+fn append_file_identity(key: &mut Vec<u8>, metadata: &fs::Metadata) {
+    key.extend_from_slice(&metadata.dev().to_le_bytes());
+    key.extend_from_slice(&metadata.ino().to_le_bytes());
+    key.extend_from_slice(&metadata.size().to_le_bytes());
+    key.extend_from_slice(&metadata.mtime().to_le_bytes());
+    key.extend_from_slice(&metadata.mtime_nsec().to_le_bytes());
+    key.extend_from_slice(&metadata.ctime().to_le_bytes());
+    key.extend_from_slice(&metadata.ctime_nsec().to_le_bytes());
+}
+
+#[cfg(target_os = "macos")]
+fn process_birth(id: u32) -> Option<u64> {
+    let pid = libc::pid_t::try_from(id).ok()?;
+    let mut info: libc::proc_bsdinfo = unsafe { std::mem::zeroed() };
+    let size = unsafe {
+        libc::proc_pidinfo(
+            pid,
+            libc::PROC_PIDTBSDINFO,
+            0,
+            (&mut info as *mut libc::proc_bsdinfo).cast(),
+            std::mem::size_of::<libc::proc_bsdinfo>() as i32,
+        )
+    };
+    (size == std::mem::size_of::<libc::proc_bsdinfo>() as i32 && info.pbi_pid == id)
+        .then_some(info.pbi_start_tvsec.wrapping_mul(1_000_000) + info.pbi_start_tvusec)
+}
+
+#[cfg(target_os = "linux")]
+fn process_birth(id: u32) -> Option<u64> {
+    let stat = fs::read_to_string(format!("/proc/{id}/stat")).ok()?;
+    let mut fields = stat.rsplit_once(')')?.1.split_whitespace();
+    fields.nth(19)?.parse().ok() // field 22: process start ticks
+}
+
+#[cfg(not(any(target_os = "macos", target_os = "linux")))]
+fn process_birth(_id: u32) -> Option<u64> {
+    None
+}
+
+fn receipt_directory(create: bool) -> io::Result<Option<PathBuf>> {
+    let socket = socket_path();
+    let root = socket
+        .parent()
+        .ok_or_else(|| io::Error::other("invalid lf socket path"))?;
+    let directory = root.join("jpg-preview-receipts");
+    if create {
+        match DirBuilder::new().mode(0o700).create(&directory) {
+            Ok(()) => {}
+            Err(e) if e.kind() == io::ErrorKind::AlreadyExists => {}
+            Err(e) => return Err(e),
+        }
+    }
+    let metadata = match fs::symlink_metadata(&directory) {
+        Ok(metadata) => metadata,
+        Err(error) if !create && error.kind() == io::ErrorKind::NotFound => return Ok(None),
+        Err(error) => return Err(error),
+    };
+    if !metadata.file_type().is_dir()
+        || metadata.uid() != unsafe { libc::geteuid() }
+        || metadata.mode() & 0o077 != 0
+    {
+        return Err(io::Error::other("unsafe lf receipt directory"));
+    }
+    Ok(Some(directory))
+}
+
+fn receipt_path(id: u32, create: bool) -> io::Result<Option<PathBuf>> {
+    Ok(receipt_directory(create)?.map(|directory| directory.join(format!("{id}.receipt"))))
+}
+
+fn read_receipt(path: &Path, key: &ReceiptKey) -> Option<String> {
+    let file = OpenOptions::new()
+        .read(true)
+        .custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK)
+        .open(path)
+        .ok()?;
+    let metadata = file.metadata().ok()?;
+    if !metadata.is_file()
+        || metadata.uid() != unsafe { libc::geteuid() }
+        || metadata.mode() & 0o077 != 0
+        || metadata.len() as usize > MAX_RECEIPT_BYTES
+    {
+        return None;
+    }
+    let mut bytes = Vec::new();
+    file.take((MAX_RECEIPT_BYTES + 1) as u64)
+        .read_to_end(&mut bytes)
+        .ok()?;
+    if bytes.len() > MAX_RECEIPT_BYTES || !bytes.starts_with(RECEIPT_MAGIC) {
+        return None;
+    }
+    let mut rest = &bytes[RECEIPT_MAGIC.len()..];
+    let key_len = usize::from(u16::from_le_bytes(rest.get(..2)?.try_into().ok()?));
+    rest = rest.get(2..)?;
+    if rest.get(..key_len)? != key.0 {
+        return None;
+    }
+    let status = std::str::from_utf8(rest.get(key_len..)?).ok()?;
+    if status.is_empty()
+        || !status
+            .bytes()
+            .all(|byte| byte == b' ' || byte.is_ascii_graphic())
+    {
+        return None;
+    }
+    Some(status.to_owned())
+}
+
+fn write_receipt(path: &Path, key: &ReceiptKey, status: &str) -> io::Result<()> {
+    if status.is_empty()
+        || status.len() > 1024
+        || !status
+            .bytes()
+            .all(|byte| byte == b' ' || byte.is_ascii_graphic())
+    {
+        return Err(io::Error::other("invalid receipt status row"));
+    }
+    let key_len = u16::try_from(key.0.len()).map_err(io::Error::other)?;
+    let mut bytes = Vec::with_capacity(RECEIPT_MAGIC.len() + 2 + key.0.len() + status.len());
+    bytes.extend_from_slice(RECEIPT_MAGIC);
+    bytes.extend_from_slice(&key_len.to_le_bytes());
+    bytes.extend_from_slice(&key.0);
+    bytes.extend_from_slice(status.as_bytes());
+    if bytes.len() > MAX_RECEIPT_BYTES {
+        return Err(io::Error::other("receipt exceeds size limit"));
+    }
+    let directory = path
+        .parent()
+        .ok_or_else(|| io::Error::other("invalid receipt path"))?;
+    let staging = TransferFiles::create(directory)?;
+    let temporary = staging.0.join("receipt");
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .mode(0o600)
+        .open(&temporary)?;
+    file.write_all(&bytes)?;
+    drop(file);
+    // This is disposable display metadata, not a durable image cache. Closing
+    // before the atomic rename is enough; do not fsync every image selection.
+    fs::rename(temporary, path)
+}
+
+pub(crate) fn receipt_status(id: u32, key: &ReceiptKey) -> Option<String> {
+    read_receipt(receipt_path(id, false).ok()??.as_path(), key)
+}
+
+pub(crate) fn save_receipt(id: u32, key: &ReceiptKey, status: &str) -> io::Result<()> {
+    let path =
+        receipt_path(id, true)?.ok_or_else(|| io::Error::other("receipt directory unavailable"))?;
+    write_receipt(&path, key, status)
+}
+
+pub fn forget_receipt(id: u32) -> io::Result<()> {
+    let Some(path) = receipt_path(id, false)? else {
+        return Ok(());
+    };
+    match fs::remove_file(path) {
+        Ok(()) => Ok(()),
+        Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(()),
+        Err(error) => Err(error),
+    }
+}
+
+pub fn clear_image(id: u32) -> io::Result<()> {
+    forget_receipt(id)?;
+    let command = format!(r#"send {id} tty-write "\033_Ga=d,d=I,i=424242,q=2\033\\""#);
+    let mut command = command.into_bytes();
+    command.push(b'\n');
+    send_to_socket(&command, &socket_path(), TIMEOUT)
 }
 
 struct TransferFiles(PathBuf);
@@ -119,7 +318,7 @@ fn transfer(
     // A shell builtin acknowledges execution AFTER all tty writes. Sending all
     // image bytes over the server socket can deadlock lf when quitting under
     // backpressure; one small source notification avoids that bulk queue.
-    writeln!(output, "&printf x > {}", shell_quote(&ack_path)?)?;
+    writeln!(output, "&printf x 1<> {}", shell_quote(&ack_path)?)?;
     drop(output);
     let mut notification = format!("send {id} source \"").into_bytes();
     escape_command_body(&mut notification, source.as_os_str().as_bytes());
@@ -235,8 +434,78 @@ fn send_to_socket(command: &[u8], path: &Path, timeout: Duration) -> io::Result<
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::os::unix::fs::{symlink, PermissionsExt};
     use std::os::unix::net::UnixListener;
     use std::thread;
+
+    #[test]
+    fn receipt_key_tracks_process_file_path_and_geometry() {
+        let root = TransferFiles::create(&env::temp_dir()).unwrap();
+        let image = root.0.join("image.png");
+        fs::write(&image, b"original").unwrap();
+        let id = std::process::id();
+        assert!(process_birth(id).is_some());
+        assert!(process_birth(u32::MAX).is_none());
+        let geometry = [1, 2, 40, 20, 10, 20, 400, 400];
+        let key = ReceiptKey::for_preview(id, &image, geometry).unwrap();
+        assert_eq!(
+            ReceiptKey::for_preview(id, &image, geometry),
+            Some(ReceiptKey(key.0.clone()))
+        );
+        let mut resized = geometry;
+        resized[2] += 1;
+        assert_ne!(ReceiptKey::for_preview(id, &image, resized).unwrap(), key);
+        let alias = root.0.join("image.arw");
+        fs::hard_link(&image, &alias).unwrap();
+        assert_ne!(ReceiptKey::for_preview(id, &alias, geometry).unwrap(), key);
+        let modified = fs::metadata(&image).unwrap().modified().unwrap();
+        fs::write(&image, b"changed-size").unwrap();
+        File::options()
+            .write(true)
+            .open(&image)
+            .unwrap()
+            .set_times(fs::FileTimes::new().set_modified(modified))
+            .unwrap();
+        assert_ne!(ReceiptKey::for_preview(id, &image, geometry).unwrap(), key);
+    }
+
+    #[test]
+    fn receipts_are_bounded_private_metadata_and_reject_stale_keys() {
+        let root = TransferFiles::create(&env::temp_dir()).unwrap();
+        let path = root.0.join("display.receipt");
+        let key = ReceiptKey(vec![1, 2, 3]);
+        assert_eq!(read_receipt(&path, &key), None);
+        write_receipt(&path, &key, "total=10ms decode=2 1KiB>2KiB 20x30").unwrap();
+        assert_eq!(fs::metadata(&path).unwrap().mode() & 0o777, 0o600);
+        assert!(read_receipt(&path, &key).unwrap().starts_with("total=10ms"));
+        assert_eq!(read_receipt(&path, &ReceiptKey(vec![1, 2, 4])), None);
+        assert!(write_receipt(&path, &key, "bad\x1b[2J").is_err());
+        assert!(read_receipt(&path, &key).is_some());
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o644)).unwrap();
+        assert_eq!(read_receipt(&path, &key), None);
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o600)).unwrap();
+        fs::write(&path, vec![b'x'; MAX_RECEIPT_BYTES + 1]).unwrap();
+        assert_eq!(read_receipt(&path, &key), None);
+        fs::write(&path, b"LFR1").unwrap();
+        assert_eq!(read_receipt(&path, &key), None);
+        fs::remove_file(&path).unwrap();
+        symlink(root.0.join("missing"), &path).unwrap();
+        assert_eq!(read_receipt(&path, &key), None);
+        fs::remove_file(&path).unwrap();
+        let fifo = CString::new(path.as_os_str().as_bytes()).unwrap();
+        assert_eq!(unsafe { libc::mkfifo(fifo.as_ptr(), 0o600) }, 0);
+        // Opening a corrupt receipt FIFO must never wait for another process.
+        assert_eq!(read_receipt(&path, &key), None);
+    }
+
+    #[test]
+    fn failed_receipt_publication_cleans_staging_files() {
+        let root = TransferFiles::create(&env::temp_dir()).unwrap();
+        let destination = root.0.join("directory");
+        fs::create_dir(&destination).unwrap();
+        assert!(write_receipt(&destination, &ReceiptKey(vec![1]), "total=1ms").is_err());
+        assert_eq!(fs::read_dir(&root.0).unwrap().count(), 1);
+    }
 
     #[test]
     fn escapes_controls_without_lf_greedy_octal_ambiguity() {
@@ -283,7 +552,7 @@ mod tests {
             let content = fs::read_to_string(source).unwrap();
             let body = content.strip_prefix("tty-write '").unwrap().as_bytes();
             assert_eq!(&body[..expected.len()], expected);
-            assert!(body[expected.len()..].starts_with(b"'\n&printf x > "));
+            assert!(body[expected.len()..].starts_with(b"'\n&printf x 1<> "));
             let ack = Path::new(source).parent().unwrap().join("ack");
             drop(stream); // Transport forwarding alone must not delete the source.
             assert!(Path::new(source).exists());

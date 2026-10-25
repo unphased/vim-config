@@ -45,7 +45,11 @@ class PreviewTests(unittest.TestCase):
         self.previewer = self.bin / "previewer"
         self.previewer.write_bytes((ROOT / "bat-lf-previewer").read_bytes())
         self.previewer.chmod(0o755)
+        self.cleaner = self.bin / "cleaner"
+        self.cleaner.write_bytes((ROOT / "lf-kitty-cleaner").read_bytes())
+        self.cleaner.chmod(0o755)
         self.stub("jpg-preview", 'printf "%s\\n" "$@" > "$CALLS"; '
+                  'case "$1" in --lf-clear|--lf-forget) exit 0 ;; esac; '
                   'if [ "${RENDER_STATUS:-0}" != 0 ]; then '
                   'printf "decoder error\\n" >&2; exit "$RENDER_STATUS"; fi; printf "RUST_IMAGE"')
         for name in ("kitten", "perl", "magick", "exiftool"):
@@ -139,11 +143,10 @@ class PreviewTests(unittest.TestCase):
     def test_cleaner_in_lf_uses_synchronized_tty_write(self):
         self.env["id"] = "12345"
         self.stub("lf", 'printf "%s\\n" "$@" > "$CALLS"')
-        result, tty = self.run_script(ROOT / "lf-kitty-cleaner")
+        result, tty = self.run_script(self.cleaner)
         self.assertEqual(result.returncode, 0)
         self.assertEqual(tty, b"")
-        self.assertEqual(self.calls.read_text().splitlines(),
-                         ["-remote", r'send 12345 tty-write "\033_Ga=d,d=I,i=424242,q=2\033\\"'])
+        self.assertEqual(self.calls.read_text().splitlines(), ["--lf-clear", "12345"])
 
     def test_single_mode_keeps_raw_output_without_server(self):
         self.env.update(id="12345", lf_flag_single="true")
@@ -151,13 +154,26 @@ class PreviewTests(unittest.TestCase):
         self.assertEqual(result.stdout, b"")
         self.assertIn(b"RUST_IMAGE", tty)
         self.assertNotIn("--lf-id", self.calls.read_text())
-        result, tty = self.run_script(ROOT / "lf-kitty-cleaner")
+        result, tty = self.run_script(self.cleaner)
         self.assertEqual(result.returncode, 0)
         self.assertEqual(tty, b"\x1b_Ga=d,d=I,i=424242,q=2\x1b\\")
 
+    def test_ack_shell_can_finish_without_a_surviving_reader(self):
+        fifo = self.scratch / "orphan-ack"
+        os.mkfifo(fifo, 0o600)
+        result = subprocess.run(["/bin/sh", "-c", f"printf x 1<> {shlex.quote(str(fifo))}"],
+                                capture_output=True, timeout=2)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_cleaner_forget_dispatches_metadata_only_command(self):
+        result, tty = self.run_script(self.cleaner, "--forget", "12345")
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(tty, b"")
+        self.assertEqual(self.calls.read_text().splitlines(), ["--lf-forget", "12345"])
+
     def test_cleaner_rejects_invalid_client_id(self):
         self.env["id"] = "123; quit"
-        result, tty = self.run_script(ROOT / "lf-kitty-cleaner")
+        result, tty = self.run_script(self.cleaner)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn(b"Invalid lf client id", result.stderr)
         self.assertEqual(tty, b"")
@@ -244,8 +260,10 @@ class PreviewTests(unittest.TestCase):
 
     def test_quit_clears_only_our_image(self):
         config = (ROOT / "lfrc").read_text()
-        self.assertIn(r'cmd on-quit tty-write "\033_Ga=d,d=I,i=424242,q=2\033\\"', config)
-        result, tty = self.run_script(ROOT / "lf-kitty-cleaner", self.png, 40, 20, 60, 1, self.text)
+        self.assertIn('cmd on-quit :tty-write ', config)
+        self.assertIn('&~/.vim/lf-kitty-cleaner --forget "$id"', config)
+        self.assertIn(r'tty-write "\033_Ga=d,d=I,i=424242,q=2\033\\"', config)
+        result, tty = self.run_script(self.cleaner, self.png, 40, 20, 60, 1, self.text)
         self.assertEqual(result.returncode, 0)
         self.assertEqual(result.stdout, b"")
         self.assertEqual(tty, b"\x1b_Ga=d,d=I,i=424242,q=2\x1b\\")
@@ -275,6 +293,8 @@ class RealLfSmokeTests(unittest.TestCase):
                     + chunk(b"IEND", b"")
                 )
 
+            note = image_dir / "c.txt"
+            note.write_text("plain text\n")
             calls = root / "calls"
             timings = root / "timings"
             preview = root / "preview"
@@ -284,6 +304,7 @@ class RealLfSmokeTests(unittest.TestCase):
                 f"calls={shlex.quote(str(calls))}\n"
                 f"timings={shlex.quote(str(timings))}\n"
                 "printf 'START\\t%s\\t%s\\t%s\\t%s\\t%s\\n' \"$1\" \"$2\" \"$3\" \"$4\" \"$5\" >> \"$calls\"\n"
+                "case \"$1\" in *.txt) printf 'plain text\\n'; exit 0 ;; esac\n"
                 "LF_IMAGE_CELL_PIXELS=1x1 \"$binary\" --lf-id \"$id\" \"$1\" \"$2\" \"$3\" \"$4\" \"$5\" | tee -a \"$timings\"\n"
                 "status=${PIPESTATUS[0]}\n"
                 "sleep 0.05\n"
@@ -295,6 +316,7 @@ class RealLfSmokeTests(unittest.TestCase):
             config.write_text(
                 f"set previewer {preview}\n"
                 f"set cleaner {ROOT / 'lf-kitty-cleaner'}\n"
+                f'cmd on-quit :tty-write "\\033_Ga=d,d=I,i=424242,q=2\\033\\\\"; &{ROOT / "lf-kitty-cleaner"} --forget "$id"\n'
                 "set preload false\nset previewdelay 0\n"
             )
             env = dict(os.environ, XDG_RUNTIME_DIR=str(runtime), TERM="xterm-256color")
@@ -305,13 +327,18 @@ class RealLfSmokeTests(unittest.TestCase):
                 if child == 0:
                     os.execve(lf, [lf, "-config", str(config), str(image_dir)], env)
                 _, status = os.waitpid(child, 0)
+                # A terminal's shell survives LF, allowing its async on-quit
+                # metadata-only cleanup to finish instead of receiving SIGHUP.
+                deadline = time.monotonic() + 3
+                while list((runtime / 'jpg-preview-receipts').glob('*.receipt')) and time.monotonic() < deadline:
+                    select.select([], [], [], 0.01)
                 os._exit(os.waitstatus_to_exitcode(status))
 
             output = bytearray()
             reaped = False
             try:
                 def drain():
-                    while select.select([master], [], [], 0)[0]:
+                    if select.select([master], [], [], 0)[0]:
                         try:
                             output.extend(os.read(master, 65536))
                         except OSError:
@@ -359,6 +386,36 @@ class RealLfSmokeTests(unittest.TestCase):
                 settle()
                 a_transmissions = bytes(output[start:]).count(b"\x1b_Ga=T,")
                 self.assertEqual(a_transmissions, 1, "returning to A must render one fresh frame")
+                self.assertIn("reused total=", timings.read_text())
+
+                start = len(output)
+                completed = call_count(str(image_dir / "a.png"), "DONE")
+                os.write(master, b":redraw\r")
+                wait_for_calls(str(image_dir / "a.png"), completed + 2)
+                settle()
+                self.assertEqual(bytes(output[start:]).count(b"\x1b_Ga=T,"), 1,
+                                 "same-geometry redraw must clear the receipt and redraw pixels")
+
+                start = len(output)
+                completed = call_count(str(image_dir / "a.png"), "DONE")
+                fcntl.ioctl(master, termios.TIOCSWINSZ, struct.pack("HHHH", 32, 110, 1100, 640))
+                wait_for_calls(str(image_dir / "a.png"), completed + 1)
+                settle()
+                self.assertGreaterEqual(bytes(output[start:]).count(b"\x1b_Ga=T,"), 1,
+                                        "resizing must not reuse the old geometry")
+
+                start = len(output)
+                os.write(master, (":select " + str(note) + "\r").encode())
+                settle()
+                self.assertIn(b"\x1b_Ga=d,d=I,i=424242", bytes(output[start:]))
+                self.assertFalse(list((runtime / "jpg-preview-receipts").glob("*.receipt")))
+                completed = call_count(str(image_dir / "a.png"), "DONE")
+                start = len(output)
+                os.write(master, (":select " + str(image_dir / "a.png") + "\r").encode())
+                wait_for_calls(str(image_dir / "a.png"), completed + 2)
+                settle()
+                self.assertEqual(bytes(output[start:]).count(b"\x1b_Ga=T,"), 1,
+                                 "image-text-image must not skip the returning image")
                 os.write(master, b"q")
                 deadline = time.monotonic() + 5
                 while time.monotonic() < deadline:
@@ -370,11 +427,25 @@ class RealLfSmokeTests(unittest.TestCase):
                         break
                     select.select([master], [], [], 0.01)
                 self.assertTrue(reaped, "real lf quit timed out")
-                self.assertEqual(list(runtime.glob("jpg-*")), [])
+                receipt_dir = runtime / "jpg-preview-receipts"
+                self.assertEqual(list(receipt_dir.glob("*.receipt")), [])
+                self.assertEqual(list(runtime.glob("jpg-*")), [receipt_dir])
             finally:
                 if not reaped:
-                    os.kill(pid, signal.SIGKILL)
-                    os.waitpid(pid, 0)
+                    try:
+                        os.write(master, b"q")
+                    except OSError:
+                        pass
+                    deadline = time.monotonic() + 1
+                    while time.monotonic() < deadline:
+                        done, _ = os.waitpid(pid, os.WNOHANG)
+                        if done:
+                            reaped = True
+                            break
+                        select.select([master], [], [], 0.02)
+                    if not reaped:
+                        os.kill(pid, signal.SIGKILL)
+                        os.waitpid(pid, 0)
                 os.close(master)
 
     def test_large_image_is_resized_before_transmission_and_acknowledged_by_real_lf(self):
@@ -397,7 +468,10 @@ class RealLfSmokeTests(unittest.TestCase):
             preview.write_text('#!/bin/sh\nLF_IMAGE_CELL_PIXELS=1x1 ' + shlex.quote(str(binary)) + ' --lf-id "$id" "$1" 256 257 "$4" "$5" | tee ' + shlex.quote(str(stats)) + '\nexit 1\n')
             preview.chmod(0o700)
             config = root / "lfrc"
-            config.write_text(f"set previewer {preview}\nset preload false\nset previewdelay 0\nset autoquit true\n")
+            config.write_text(
+                f"set previewer {preview}\nset preload false\nset previewdelay 0\n"
+                f'cmd on-quit :tty-write "\\033_Ga=d,d=I,i=424242,q=2\\033\\\\"; &{ROOT / "lf-kitty-cleaner"} --forget "$id"\n'
+            )
             env = dict(os.environ, XDG_RUNTIME_DIR=str(runtime), TERM="xterm-256color")
             pid, master = pty.fork()
             if pid == 0:
@@ -409,7 +483,8 @@ class RealLfSmokeTests(unittest.TestCase):
                     os.execve(lf, [lf, "-config", str(config), str(image)], env)
                 _, status = os.waitpid(child, 0)
                 deadline = time.monotonic() + 6
-                while list(runtime.glob("jpg-*")) and time.monotonic() < deadline:
+                while (list(runtime.glob("jpg-[0-9]*")) or
+                       list((runtime / "jpg-preview-receipts").glob("*.receipt"))) and time.monotonic() < deadline:
                     select.select([], [], [], 0.01)
                 os._exit(os.waitstatus_to_exitcode(status))
             output = bytearray()
@@ -459,7 +534,8 @@ class RealLfSmokeTests(unittest.TestCase):
                 self.assertGreater(len(payload), 65536)
                 self.assertTrue(payload.startswith(b"\x89PNG\r\n\x1a\n"))
                 self.assertEqual(struct.unpack_from("!II", payload, 16), (256, 256))
-                self.assertEqual(list(runtime.glob("jpg-*")), [])
+                self.assertEqual(list(runtime.glob("jpg-[0-9]*")), [])
+                self.assertEqual(list((runtime / "jpg-preview-receipts").glob("*.receipt")), [])
             finally:
                 if not reaped:
                     os.kill(pid, signal.SIGKILL)

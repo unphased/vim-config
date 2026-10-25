@@ -1,6 +1,32 @@
 # Herdr / SSH preview flicker investigation
 
-## Result
+## Implemented follow-up
+
+The production renderer now prevents the redundant **image work**, rather than
+adding synchronized-output mode. One bounded, private display receipt holds only
+file/process/geometry identity and the completed timing row. A matching invocation
+returns `reused ...` before decoding, encoding, or transmission. The serial LF
+preview/cleaner loop makes the first completed receipt available to the queued
+second helper. Cleaner invalidation and process/boot identity guard against reuse
+of a cleared placement or a stale session. See [README.md](README.md#herdr--ssh-flicker).
+
+The real-LF regression was first committed red (`d86c0c9`): one steady selection
+transmitted twice. It now verifies one transmission despite two helper calls,
+A→B→A, unchanged-geometry redraw, resize, image→text→image, and quit cleanup.
+The final local and private NAS builds passed **27 Rust tests and 19 Python tests**.
+Receipt tests also cover changed versions, geometry and paths, unsafe/corrupt
+metadata, a FIFO in place of a receipt, and failed atomic publication. ACK shell
+redirection now opens the FIFO read/write so an orphaned acknowledgement does not
+block waiting for a dead helper.
+
+**Visual recheck remains blocked:** fresh disposable Ghostty instances currently
+fail surface initialization with `error.OutOfMemory`, including a default-config
+instance. No user's live window was commandeered to work around that failure.
+The new native-renderer transmission and lifecycle results are not a claim of a
+newly measured 0/6 visual-blink result. The measurements below remain the original
+investigation and its separate synchronized-output replay experiment.
+
+## Original investigation result
 
 The controlled reproduction exposed **two interacting behaviors**, not a JPEG
 conversion problem:

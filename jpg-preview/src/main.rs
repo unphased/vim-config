@@ -118,8 +118,17 @@ fn main() {
 }
 
 fn run() -> Result<(), Box<dyn Error>> {
+    let raw_args: Vec<_> = std::env::args_os().skip(1).collect();
+    if let Some((clear, id)) = parse_control_args(&raw_args)? {
+        if clear {
+            lf::clear_image(id)?;
+        } else {
+            lf::forget_receipt(id)?;
+        }
+        return Ok(());
+    }
     let started = Instant::now();
-    let args = parse_args(std::env::args_os().skip(1))?;
+    let args = parse_args(raw_args.into_iter())?;
     let Some((height_cells, image_y)) = args.image_area()? else {
         println!("Image preview needs 2 rows (timing + image)");
         return Ok(());
@@ -132,21 +141,65 @@ fn run() -> Result<(), Box<dyn Error>> {
     let max_height = height_cells
         .checked_mul(cell_height)
         .ok_or("requested pixel height overflow")?;
+    let geometry = [
+        args.x,
+        image_y,
+        args.width_cells,
+        height_cells,
+        cell_width,
+        cell_height,
+        max_width,
+        max_height,
+    ];
+    let receipt_key = args
+        .lf_id
+        .and_then(|id| lf::ReceiptKey::for_preview(id, &args.image, geometry));
+    if let (Some(id), Some(key)) = (args.lf_id, receipt_key.as_ref()) {
+        if let Some(status) = lf::receipt_status(id, key) {
+            println!("reused {status}");
+            return Ok(());
+        }
+    }
     let prepared = prepare_path(&args.image, max_width, max_height)?;
 
     if let Some(id) = args.lf_id {
         let mut timings = prepared.timings;
         lf::emit_kitty(&prepared, args.x, image_y, id, &mut timings)?;
         timings.total = started.elapsed();
-        // lf publishes preview stdout after the child exits. Finalize the
-        // reserved timing row after acknowledgement.
-        println!("{}", timings.line(prepared.width, prepared.height));
+        let status = timings.line(prepared.width, prepared.height);
+        // Publish only after LF acknowledged the complete UI-thread write. A
+        // metadata failure must not turn a successful display into an error.
+        if let Some(key) = receipt_key.as_ref() {
+            let current_key = lf::ReceiptKey::for_preview(id, &args.image, geometry);
+            if current_key.as_ref() == Some(key) {
+                let _ = lf::save_receipt(id, key, &status);
+            }
+        }
+        println!("{status}");
     } else {
         let mut output = BufWriter::with_capacity(64 * 1024, io::stdout().lock());
         emit_kitty(&mut output, &prepared, args.x, args.y)?;
         output.flush()?;
     }
     Ok(())
+}
+
+fn parse_control_args(args: &[OsString]) -> Result<Option<(bool, u32)>, Box<dyn Error>> {
+    let Some(mode) = args.first().and_then(|value| value.to_str()) else {
+        return Ok(None);
+    };
+    if mode != "--lf-clear" && mode != "--lf-forget" {
+        return Ok(None);
+    }
+    if args.len() != 2 {
+        return Err(format!("{mode} requires one numeric client ID").into());
+    }
+    let id = args[1]
+        .to_str()
+        .filter(|value| !value.is_empty() && value.bytes().all(|byte| byte.is_ascii_digit()))
+        .ok_or("lf client ID must be a numeric u32")?
+        .parse::<u32>()?;
+    Ok(Some((mode == "--lf-clear", id)))
 }
 
 fn parse_args(args: impl Iterator<Item = OsString>) -> Result<CliArgs, Box<dyn Error>> {
@@ -825,6 +878,23 @@ mod tests {
             .is_err());
         }
         assert!(parse_args(["--lf-id"].map(OsString::from).into_iter()).is_err());
+    }
+
+    #[test]
+    fn cleanup_commands_accept_only_one_numeric_client_id() {
+        let parse = |args: &[&str]| {
+            parse_control_args(&args.iter().map(OsString::from).collect::<Vec<_>>())
+        };
+        assert_eq!(parse(&["--lf-clear", "17"]).unwrap(), Some((true, 17)));
+        assert_eq!(parse(&["--lf-forget", "17"]).unwrap(), Some((false, 17)));
+        assert_eq!(parse(&["file.jpg", "1", "1", "0", "0"]).unwrap(), None);
+        for flag in ["--lf-clear", "--lf-forget"] {
+            assert!(parse(&[flag]).is_err());
+            assert!(parse(&[flag, "17", "extra"]).is_err());
+            for id in ["", "-1", "1;quit", "4294967296"] {
+                assert!(parse(&[flag, id]).is_err());
+            }
+        }
     }
 
     #[test]

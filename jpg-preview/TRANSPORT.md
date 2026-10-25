@@ -7,7 +7,9 @@ renderer or persistent SSH/Ghostty/capture settings were changed.
 FIFO-acknowledgement shell can trigger a second renderer invocation per selection.
 The LF rows below describe individual replay completions, not verified per-switch
 latency or exactly one transmission per selected file. There is therefore
-application-owned duplicate work to address before treating this path as optimized.
+application-owned duplicate work in that version. The current renderer's small
+display receipt skips the second image transfer; these historical figures have
+not been rerun as post-fix per-selection measurements.
 
 ## What was measured
 
