@@ -253,6 +253,130 @@ class PreviewTests(unittest.TestCase):
 
 @unittest.skipUnless(os.environ.get("LF_REAL_SMOKE") == "1", "opt-in real LF/Rust smoke test")
 class RealLfSmokeTests(unittest.TestCase):
+    def test_duplicate_ack_reload_reuses_display_without_resending_kitty_image(self):
+        lf = shutil.which("lf")
+        binary = ROOT / "jpg-preview/target/release/jpg-preview"
+        self.assertIsNotNone(lf, "install lf before running LF_REAL_SMOKE=1")
+        self.assertTrue(binary.is_file(), "build the release renderer first")
+        with tempfile.TemporaryDirectory(prefix="lf-receipt-smoke-") as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            runtime.mkdir(mode=0o700)
+            image_dir = root / "images"
+            image_dir.mkdir()
+            def chunk(kind, data):
+                return struct.pack("!I", len(data)) + kind + data + struct.pack("!I", zlib.crc32(kind + data))
+            for name, color in (("a.png", (220, 30, 20)), ("b.png", (20, 40, 220))):
+                rows = b"".join(b"\0" + bytes(color) * 64 for _ in range(64))
+                image_dir.joinpath(name).write_bytes(
+                    b"\x89PNG\r\n\x1a\n"
+                    + chunk(b"IHDR", struct.pack("!2I5B", 64, 64, 8, 2, 0, 0, 0))
+                    + chunk(b"IDAT", zlib.compress(rows))
+                    + chunk(b"IEND", b"")
+                )
+
+            calls = root / "calls"
+            timings = root / "timings"
+            preview = root / "preview"
+            preview.write_text(
+                "#!/bin/bash\n"
+                f"binary={shlex.quote(str(binary))}\n"
+                f"calls={shlex.quote(str(calls))}\n"
+                f"timings={shlex.quote(str(timings))}\n"
+                "printf 'START\\t%s\\t%s\\t%s\\t%s\\t%s\\n' \"$1\" \"$2\" \"$3\" \"$4\" \"$5\" >> \"$calls\"\n"
+                "LF_IMAGE_CELL_PIXELS=1x1 \"$binary\" --lf-id \"$id\" \"$1\" \"$2\" \"$3\" \"$4\" \"$5\" | tee -a \"$timings\"\n"
+                "status=${PIPESTATUS[0]}\n"
+                "sleep 0.05\n"
+                "printf 'DONE\\t%s\\t%d\\n' \"$1\" \"$status\" >> \"$calls\"\n"
+                "exit 1\n"
+            )
+            preview.chmod(0o700)
+            config = root / "lfrc"
+            config.write_text(
+                f"set previewer {preview}\n"
+                f"set cleaner {ROOT / 'lf-kitty-cleaner'}\n"
+                "set preload false\nset previewdelay 0\n"
+            )
+            env = dict(os.environ, XDG_RUNTIME_DIR=str(runtime), TERM="xterm-256color")
+            pid, master = pty.fork()
+            if pid == 0:
+                fcntl.ioctl(0, termios.TIOCSWINSZ, struct.pack("HHHH", 30, 100, 1000, 600))
+                child = os.fork()
+                if child == 0:
+                    os.execve(lf, [lf, "-config", str(config), str(image_dir)], env)
+                _, status = os.waitpid(child, 0)
+                os._exit(os.waitstatus_to_exitcode(status))
+
+            output = bytearray()
+            reaped = False
+            try:
+                def drain():
+                    while select.select([master], [], [], 0)[0]:
+                        try:
+                            output.extend(os.read(master, 65536))
+                        except OSError:
+                            return
+
+                def call_count(path, kind):
+                    if not calls.exists():
+                        return 0
+                    return sum(line.startswith(f"{kind}\t{path}\t") for line in calls.read_text().splitlines())
+
+                def wait_for_calls(path, minimum, timeout=8):
+                    deadline = time.monotonic() + timeout
+                    while time.monotonic() < deadline:
+                        drain()
+                        if call_count(path, "DONE") >= minimum:
+                            return
+                        select.select([master], [], [], 0.01)
+                    self.fail(f"lf did not complete {minimum} previews for {path}; calls={calls.read_text() if calls.exists() else ''}")
+
+                def settle():
+                    deadline = time.monotonic() + 0.25
+                    while time.monotonic() < deadline:
+                        drain()
+                        select.select([master], [], [], 0.01)
+                    drain()
+
+                # Warm the initial selection, including any legitimate startup geometry renders.
+                wait_for_calls(str(image_dir / "a.png"), 2)
+                settle()
+                start = len(output)
+                os.write(master, b"j")
+                wait_for_calls(str(image_dir / "b.png"), 2)
+                settle()
+                b_transmissions = bytes(output[start:]).count(b"\x1b_Ga=T,")
+                self.assertEqual(
+                    b_transmissions,
+                    1,
+                    "the duplicate LF acknowledgement reload must reuse the displayed image, "
+                    "not resend a second Kitty transmission",
+                )
+
+                start = len(output)
+                os.write(master, b"k")
+                wait_for_calls(str(image_dir / "a.png"), 4)
+                settle()
+                a_transmissions = bytes(output[start:]).count(b"\x1b_Ga=T,")
+                self.assertEqual(a_transmissions, 1, "returning to A must render one fresh frame")
+                os.write(master, b"q")
+                deadline = time.monotonic() + 5
+                while time.monotonic() < deadline:
+                    drain()
+                    done, status = os.waitpid(pid, os.WNOHANG)
+                    if done:
+                        reaped = True
+                        self.assertEqual(os.waitstatus_to_exitcode(status), 0)
+                        break
+                    select.select([master], [], [], 0.01)
+                self.assertTrue(reaped, "real lf quit timed out")
+                self.assertEqual(list(runtime.glob("jpg-*")), [])
+            finally:
+                if not reaped:
+                    os.kill(pid, signal.SIGKILL)
+                    os.waitpid(pid, 0)
+                os.close(master)
+
     def test_large_image_is_resized_before_transmission_and_acknowledged_by_real_lf(self):
         lf = shutil.which("lf")
         binary = ROOT / "jpg-preview/target/release/jpg-preview"
