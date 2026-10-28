@@ -53,8 +53,11 @@ map ` !true
 map x $$f
 map X !$f
 
-# dedicated keys for file opener actions
-map o &mimeopen $f
+# Open current/selected files in their default macOS apps (e.g. HTML in a browser).
+map o &{{
+    set -f
+    open -- $fx
+}}
 map O $mimeopen --ask $f
 
 # # define a custom 'open' command
