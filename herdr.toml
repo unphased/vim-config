@@ -50,6 +50,8 @@ pi = [
 ]
 claude = [
   ["state_icon", { token = "$aghist_relation", fg = "#89dceb", bold = true, dim = false }, { token = "$claude", fg = "#cba6f7", bold = true }, { token = "workspace", bold = true }, { token = "tab", dim = false }],
+  # Session title: Claude's latest /rename (applied by the ledger mod), like Pi's topic.
+  [{ token = "$topic", fg = "#aaaaaa", bold = true, dim = false }],
   [{ token = "$model", fg = "#cba6f7", dim = false }],
   [
     { token = "$session_cost_low", fg = "#a6e3a1", dim = false },
