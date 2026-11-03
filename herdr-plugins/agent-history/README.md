@@ -108,3 +108,11 @@ python3 ~/.vim/test-herdr-open-history.py
 ```
 
 The tests use executable stubs and do not modify live Herdr panes.
+
+## Caller overrides
+
+Callers (for example the agent-ledger Claude pane, when a jump target is no
+longer in the transcript) may run `open-history.py` directly with
+`AGHIST_SELECT_SESSION=claude:id:<sid>` and `AGHIST_SELECT_ENTRY=<record uuid>`.
+The split then opens on that exact record via `agent-history --select-entry`.
+Without them, `prefix+a` behaves as before.
