@@ -426,7 +426,6 @@ return {
     -- to make sure all required plugins and colorschemes are loaded before setup
     event = "UiEnter",
   },
-  "gbprod/yanky.nvim",
   "mbbill/undotree",
   -- { 'github/copilot.vim', init = function()
   --   vim.cmd([[
