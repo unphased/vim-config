@@ -41,16 +41,6 @@ def open_history():
     cwd = pane.get("foreground_cwd") or pane.get("cwd")
     if not cwd:
         raise RuntimeError("The source pane has no project directory")
-    layout = json.loads(herdr("pane", "layout", "--pane", source_pane))["result"]["layout"]
-    rect = next((item["rect"] for item in layout["panes"] if item["pane_id"] == source_pane), None)
-    if rect is None:
-        raise RuntimeError("The source pane is missing from its layout")
-    if layout["zoomed"] and layout["focused_pane_id"] == source_pane:
-        rect = layout["area"]
-    if rect["width"] <= 0 or rect["height"] <= 0:
-        raise RuntimeError("The source pane has no usable layout dimensions")
-    # Terminal cells are approximately twice as tall as they are wide.
-    direction = "right" if rect["width"] >= 2 * rect["height"] else "down"
     session = pane.get("agent_session") or {}
     parts = [session.get(key) for key in ("agent", "kind", "value")]
     # Always pass the selector, including an empty value when identity is absent.
@@ -59,22 +49,32 @@ def open_history():
     # Callers such as the ledger mod may name an exact session and record (turn) to reveal.
     selector = os.environ.get("AGHIST_SELECT_SESSION") or selector
     entry = os.environ.get("AGHIST_SELECT_ENTRY", "")
-    print(herdr(
+    # Always a short pane below the agent: single-session history is a glance, not a workspace.
+    opened = herdr(
         "plugin", "pane", "open", "--plugin", "local.agent-history",
-        "--entrypoint", "history", "--placement", "split", "--direction", direction,
+        "--entrypoint", "history", "--placement", "split", "--direction", "down",
         "--target-pane", source_pane,
         "--cwd", cwd, "--focus",
         "--env", f"AGHIST_BIN_PATH={binary}", "--env", f"AGHIST_SELECT_SESSION={selector}",
         "--env", f"AGHIST_SELECT_ENTRY={entry}",
         "--env", f"TERMPLEX_RECORDING_ID={source_recording_id(source_pane)}",
-    ), end="")
+    )
+    print(opened, end="")
+    new_pane = json.loads(opened).get("result", {}).get("plugin_pane", {}).get("pane", {}).get("pane_id")
+    if new_pane:
+        # Move the divider down from 50/50 to about 65/35.
+        herdr("pane", "resize", "--pane", new_pane, "--direction", "down", "--amount", "0.15")
 
 
 def main():
     if sys.argv[1:] == ["--run"]:
         binary = os.environ["AGHIST_BIN_PATH"]
         capture = Path(__file__).resolve().parent.parent / "capture-command.sh"
-        args = ["--select-session", os.environ["AGHIST_SELECT_SESSION"]]
+        selector = os.environ["AGHIST_SELECT_SESSION"]
+        args = ["--select-session", selector]
+        if selector:
+            # Load only this session; editing the search query widens to the normal scope.
+            args.append("--only-session")
         if os.environ.get("AGHIST_SELECT_ENTRY"):
             args += ["--select-entry", os.environ["AGHIST_SELECT_ENTRY"]]
         os.execv("/bin/sh", ["sh", str(capture), binary, *args])
