@@ -11,6 +11,31 @@ case "$1" in
   *) usage ;;
 esac
 
+trace_file=${HERDR_FOCUS_TRACE_FILE:-${XDG_STATE_HOME:-$HOME/.local/state}/herdr/focus-trace.log}
+HERDR_FOCUS_TRACE_ID=${HERDR_FOCUS_TRACE_ID:-helper-$$}
+export HERDR_FOCUS_TRACE_ID
+
+# Creating the log enables diagnostics; removing it disables them. Never let a
+# logging failure affect navigation, and never record terminal content.
+trace() {
+  [ -f "$trace_file" ] || return 0
+  # sysopen without O_CREAT avoids recreating a log removed during capture.
+  perl -MFcntl=O_WRONLY,O_APPEND,O_NONBLOCK -MTime::HiRes=time -e '
+    sysopen(my $log, shift, O_WRONLY | O_APPEND | O_NONBLOCK) or exit;
+    -f $log or exit;
+    printf {$log} "time_us=%.0f component=helper %s\n", time() * 1e6, join(" ", @ARGV);
+  ' "$trace_file" "pid=$$" "trace_id=$HERDR_FOCUS_TRACE_ID" "event=$1" \
+    "direction=$direction" "$2" 2>/dev/null || :
+}
+
+focus() {
+  trace focus_start "source=${pane:-} command=$*"
+  herdr "$@"
+  focus_status=$?
+  trace focus_result "status=$focus_status command=$*"
+  return "$focus_status"
+}
+
 run_locked() {
   if [ -n "${HERDR_FOCUS_LOCK:-}" ]; then
     focus_lock=$HERDR_FOCUS_LOCK
@@ -19,6 +44,7 @@ run_locked() {
     lock_key=${lock_key%% *}
     focus_lock="${XDG_STATE_HOME:-$HOME/.local/state}/herdr/focus-$lock_key.lock"
   fi
+  trace wait "inherited=${HERDR_PANE_ID:-} lock=$focus_lock"
   mkdir -p "$(dirname "$focus_lock")" || exit
   HERDR_FOCUS_LOCKED=1
   export HERDR_FOCUS_LOCKED
@@ -101,6 +127,8 @@ workspace_adjacent_target() {
 if [ "${HERDR_FOCUS_LOCKED:-}" != 1 ]; then
   run_locked
 fi
+trace locked "inherited=${HERDR_PANE_ID:-}"
+trap 'trace exit "status=$?"' 0
 
 # Hotkeys inherit their launch pane, which may be stale after waiting for the
 # preceding move. Read live server focus only once we own the navigation lock.
@@ -108,6 +136,7 @@ context=$(env -u HERDR_PANE_ID herdr pane current --current) || exit
 pane=$(printf '%s' "$context" | jq -r '.result.pane.pane_id')
 tab=$(printf '%s' "$context" | jq -r '.result.pane.tab_id')
 workspace=$(printf '%s' "$context" | jq -r '.result.pane.workspace_id')
+trace source "pane=$pane tab=$tab workspace=$workspace"
 
 if [ "$direction" = toggle ]; then
   workspaces=$(herdr workspace list) || exit
@@ -157,9 +186,9 @@ if [ "$direction" = toggle ]; then
   # Only change history after focus succeeds. Keep both ends of this jump:
   # [where we left, where we went], including exact tabs whenever known.
   if [ -n "$target_tab" ]; then
-    herdr tab focus "$target_tab" || exit
+    focus tab focus "$target_tab" || exit
   else
-    herdr workspace focus "$target" || exit
+    focus workspace focus "$target" || exit
     # Workspace focus restores its active tab, including on the first jump.
     target_tab=$(printf '%s' "$workspaces" | jq -r --arg id "$target" \
       '.result.workspaces[] | select(.workspace_id == $id) | .active_tab_id // empty') || exit
@@ -202,7 +231,7 @@ case "$direction" in
     current=$(printf '%s' "$tabs" | jq -r --arg id "$tab" '.result.tabs[] | select(.tab_id == $id) | .number')
     target=$(printf '%s' "$tabs" | adjacent_target tabs "$current" "$tab_direction" tab_id)
     if [ -n "$target" ]; then
-      herdr tab focus "$target"
+      focus tab focus "$target"
       exit
     fi
 
@@ -217,7 +246,7 @@ case "$direction" in
       else .[0].tab_id
       end')
     [ -n "$target" ] || exit 0
-    herdr tab focus "$target"
+    focus tab focus "$target"
     exit
     ;;
 esac
@@ -229,18 +258,18 @@ case "$direction" in
       tabs=$(herdr tab list --workspace "$workspace") || exit
       current=$(printf '%s' "$tabs" | jq -r --arg id "$tab" '.result.tabs[] | select(.tab_id == $id) | .number')
       target=$(printf '%s' "$tabs" | adjacent_target tabs "$current" "$direction" tab_id)
-      [ -z "$target" ] || herdr tab focus "$target"
+      [ -z "$target" ] || focus tab focus "$target"
     else
-      herdr pane focus --pane "$pane" --direction "$direction"
+      focus pane focus --pane "$pane" --direction "$direction"
     fi
     ;;
   up|down)
     if [ "$(printf '%s' "$edges" | jq -r --arg key "$direction" '.result.edges | .[$key]')" = true ]; then
       workspaces=$(herdr workspace list) || exit
       target=$(printf '%s' "$workspaces" | workspace_adjacent_target "$workspace" "$direction")
-      [ -z "$target" ] || herdr workspace focus "$target"
+      [ -z "$target" ] || focus workspace focus "$target"
     else
-      herdr pane focus --pane "$pane" --direction "$direction"
+      focus pane focus --pane "$pane" --direction "$direction"
     fi
     ;;
 esac

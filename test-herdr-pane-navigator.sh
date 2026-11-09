@@ -85,6 +85,7 @@ printf 'w1:p2\n' >"$tmp/state"
 : >"$tmp/forwarded"
 
 run_navigator() {
+  HERDR_FOCUS_TRACE_FILE="${HERDR_FOCUS_TRACE_FILE:-$tmp/disabled-trace.log}" \
   HERDR_BIN_PATH="$tmp/herdr" \
   HERDR_FOCUS_HELPER="$tmp/focus" \
   HERDR_TEST_DIRECTIONS="$tmp/directions" \
@@ -329,6 +330,7 @@ HERDR_FOCUS_TRACE_FILE="$tmp" HERDR_PANE_ID=w1:p2 run_navigator left
 printf 'w1:p2\n' >"$tmp/state"
 HERDR_FOCUS_TRACE_FILE="$trace" HERDR_FOCUS_TRACE_ID=test-correlation HERDR_TEST_TRACE_IDS="$tmp/trace-ids" HERDR_PANE_ID=w1:p2 run_navigator left
 grep -Fq 'HERDR_FOCUS_TRACE_ID=test-correlation' "$tmp/popups" || fail 'popup must inherit trace ID'
+grep -Fq "HERDR_FOCUS_TRACE_FILE=$trace" "$tmp/popups" || fail 'popup must inherit custom trace path'
 printf '\014' | HERDR_FOCUS_TRACE_FILE="$trace" HERDR_FOCUS_TRACE_ID=test-correlation HERDR_TEST_TRACE_IDS="$tmp/trace-ids" HERDR_NAV_PANE_ID=w1:p1 HERDR_MINIMAP_TIMEOUT=0.1 run_navigator popup >"$tmp/trace-output"
 for _ in {1..100}; do
   grep -Fq 'event=worker_end' "$trace" && break
@@ -342,5 +344,23 @@ grep -Fq '"source":"w1:p2"' "$trace" || fail 'trace missing source'
 grep -Fq '"destination":"w1:p1"' "$trace" || fail 'trace missing destination'
 [ "$(sort -u "$tmp/trace-ids")" = test-correlation ] || fail 'helper must inherit trace ID'
 if grep -vFq 'trace_id="test-correlation"' "$trace"; then fail 'all processes must retain trace ID'; fi
+
+# A mistaken FIFO path must not block opening the diagnostic log.
+mkfifo "$tmp/trace-fifo"
+python3 - "$root" "$tmp" <<'PY'
+import os
+from pathlib import Path
+import subprocess
+import sys
+root, tmp = map(Path, sys.argv[1:])
+env = {**os.environ, "HERDR_BIN_PATH": str(tmp / "herdr"),
+       "HERDR_FOCUS_HELPER": str(tmp / "focus"), "HERDR_PANE_ID": "w1:p2",
+       "HERDR_FOCUS_TRACE_FILE": str(tmp / "trace-fifo")}
+for key, name in (("DIRECTIONS", "directions"), ("POPUPS", "popups"),
+                  ("FORWARDED", "forwarded"), ("TARGETS", "targets"), ("STATE", "state")):
+    env["HERDR_TEST_" + key] = str(tmp / name)
+subprocess.run([str(root / "herdr-plugins/pane-navigator/target/debug/herdr-pane-navigator"), "left"],
+               env=env, check=True, timeout=5)
+PY
 
 printf 'PASS: Herdr Rust popup pane navigator\n'

@@ -67,6 +67,7 @@ class FocusConcurrencyTest(unittest.TestCase):
             "PATH": str(self.root) + os.pathsep + os.environ["PATH"],
             "FOCUS_TEST_DIR": str(self.root),
             "HERDR_FOCUS_LOCK": str(self.root / "focus.lock"),
+            "HERDR_FOCUS_TRACE_FILE": str(self.root / "disabled-trace.log"),
             # Every hotkey was launched in B, even after focus changes.
             "HERDR_PANE_ID": "B",
         }
