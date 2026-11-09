@@ -11,24 +11,25 @@ case "$1" in
   *) usage ;;
 esac
 
-run_locked_toggle() {
-  if [ -n "${HERDR_WORKSPACE_TOGGLE_LOCK:-}" ]; then
-    toggle_lock=$HERDR_WORKSPACE_TOGGLE_LOCK
+run_locked() {
+  if [ -n "${HERDR_FOCUS_LOCK:-}" ]; then
+    focus_lock=$HERDR_FOCUS_LOCK
   else
     lock_key=$(printf '%s' "${HERDR_SOCKET_PATH:-default}" | cksum)
     lock_key=${lock_key%% *}
-    toggle_lock="${XDG_STATE_HOME:-$HOME/.local/state}/herdr/workspace-toggle-$lock_key.lock"
+    focus_lock="${XDG_STATE_HOME:-$HOME/.local/state}/herdr/focus-$lock_key.lock"
   fi
-  mkdir -p "$(dirname "$toggle_lock")" || exit
-  HERDR_WORKSPACE_TOGGLE_LOCKED=1
-  export HERDR_WORKSPACE_TOGGLE_LOCKED
+  mkdir -p "$(dirname "$focus_lock")" || exit
+  HERDR_FOCUS_LOCKED=1
+  export HERDR_FOCUS_LOCKED
 
+  # Keep one stable lock file and wait rather than dropping queued hotkeys.
   if command -v lockf >/dev/null 2>&1; then
-    exec lockf -t 2 "$toggle_lock" "$0" toggle
+    exec lockf -k "$focus_lock" "$0" "$direction"
   elif command -v flock >/dev/null 2>&1; then
-    exec flock -w 2 "$toggle_lock" "$0" toggle
+    exec flock "$focus_lock" "$0" "$direction"
   fi
-  printf 'Ctrl-Tab requires lockf or flock\n' >&2
+  printf 'Herdr navigation requires lockf or flock\n' >&2
   exit 1
 }
 
@@ -97,11 +98,13 @@ workspace_adjacent_target() {
         end // empty'
 }
 
-if [ "$direction" = toggle ] && [ "${HERDR_WORKSPACE_TOGGLE_LOCKED:-}" != 1 ]; then
-  run_locked_toggle
+if [ "${HERDR_FOCUS_LOCKED:-}" != 1 ]; then
+  run_locked
 fi
 
-context=$(herdr pane current --current) || exit
+# Hotkeys inherit their launch pane, which may be stale after waiting for the
+# preceding move. Read live server focus only once we own the navigation lock.
+context=$(env -u HERDR_PANE_ID herdr pane current --current) || exit
 pane=$(printf '%s' "$context" | jq -r '.result.pane.pane_id')
 tab=$(printf '%s' "$context" | jq -r '.result.pane.tab_id')
 workspace=$(printf '%s' "$context" | jq -r '.result.pane.workspace_id')

@@ -118,7 +118,7 @@ run_focus() {
   HERDR_TEST_METADATA="$tmp/metadata" \
   HERDR_TEST_WORKSPACE="${2:-w-parent}" \
   HERDR_TEST_TAB="${3:-w-parent:t2}" \
-  HERDR_WORKSPACE_TOGGLE_LOCK="$tmp/toggle-lock" \
+  HERDR_FOCUS_LOCK="$tmp/focus-lock" \
   PATH="$tmp:$PATH" \
     "$root/herdr-focus.sh" "$1" || return
   cat "$tmp/focus"
