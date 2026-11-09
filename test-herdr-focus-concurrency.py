@@ -137,6 +137,29 @@ class FocusConcurrencyTest(unittest.TestCase):
                     self.finish(second)
                     self.assertEqual((self.root / "state").read_text(), expected)
 
+    def test_trace_records_launch_and_live_source(self):
+        trace = self.root / "trace.log"
+        trace.touch()
+        (self.root / "state").write_text("A")
+        self.finish(self.start(
+            "down", HERDR_FOCUS_TRACE_FILE=str(trace),
+            HERDR_FOCUS_TRACE_ID="test-correlation",
+        ))
+        log = trace.read_text()
+        for event in ("wait", "locked", "source", "focus_start", "focus_result", "exit"):
+            self.assertIn("event=" + event + " ", log)
+        self.assertIn("inherited=B", log)
+        self.assertIn("pane=A", log)
+        self.assertIn("command=pane focus --pane A --direction down", log)
+        self.assertIn("status=0", log)
+        self.assertTrue(all("trace_id=test-correlation" in line for line in log.splitlines()))
+
+    def test_trace_is_opt_in_and_best_effort(self):
+        trace = self.root / "absent.log"
+        self.finish(self.start("down", HERDR_FOCUS_TRACE_FILE=str(trace)))
+        self.assertFalse(trace.exists())
+        self.finish(self.start("up", HERDR_FOCUS_TRACE_FILE=str(self.root)))
+
     def test_failed_move_releases_lock(self):
         first = self.start("up", FOCUS_TEST_HOLD="1", FOCUS_TEST_FAIL="1")
         self.wait_ready()
