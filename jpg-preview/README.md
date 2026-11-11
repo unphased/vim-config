@@ -43,6 +43,19 @@ rejected. The encoded bound applies to the embedded JPEG, not the entire ARW;
 large RAW pixel data is neither scanned nor loaded. Reads are bounded before
 decoder construction. Image ID remains 424242 so the existing lf cleaner works.
 
+## Library
+
+The `jpg_preview` Rust library exposes `is_supported_image(path)` for
+case-insensitive extension detection (not content validation), and
+`render(path, cells_w, cells_h, x, y, image_id)` to return a complete Kitty
+stream as `Vec<u8>`. Bounds and zero-based coordinates are terminal cells;
+Kitty's `c`/`r` placement scales the oriented image to fit without distortion.
+Unlike the CLI, the library transmits the image at its original resolution and
+performs no terminal I/O or cell-size detection. The caller supplies a nonzero
+image ID; `delete_image(image_id)` returns the command to delete that image and
+all its placements. Errors include invalid input, zero bounds or ID, and
+coordinate overflow. Reusing an ID replaces that terminal image.
+
 ## Production: resize before transmission
 
 ```text
