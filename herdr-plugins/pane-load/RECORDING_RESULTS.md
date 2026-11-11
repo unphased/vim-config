@@ -12,12 +12,85 @@ real observations -> named precision profile -> independent byte-sized frames
 Rank storage against **compression CPU-seconds/input GiB**; wall time is separate.
 Read costs do not constrain frames. Decompression only verifies correctness.
 
-## Rust temporal CPU profiles: finite sanity and first-shard verification
+## Full 41-hour `adaptive-log` storage evaluation
+
+The candidate log-window policy completed the same stopped **248-shard /
+1,487,845-scan / 1,413,925,731-reading** source with 4,973 blocks and all 14
+component-decrease flags. Source hashes/counts/ranges matched; endpoint,
+retained-point/interval precision, lost-positive-retained-interval and RSS-floor
+violations were zero. All process metadata/RSS readings remain. CPU fluctuations
+inside omitted intervals are intentionally not reconstructible.
+
+### Actual default archive storage
+
+All rows below use pure-Rust Brotli 5/window 20, a 16 MiB input target, existing
+source-age/run cuts, and complete unpadded tails. Payload excludes frame headers;
+the denominator is the actual 148,784.400128417-second source duration.
+
+| Profile | Frames | Brotli payload bytes, full capture | Payload MiB/day | Frame-file MiB/day |
+| --- | ---: | ---: | ---: | ---: |
+| Fixed `legacy-1ms` | 46 | 180,130,121 | 99.757 | 100.058 |
+| Dense `adaptive` | 265 | 708,668,994 | 392.464 | 392.799 |
+| Temporal `adaptive-log` | 83 | **383,329,132** | **212.289** | **212.596** |
+
+Log windows save **45.91% compressed payload** against dense adaptive, but still
+cost **2.13x** the fixed-1-ms archive budget. Raw PST bytes fell 78.2%, from
+4,108,298,001 to 895,468,143. Fewer points/bytes before compression do not translate
+proportionally into compressed savings. These profiles retain different CPU
+information: this is not a lossless-equivalence comparison. The storage goal
+remains unmet; the old 100.84 MiB/day C-Brotli figure is a different-backend cached
+control, not the archive payload row above.
+
+### Processing and codec cost
+
+- Verified transform, **10 workers / two source passes**: **686.249 s wall
+  (11m26s)** including preflight, **3,747.494 aggregate CPU-s**, **2.49 GiB peak RSS**.
+  Pipeline-only wall was 677.431 s. The previous dense preparation was serial;
+  this is not a policy-only speedup claim.
+- Separate cached byte-only 16 MiB benchmark: 54 frames, actual PCR1 input
+  895,483,332 B / 0.833984 GiB, compressed payload 382,410,474 B / **211.781 MiB/day**.
+  The archive's extra source-age cuts explain its 83 frames and 0.24% larger payload.
+- Brotli-only timing: **28.805 CPU-s**, **34.539 CPU-s/actual input GiB**, 28.956 wall-s.
+  This sums per-frame medians across three repeats (162 compressions), excluding
+  packing/hash/source/decode verification. Total cached benchmark wall was 467.239 s.
+  Cached codec verification is not independent source-fidelity verification.
+- A separate streaming duration audit took 397.395 s wall and 301,285,376 B peak
+  RSS; no full decoded JSONL/raw spool was written.
+
+### Retained CPU timing
+
+103,647,433 checkpoints / 94,634,338 intervals / 9,013,095 exact baselines;
+**1,310,278,298 CPU readings omitted (92.67%)**. Independently decoded sequence
+coverage sums to 1,404,912,636 source edges, exactly source readings minus baselines.
+Percentages below count retained intervals, not CPU-weighted or wall-weighted time.
+
+| Actual retained duration | Intervals | Share |
+| --- | ---: | ---: |
+| <=125 ms | 17,257,842 | 18.24% |
+| (125,250] ms | 17,602,237 | 18.60% |
+| (250,500] ms | 4,632,084 | 4.89% |
+| (0.5,1] s | 14,950,541 | 15.80% |
+| (1,2] s | 19,151,992 | 20.24% |
+| (2,5] s | 7,193,035 | 7.60% |
+| >5 s | 13,846,607 | 14.63% |
+
+Every >5 s interval had zero CPU. Five seconds is a target closed at the next
+real source observation, not a fabricated endpoint; maximum actual duration was
+6.642208458 s. Missing/unknown coverage remains a new baseline, not an idle claim.
+
+Private reproducible artifacts: `.recordings/rust-log-full-20261106T054133Z/`
+(`REPORT.md`, `summary.json`, `run.py`, pinned binary/code/source hashes, complete
+archive, codec control and bounded histogram helper). Binary pinned to `f7e5162`,
+SHA256 `66e492b0a792c2ae4a7902e3eee6bcca064d0c91ed574a46b02772e25a007417`.
+Only log windows were fully replayed; inverse windows remain finite-sanity tested.
+No production code, acquisition, service or frontend change was made for this run.
+
+## Rust temporal CPU profiles: earlier finite sanity and first-shard verification
 
 `adaptive-inverse` and `adaptive-log` are opt-in sparse-checkpoint profiles; the
 original dense `adaptive` default and legacy/fixed controls are unchanged. This is a
-20-second synthetic sanity fixture per profile, **not** the full 41-hour replay
-retimed with the new profiles. Each run retained all 201 scans and 3,216 process
+20-second synthetic sanity fixture per profile, separate from the later full
+`adaptive-log` replay above. Each run retained all 201 scans and 3,216 process
 metadata/RSS readings. All three `transform --verify` and subsequent
 `inspect --jsonl` commands exited 0; endpoint, precision, RSS and declared-bound
 checks had zero violations. Source-weighted CPU totals and RSS were unchanged.

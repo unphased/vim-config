@@ -2,10 +2,9 @@
 
 **One current plan; no new design phase.** The Rust recorder supports native capture,
 shared validation/encoding, archives, source transforms, inspection/export, and
-benchmarking. The original dense `adaptive` profile has full 41-hour
-source-fidelity validation; the opt-in temporal profiles have synthetic Rust sanity
-checks and a verified first-shard replay, not a full-duration replay benchmark. The older Python codec
-and window-model work remains historical reference material.
+benchmarking. Dense `adaptive` and opt-in `adaptive-log` have full 41-hour
+source-fidelity validation; `adaptive-inverse` has synthetic and first-shard checks.
+The older Python codec and window-model work remains historical reference material.
 
 ```mermaid
 flowchart LR
@@ -175,8 +174,12 @@ between the recorder and the current UI sampler.
 - Finite native churn, SIGTERM, SIGKILL recovery and actual-native-reference
   live/replay byte-parity tests passed. The new temporal profiles passed a separate
   finite 20-second synthetic Rust sanity comparison and a real 6,000-scan /
-  6,431,392-reading first-shard replay, with zero audit violations. They have not
-  been replayed across the full 41-hour source. Current validation passes 198 Rust
+  6,431,392-reading first-shard replay, with zero audit violations. `adaptive-log`
+  subsequently passed all 248 source shards: 212.29 MiB/day archive payload versus
+  dense adaptive's 392.46, 92.67% fewer CPU checkpoints, unchanged metadata/RSS and
+  zero retained-value/coverage/RSS audit violations. Full replay used 10 workers,
+  11m26s wall, 3,747.49 aggregate CPU-s and 2.49 GiB peak RSS. The inverse profile
+  has not had a full-corpus replay. Current code validation passes 198 Rust
   tests (one existing native-reference test remains ignored) and 142 Python tests;
   an independent temporal-code review has no remaining blockers. Fmt, strict
   Clippy and release build passed. See the [scorecard](RECORDING_RESULTS.md) for

@@ -30,6 +30,7 @@ test:
 	python3 test-herdr-pane-recording.py
 	python3 test-herdr-open-history.py
 	./test-herdr-focus.sh
+	python3 test-herdr-focus-concurrency.py
 	./test-herdr-resize.sh
 	./test-herdr-sidebar-resize.sh
 	./test-herdr-pane-navigator.sh

@@ -56,12 +56,16 @@ def open_history():
     # Always pass the selector, including an empty value when identity is absent.
     # History keeps its normal scope and shows an explicit selection error.
     selector = ":".join(parts) if all(isinstance(part, str) and part.strip() for part in parts) else ""
+    # Callers such as the ledger mod may name an exact session and record (turn) to reveal.
+    selector = os.environ.get("AGHIST_SELECT_SESSION") or selector
+    entry = os.environ.get("AGHIST_SELECT_ENTRY", "")
     print(herdr(
         "plugin", "pane", "open", "--plugin", "local.agent-history",
         "--entrypoint", "history", "--placement", "split", "--direction", direction,
         "--target-pane", source_pane,
         "--cwd", cwd, "--focus",
         "--env", f"AGHIST_BIN_PATH={binary}", "--env", f"AGHIST_SELECT_SESSION={selector}",
+        "--env", f"AGHIST_SELECT_ENTRY={entry}",
         "--env", f"TERMPLEX_RECORDING_ID={source_recording_id(source_pane)}",
     ), end="")
 
@@ -70,7 +74,15 @@ def main():
     if sys.argv[1:] == ["--run"]:
         binary = os.environ["AGHIST_BIN_PATH"]
         capture = Path(__file__).resolve().parent.parent / "capture-command.sh"
-        os.execv("/bin/sh", ["sh", str(capture), binary, "--select-session", os.environ["AGHIST_SELECT_SESSION"]])
+        selector = os.environ["AGHIST_SELECT_SESSION"]
+        args = ["--select-session", selector]
+        if selector:
+            # Load only this session (stacked, short results list); editing the search
+            # query widens it to the normal scope.
+            args.append("--only-session")
+        if os.environ.get("AGHIST_SELECT_ENTRY"):
+            args += ["--select-entry", os.environ["AGHIST_SELECT_ENTRY"]]
+        os.execv("/bin/sh", ["sh", str(capture), binary, *args])
     elif sys.argv[1:]:
         raise RuntimeError("Unexpected arguments")
     else:

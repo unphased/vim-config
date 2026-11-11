@@ -10,7 +10,7 @@ Process-history recording is separate from this live plugin:
 
 - [Plan and status](RECORDING_PLAN.md): Rust recorder scope and validation status.
 - [Data and binary format](RECORDING_DATA.md): historical Python prototype walkthrough plus current Rust layout and temporal CPU profiles.
-- [Measured results](RECORDING_RESULTS.md): finite temporal-profile sanity, full 41-hour dense-adaptive validation, and historical comparisons.
+- [Measured results](RECORDING_RESULTS.md): full 41-hour dense/log-adaptive validation, temporal sanity, and historical comparisons.
 
 Superseded proposals live in Git history. Experimental codecs are tested by
 `make test`; none changes the live plugin.
@@ -51,9 +51,9 @@ cargo build --release
 `record` defaults to `adaptive`, which retains dense CPU checkpoints. The opt-in
 `adaptive-inverse` and `adaptive-log` profiles sparsify CPU checkpoints while keeping
 process metadata and RSS at the 10 Hz source cadence; `legacy-1ms` and `fixed-100us`
-remain unchanged controls. The temporal profiles have synthetic Rust sanity
-coverage and a verified first-shard replay (6.43 million readings), not a full-duration replay benchmark. Memory-selection options for the three
-commands are:
+remain unchanged controls. `adaptive-log` passed the full 41-hour source replay;
+`adaptive-inverse` has synthetic and first-shard coverage. Memory-selection
+options for the three commands are:
 
 ```text
 record    [--memory-columns owned,peak,evicted|none] [--memory-unit-bytes N]
@@ -78,11 +78,12 @@ it explicitly (never inferred from the current host):
   --timebase 125/3 --profile adaptive --verify
 ```
 
-The existing dense `adaptive` profile passed source-fidelity verification on the
-full preserved 41-hour capture and measures ~392.46 MiB/day there. This does not
-benchmark the new temporal profiles: those have a 20-second synthetic comparison
-and a verified 10-minute source replay so far; see the scorecard for measured bytes. Limits stop recording rather than deleting history;
-no service is installed or enabled automatically.
+On the full preserved 41-hour capture, dense `adaptive` measures **392.46 MiB/day**
+and `adaptive-log` **212.29 MiB/day** of Brotli-5 archive payload: 45.9% less, at the
+cost of omitted fine CPU timing. Both passed their source-fidelity audits; the log
+profile preserves all metadata/RSS readings but not every original 100 ms CPU rate.
+See the scorecard for framing, interval distribution and processing cost. Limits
+stop recording rather than deleting history; no service is installed automatically.
 
 For offline bulk replay, add `--workers auto` (all available cores) or `--workers N`
 to `recording transform`. The default remains one worker; live recording is unchanged.

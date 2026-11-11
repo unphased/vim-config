@@ -4,8 +4,8 @@ The long worked tutorial below remains the measured **Python fixed-profile
 prototype** reference; it is not the current Rust adaptive layout or a proposed
 standard. Its original examples and measurements are retained. The concise Rust
 wire summary at the end describes the implemented format. See
-[RECORDING_RESULTS.md](RECORDING_RESULTS.md) for provisional Rust first-shard
-validation and the separate historical full 41-hour prototype comparison.
+[RECORDING_RESULTS.md](RECORDING_RESULTS.md) for full 41-hour Rust dense/log-adaptive
+validation and the separate historical fixed-profile comparison.
 
 This guide's size example uses the earlier verified 8.5-hour corpus: 306,000 scans,
 326,450,656 process readings and 886,984 identities. The worked source examples
@@ -661,8 +661,11 @@ No Strands/frontend consumer is wired yet. A later consumer can use the unchange
 Native records declare the source clock/timebase; legacy inputs without a timebase
 require an explicit import argument (for the documented legacy source,
 `--timebase 125/3`). The [plan](RECORDING_PLAN.md) tracks scope and boundaries; the
-[scorecard](RECORDING_RESULTS.md) separates temporal sanity from full-source dense
-adaptive validation and historical controls.
+[scorecard](RECORDING_RESULTS.md) separates full-source dense/log-adaptive results,
+finite inverse-profile sanity, and historical controls. The full log run retained
+103,647,433 CPU checkpoints from 1,413,925,731 source process readings; all
+metadata/RSS rows remain. Its interval histogram describes retained durations,
+not a reconstruction of the omitted 100 ms CPU rates.
 
 ## Historical Python CPU-window design example (not current Rust behavior)
 

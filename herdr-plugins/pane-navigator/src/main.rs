@@ -1,16 +1,66 @@
 use serde_json::Value;
 use std::env;
 use std::error::Error;
+use std::fs::OpenOptions;
 use std::io::{self, Read, Write};
+use std::os::unix::fs::OpenOptionsExt;
 use std::os::unix::process::CommandExt;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
-use std::time::{Duration, Instant};
+use std::sync::OnceLock;
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 const PLUGIN_ID: &str = "local.pane-navigator";
 const ENTRYPOINT: &str = "minimap";
+
+fn time_us() -> u128 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_micros()
+}
+
+fn trace_id() -> &'static str {
+    static ID: OnceLock<String> = OnceLock::new();
+    ID.get_or_init(|| {
+        env::var("HERDR_FOCUS_TRACE_ID")
+            .unwrap_or_else(|_| format!("{}-{}", std::process::id(), time_us()))
+    })
+}
+
+fn trace(event: &str, metadata: Value) {
+    let path = env::var_os("HERDR_FOCUS_TRACE_FILE")
+        .map(PathBuf::from)
+        .or_else(|| {
+            env::var_os("XDG_STATE_HOME")
+                .filter(|v| !v.is_empty())
+                .map(PathBuf::from)
+                .or_else(|| {
+                    env::var_os("HOME").map(|home| PathBuf::from(home).join(".local/state"))
+                })
+                .map(|state| state.join("herdr/focus-trace.log"))
+        });
+    if let Some(path) = path
+        && let Ok(mut file) = OpenOptions::new()
+            .append(true)
+            .custom_flags(libc::O_NONBLOCK)
+            .open(path)
+        && let Ok(file_metadata) = file.metadata()
+        && file_metadata.is_file()
+    {
+        let line = format!(
+            "time_us={} component=navigator pid={} trace_id={} event={} metadata={}\n",
+            time_us(),
+            std::process::id(),
+            serde_json::to_string(trace_id()).unwrap_or_default(),
+            event,
+            metadata
+        );
+        let _ = file.write_all(line.as_bytes());
+    }
+}
 
 fn herdr(args: &[&str]) -> Result<Value> {
     let output = Command::new(env::var("HERDR_BIN_PATH").unwrap_or_else(|_| "herdr".into()))
@@ -37,7 +87,12 @@ fn value_str<'a>(value: &'a Value, path: &[&str]) -> Result<&'a str> {
 }
 
 fn current_pane() -> Result<Value> {
-    Ok(herdr(&["pane", "current", "--current"])?["result"]["pane"].clone())
+    let pane = herdr(&["pane", "current", "--current"])?["result"]["pane"].clone();
+    trace(
+        "current_pane",
+        serde_json::json!({"pane_id": pane["pane_id"]}),
+    );
+    Ok(pane)
 }
 
 fn current_pane_id() -> Result<String> {
@@ -45,7 +100,12 @@ fn current_pane_id() -> Result<String> {
 }
 
 fn pane_layout(pane_id: &str) -> Result<Value> {
-    Ok(herdr(&["pane", "layout", "--pane", pane_id])?["result"]["layout"].clone())
+    let layout = herdr(&["pane", "layout", "--pane", pane_id])?["result"]["layout"].clone();
+    trace(
+        "layout",
+        serde_json::json!({"pane_id": pane_id, "focused_pane_id": layout["focused_pane_id"], "zoomed": layout["zoomed"]}),
+    );
+    Ok(layout)
 }
 
 fn should_show(layout: &Value) -> bool {
@@ -59,12 +119,22 @@ fn move_focus(direction: &str, pane_id: &str) -> Result<()> {
     let helper = env::var_os("HERDR_FOCUS_HELPER")
         .map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../herdr-focus.sh"));
+    trace(
+        "move_focus_start",
+        serde_json::json!({"direction": direction, "source": pane_id}),
+    );
     let output = Command::new(helper)
         .arg(direction)
+        .env("HERDR_FOCUS_TRACE_ID", trace_id())
         .env("HERDR_PANE_ID", pane_id)
         .stdout(Stdio::null())
         .stderr(Stdio::piped())
-        .output()?;
+        .output();
+    trace(
+        "move_focus_end",
+        serde_json::json!({"direction": direction, "source": pane_id, "status": output.as_ref().ok().and_then(|o| o.status.code()), "spawn_error": output.is_err()}),
+    );
+    let output = output?;
     if !output.status.success() {
         return Err(String::from_utf8_lossy(&output.stderr)
             .trim()
@@ -90,44 +160,51 @@ fn crossed_tab_or_workspace(source_layout: &Value, destination: &Value) -> bool 
 }
 
 fn open_popup(pane_id: &str, previous: Option<(&str, &str)>) -> Result<()> {
+    trace(
+        "popup_open_request",
+        serde_json::json!({"destination": pane_id, "previous": previous.map(|p| p.0), "direction": previous.map(|p| p.1)}),
+    );
+    let trace_env = format!("HERDR_FOCUS_TRACE_ID={}", trace_id());
+    let trace_file_env = env::var("HERDR_FOCUS_TRACE_FILE")
+        .ok()
+        .map(|path| format!("HERDR_FOCUS_TRACE_FILE={path}"));
     let pane_env = format!("HERDR_NAV_PANE_ID={pane_id}");
-    if let Some((previous_pane_id, direction)) = previous {
-        let previous_env = format!("HERDR_NAV_PREVIOUS_PANE_ID={previous_pane_id}");
-        let direction_env = format!("HERDR_NAV_TRANSITION_DIRECTION={direction}");
-        herdr(&[
-            "plugin",
-            "pane",
-            "open",
-            "--plugin",
-            PLUGIN_ID,
-            "--entrypoint",
-            ENTRYPOINT,
-            "--env",
-            &pane_env,
-            "--env",
-            &previous_env,
-            "--env",
-            &direction_env,
-        ])?;
-    } else {
-        herdr(&[
-            "plugin",
-            "pane",
-            "open",
-            "--plugin",
-            PLUGIN_ID,
-            "--entrypoint",
-            ENTRYPOINT,
-            "--env",
-            &pane_env,
-        ])?;
+    let previous_env = previous.map(|(pane, _)| format!("HERDR_NAV_PREVIOUS_PANE_ID={pane}"));
+    let direction_env =
+        previous.map(|(_, direction)| format!("HERDR_NAV_TRANSITION_DIRECTION={direction}"));
+    let mut args = vec![
+        "plugin",
+        "pane",
+        "open",
+        "--plugin",
+        PLUGIN_ID,
+        "--entrypoint",
+        ENTRYPOINT,
+        "--env",
+        &pane_env,
+    ];
+    if let (Some(previous), Some(direction)) = (&previous_env, &direction_env) {
+        args.extend(["--env", previous, "--env", direction]);
     }
-    Ok(())
+    args.extend(["--env", &trace_env]);
+    if let Some(path) = &trace_file_env {
+        args.extend(["--env", path]);
+    }
+    let result = herdr(&args).map(|_| ());
+    trace(
+        "popup_open_result",
+        serde_json::json!({"destination": pane_id, "success": result.is_ok()}),
+    );
+    result
 }
 
 fn show_after_move(direction: &str, pane_id: &str) -> Result<()> {
     let destination = current_pane()?;
     let destination_id = value_str(&destination, &["pane_id"])?;
+    trace(
+        "after_move_destination",
+        serde_json::json!({"direction": direction, "source": pane_id, "destination": destination_id}),
+    );
     if destination_id == pane_id {
         return Ok(());
     }
@@ -142,6 +219,10 @@ fn show_after_move(direction: &str, pane_id: &str) -> Result<()> {
 }
 
 fn navigate_once(direction: &str) -> Result<()> {
+    trace(
+        "action_start",
+        serde_json::json!({"direction": direction, "inherited_pane": env::var("HERDR_PANE_ID").ok()}),
+    );
     let pane_id = env::var("HERDR_PANE_ID").or_else(|_| current_pane_id())?;
     move_focus(direction, &pane_id)?;
     show_after_move(direction, &pane_id)
@@ -152,6 +233,7 @@ fn defer_show_after_move(direction: &str, pane_id: &str) -> Result<()> {
     let mut command = Command::new(executable);
     command
         .args(["after-move", direction, pane_id])
+        .env("HERDR_FOCUS_TRACE_ID", trace_id())
         .stdin(Stdio::null())
         .stdout(Stdio::null())
         .stderr(Stdio::null());
@@ -163,7 +245,12 @@ fn defer_show_after_move(direction: &str, pane_id: &str) -> Result<()> {
             Ok(())
         });
     }
-    command.spawn()?;
+    let child = command.spawn();
+    trace(
+        "worker_scheduled",
+        serde_json::json!({"direction": direction, "source": pane_id, "pid": child.as_ref().ok().map(|c| c.id()), "error": child.is_err()}),
+    );
+    child?;
     Ok(())
 }
 
@@ -461,6 +548,10 @@ fn interrupt_popup(pane_id: &str, timeout: Duration) -> Result<bool> {
         cursor += consumed;
     }
 
+    trace(
+        "captured_navigation",
+        serde_json::json!({"count": navigations.len(), "directions": navigations}),
+    );
     let mut current_source = pane_id.to_owned();
     let mut last_source = current_source.clone();
     let mut last_navigation = None;
@@ -483,9 +574,19 @@ fn interrupt_popup(pane_id: &str, timeout: Duration) -> Result<bool> {
 }
 
 fn popup() -> Result<()> {
+    let result = popup_inner();
+    trace("popup_end", serde_json::json!({"success": result.is_ok()}));
+    result
+}
+
+fn popup_inner() -> Result<()> {
     let pane_id = env::var("HERDR_NAV_PANE_ID").or_else(|_| current_pane_id())?;
     let previous = env::var("HERDR_NAV_PREVIOUS_PANE_ID").ok();
     let transition_direction = env::var("HERDR_NAV_TRANSITION_DIRECTION").ok();
+    trace(
+        "popup_start",
+        serde_json::json!({"destination": pane_id, "previous": previous, "direction": transition_direction}),
+    );
     let show_previous = match previous.as_deref() {
         Some(pane) => should_show(&pane_layout(pane)?),
         None => false,
@@ -528,6 +629,7 @@ fn popup() -> Result<()> {
 }
 
 fn run() -> Result<()> {
+    let _ = trace_id();
     let arguments: Vec<String> = env::args().collect();
     match arguments.get(1).map(String::as_str) {
         Some(direction @ ("left" | "right" | "up" | "down" | "previous-tab" | "next-tab")) => {
@@ -535,8 +637,14 @@ fn run() -> Result<()> {
         }
         Some("popup") => popup(),
         Some("after-move") if arguments.len() == 4 => {
+            trace(
+                "worker_start",
+                serde_json::json!({"direction": arguments[2], "source": arguments[3]}),
+            );
             std::thread::sleep(Duration::from_millis(20));
-            show_after_move(&arguments[2], &arguments[3])
+            let result = show_after_move(&arguments[2], &arguments[3]);
+            trace("worker_end", serde_json::json!({"success": result.is_ok()}));
+            result
         }
         _ => Err(
             "usage: herdr-pane-navigator {left|right|up|down|popup|after-move DIRECTION PANE}"
