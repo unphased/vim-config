@@ -98,24 +98,38 @@ pub fn is_supported_image(path: &std::path::Path) -> bool {
     })
 }
 
-/// Render an image within pixel bounds at zero-based terminal cell coordinates.
-/// Returns a complete Kitty stream using image ID 424242; no terminal I/O occurs.
+/// Render within a rectangle measured in terminal cells at zero-based cell coordinates.
+/// Returns a complete Kitty stream without terminal I/O. Kitty scales the image
+/// to fit the rectangle, preserving its aspect ratio. `image_id` must be nonzero.
 pub fn render(
     path: &std::path::Path,
-    max_width: usize,
-    max_height: usize,
+    cells_w: usize,
+    cells_h: usize,
     x: usize,
     y: usize,
+    image_id: u32,
 ) -> Result<Vec<u8>, Box<dyn Error>> {
-    let prepared = prepare_path(path, max_width, max_height)?;
+    if cells_w == 0 || cells_h == 0 || image_id == 0 {
+        return Err("cell dimensions and image ID must be greater than zero".into());
+    }
+    let prepared = prepare_path(path, u32::MAX as usize, u32::MAX as usize)?;
     let mut output = Vec::new();
-    emit_kitty(&mut output, &prepared, x, y)?;
+    emit_kitty_placement(
+        &mut output,
+        &prepared,
+        x,
+        y,
+        image_id,
+        Some((cells_w, cells_h)),
+    )?;
     Ok(output)
 }
 
-/// Return the Kitty command that deletes the image and its placements.
-pub fn delete_image() -> &'static [u8] {
-    b"\x1b_Ga=d,d=I,i=424242,q=2\x1b\\"
+/// Return the Kitty command that deletes the specified image and its placements.
+/// Panics if `image_id` is zero, which does not identify a Kitty image.
+pub fn delete_image(image_id: u32) -> Vec<u8> {
+    assert_ne!(image_id, 0, "image ID must be nonzero");
+    format!("\x1b_Ga=d,d=I,i={image_id},q=2\x1b\\").into_bytes()
 }
 
 fn prepare_path(
@@ -284,6 +298,17 @@ fn emit_kitty(
     x: usize,
     y: usize,
 ) -> io::Result<()> {
+    emit_kitty_placement(output, image, x, y, IMAGE_ID, None)
+}
+
+fn emit_kitty_placement(
+    output: &mut impl Write,
+    image: &PreparedImage,
+    x: usize,
+    y: usize,
+    image_id: u32,
+    cells: Option<(usize, usize)>,
+) -> io::Result<()> {
     let column = x
         .checked_add(1)
         .ok_or_else(|| io::Error::other("X coordinate overflow"))?;
@@ -300,9 +325,13 @@ fn emit_kitty(
         if index == 0 {
             write!(
                 output,
-                "\x1b_Ga=T,f=100,s={},v={},i={},q=2,C=1,m={more};",
-                image.width, image.height, IMAGE_ID
+                "\x1b_Ga=T,f=100,s={},v={},i={},q=2,C=1,",
+                image.width, image.height, image_id
             )?;
+            if let Some((width, height)) = cells {
+                write!(output, "c={width},r={height},")?;
+            }
+            write!(output, "m={more};")?;
         } else {
             write!(output, "\x1b_Gm={more};")?;
         }
