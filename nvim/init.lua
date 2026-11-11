@@ -2058,29 +2058,8 @@ end
 --   cmd = { "node", vim.fn.expand("$HOME") .. '/vtsls/packages/server/bin/vtsls.js', '--stdio' }
 -- })
 
-safeRequire("yanky").setup({
-  highlight = {
-    on_put = true,
-    on_yank = true,
-    timer = 1000,
-  },
-})
-vim.keymap.set({"n"}, "p", "<Plug>(YankyPutAfter)")
-vim.keymap.set({"n"}, "P", "<Plug>(YankyPutBefore)")
-
-vim.keymap.set({"x"}, "P", "<Plug>(YankyPutAfter)")
-vim.keymap.set({"x"}, "p", "<Plug>(YankyPutBefore)")
---- commenting these out because i'm never ever going to remember to use them
--- vim.keymap.set({"n","x"}, "gp", "<Plug>(YankyGPutAfter)")
--- vim.keymap.set({"n","x"}, "gP", "<Plug>(YankyGPutBefore)")
--- yankring
-vim.keymap.set("n", "<c-u>", "<Plug>(YankyCycleForward)")
-vim.keymap.set("n", "<c-y>", "<Plug>(YankyCycleBackward)")
 -- Search highlight
 vim.cmd([[
-  hi YankyPut guibg=#2f9366 gui=bold cterm=bold
-  hi YankyYanked guibg=#2e5099 gui=bold cterm=bold
-
   hi Search cterm=bold ctermfg=black ctermbg=yellow guibg=#a9291a guifg=NONE
   hi CurSearch cterm=bold ctermfg=black ctermbg=yellow guibg=#ff392a guifg=NONE
   hi IncSearch cterm=bold ctermfg=black ctermbg=cyan guibg=#f04050 guifg=NONE gui=NONE
@@ -2516,8 +2495,6 @@ vim.keymap.set('n', "<M-C-S-F11>", "<cmd>lua CycleWindowsOrBuffers(false)<cr>", 
 -- vim.api.nvim_set_keymap('x', 'p', 'P', { silent = true })
 -- -- allow original p behavior with P
 -- vim.api.nvim_set_keymap('x', 'P', 'p', { silent = true })
-
--- see yanky config
 
 -- node action config. Unfortunately the bind is not very mnemonic but e is super easy to reach.
 -- THIS IS THE "toggle" behavior e.g. old AndrewRadev/switch.vim workflow
