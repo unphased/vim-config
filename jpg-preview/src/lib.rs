@@ -100,7 +100,10 @@ pub fn is_supported_image(path: &std::path::Path) -> bool {
 
 /// Render within a rectangle measured in terminal cells at zero-based cell coordinates.
 /// Returns a complete Kitty stream without terminal I/O. Kitty scales the image
-/// to fit the rectangle, preserving its aspect ratio. `image_id` must be nonzero.
+/// to fit the rectangle, preserving its aspect ratio. Raster preparation assumes
+/// a conservative 20×40 pixels per cell (no terminal query), capped at 2048 pixels
+/// per axis to bound the synchronous stream. Images are never upscaled.
+/// `image_id` must be nonzero. CLI rendering uses its own pixel sizing.
 pub fn render(
     path: &std::path::Path,
     cells_w: usize,
@@ -112,7 +115,11 @@ pub fn render(
     if cells_w == 0 || cells_h == 0 || image_id == 0 {
         return Err("cell dimensions and image ID must be greater than zero".into());
     }
-    let prepared = prepare_path(path, u32::MAX as usize, u32::MAX as usize)?;
+    let prepared = prepare_path(
+        path,
+        cells_w.saturating_mul(20).min(2048),
+        cells_h.saturating_mul(40).min(2048),
+    )?;
     let mut output = Vec::new();
     emit_kitty_placement(
         &mut output,
