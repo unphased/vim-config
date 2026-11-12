@@ -98,6 +98,52 @@ pub fn is_supported_image(path: &std::path::Path) -> bool {
     })
 }
 
+/// Returns the pixel dimensions after EXIF orientation, without decoding pixels.
+/// ARW files use the same embedded JPEG and orientation override as rendering.
+pub fn dimensions(path: &std::path::Path) -> Result<(u32, u32), Box<dyn Error>> {
+    let mut file = File::open(path)?;
+    if path
+        .extension()
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("arw"))
+    {
+        let extracted = arw::extract(&mut file)?;
+        let mut reader = ImageReader::new(Cursor::new(extracted.bytes)).with_guessed_format()?;
+        if reader.format() != Some(ImageFormat::Jpeg) {
+            return Err("ARW embedded payload is not a JPEG image".into());
+        }
+        reader.limits(decode_limits());
+        return oriented_dimensions(reader.into_decoder()?, extracted.orientation);
+    }
+    if file.metadata()?.len() > MAX_ENCODED_BYTES {
+        return Err("encoded image exceeds input size limit".into());
+    }
+    let mut reader = ImageReader::new(io::BufReader::new(file)).with_guessed_format()?;
+    if !matches!(reader.format(), Some(ImageFormat::Jpeg | ImageFormat::Png)) {
+        return Err("input is not a supported JPEG or PNG image".into());
+    }
+    reader.limits(decode_limits());
+    oriented_dimensions(reader.into_decoder()?, None)
+}
+
+fn oriented_dimensions(
+    mut decoder: impl ImageDecoder,
+    orientation_override: Option<image::metadata::Orientation>,
+) -> Result<(u32, u32), Box<dyn Error>> {
+    let (width, height) = decoder.dimensions();
+    if u64::from(width) * u64::from(height) > MAX_PIXELS {
+        return Err(format!("image exceeds the {MAX_PIXELS}-pixel safety limit").into());
+    }
+    let orientation = match orientation_override {
+        Some(orientation) => orientation,
+        None => decoder.orientation()?,
+    };
+    Ok(if orientation.to_exif() >= 5 {
+        (height, width)
+    } else {
+        (width, height)
+    })
+}
+
 /// Render within a rectangle measured in terminal cells at zero-based cell coordinates.
 /// Returns a complete Kitty stream without terminal I/O. Kitty scales the image
 /// to fit the rectangle, preserving its aspect ratio. Raster preparation assumes
