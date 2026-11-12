@@ -129,6 +129,12 @@ type = "shell"
 command = "~/.vim/herdr-resize.sh right"
 description = "Resize pane right (anchored)"
 
+[[keys.command]]
+key = "prefix+alt+l"
+type = "shell"
+command = "herdr pane send-keys \"$(herdr pane current --current | jq -r '.result.pane.pane_id')\" alt+l"
+description = "Send Alt+L to pane"
+
 # Shellfish-friendly sidebar sizing: adjustments pin min/max to the same width.
 # Toggle restores loose mouse bounds (18..48) or the remembered keyboard width.
 # Alt+[ / Alt+] are prefix-free; keep prefix+[ for copy mode and Alt+, / Alt+.
