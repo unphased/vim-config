@@ -101,6 +101,7 @@ resize_pane_down = ""
 resize_pane_up = ""
 resize_pane_right = ""
 zoom = ["prefix+z", "alt+m", "ctrl+m"]
+split_horizontal = ["prefix+minus", "ctrl+minus"]
 
 # Resize from a stable top/left anchor instead of expanding a middle pane in
 # both directions. At the bottom/right edge, move the only available boundary.
