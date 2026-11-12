@@ -577,6 +577,10 @@ mod tests {
         arw.extend_from_slice(&[0; 4]);
         arw.resize(jpeg_offset as usize, 0);
         arw.extend_from_slice(&jpeg);
+        let path = std::env::temp_dir().join(format!("jpg-dimensions-{}.arw", std::process::id()));
+        std::fs::write(&path, &arw).unwrap();
+        assert_eq!(dimensions(&path).unwrap(), (2, 3));
+        std::fs::remove_file(path).unwrap();
         let extracted = arw::extract(&mut Cursor::new(arw)).unwrap();
         let reader = ImageReader::new(Cursor::new(extracted.bytes))
             .with_guessed_format()
@@ -593,6 +597,21 @@ mod tests {
             decode_png(&prepared.payload).into_rgb8().into_raw(),
             expected_pixels
         );
+    }
+
+    #[test]
+    fn dimensions_match_oriented_jpeg_and_png() {
+        let path = std::env::temp_dir().join(format!("jpg-dimensions-{}.jpg", std::process::id()));
+        for orientation in 1..=8 {
+            std::fs::write(&path, jpeg_with_orientation(3, 2, orientation)).unwrap();
+            let expected = if orientation >= 5 { (2, 3) } else { (3, 2) };
+            assert_eq!(dimensions(&path).unwrap(), expected);
+        }
+        std::fs::write(&path, png(2, 1, &[32, 192], ColorType::L8)).unwrap();
+        assert_eq!(dimensions(&path).unwrap(), (2, 1));
+        std::fs::write(&path, b"not an image").unwrap();
+        assert!(dimensions(&path).is_err());
+        std::fs::remove_file(path).unwrap();
     }
 
     #[test]
