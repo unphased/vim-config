@@ -67,6 +67,14 @@ class PreviewTests(unittest.TestCase):
         self.jpeg.write_bytes(b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00" + b"\x00" * 16)
         self.arw = self.home / "photo 'quoted'.ArW"
         self.arw.write_text("ARW extension must route before MIME, even for invalid data")
+        self.pdf = self.home / "first page 'quoted'.pdf"
+        self.pdf.write_bytes(b"%PDF-1.4\n")
+        self.pdf_calls = self.home / "pdf-calls"
+        self.env.update(PDF_CALLS=str(self.pdf_calls), PDF_PNG=str(self.png))
+        self.stub("pdftoppm", 'printf "%s\\n" "$@" >> "$PDF_CALLS"; '
+                  'if [ "${PDF_STATUS:-0}" != 0 ]; then '
+                  'printf "invalid PDF\\n" >&2; exit "$PDF_STATUS"; fi; '
+                  'for output do :; done; cp "$PDF_PNG" "$output.png"')
 
     def stub(self, name, body):
         script = self.bin / name
@@ -119,6 +127,53 @@ class PreviewTests(unittest.TestCase):
                 self.assertFalse(self.legacy.exists())
                 self.assertEqual(list(self.scratch.iterdir()), [])
                 self.assertFalse((self.home / ".cache/lf-previewer").exists())
+
+    def test_pdf_first_page_is_cached_and_sent_to_existing_renderer(self):
+        self.env["id"] = "12345"
+        result, tty = self.preview(self.pdf)
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(result.stdout, b"RUST_IMAGE")
+        self.assertEqual(tty, b"")
+        args = self.calls.read_text().splitlines()
+        self.assertEqual(args[:2], ["--lf-id", "12345"])
+        self.assertEqual(args[3:], ["40", "20", "60", "1"])
+        cached = Path(args[2])
+        self.assertEqual(cached.suffix, ".png")
+        self.assertEqual(cached.read_bytes(), self.png.read_bytes())
+        conversion = self.pdf_calls.read_text().splitlines()
+        self.assertEqual(conversion[:-1],
+                         ["-f", "1", "-singlefile", "-scale-to", "1600", "-png", str(self.pdf)])
+        self.preview(self.pdf)
+        self.assertEqual(self.pdf_calls.read_text().splitlines(), conversion)
+        self.assertEqual(self.calls.read_text().splitlines(), args)
+        self.pdf.write_bytes(b"%PDF-1.4\nchanged content\n")
+        self.preview(self.pdf)
+        self.assertNotEqual(self.calls.read_text().splitlines()[2], str(cached))
+        self.assertEqual(len(self.pdf_calls.read_text().splitlines()), 2 * len(conversion))
+
+    def test_pdf_conversion_failure_does_not_render_or_cache_partial_output(self):
+        self.env["PDF_STATUS"] = "1"
+        result, tty = self.preview(self.pdf)
+        self.assertIn(b"Image preview failed", result.stdout)
+        self.assertIn(b"invalid PDF", result.stdout)
+        self.assertEqual(tty, b"")
+        self.assertFalse(self.calls.exists())
+        self.assertEqual(list(self.scratch.iterdir()), [])
+        self.assertEqual(list((self.home / ".cache/lf-previewer").rglob("*.png")), [])
+        self.env["PDF_STATUS"] = "0"
+        _, tty = self.preview(self.pdf)
+        self.assertIn(b"RUST_IMAGE", tty)
+
+    def test_pdf_missing_poppler_reports_install_hint(self):
+        (self.bin / "pdftoppm").unlink()
+        self.env["PATH"] = str(self.bin)
+        for name in ("file", "dirname"):
+            (self.bin / name).symlink_to(shutil.which(name, path=os.defpath))
+        result, tty = self.preview(self.pdf)
+        self.assertIn(b"pdftoppm", result.stdout)
+        self.assertIn(b"poppler", result.stdout)
+        self.assertFalse(self.calls.exists())
+        self.assertEqual(tty, b"")
 
     def test_lf_client_uses_synchronized_renderer_mode(self):
         self.env["id"] = "12345"
@@ -180,13 +235,14 @@ class PreviewTests(unittest.TestCase):
         self.assertFalse(self.calls.exists())
 
     def test_preload_does_not_render_or_extract_any_image(self):
-        for image in (self.jpeg, self.png, self.arw):
+        for image in (self.jpeg, self.png, self.arw, self.pdf):
             with self.subTest(image=image.name):
                 result, tty = self.preview(image, mode="preload")
                 self.assertEqual(result.returncode, 1)
                 self.assertEqual(result.stdout, b"")
                 self.assertEqual(tty, b"")
                 self.assertFalse(self.calls.exists())
+                self.assertFalse(self.pdf_calls.exists())
                 self.assertFalse(self.legacy.exists())
                 self.assertEqual(list(self.scratch.iterdir()), [])
 
