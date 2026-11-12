@@ -42,7 +42,7 @@ case "$1" in
     *) image_type=$(file -Lb --mime-type -- "$1" 2>/dev/null) ;;
 esac
 case $image_type in
-    image/jpeg|image/png|image/x-sony-arw)
+    image/jpeg|image/png|image/x-sony-arw|application/pdf)
         # Only selected files: no speculative decoding/extraction or text cache.
         [[ ${6:-preview} == preload ]] && exit 1
         script_dir=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
@@ -64,12 +64,42 @@ case $image_type in
         {
             if ! image_error=$(
                 exec 2>&1
+                image_file=$1
+                if [[ $image_type == application/pdf ]]; then
+                    if ! command -v pdftoppm >/dev/null; then
+                        printf 'PDF preview requires pdftoppm (brew install poppler / apt install poppler-utils)\n' >&2
+                        exit 1
+                    fi
+                    # Stable cached paths preserve the renderer's display receipts
+                    # and avoid rasterizing again on lf's acknowledgement reload.
+                    pdf_source=$1
+                    [[ $pdf_source == /* ]] || pdf_source=$PWD/$pdf_source
+                    pdf_version=$(stat -Lc '%s:%y:%z' -- "$pdf_source" 2>/dev/null ||
+                        stat -Lf '%z:%Fm:%Fc' "$pdf_source") || exit 1
+                    if command -v sha256sum >/dev/null; then
+                        pdf_hash=(sha256sum)
+                    else
+                        pdf_hash=(shasum -a 256)
+                    fi
+                    pdf_key=$(printf '%s\0%s' "$pdf_source" "$pdf_version" | "${pdf_hash[@]}") || exit 1
+                    pdf_cache=$HOME/.cache/lf-previewer/pdf
+                    image_file=$pdf_cache/${pdf_key%% *}.png
+                    if [[ ! -s $image_file ]]; then
+                        mkdir -p "$pdf_cache" || exit 1
+                        pdf_tmp=$(mktemp -d "$pdf_cache/.render.XXXXXX") || exit 1
+                        trap 'rm -rf -- "$pdf_tmp"' EXIT
+                        pdftoppm -f 1 -singlefile -scale-to 1600 -png "$pdf_source" "$pdf_tmp/page" || exit 1
+                        mv -- "$pdf_tmp/page.png" "$image_file" || exit 1
+                        rm -rf -- "$pdf_tmp"
+                        trap - EXIT
+                    fi
+                fi
                 if [[ ${#image_args[@]} -gt 0 ]]; then
                     exec 1>&3
                 else
                     exec 1>/dev/tty
                 fi || exit
-                exec "$image_preview" "${image_args[@]}" "$1" "$2" "$3" "$4" "$5"
+                exec "$image_preview" "${image_args[@]}" "$image_file" "$2" "$3" "$4" "$5"
             ); then
                 printf '[Image preview failed] %s\n' "$image_error"
             fi

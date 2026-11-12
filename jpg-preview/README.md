@@ -17,6 +17,15 @@ terminal cells. Standalone output is a Kitty graphics stream on stdout.
 and case-insensitive `.arw` paths. Other image formats report unsupported rather
 than implicitly falling back to legacy tools.
 
+PDF previews are wired in `bat-lf-previewer`, not the Rust binary. Install Poppler
+(`brew install poppler` / `apt install poppler-utils`); no Rust rebuild is needed.
+The shell renders only page 1 with `pdftoppm -f 1 -singlefile -scale-to 1600 -png`
+and feeds that PNG to the same renderer. PNGs are cached under
+`~/.cache/lf-previewer/pdf/`, keyed by source path, size, mtime, and ctime, so
+revisiting an unchanged PDF skips conversion. These disposable previews can be
+deleted to reclaim space. Preloading skips PDFs, and conversion failures are not
+cached. The Rust timing row excludes PDF conversion.
+
 Build on each machine running lf (Rust 1.93+). The binary can also be installed
 as `jpg-preview` on PATH. Root `make all` builds it; `make test` runs its tests.
 With lf installed and the release binary built, run the isolated real-LF PTY
