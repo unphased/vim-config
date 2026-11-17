@@ -1,7 +1,7 @@
 # Rust image preview dogfood
 
-Pure-Rust JPEG, PNG, and Sony ARW previews: orientation, SIMD resizing to the
-preview area, fast PNG encoding, and Kitty graphics transmission. No kitten, Perl, Unicode
+Pure-Rust JPEG, PNG, and Sony ARW previews: orientation, full-resolution PNG
+upload, and Kitty placement metadata to fit the preview area. No kitten, Perl, Unicode
 placeholders, terminal-response queries, temporary JPEGs, persistent image cache,
 or background preloading on lf's image path. The executable keeps its original
 `jpg-preview` name for compatibility.
@@ -30,12 +30,12 @@ Build on each machine running lf (Rust 1.93+). The binary can also be installed
 as `jpg-preview` on PATH. Root `make all` builds it; `make test` runs its tests.
 With lf installed and the release binary built, run the isolated real-LF PTY
 smoke test with `LF_REAL_SMOKE=1 python3 ~/.vim/test-lf-previewer.py`. It checks
-actual 512×512 → 256×256 downsampling before PNG transmission, a stream above
-the 64 KiB remote-line threshold, acknowledgement, quit, and resource cleanup;
+original 512×512 pixels with 256×256 placement, metadata-only redraw/resize/move,
+selection/file-version invalidation, acknowledgement, quit, and resource cleanup;
 this fast-sink check does not replace visual Ghostty tests.
 
 - **JPEG:** pure-Rust decoding and EXIF orientation, lossless PNG protocol output.
-- **PNG:** pure-Rust decoding; alpha preserved with alpha-aware RGBA resizing.
+- **PNG:** pure-Rust decoding; alpha preserved.
   Grayscale and 16-bit input are converted to 8-bit RGB/RGBA inside the PNG.
 - **Sony ARW:** seek to classic TIFF IFD0 tags `0x0201`/`0x0202` and read only the
   embedded JPEG. Valid outer TIFF orientation overrides embedded JPEG orientation
@@ -43,10 +43,10 @@ this fast-sink check does not replace visual Ghostty tests.
 
 Cell pixel dimensions use the controlling tty's `TIOCGWINSZ` values, falling back
 to 10×20 pixels when unavailable. `LF_IMAGE_CELL_PIXELS=10x20` overrides this for
-repeatable headless benchmarks. Rust resizes oriented pixels to fit the available
-preview area before PNG encoding/transmission, preserving aspect ratio without
-upscaling. Ghostty displays the resulting PNG at natural pixel size; no `c`/`r`
-placement scaling is needed.
+repeatable headless benchmarks. Rust uploads original oriented pixels once;
+Kitty's placement fits the image to the available area, preserving aspect ratio
+without upscaling: only the limiting `c` or `r` axis is specified (neither for
+native-sized small images). Geometry changes send placement metadata only.
 Decoded images above 64 million pixels and encoded input above 128 MiB are
 rejected. The encoded bound applies to the embedded JPEG, not the entire ARW;
 large RAW pixel data is neither scanned nor loaded. Reads are bounded before
@@ -58,27 +58,35 @@ The `jpg_preview` Rust library exposes `is_supported_image(path)` for
 case-insensitive extension detection (not content validation), and
 `render(path, cells_w, cells_h, x, y, image_id)` to return a complete Kitty
 stream as `Vec<u8>`. Bounds and zero-based coordinates are terminal cells;
-Kitty's `c`/`r` placement scales the oriented image to fit without distortion.
-Unlike the CLI, the library transmits the image at its original resolution and
-performs no terminal I/O or cell-size detection. The caller supplies a nonzero
-image ID; `delete_image(image_id)` returns the command to delete that image and
-all its placements. Errors include invalid input, zero bounds or ID, and
+Both `render` and `place_image` use the caller's explicit `c`/`r` rectangle;
+the caller must supply an aspect-fitting rectangle. Only the CLI computes
+single-axis placement to preserve aspect ratio.
+Like the CLI, the library transmits original-resolution pixels, but performs no
+terminal I/O or cell-size detection. `upload_image(path, image_id)` returns the
+upload stream and oriented dimensions; `place_image(cells_w, cells_h, x, y, image_id)`
+returns metadata only. The caller supplies a nonzero image ID;
+`hide_image(image_id)` removes placements while retaining pixels, whereas
+`delete_image(image_id)` frees the image and all its placements. Errors include invalid input, zero bounds or ID, and
 coordinate overflow. Reusing an ID replaces that terminal image.
 
-## Production: resize before transmission
+## Production: upload once, place repeatedly
 
 ```text
-JPEG/PNG/ARW → decode/orient → fit-sized resize → PNG Fast/Paeth → LF → Ghostty
+first content → decode/orient → full-resolution PNG → LF upload (a=t) + placement (a=p)
+same content → geometry/visibility change → LF placement (a=p), no pixel payload
 ```
 
-The full-resolution/frontend-scaling experiment was rolled back: dogfooding
-ordinary iPhone JPEGs produced terminal streams around 20 MB and delays exceeding
-one second. Saving helper resize time did not justify the larger conversion and
-transfer costs. Fit-sized Rust resizing is again the production default for LF
-and standalone use, retaining the faster PNG transport and one-command LF path.
-The first LF row remains reserved for timings. No pan/scroll bindings, optional
-full-resolution mode, or persistent cache were added. PNG input is still decoded
-and re-encoded; it is not yet a pass-through optimization.
+LF and standalone previews now use original oriented resolution. Larger first
+transfers are intentional: terminal-resident pixels permit later placement changes
+without resizing, re-encoding, or retransmission. Only one image is retained per
+LF client, not a multi-image cache. Standalone invocations upload once each and
+persist no receipts. The first LF row remains reserved for timings. PNG input is
+still decoded and re-encoded; it is not a pass-through optimization.
+
+Earlier full-resolution experiments were rolled back because ordinary phone JPEGs
+produced streams around 20 MB and delays exceeding one second. The current choice
+explicitly accepts that initial cost in exchange for resident reuse. Historical
+fit-sized benchmarks below quantify that tradeoff, not today's upload dimensions.
 
 ## Live lf timings
 
@@ -99,11 +107,11 @@ total=85ms lf-wait=42 compress=11 read=10 decode=10 resize=6 protocol=2 file=1 n
 - `decode`: image decoding, including orientation metadata lookup.
 - `read`: file read / ARW JPEG extraction, format detection, decoder construction.
 - `orientation`: applying orientation; `resize`: RGB/RGBA8 color conversion
-  and fitting pixels to the preview bounds.
+  (the current CLI does not resample pixels to the preview bounds).
 - `compress`: lossless PNG Fast/Paeth encoding; `protocol`: base64/Kitty assembly.
 - `782KiB>4.9MiB`: encoded input bytes → actual Kitty-stream bytes. For ARW,
   input size is the embedded JPEG, not the RAW file.
-- Final dimensions: resized image pixels. Stages are sorted by descending cost
+- Final dimensions: original oriented image pixels. Stages are sorted by descending cost
   after total, so narrow panes show the largest bottlenecks before clipping.
 
 The row is finalized after lf acknowledges its writes, since delivery cannot be
@@ -126,24 +134,35 @@ selection. The second same-ID upload exposed an empty intermediate image state
 in Herdr. The renderer now skips that redundant work using a **display receipt**:
 
 ```text
-request → matching live display receipt? → reused status only
-        └─ no → decode/resize/PNG → LF write + ACK → publish receipt
-cleaner → invalidate receipt → UI-thread image deletion
+request → matching display identity + geometry? → reused status only
+        └─ no → matching resident identity? → placement-only LF write + ACK
+                  └─ no → full-resolution upload + placement + ACK
+cleaner → forget display receipt → hide placements (d=i), retain pixels
+quit → forget both receipts → free image (d=I)
 ```
 
-This is one private metadata/status file per LF client, at most 2 KiB, under
-`<lf-runtime>/jpg-preview-receipts/`. It stores **no pixels or encoded image**.
-The key includes the LF process birth identity (plus Linux boot ID), source path
-and file version, geometry/cell size, and renderer executable identity. A miss or
-unavailable identity conservatively renders normally. The receipt is atomically
-published only after successful delivery and a file-version recheck.
+Two private metadata/status files per LF client, each at most 2 KiB, live under
+`<lf-runtime>/jpg-preview-receipts/`: `ID.resident` identifies terminal pixels and
+`ID.receipt` additionally identifies displayed geometry. They store **no pixels or
+encoded image**. Both keys include LF process birth identity (plus Linux boot ID),
+source path/file version, and renderer executable identity; only the display key
+includes geometry/cell size. A miss or unavailable identity conservatively uploads.
+Receipts are atomically published after successful delivery and a file-version
+recheck; unsafe, oversized, symlink, and FIFO receipts are rejected.
 
-LF's cleaner invalidates before deleting the image; selection changes, redraws,
-and geometry changes therefore still render. The quit hook forgets metadata
-without requiring a live LF socket. Restart an already-running LF to load that
-new quit hook. Standalone and `lf -single` remain stateless. Abrupt termination
-can leave small metadata files, but an old process/boot identity cannot suppress
-another session's first preview.
+The cleaner hides placements but retains the single resident image: redraws,
+resizes, moves, and image→text→same-image transitions send placement metadata only.
+Selecting another image or modifying the file replaces resident pixels. The quit
+hook frees pixels and forgets both receipts without requiring a live LF socket for
+metadata cleanup. Restart running LF instances to load the hook. Standalone and
+`lf -single` remain stateless. Abrupt termination can leave small metadata files,
+but old process/boot identity cannot suppress another session's first preview.
+
+Overlapping helpers and cleaners serialize receipt lookup, terminal mutation, and
+publication with a per-LF advisory lock. Private zero-byte `ID.lock` files remain
+under `<lf-runtime>/jpg-preview-locks/` after quit; they contain no image/status
+metadata and are deliberately not unlinked while another helper might be queued
+on the same inode. They may be removed when no LF helpers are running.
 
 A `reused total=...` timing row describes the **previous actual render**, not new
 decoding or transfer. Normal totals exclude receipt publication and later stdout
@@ -155,7 +174,7 @@ See [FLICKER.md](FLICKER.md) for evidence and validation limits. No synchronized
 output mode was added: although it helped a replay, truncation/disconnect recovery
 in Herdr's headless terminal was not established.
 
-## Bulk terminal transport
+## Historical bulk terminal transport
 
 See [TRANSPORT.md](TRANSPORT.md) for the fixed ~20 MiB PTY/Ghostty/SSH/LF
 comparison, CPU samples, capture controls, and measurement limitations. The
@@ -163,8 +182,8 @@ investigation did not change production settings.
 
 ## Historical PNG versus raw RGB measurements
 
-These measurements use the helper-resized path at identical target pixels,
-which is again the production approach following the frontend-scaling experiment.
+These historical measurements use the helper-resized path at identical target
+pixels. Current production retains full resolution instead.
 
 At identical pixels, PNG row prediction substantially beats the previous raw
 RGB + fast zlib transport. We use PNG Fast/Paeth (`f=100`), with no extra `o=z`
@@ -225,7 +244,7 @@ a claim about every possible future extension: this build does not accept JPEG
 transparently in its PNG slot, so changing JPEG quality alone cannot enable
 JPEG passthrough on the current path.
 
-## No-resize / terminal-side scaling probe
+## Historical no-resize / terminal-side scaling probe
 
 A separate Ghostty `1.3.0-main+685daee01` raw-TTY test uploaded the full
 1512×2016 PNG once, then replaced the same image/placement ID without another
@@ -254,7 +273,8 @@ avoid full-image encoding/transmission/terminal decoding. Fit-on-load versus
 full-resolution-on-demand is therefore a tradeoff, not a free latency win.
 The probe did not change production sizing or LF key bindings. A subsequent
 full-resolution/terminal-scaling production experiment was rolled back because
-of the increased conversion and transfer cost. Pan bindings remain unimplemented.
+of the increased conversion and transfer cost. Current production explicitly
+accepts that first-transfer cost for resident reuse. Pan bindings remain unimplemented.
 
 ## Historical raw-RGB JPEG measurements
 

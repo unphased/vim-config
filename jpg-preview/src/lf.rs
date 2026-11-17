@@ -10,7 +10,7 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
-use crate::{emit_kitty as emit_protocol, PreparedImage, Timings};
+use crate::{emit_kitty_placement as emit_protocol, PreparedImage, Timings, IMAGE_ID};
 
 const TIMEOUT: Duration = Duration::from_secs(5);
 const RECEIPT_MAGIC: &[u8; 4] = b"LFR1";
@@ -22,14 +22,33 @@ pub fn emit_kitty(
     x: usize,
     y: usize,
     id: u32,
+    cells: (usize, usize),
     timings: &mut Timings,
 ) -> io::Result<()> {
     let started = Instant::now();
     let mut protocol = Vec::new();
-    emit_protocol(&mut protocol, image, x, y)?;
+    emit_protocol(&mut protocol, image, x, y, IMAGE_ID, Some(cells))?;
     timings.wire_bytes = protocol.len();
     timings.encode = started.elapsed();
     transfer(&protocol, &socket_path(), id, TIMEOUT, timings)
+}
+
+pub fn place_image(
+    cells: (usize, usize),
+    x: usize,
+    y: usize,
+    id: u32,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut protocol = Vec::new();
+    crate::emit_placement(&mut protocol, x, y, IMAGE_ID, Some(cells))?;
+    transfer(
+        &protocol,
+        &socket_path(),
+        id,
+        TIMEOUT,
+        &mut Timings::default(),
+    )?;
+    Ok(())
 }
 
 fn runtime_dir(runtime: Option<PathBuf>, temporary: Option<PathBuf>, uid: u32) -> PathBuf {
@@ -61,7 +80,7 @@ impl ReceiptKey {
         let source = fs::metadata(path).ok()?;
         let executable = fs::metadata(env::current_exe().ok()?).ok()?;
         let mut key = Vec::with_capacity(160);
-        key.extend_from_slice(&1u32.to_le_bytes()); // Receipt/render format version.
+        key.extend_from_slice(&2u32.to_le_bytes()); // Receipt/render format version.
         key.extend_from_slice(&birth.to_le_bytes());
         // /proc start ticks are boot-relative; a surviving runtime directory
         // must not make a previous boot's receipt look like a live placement.
@@ -117,11 +136,15 @@ fn process_birth(_id: u32) -> Option<u64> {
 }
 
 fn receipt_directory(create: bool) -> io::Result<Option<PathBuf>> {
+    private_directory("jpg-preview-receipts", create)
+}
+
+fn private_directory(name: &str, create: bool) -> io::Result<Option<PathBuf>> {
     let socket = socket_path();
     let root = socket
         .parent()
         .ok_or_else(|| io::Error::other("invalid lf socket path"))?;
-    let directory = root.join("jpg-preview-receipts");
+    let directory = root.join(name);
     if create {
         match DirBuilder::new().mode(0o700).create(&directory) {
             Ok(()) => {}
@@ -141,6 +164,47 @@ fn receipt_directory(create: bool) -> io::Result<Option<PathBuf>> {
         return Err(io::Error::other("unsafe lf receipt directory"));
     }
     Ok(Some(directory))
+}
+
+// Never unlink lock inodes: a queued helper may still hold the old inode.
+// These private zero-byte synchronization files contain no receipt metadata.
+pub(crate) struct PreviewLock {
+    _file: File,
+}
+
+pub(crate) fn lock_preview(id: u32) -> io::Result<PreviewLock> {
+    let directory = private_directory("jpg-preview-locks", true)?
+        .ok_or_else(|| io::Error::other("lock directory unavailable"))?;
+    lock_path(&directory.join(format!("{id}.lock")))
+}
+
+fn lock_path(path: &Path) -> io::Result<PreviewLock> {
+    let file = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .truncate(false)
+        .mode(0o600)
+        .custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK)
+        .open(path)?;
+    let metadata = file.metadata()?;
+    if !metadata.is_file()
+        || metadata.uid() != unsafe { libc::geteuid() }
+        || metadata.mode() & 0o077 != 0
+        || metadata.len() != 0
+        || metadata.nlink() != 1
+    {
+        return Err(io::Error::other("unsafe lf preview lock"));
+    }
+    loop {
+        if unsafe { libc::flock(file.as_raw_fd(), libc::LOCK_EX) } == 0 {
+            return Ok(PreviewLock { _file: file });
+        }
+        let error = io::Error::last_os_error();
+        if error.kind() != io::ErrorKind::Interrupted {
+            return Err(error);
+        }
+    }
 }
 
 fn receipt_path(id: u32, create: bool) -> io::Result<Option<PathBuf>> {
@@ -230,10 +294,29 @@ pub(crate) fn save_receipt(id: u32, key: &ReceiptKey, status: &str) -> io::Resul
     write_receipt(&path, key, status)
 }
 
-pub fn forget_receipt(id: u32) -> io::Result<()> {
-    let Some(path) = receipt_path(id, false)? else {
-        return Ok(());
-    };
+pub(crate) fn resident_status(id: u32, key: &ReceiptKey) -> Option<(String, (u32, u32))> {
+    let path = receipt_path(id, false).ok()??.with_extension("resident");
+    let status = read_receipt(&path, key)?;
+    let dimensions = resident_dimensions(&status)?;
+    Some((status, dimensions))
+}
+
+fn resident_dimensions(status: &str) -> Option<(u32, u32)> {
+    let (width, height) = status.rsplit_once(' ')?.1.split_once('x')?;
+    let width = width.parse::<u32>().ok()?;
+    let height = height.parse::<u32>().ok()?;
+    (width > 0 && height > 0 && u64::from(width) * u64::from(height) <= crate::MAX_PIXELS)
+        .then_some((width, height))
+}
+
+pub(crate) fn save_resident(id: u32, key: &ReceiptKey, status: &str) -> io::Result<()> {
+    let path = receipt_path(id, true)?
+        .ok_or_else(|| io::Error::other("receipt directory unavailable"))?
+        .with_extension("resident");
+    write_receipt(&path, key, status)
+}
+
+fn remove_receipt(path: &Path) -> io::Result<()> {
     match fs::remove_file(path) {
         Ok(()) => Ok(()),
         Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(()),
@@ -241,9 +324,19 @@ pub fn forget_receipt(id: u32) -> io::Result<()> {
     }
 }
 
+pub fn forget_receipt(id: u32) -> io::Result<()> {
+    if let Some(path) = receipt_path(id, false)? {
+        remove_receipt(&path)?;
+        remove_receipt(&path.with_extension("resident"))?;
+    }
+    Ok(())
+}
+
 pub fn clear_image(id: u32) -> io::Result<()> {
-    forget_receipt(id)?;
-    let command = format!(r#"send {id} tty-write "\033_Ga=d,d=I,i=424242,q=2\033\\""#);
+    if let Some(path) = receipt_path(id, false)? {
+        remove_receipt(&path)?;
+    }
+    let command = format!(r#"send {id} tty-write "\033_Ga=d,d=i,i=424242,q=2\033\\""#);
     let mut command = command.into_bytes();
     command.push(b'\n');
     send_to_socket(&command, &socket_path(), TIMEOUT)
@@ -467,6 +560,110 @@ mod tests {
             .set_times(fs::FileTimes::new().set_modified(modified))
             .unwrap();
         assert_ne!(ReceiptKey::for_preview(id, &image, geometry).unwrap(), key);
+    }
+
+    #[test]
+    fn preview_lock_serializes_resident_lookup_placement_and_publication() {
+        let root = TransferFiles::create(&env::temp_dir()).unwrap();
+        let lock = root.0.join("1.lock");
+        let resident = root.0.join("1.resident");
+        let displayed = root.0.join("1.receipt");
+        let terminal = root.0.join("terminal-image");
+        let key_a = ReceiptKey(vec![1]);
+        let key_b = ReceiptKey(vec![2]);
+        write_receipt(&resident, &key_a, "total=1ms 10x10").unwrap();
+        fs::write(&terminal, "A").unwrap();
+
+        // A has read resident A. B must not replace terminal pixels while A
+        // is preparing its metadata-only placement and display receipt.
+        let a = lock_path(&lock).unwrap();
+        assert!(read_receipt(&resident, &key_a).is_some());
+        let (attempted_tx, attempted_rx) = std::sync::mpsc::channel();
+        let (acquired_tx, acquired_rx) = std::sync::mpsc::channel();
+        let thread_lock = lock.clone();
+        let thread_resident = resident.clone();
+        let thread_displayed = displayed.clone();
+        let thread_terminal = terminal.clone();
+        let b = thread::spawn(move || {
+            attempted_tx.send(()).unwrap();
+            let _b = lock_path(&thread_lock).unwrap();
+            acquired_tx.send(()).unwrap();
+            fs::write(thread_terminal, "B").unwrap();
+            write_receipt(&thread_resident, &key_b, "total=2ms 20x20").unwrap();
+            write_receipt(&thread_displayed, &key_b, "total=2ms 20x20").unwrap();
+        });
+        attempted_rx.recv().unwrap();
+        assert!(matches!(
+            acquired_rx.recv_timeout(Duration::from_millis(50)),
+            Err(std::sync::mpsc::RecvTimeoutError::Timeout)
+        ));
+        assert_eq!(fs::read_to_string(&terminal).unwrap(), "A");
+        write_receipt(&displayed, &key_a, "total=1ms 10x10").unwrap();
+        drop(a);
+        acquired_rx.recv_timeout(Duration::from_secs(1)).unwrap();
+        b.join().unwrap();
+        assert_eq!(fs::read_to_string(&terminal).unwrap(), "B");
+        assert!(read_receipt(&displayed, &ReceiptKey(vec![2])).is_some());
+        assert!(read_receipt(&displayed, &key_a).is_none());
+        // Reopening the same inode serializes cleaner/forget operations too.
+        let _again = lock_path(&lock).unwrap();
+        assert_eq!(fs::metadata(&lock).unwrap().len(), 0);
+    }
+
+    #[test]
+    fn preview_lock_rejects_symlinks_fifos_nonprivate_and_nonempty_files() {
+        let root = TransferFiles::create(&env::temp_dir()).unwrap();
+        let path = root.0.join("1.lock");
+        let target = root.0.join("target");
+        fs::write(&target, "").unwrap();
+        symlink(&target, &path).unwrap();
+        assert!(lock_path(&path).is_err());
+        fs::remove_file(&path).unwrap();
+        let fifo = CString::new(path.as_os_str().as_bytes()).unwrap();
+        assert_eq!(unsafe { libc::mkfifo(fifo.as_ptr(), 0o600) }, 0);
+        assert!(lock_path(&path).is_err());
+        fs::remove_file(&path).unwrap();
+        fs::write(&path, "").unwrap();
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o644)).unwrap();
+        assert!(lock_path(&path).is_err());
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o600)).unwrap();
+        fs::write(&path, "not a lock").unwrap();
+        assert!(lock_path(&path).is_err());
+    }
+
+    #[test]
+    fn resident_dimensions_are_typed_and_bounded() {
+        assert_eq!(
+            resident_dimensions("total=10ms 512x1024"),
+            Some((512, 1024))
+        );
+        for invalid in [
+            "512x1024",
+            "total=1ms 0x10",
+            "total=1ms 10x0",
+            "total=1ms 8001x8000",
+            "total=1ms 4294967296x1",
+            "total=1ms 1x2 extra",
+        ] {
+            assert_eq!(resident_dimensions(invalid), None, "{invalid}");
+        }
+    }
+
+    #[test]
+    fn hiding_display_receipt_retains_only_private_resident_metadata() {
+        let root = TransferFiles::create(&env::temp_dir()).unwrap();
+        let display = root.0.join("1.receipt");
+        let resident = display.with_extension("resident");
+        let key = ReceiptKey(vec![1, 2, 3]);
+        let status = "total=10ms decode=2 1KiB>2KiB 512x1024";
+        write_receipt(&display, &key, status).unwrap();
+        write_receipt(&resident, &key, status).unwrap();
+        remove_receipt(&display).unwrap();
+        assert!(read_receipt(&display, &key).is_none());
+        assert_eq!(read_receipt(&resident, &key).as_deref(), Some(status));
+        assert_eq!(fs::metadata(&resident).unwrap().mode() & 0o777, 0o600);
+        remove_receipt(&resident).unwrap();
+        assert_eq!(fs::read_dir(&root.0).unwrap().count(), 0);
     }
 
     #[test]

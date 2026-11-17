@@ -1,6 +1,8 @@
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
-use jpg_preview::{delete_image, hide_image, is_supported_image, place_image, render, upload_image};
+use jpg_preview::{
+    delete_image, hide_image, is_supported_image, place_image, render, upload_image,
+};
 use std::path::Path;
 
 fn payload(stream: &[u8]) -> Vec<u8> {
@@ -21,7 +23,9 @@ fn uploaded_pixels_are_original_resolution_and_independent_of_placement() {
     image::RgbImage::from_pixel(3000, 1500, image::Rgb([12, 34, 56]))
         .save(&path)
         .unwrap();
-    let (upload, dimensions) = upload_image(&path, 17).unwrap();
+    let image = upload_image(&path, 17).unwrap();
+    let upload = image.stream;
+    let dimensions = image.dimensions;
     assert_eq!(dimensions, (3000, 1500));
     let decoded = image::load_from_memory(&payload(&upload)).unwrap();
     assert_eq!((decoded.width(), decoded.height()), dimensions);
@@ -55,10 +59,22 @@ fn library_validates_placement_and_distinguishes_hide_from_free() {
             "\x1b7\x1b[3;8H\x1b_Ga=p,i={id},p=1,q=2,C=1,c=3,r=4"
         )));
         assert!(text.ends_with("\x1b8"));
-        assert_eq!(hide_image(id), format!("\x1b_Ga=d,d=i,i={id},q=2\x1b\\").as_bytes());
-        assert_eq!(delete_image(id), format!("\x1b_Ga=d,d=I,i={id},q=2\x1b\\").as_bytes());
+        assert_eq!(
+            hide_image(id),
+            format!("\x1b_Ga=d,d=i,i={id},q=2\x1b\\").as_bytes()
+        );
+        assert_eq!(
+            delete_image(id),
+            format!("\x1b_Ga=d,d=I,i={id},q=2\x1b\\").as_bytes()
+        );
     }
-    for (w, h, x, y, id) in [(0, 1, 0, 0, 1), (1, 0, 0, 0, 1), (1, 1, 0, 0, 0), (1, 1, usize::MAX, 0, 1), (1, 1, 0, usize::MAX, 1)] {
+    for (w, h, x, y, id) in [
+        (0, 1, 0, 0, 1),
+        (1, 0, 0, 0, 1),
+        (1, 1, 0, 0, 0),
+        (1, 1, usize::MAX, 0, 1),
+        (1, 1, 0, usize::MAX, 1),
+    ] {
         assert!(place_image(w, h, x, y, id).is_err());
     }
     assert!(std::panic::catch_unwind(|| delete_image(0)).is_err());

@@ -41,6 +41,7 @@ pub(super) fn cli_main() {
 fn run() -> Result<(), Box<dyn Error>> {
     let raw_args: Vec<_> = std::env::args_os().skip(1).collect();
     if let Some((clear, id)) = parse_control_args(&raw_args)? {
+        let _lock = lf::lock_preview(id)?;
         if clear {
             lf::clear_image(id)?;
         } else {
@@ -50,6 +51,9 @@ fn run() -> Result<(), Box<dyn Error>> {
     }
     let started = Instant::now();
     let args = parse_args(raw_args.into_iter())?;
+    // Serialize lookup, terminal mutation, and publication for this LF client.
+    // Otherwise an older helper could place a newer helper's resident pixels.
+    let _lock = args.lf_id.map(lf::lock_preview).transpose()?;
     let Some((height_cells, image_y)) = args.image_area()? else {
         println!("Image preview needs 2 rows (timing + image)");
         return Ok(());
@@ -81,11 +85,42 @@ fn run() -> Result<(), Box<dyn Error>> {
             return Ok(());
         }
     }
-    let prepared = prepare_path(&args.image, max_width, max_height)?;
+    let resident_key = args
+        .lf_id
+        .and_then(|id| lf::ReceiptKey::for_preview(id, &args.image, [0; 8]));
+    let placement = |width, height| {
+        fitted_cells(
+            width,
+            height,
+            max_width,
+            max_height,
+            args.width_cells,
+            height_cells,
+        )
+    };
+    if let (Some(id), Some(key)) = (args.lf_id, resident_key.as_ref()) {
+        if let Some((status, (width, height))) = lf::resident_status(id, key) {
+            lf::place_image(placement(width, height), args.x, image_y, id)?;
+            // A geometry receipt represents acknowledged placement, not merely
+            // resident pixels. The ACK-triggered reload can then be a no-op.
+            if lf::ReceiptKey::for_preview(id, &args.image, [0; 8]).as_ref() == Some(key) {
+                if let Some(display_key) = receipt_key.as_ref() {
+                    let _ = lf::save_receipt(id, display_key, &status);
+                }
+            }
+            println!("reused {status}");
+            return Ok(());
+        }
+    }
+    let prepared = prepare_path(&args.image, usize::MAX, usize::MAX)?;
+    let cells = placement(prepared.width, prepared.height);
 
     if let Some(id) = args.lf_id {
+        // Replacing the one terminal image invalidates even an old resident
+        // receipt when delivery fails halfway through the new upload.
+        lf::forget_receipt(id)?;
         let mut timings = prepared.timings;
-        lf::emit_kitty(&prepared, args.x, image_y, id, &mut timings)?;
+        lf::emit_kitty(&prepared, args.x, image_y, id, cells, &mut timings)?;
         timings.total = started.elapsed();
         let status = timings.line(prepared.width, prepared.height);
         // Publish only after LF acknowledged the complete UI-thread write. A
@@ -93,16 +128,45 @@ fn run() -> Result<(), Box<dyn Error>> {
         if let Some(key) = receipt_key.as_ref() {
             let current_key = lf::ReceiptKey::for_preview(id, &args.image, geometry);
             if current_key.as_ref() == Some(key) {
+                if let Some(resident_key) = resident_key.as_ref() {
+                    let _ = lf::save_resident(id, resident_key, &status);
+                }
                 let _ = lf::save_receipt(id, key, &status);
             }
         }
         println!("{status}");
     } else {
         let mut output = BufWriter::with_capacity(64 * 1024, io::stdout().lock());
-        emit_kitty(&mut output, &prepared, args.x, args.y)?;
+        emit_kitty_placement(
+            &mut output,
+            &prepared,
+            args.x,
+            args.y,
+            IMAGE_ID,
+            Some(cells),
+        )?;
         output.flush()?;
     }
     Ok(())
+}
+
+// Specify only the limiting axis: rounding both axes to whole cells stretches
+// the image, especially with non-square terminal cells. Zero axes mean native.
+fn fitted_cells(
+    width: u32,
+    height: u32,
+    max_width: usize,
+    max_height: usize,
+    width_cells: usize,
+    height_cells: usize,
+) -> (usize, usize) {
+    if width as usize <= max_width && height as usize <= max_height {
+        (0, 0)
+    } else if (max_width as u128) * u128::from(height) <= (max_height as u128) * u128::from(width) {
+        (width_cells, 0)
+    } else {
+        (0, height_cells)
+    }
 }
 
 pub(super) fn parse_control_args(args: &[OsString]) -> Result<Option<(bool, u32)>, Box<dyn Error>> {
@@ -205,4 +269,19 @@ pub(super) fn parse_cell_pixels(value: &str) -> Result<(usize, usize), String> {
         return Err("LF_IMAGE_CELL_PIXELS must be positive WxH".to_owned());
     }
     Ok((width, height))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::fitted_cells;
+
+    #[test]
+    fn placement_uses_only_limiting_axis_without_upscaling() {
+        // 10x20-pixel cells: a square in a tall box must not become 400x440.
+        assert_eq!(fitted_cells(512, 512, 400, 440, 40, 22), (40, 0));
+        assert_eq!(fitted_cells(512, 512, 600, 440, 60, 22), (0, 22));
+        assert_eq!(fitted_cells(10, 10, 400, 440, 40, 22), (0, 0));
+        assert_eq!(fitted_cells(800, 200, 400, 440, 40, 22), (40, 0));
+        assert_eq!(fitted_cells(200, 800, 400, 440, 40, 22), (0, 22));
+    }
 }

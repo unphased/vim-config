@@ -144,12 +144,9 @@ fn oriented_dimensions(
     })
 }
 
-/// Render within a rectangle measured in terminal cells at zero-based cell coordinates.
-/// Returns a complete Kitty stream without terminal I/O. Kitty scales the image
-/// to fit the rectangle, preserving its aspect ratio. Raster preparation assumes
-/// a conservative 20×40 pixels per cell (no terminal query), capped at 2048 pixels
-/// per axis to bound the synchronous stream. Images are never upscaled.
-/// `image_id` must be nonzero. CLI rendering uses its own pixel sizing.
+/// Upload original-resolution, oriented pixels and place them in a cell rectangle.
+/// Coordinates are zero-based. Callers choose aspect-fitting cell dimensions.
+/// Use `place_image` to move or resize the same terminal image without uploading again.
 pub fn render(
     path: &std::path::Path,
     cells_w: usize,
@@ -161,11 +158,7 @@ pub fn render(
     if cells_w == 0 || cells_h == 0 || image_id == 0 {
         return Err("cell dimensions and image ID must be greater than zero".into());
     }
-    let prepared = prepare_path(
-        path,
-        cells_w.saturating_mul(20).min(2048),
-        cells_h.saturating_mul(40).min(2048),
-    )?;
+    let prepared = prepare_path(path, usize::MAX, usize::MAX)?;
     let mut output = Vec::new();
     emit_kitty_placement(
         &mut output,
@@ -176,6 +169,51 @@ pub fn render(
         Some((cells_w, cells_h)),
     )?;
     Ok(output)
+}
+
+/// A prepared Kitty upload and its oriented pixel dimensions.
+pub struct ImageUpload {
+    pub stream: Vec<u8>,
+    pub dimensions: (u32, u32),
+}
+
+/// Encode an original-resolution, oriented image without displaying it.
+/// Returns the upload stream and its pixel dimensions. No terminal I/O is performed.
+pub fn upload_image(path: &std::path::Path, image_id: u32) -> Result<ImageUpload, Box<dyn Error>> {
+    if image_id == 0 {
+        return Err("image ID must be greater than zero".into());
+    }
+    let prepared = prepare_path(path, usize::MAX, usize::MAX)?;
+    let mut output = Vec::new();
+    emit_upload(&mut output, &prepared, image_id)?;
+    Ok(ImageUpload {
+        stream: output,
+        dimensions: (prepared.width, prepared.height),
+    })
+}
+
+/// Replace placement 1 of a resident image without sending pixel data.
+/// Coordinates are zero-based cells. The caller supplies aspect-fitting bounds.
+pub fn place_image(
+    cells_w: usize,
+    cells_h: usize,
+    x: usize,
+    y: usize,
+    image_id: u32,
+) -> Result<Vec<u8>, Box<dyn Error>> {
+    if cells_w == 0 || cells_h == 0 || image_id == 0 {
+        return Err("cell dimensions and image ID must be greater than zero".into());
+    }
+    let mut output = Vec::new();
+    emit_placement(&mut output, x, y, image_id, Some((cells_w, cells_h)))?;
+    Ok(output)
+}
+
+/// Hide all placements while keeping the image's pixels resident in the terminal.
+/// Panics if `image_id` is zero.
+pub fn hide_image(image_id: u32) -> Vec<u8> {
+    assert_ne!(image_id, 0, "image ID must be nonzero");
+    format!("\x1b_Ga=d,d=i,i={image_id},q=2\x1b\\").into_bytes()
 }
 
 /// Return the Kitty command that deletes the specified image and its placements.
@@ -345,6 +383,7 @@ fn fit_dimensions(
     (width, height)
 }
 
+#[cfg(test)]
 fn emit_kitty(
     output: &mut impl Write,
     image: &PreparedImage,
@@ -362,15 +401,14 @@ fn emit_kitty_placement(
     image_id: u32,
     cells: Option<(usize, usize)>,
 ) -> io::Result<()> {
-    let column = x
-        .checked_add(1)
-        .ok_or_else(|| io::Error::other("X coordinate overflow"))?;
-    let row = y
-        .checked_add(1)
-        .ok_or_else(|| io::Error::other("Y coordinate overflow"))?;
-    output.write_all(b"\x1b7")?;
-    write!(output, "\x1b[{row};{column}H")?;
+    // Validate placement before emitting a potentially large upload.
+    let mut placement = Vec::new();
+    emit_placement(&mut placement, x, y, image_id, cells)?;
+    emit_upload(output, image, image_id)?;
+    output.write_all(&placement)
+}
 
+fn emit_upload(output: &mut impl Write, image: &PreparedImage, image_id: u32) -> io::Result<()> {
     let chunk_size = (BASE64_CHUNK / 4) * 3;
     let chunk_count = image.payload.len().div_ceil(chunk_size);
     for (index, chunk) in image.payload.chunks(chunk_size).enumerate() {
@@ -378,20 +416,46 @@ fn emit_kitty_placement(
         if index == 0 {
             write!(
                 output,
-                "\x1b_Ga=T,f=100,s={},v={},i={},q=2,C=1,",
+                "\x1b_Ga=t,f=100,s={},v={},i={},q=2,m={more};",
                 image.width, image.height, image_id
             )?;
-            if let Some((width, height)) = cells {
-                write!(output, "c={width},r={height},")?;
-            }
-            write!(output, "m={more};")?;
         } else {
             write!(output, "\x1b_Gm={more};")?;
         }
         output.write_all(STANDARD.encode(chunk).as_bytes())?;
         output.write_all(b"\x1b\\")?;
     }
-    output.write_all(b"\x1b8")
+    Ok(())
+}
+
+fn emit_placement(
+    output: &mut impl Write,
+    x: usize,
+    y: usize,
+    image_id: u32,
+    cells: Option<(usize, usize)>,
+) -> io::Result<()> {
+    let column = x
+        .checked_add(1)
+        .ok_or_else(|| io::Error::other("X coordinate overflow"))?;
+    let row = y
+        .checked_add(1)
+        .ok_or_else(|| io::Error::other("Y coordinate overflow"))?;
+    write!(
+        output,
+        "\x1b7\x1b[{row};{column}H\x1b_Ga=p,i={image_id},p=1,q=2,C=1"
+    )?;
+    // The CLI omits one axis so Kitty preserves the original pixel aspect.
+    // Both axes are supplied by callers that already fit a cell rectangle.
+    if let Some((width, height)) = cells {
+        if width > 0 {
+            write!(output, ",c={width}")?;
+        }
+        if height > 0 {
+            write!(output, ",r={height}")?;
+        }
+    }
+    output.write_all(b";\x1b\\\x1b8")
 }
 
 #[cfg(test)]
@@ -504,7 +568,7 @@ mod tests {
         let mut output = Vec::new();
         emit_kitty(&mut output, &prepared, 0, 0).unwrap();
         let (header, payload) = parse_protocol(&output);
-        assert!(header.starts_with("a=T,f=100,s=2,v=1"));
+        assert!(header.starts_with("a=t,f=100,s=2,v=1"));
 
         let decoded = decode_png(&payload).into_rgba8();
         assert_eq!(decoded.into_raw(), rgba);
@@ -700,9 +764,8 @@ mod tests {
         };
         let mut output = Vec::new();
         emit_kitty(&mut output, &image, 7, 2).unwrap();
-        assert!(
-            output.starts_with(b"\x1b7\x1b[3;8H\x1b_Ga=T,f=100,s=160,v=160,i=424242,q=2,C=1,m=1;")
-        );
+        assert!(output.starts_with(b"\x1b_Ga=t,f=100,s=160,v=160,i=424242,q=2,m=1;"));
+        assert!(output.ends_with(b"\x1b7\x1b[3;8H\x1b_Ga=p,i=424242,p=1,q=2,C=1;\x1b\\\x1b8"));
         assert!(output.ends_with(b"\x1b8"));
 
         let text = String::from_utf8(output.clone()).unwrap();
@@ -710,16 +773,32 @@ mod tests {
             let (fields, rest) = packet.split_once(';').unwrap();
             let (chunk, _) = rest.split_once("\x1b\\").unwrap();
             assert!(chunk.len() <= BASE64_CHUNK);
+            if fields.starts_with("a=p,") {
+                assert!(chunk.is_empty());
+                continue;
+            }
             assert_eq!(
                 fields.ends_with("m=1"),
                 (index + 1) * ((BASE64_CHUNK / 4) * 3) < image.payload.len()
             );
         }
         let (header, reassembled_payload) = parse_protocol(&output);
-        assert!(header.starts_with("a=T,f=100,s=160,v=160,i=424242,q=2,C=1,m=1"));
+        assert!(header.starts_with("a=t,f=100,s=160,v=160,i=424242,q=2,m=1"));
         assert!(!header.contains("o=z"));
         assert_eq!(reassembled_payload, image.payload);
         assert_eq!(decode_png(&reassembled_payload).into_rgb8().into_raw(), raw);
+    }
+
+    #[test]
+    fn single_axis_placement_leaves_aspect_ratio_to_the_terminal() {
+        for (cells, suffix) in [((3, 0), ",c=3"), ((0, 4), ",r=4"), ((0, 0), "")] {
+            let mut output = Vec::new();
+            emit_placement(&mut output, 0, 0, 17, Some(cells)).unwrap();
+            assert_eq!(
+                output,
+                format!("\x1b7\x1b[1;1H\x1b_Ga=p,i=17,p=1,q=2,C=1{suffix};\x1b\\\x1b8").as_bytes()
+            );
+        }
     }
 
     #[test]

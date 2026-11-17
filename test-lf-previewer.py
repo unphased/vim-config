@@ -386,7 +386,7 @@ class RealLfSmokeTests(unittest.TestCase):
                 # A terminal's shell survives LF, allowing its async on-quit
                 # metadata-only cleanup to finish instead of receiving SIGHUP.
                 deadline = time.monotonic() + 3
-                while list((runtime / 'jpg-preview-receipts').glob('*.receipt')) and time.monotonic() < deadline:
+                while list((runtime / 'jpg-preview-receipts').glob('*')) and time.monotonic() < deadline:
                     select.select([], [], [], 0.01)
                 os._exit(os.waitstatus_to_exitcode(status))
 
@@ -428,7 +428,8 @@ class RealLfSmokeTests(unittest.TestCase):
                 os.write(master, b"j")
                 wait_for_calls(str(image_dir / "b.png"), 2)
                 settle()
-                b_transmissions = bytes(output[start:]).count(b"\x1b_Ga=T,")
+                b_transmissions = bytes(output[start:]).count(b"\x1b_Ga=t,")
+                self.assertIn(b"\x1b_Ga=p,i=424242,p=1,", bytes(output[start:]))
                 self.assertEqual(
                     b_transmissions,
                     1,
@@ -440,7 +441,7 @@ class RealLfSmokeTests(unittest.TestCase):
                 os.write(master, b"k")
                 wait_for_calls(str(image_dir / "a.png"), 4)
                 settle()
-                a_transmissions = bytes(output[start:]).count(b"\x1b_Ga=T,")
+                a_transmissions = bytes(output[start:]).count(b"\x1b_Ga=t,")
                 self.assertEqual(a_transmissions, 1, "returning to A must render one fresh frame")
                 self.assertIn("reused total=", timings.read_text())
 
@@ -449,29 +450,52 @@ class RealLfSmokeTests(unittest.TestCase):
                 os.write(master, b":redraw\r")
                 wait_for_calls(str(image_dir / "a.png"), completed + 2)
                 settle()
-                self.assertEqual(bytes(output[start:]).count(b"\x1b_Ga=T,"), 1,
-                                 "same-geometry redraw must clear the receipt and redraw pixels")
+                self.assertEqual(bytes(output[start:]).count(b"\x1b_Ga=t,"), 0,
+                                 "same-geometry redraw must reuse resident pixels")
+                self.assertIn(b"\x1b_Ga=p,i=424242,p=1,", bytes(output[start:]))
 
                 start = len(output)
                 completed = call_count(str(image_dir / "a.png"), "DONE")
                 fcntl.ioctl(master, termios.TIOCSWINSZ, struct.pack("HHHH", 32, 110, 1100, 640))
                 wait_for_calls(str(image_dir / "a.png"), completed + 1)
                 settle()
-                self.assertGreaterEqual(bytes(output[start:]).count(b"\x1b_Ga=T,"), 1,
-                                        "resizing must not reuse the old geometry")
+                self.assertEqual(bytes(output[start:]).count(b"\x1b_Ga=t,"), 0,
+                                 "resizing must only update placement metadata")
+                self.assertIn(b"\x1b_Ga=p,i=424242,p=1,", bytes(output[start:]))
+
+                start = len(output)
+                completed = call_count(str(image_dir / "a.png"), "DONE")
+                os.write(master, b":set ratios 1:1:1\r")
+                wait_for_calls(str(image_dir / "a.png"), completed + 1)
+                settle()
+                self.assertEqual(bytes(output[start:]).count(b"\x1b_Ga=t,"), 0,
+                                 "moving the preview must only update placement metadata")
+                self.assertIn(b"\x1b_Ga=p,i=424242,p=1,", bytes(output[start:]))
 
                 start = len(output)
                 os.write(master, (":select " + str(note) + "\r").encode())
                 settle()
-                self.assertIn(b"\x1b_Ga=d,d=I,i=424242", bytes(output[start:]))
+                self.assertIn(b"\x1b_Ga=d,d=i,i=424242", bytes(output[start:]))
                 self.assertFalse(list((runtime / "jpg-preview-receipts").glob("*.receipt")))
+                self.assertEqual(len(list((runtime / "jpg-preview-receipts").glob("*.resident"))), 1)
                 completed = call_count(str(image_dir / "a.png"), "DONE")
                 start = len(output)
                 os.write(master, (":select " + str(image_dir / "a.png") + "\r").encode())
                 wait_for_calls(str(image_dir / "a.png"), completed + 2)
                 settle()
-                self.assertEqual(bytes(output[start:]).count(b"\x1b_Ga=T,"), 1,
-                                 "image-text-image must not skip the returning image")
+                self.assertEqual(bytes(output[start:]).count(b"\x1b_Ga=t,"), 0,
+                                 "image-text-image must reuse resident pixels")
+                self.assertIn(b"\x1b_Ga=p,i=424242,p=1,", bytes(output[start:]))
+
+                # In-place content changes invalidate both display and resident identity.
+                completed = call_count(str(image_dir / "a.png"), "DONE")
+                image_dir.joinpath("a.png").write_bytes(image_dir.joinpath("b.png").read_bytes())
+                start = len(output)
+                os.write(master, b":redraw\r")
+                wait_for_calls(str(image_dir / "a.png"), completed + 2)
+                settle()
+                self.assertEqual(bytes(output[start:]).count(b"\x1b_Ga=t,"), 1)
+                start = len(output)
                 os.write(master, b"q")
                 deadline = time.monotonic() + 5
                 while time.monotonic() < deadline:
@@ -484,8 +508,12 @@ class RealLfSmokeTests(unittest.TestCase):
                     select.select([master], [], [], 0.01)
                 self.assertTrue(reaped, "real lf quit timed out")
                 receipt_dir = runtime / "jpg-preview-receipts"
-                self.assertEqual(list(receipt_dir.glob("*.receipt")), [])
-                self.assertEqual(list(runtime.glob("jpg-*")), [receipt_dir])
+                self.assertEqual(list(receipt_dir.iterdir()), [])
+                self.assertIn(b"\x1b_Ga=d,d=I,i=424242", bytes(output[start:]))
+                self.assertEqual(set(runtime.glob("jpg-*")), {receipt_dir, runtime / "jpg-preview-locks"})
+                locks = list((runtime / "jpg-preview-locks").iterdir())
+                self.assertEqual(len(locks), 1)
+                self.assertEqual(locks[0].stat().st_size, 0)
             finally:
                 if not reaped:
                     try:
@@ -504,7 +532,7 @@ class RealLfSmokeTests(unittest.TestCase):
                         os.waitpid(pid, 0)
                 os.close(master)
 
-    def test_large_image_is_resized_before_transmission_and_acknowledged_by_real_lf(self):
+    def test_large_image_is_uploaded_at_original_resolution_and_placed_by_real_lf(self):
         lf = shutil.which("lf")
         binary = ROOT / "jpg-preview/target/release/jpg-preview"
         self.assertIsNotNone(lf, "install lf before running LF_REAL_SMOKE=1")
@@ -540,7 +568,7 @@ class RealLfSmokeTests(unittest.TestCase):
                 _, status = os.waitpid(child, 0)
                 deadline = time.monotonic() + 6
                 while (list(runtime.glob("jpg-[0-9]*")) or
-                       list((runtime / "jpg-preview-receipts").glob("*.receipt"))) and time.monotonic() < deadline:
+                       list((runtime / "jpg-preview-receipts").glob("*"))) and time.monotonic() < deadline:
                     select.select([], [], [], 0.01)
                 os._exit(os.waitstatus_to_exitcode(status))
             output = bytearray()
@@ -580,7 +608,10 @@ class RealLfSmokeTests(unittest.TestCase):
                         break
                 self.assertTrue(packets)
                 self.assertIn(b"f=100", packets[0][0])
-                self.assertIn(b"s=256,v=256", packets[0][0])
+                self.assertIn(b"a=t", packets[0][0])
+                self.assertIn(b"s=512,v=512", packets[0][0])
+                self.assertRegex(bytes(output), rb"\x1b_Ga=p,i=424242,p=1,[^;]*c=256;")
+                self.assertNotRegex(bytes(output), rb"\x1b_Ga=p,[^;]*,r=")
                 self.assertNotIn(b",c=", packets[0][0])
                 self.assertNotIn(b",r=", packets[0][0])
                 self.assertNotIn(b"o=z", packets[0][0])
@@ -589,9 +620,9 @@ class RealLfSmokeTests(unittest.TestCase):
                 payload = base64.b64decode(b"".join(data for _, data in packets), validate=True)
                 self.assertGreater(len(payload), 65536)
                 self.assertTrue(payload.startswith(b"\x89PNG\r\n\x1a\n"))
-                self.assertEqual(struct.unpack_from("!II", payload, 16), (256, 256))
+                self.assertEqual(struct.unpack_from("!II", payload, 16), (512, 512))
                 self.assertEqual(list(runtime.glob("jpg-[0-9]*")), [])
-                self.assertEqual(list((runtime / "jpg-preview-receipts").glob("*.receipt")), [])
+                self.assertEqual(list((runtime / "jpg-preview-receipts").iterdir()), [])
             finally:
                 if not reaped:
                     os.kill(pid, signal.SIGKILL)
