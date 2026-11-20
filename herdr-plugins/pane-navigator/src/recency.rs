@@ -5,7 +5,7 @@
 //! for `DWELL_MS`, so workspaces merely passed through are skipped. A toggle
 //! always commits, so rapid double Ctrl-Tab keeps flipping between two spots.
 
-use serde_json::Value;
+use serde_json::{Value, json};
 
 /// Minimum stay before a departed workspace becomes the return point.
 pub const DWELL_MS: u64 = 2000;
@@ -32,22 +32,87 @@ pub enum Cause {
 }
 
 /// Advance the state for focus landing on `to` at `now_ms`.
-pub fn step(_state: &State, _to: Spot, _now_ms: u64, _cause: Cause) -> State {
-    unimplemented!()
+pub fn step(state: &State, to: Spot, now_ms: u64, cause: Cause) -> State {
+    let Some(cur) = &state.cur else {
+        return State {
+            cur: Some(to),
+            since_ms: now_ms,
+            prev: None,
+        };
+    };
+    if cur.workspace == to.workspace {
+        let tab = to.tab.or_else(|| cur.tab.clone());
+        return State {
+            cur: Some(Spot { tab, ..to }),
+            ..state.clone()
+        };
+    }
+    // Landing back on the return point always swaps, so `prev` never equals `cur`.
+    let returning = state
+        .prev
+        .as_ref()
+        .is_some_and(|p| p.workspace == to.workspace);
+    let dwelt = now_ms.saturating_sub(state.since_ms) >= DWELL_MS;
+    let prev = if cause == Cause::Toggle || returning || dwelt {
+        Some(cur.clone())
+    } else {
+        state.prev.clone()
+    };
+    State {
+        cur: Some(to),
+        since_ms: now_ms,
+        prev,
+    }
 }
 
 /// Sync with the live focus `active`, then pick the return point (if any).
-pub fn plan_toggle(_state: &State, _active: Spot, _now_ms: u64) -> (State, Option<Spot>) {
-    unimplemented!()
+pub fn plan_toggle(state: &State, active: Spot, now_ms: u64) -> (State, Option<Spot>) {
+    let synced = step(state, active, now_ms, Cause::Observed);
+    let target = synced.prev.clone();
+    (synced, target)
 }
 
-pub fn to_json(_state: &State) -> Value {
-    unimplemented!()
+fn spot_json(spot: &Option<Spot>) -> Value {
+    match spot {
+        Some(s) => json!({"workspace": s.workspace, "tab": s.tab}),
+        None => Value::Null,
+    }
+}
+
+pub fn to_json(state: &State) -> Value {
+    json!({
+        "cur": spot_json(&state.cur),
+        "since_ms": state.since_ms,
+        "prev": spot_json(&state.prev),
+    })
+}
+
+/// `None` when the value is malformed; `Some(None)` when absent or null.
+fn spot_from(value: Option<&Value>) -> Option<Option<Spot>> {
+    match value {
+        None | Some(Value::Null) => Some(None),
+        Some(object @ Value::Object(_)) => {
+            let workspace = object.get("workspace")?.as_str()?.to_owned();
+            let tab = match object.get("tab") {
+                None | Some(Value::Null) => None,
+                Some(tab) => Some(tab.as_str()?.to_owned()),
+            };
+            Some(Some(Spot { workspace, tab }))
+        }
+        Some(_) => None,
+    }
 }
 
 /// Lenient: unreadable or foreign content yields an empty state.
-pub fn from_json(_value: &Value) -> State {
-    unimplemented!()
+pub fn from_json(value: &Value) -> State {
+    let parsed = || {
+        Some(State {
+            cur: spot_from(value.get("cur"))?,
+            since_ms: value.get("since_ms").and_then(Value::as_u64).unwrap_or(0),
+            prev: spot_from(value.get("prev"))?,
+        })
+    };
+    parsed().unwrap_or_default()
 }
 
 #[cfg(test)]
