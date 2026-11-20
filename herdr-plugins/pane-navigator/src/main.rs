@@ -10,6 +10,8 @@ use std::process::{Command, Stdio};
 use std::sync::OnceLock;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
+mod recency;
+
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 const PLUGIN_ID: &str = "local.pane-navigator";
