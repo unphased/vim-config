@@ -1,13 +1,13 @@
 #!/bin/sh
 
 usage() {
-  printf 'usage: %s {left|right|up|down|previous-tab|next-tab|toggle}\n' "$0" >&2
+  printf 'usage: %s {left|right|up|down|previous-tab|next-tab}\n' "$0" >&2
   exit 2
 }
 
 [ "$#" -eq 1 ] || usage
 case "$1" in
-  left|right|up|down|previous-tab|next-tab|toggle) direction=$1 ;;
+  left|right|up|down|previous-tab|next-tab) direction=$1 ;;
   *) usage ;;
 esac
 
@@ -137,85 +137,6 @@ pane=$(printf '%s' "$context" | jq -r '.result.pane.pane_id')
 tab=$(printf '%s' "$context" | jq -r '.result.pane.tab_id')
 workspace=$(printf '%s' "$context" | jq -r '.result.pane.workspace_id')
 trace source "pane=$pane tab=$tab workspace=$workspace"
-
-if [ "$direction" = toggle ]; then
-  workspaces=$(herdr workspace list) || exit
-  # History lives with the visible bookmark, so it is scoped to this server
-  # without another state file or a workspace-change listener. Older bookmarks
-  # have no history token and still work as workspace-only return points.
-  candidates=$(printf '%s' "$workspaces" | jq -c --arg current "$workspace" '
-    .result.workspaces as $live |
-    [$live[] | select(.tokens.ctrl_tab_target? == "↩")]
-    | sort_by(.workspace_id == $current)
-    | map(. as $marked |
-        ((.tokens.ctrl_tab_history? | fromjson?) // []) |
-        if type == "array" and length > 0 then .
-        else [{workspace: $marked.workspace_id, tab: null}] end)
-    | add // []
-    | map(select(.workspace as $id | any($live[]; .workspace_id == $id)))') || exit
-
-  target=
-  target_tab=
-  while [ "$(printf '%s' "$candidates" | jq 'length')" -gt 0 ]; do
-    candidate=$(printf '%s' "$candidates" | jq -c '.[0]')
-    candidates=$(printf '%s' "$candidates" | jq -c '.[1:]')
-    target=$(printf '%s' "$candidate" | jq -r '.workspace')
-    target_tab=$(printf '%s' "$candidate" | jq -r '.tab // empty')
-    if [ -n "$target_tab" ]; then
-      tabs=$(herdr tab list --workspace "$target") || exit
-      if ! printf '%s' "$tabs" | jq -e --arg id "$target_tab" \
-          'any(.result.tabs[]; .tab_id == $id)' >/dev/null; then
-        # A closed tab degrades to the workspace, never a dead return point.
-        target_tab=
-      fi
-    fi
-    if [ "$target" != "$workspace" ] || { [ -n "$target_tab" ] && [ "$target_tab" != "$tab" ]; }; then
-      break
-    fi
-    target=
-    target_tab=
-  done
-
-  if [ -z "$target" ]; then
-    target=$(printf '%s' "$workspaces" | workspace_adjacent_target "$workspace" up)
-    [ -n "$target" ] \
-      || target=$(printf '%s' "$workspaces" | workspace_adjacent_target "$workspace" down)
-  fi
-  [ -n "$target" ] || exit
-
-  # Only change history after focus succeeds. Keep both ends of this jump:
-  # [where we left, where we went], including exact tabs whenever known.
-  if [ -n "$target_tab" ]; then
-    focus tab focus "$target_tab" || exit
-  else
-    focus workspace focus "$target" || exit
-    # Workspace focus restores its active tab, including on the first jump.
-    target_tab=$(printf '%s' "$workspaces" | jq -r --arg id "$target" \
-      '.result.workspaces[] | select(.workspace_id == $id) | .active_tab_id // empty') || exit
-  fi
-  history=$(jq -nc --arg workspace "$workspace" --arg tab "$tab" \
-    --arg target "$target" --arg target_tab "$target_tab" \
-    '[{workspace: $workspace, tab: $tab},
-      {workspace: $target, tab: (if $target_tab == "" then null else $target_tab end)}]') || exit
-  herdr workspace report-metadata "$workspace" --source workspace-toggle \
-    --token 'ctrl_tab_target=↩' --token "ctrl_tab_history=$history" >/dev/null || exit
-
-  printf '%s' "$workspaces" | jq -r \
-    '.result.workspaces[] | select(.tokens.ctrl_tab_target? == "↩" or .tokens.ctrl_tab_fallback? == "↩") | .workspace_id' \
-    | while IFS= read -r marked_workspace; do
-        if [ "$marked_workspace" != "$workspace" ]; then
-          herdr workspace report-metadata "$marked_workspace" --source workspace-toggle \
-            --clear-token ctrl_tab_target --clear-token ctrl_tab_history >/dev/null 2>&1 || :
-        fi
-        if [ "$marked_workspace" != "$target" ]; then
-          herdr workspace report-metadata "$marked_workspace" --source workspace-toggle \
-            --clear-token ctrl_tab_fallback >/dev/null 2>&1 || :
-        fi
-      done
-  herdr workspace report-metadata "$target" --source workspace-toggle \
-    --token 'ctrl_tab_fallback=↩' >/dev/null || exit
-  exit
-fi
 
 case "$direction" in
   previous-tab|next-tab)

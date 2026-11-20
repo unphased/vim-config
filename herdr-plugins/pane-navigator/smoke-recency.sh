@@ -29,23 +29,24 @@ visit() { # TAB: focus it, then fire the hook the way Herdr would
 state() { jq -c . "$(dirname "$HERDR_SOCKET_PATH")/pane-navigator-recency.json"; }
 marked() { herdr workspace list | jq -r '[.result.workspaces[] | select(.tokens.ctrl_tab_target? == "↩") | .workspace_id] | join(",")'; }
 
-w2=$(herdr workspace create --no-focus | jq -r '.result.workspace.workspace_id')
+w1=$(herdr workspace create | jq -r ".result.workspace.workspace_id")  # fresh sessions start empty
+w2=$(herdr workspace create --no-focus | jq -r ".result.workspace.workspace_id")
 w3=$(herdr workspace create --no-focus | jq -r '.result.workspace.workspace_id')
 
-visit w1:t1
+visit "$w1:t1"
 sleep 2.1                    # dwell on w1
 visit "$w2:t1"
 visit "$w3:t1"               # w2 was only passed through
-[ "$(state | jq -r .prev.workspace)" = w1 ] || fail "transit: $(state)"
-[ "$(marked)" = w1 ] || fail "sidebar mark: $(marked)"
+[ "$(state | jq -r .prev.workspace)" = "$w1" ] || fail "transit: $(state)"
+[ "$(marked)" = "$w1" ] || fail "sidebar mark: $(marked)"
 
 "$bin" toggle
-[ "$(here)" = w1:t1 ] || fail "toggle 1 landed on $(here)"
+[ "$(here)" = "$w1:t1" ] || fail "toggle 1 landed on $(here)"
 "$bin" toggle                # immediate second press flips back
 [ "$(here)" = "$w3:t1" ] || fail "toggle 2 landed on $(here)"
-[ "$(marked)" = w1 ] || fail "sidebar mark after toggles: $(marked)"
+[ "$(marked)" = "$w1" ] || fail "sidebar mark after toggles: $(marked)"
 
-t2=$(herdr tab create --workspace w1 --no-focus | jq -r '.result.tab.tab_id')
+t2=$(herdr tab create --workspace "$w1" --no-focus | jq -r '.result.tab.tab_id')
 "$bin" toggle; visit "$t2"; "$bin" toggle; "$bin" toggle
 [ "$(here)" = "$t2" ] || fail "exact tab return landed on $(here)"
 

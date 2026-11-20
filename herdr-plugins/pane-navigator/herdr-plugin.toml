@@ -51,3 +51,14 @@ placement = "popup"
 width = 44
 height = 16
 command = ["target/release/herdr-pane-navigator", "popup"]
+
+[[actions]]
+id = "toggle"
+title = "Toggle recent workspace"
+contexts = ["pane"]
+command = ["target/release/herdr-pane-navigator", "toggle"]
+
+# Every focus path (sidebar, keys, CLI) emits tab.focused; record it for Ctrl-Tab.
+[[events]]
+on = "tab.focused"
+command = ["target/release/herdr-pane-navigator", "observe"]
