@@ -630,6 +630,137 @@ fn popup_inner() -> Result<()> {
     result
 }
 
+fn now_ms() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_or(0, |elapsed| elapsed.as_millis() as u64)
+}
+
+/// Per-server state: it sits beside the session's socket, so named test
+/// sessions never share history with the main one.
+fn recency_path() -> Result<PathBuf> {
+    let socket =
+        PathBuf::from(env::var_os("HERDR_SOCKET_PATH").ok_or("HERDR_SOCKET_PATH is required")?);
+    let directory = socket
+        .parent()
+        .ok_or("HERDR_SOCKET_PATH has no directory")?;
+    Ok(directory.join("pane-navigator-recency.json"))
+}
+
+/// Move the sidebar ↩ glyph from the old return point to the new one.
+fn mark_return_point(old: Option<&recency::Spot>, new: Option<&recency::Spot>) {
+    let metadata = |workspace: &str, token: &[&str]| {
+        let mut args = vec![
+            "workspace",
+            "report-metadata",
+            workspace,
+            "--source",
+            "workspace-toggle",
+        ];
+        args.extend_from_slice(token);
+        let _ = Command::new(env::var("HERDR_BIN_PATH").unwrap_or_else(|_| "herdr".into()))
+            .args(args)
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status();
+    };
+    if let Some(old) = old {
+        metadata(&old.workspace, &["--clear-token", "ctrl_tab_target"]);
+    }
+    if let Some(new) = new {
+        metadata(&new.workspace, &["--token", "ctrl_tab_target=↩"]);
+    }
+}
+
+/// Apply `update` to the persisted recency state under an exclusive lock, so
+/// event hooks and toggles serialize. The lock is released when `lock` drops.
+fn with_recency(update: impl FnOnce(&recency::State) -> Result<recency::State>) -> Result<()> {
+    use std::os::fd::AsRawFd;
+    let path = recency_path()?;
+    let lock = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .truncate(false)
+        .mode(0o600)
+        .open(path.with_extension("lock"))?;
+    if unsafe { libc::flock(lock.as_raw_fd(), libc::LOCK_EX) } != 0 {
+        return Err(io::Error::last_os_error().into());
+    }
+    let state = std::fs::read(&path)
+        .ok()
+        .and_then(|bytes| serde_json::from_slice(&bytes).ok())
+        .map(|value| recency::from_json(&value))
+        .unwrap_or_default();
+    let next = update(&state)?;
+    if next != state {
+        let temporary = path.with_extension("tmp");
+        std::fs::write(&temporary, recency::to_json(&next).to_string())?;
+        std::fs::rename(temporary, &path)?;
+        if next.prev != state.prev {
+            mark_return_point(state.prev.as_ref(), next.prev.as_ref());
+        }
+    }
+    Ok(())
+}
+
+/// `tab_focused` event hook: record where focus landed.
+fn observe() -> Result<()> {
+    let event: Value = env::var("HERDR_PLUGIN_EVENT_JSON")
+        .ok()
+        .and_then(|json| serde_json::from_str(&json).ok())
+        .unwrap_or(Value::Null);
+    let data = if event["data"].is_object() {
+        &event["data"]
+    } else {
+        &event
+    };
+    let field = |key: &str, fallback: &str| {
+        data[key]
+            .as_str()
+            .map(str::to_owned)
+            .or_else(|| env::var(fallback).ok())
+    };
+    let workspace = field("workspace_id", "HERDR_WORKSPACE_ID").ok_or("event has no workspace")?;
+    let tab = field("tab_id", "HERDR_TAB_ID");
+    with_recency(|state| {
+        Ok(recency::step(
+            state,
+            recency::Spot { workspace, tab },
+            now_ms(),
+            recency::Cause::Observed,
+        ))
+    })
+}
+
+/// Ctrl-Tab: jump to the return point, falling back to its workspace when
+/// the remembered tab has closed.
+fn toggle() -> Result<()> {
+    with_recency(|state| {
+        // Read live focus only after the lock: queued presses carry stale env.
+        let pane = current_pane()?;
+        let active = recency::Spot {
+            workspace: value_str(&pane, &["workspace_id"])?.to_owned(),
+            tab: Some(value_str(&pane, &["tab_id"])?.to_owned()),
+        };
+        let now = now_ms();
+        let (synced, target) = recency::plan_toggle(state, active, now);
+        let Some(target) = target else {
+            return Ok(synced);
+        };
+        let landed = match &target.tab {
+            Some(tab) if herdr(&["tab", "focus", tab]).is_ok() => target,
+            _ => {
+                herdr(&["workspace", "focus", &target.workspace])?;
+                recency::Spot {
+                    tab: None,
+                    ..target
+                }
+            }
+        };
+        Ok(recency::step(&synced, landed, now, recency::Cause::Toggle))
+    })
+}
+
 fn run() -> Result<()> {
     let _ = trace_id();
     let arguments: Vec<String> = env::args().collect();
@@ -637,6 +768,8 @@ fn run() -> Result<()> {
         Some(direction @ ("left" | "right" | "up" | "down" | "previous-tab" | "next-tab")) => {
             navigate_once(direction)
         }
+        Some("observe") => observe(),
+        Some("toggle") => toggle(),
         Some("popup") => popup(),
         Some("after-move") if arguments.len() == 4 => {
             trace(
@@ -649,7 +782,7 @@ fn run() -> Result<()> {
             result
         }
         _ => Err(
-            "usage: herdr-pane-navigator {left|right|up|down|popup|after-move DIRECTION PANE}"
+            "usage: herdr-pane-navigator {left|right|up|down|observe|toggle|popup|after-move DIRECTION PANE}"
                 .into(),
         ),
     }
