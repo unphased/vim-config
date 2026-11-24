@@ -455,3 +455,8 @@ fi
 if [[ -o interactive && -r "$HOME/.vim/ssh-server-security-check.sh" ]]; then
   "$HOME/.vim/ssh-server-security-check.sh"
 fi
+
+# agent-history recaps: local qwen via llmfront (wakes the GPU box) with an opencode
+# fallback, through the fallback/flash virtual model (~/util/pi/extensions/fallback-models).
+export AGENT_HISTORY_RECAP_MODEL=fallback/flash
+export AGENT_HISTORY_RECAP_EXTENSIONS="$HOME/.pi/agent/extensions/home-models:$HOME/.pi/agent/extensions/fallback-models"
