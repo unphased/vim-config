@@ -23,6 +23,7 @@ test:
 	zsh test-nvim-bgcolor-hook.zsh
 	zsh test-git-cli-helpers.zsh
 	zsh test-git-log-args.zsh
+	zsh test-pi-crw.zsh
 	./test-git-lg-full.sh
 	./test-herdr-copy-pane-id-plugin.sh
 	sh -n herdr-plugins/capture-command.sh herdr-plugins/reveal-location/open-editor.sh

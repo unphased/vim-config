@@ -476,11 +476,22 @@ pi() {
 		return $?
 	fi
 
-	# Prefer the workstation's localhost-only service. Fetch its key just for
-	# this Pi process so local subagents inherit the same endpoint.
+	# Prefer NAS CRW over Tailscale. Skip the default health check for an
+	# explicit URL; only the child Pi and its subagents inherit the key.
 	local crw_key crw_api_url crw_local_env
+	crw_api_url="${CRW_API_URL:-http://slu-nas-eos:3000}"
+	if { [ -n "${CRW_API_URL:-}" ] || curl -fsS --connect-timeout 1 --max-time 2 \
+		"${crw_api_url%/}/health" -o /dev/null 2>/dev/null; } \
+		&& crw_key="$(ssh -o BatchMode=yes -o RequestTTY=no -o ConnectTimeout=2 \
+			nas "awk -F= '\$1 == \"CRW_API_KEY\" { print \$2 }' /opt/crw-stack/.env || sudo -n awk -F= '\$1 == \"CRW_API_KEY\" { print \$2 }' /opt/crw-stack/.env" \
+			2>/dev/null)" && [ -n "$crw_key" ]; then
+		CRW_API_URL="$crw_api_url" CRW_API_KEY="$crw_key" command pi "$@"
+		return $?
+	fi
+
+	# If the default NAS is unavailable, keep using the Mac stack when healthy.
 	crw_local_env="$HOME/Library/Application Support/crw/stack/.env"
-	if [ -f "$crw_local_env" ] \
+	if [ -z "${CRW_API_URL:-}" ] && [ -f "$crw_local_env" ] \
 		&& curl -fsS --connect-timeout 1 --max-time 2 http://127.0.0.1:3210/health \
 			-o /dev/null 2>/dev/null; then
 		crw_key="$(awk -F= '$1 == "CRW_API_KEY" { sub(/^[^=]*=/, ""); print; exit }' \
@@ -491,25 +502,8 @@ pi() {
 		fi
 	fi
 
-	# Otherwise try the remote NAS service. The child Pi process and its local
-	# subagents inherit the selected endpoint and key.
-	crw_api_url="${CRW_API_URL:-http://slu-nas-eos:3000}"
-	# The bootstrap leaves .env mode 0600 but assigns it to the operator who
-	# invoked sudo, so ordinary SSH access is sufficient. Keep the sudo fallback
-	# for older/root-owned deployments when a narrow NOPASSWD rule exists. Try
-	# both over one connection so an unavailable NAS delays Pi by about 2s total.
-	if ! crw_key="$(ssh -o BatchMode=yes -o RequestTTY=no -o ConnectTimeout=2 \
-		nas "awk -F= '\$1 == \"CRW_API_KEY\" { print \$2 }' /opt/crw-stack/.env || sudo -n awk -F= '\$1 == \"CRW_API_KEY\" { print \$2 }' /opt/crw-stack/.env" \
-		2>/dev/null)"; then
-		crw_key=""
-	fi
-	if [ -z "$crw_key" ]; then
-		printf '%s\n' 'Unable to retrieve the CRW API key from nas; starting Pi anyway.' >&2
-		command pi "$@"
-		return $?
-	fi
-
-	CRW_API_URL="$crw_api_url" CRW_API_KEY="$crw_key" command pi "$@"
+	printf '%s\n' 'No CRW backend available; starting Pi anyway.' >&2
+	command pi "$@"
 }
 
 alias gcp="git commit-push"
